@@ -32,9 +32,11 @@ const app = new Elysia()
   .use(authRoutes)
   .use(profileRoutes)
   .use(tenantsRoutes)
-  .onRequest(({ request }) => {
+  .derive(() => ({ startTime: performance.now() }))
+  .onAfterResponse(({ request, startTime }) => {
+    const duration = (performance.now() - startTime).toFixed(2);
     const timestamp = new Date().toISOString();
-    console.log(`[${timestamp}] ${request.method} ${request.url}`);
+    console.log(`[${timestamp}] ${request.method} ${request.url} ${duration}ms`);
   })
   .get("/", () => ({ message: "LMS API", version: "1.0.0" }))
   .listen(env.PORT);
