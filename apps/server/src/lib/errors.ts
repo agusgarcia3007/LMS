@@ -48,13 +48,41 @@ export class AppError extends Error {
 }
 
 export const errorHandler = new Elysia({ name: "error-handler" }).onError(
-  ({ error, set }) => {
+  ({ error, set, code }) => {
+    console.error("Error occurred:", {
+      name: error instanceof Error ? error.name : "Unknown",
+      message: error instanceof Error ? error.message : String(error),
+      code,
+      stack: error instanceof Error ? error.stack : undefined,
+    });
+
     // Handle custom AppError
     if (error instanceof AppError) {
       set.status = error.statusCode;
       return {
         code: error.code,
         message: error.message,
+      } satisfies ErrorResponse;
+    }
+
+    // Handle Elysia validation errors
+    if (code === "VALIDATION") {
+      set.status = 400;
+      return {
+        code: ErrorCode.VALIDATION_ERROR,
+        message: error instanceof Error ? error.message : "Validation failed",
+      } satisfies ErrorResponse;
+    }
+
+    // Handle database errors
+    if (
+      error instanceof Error &&
+      error.message?.includes("violates")
+    ) {
+      set.status = 409;
+      return {
+        code: ErrorCode.DATABASE_ERROR,
+        message: "Database constraint violation",
       } satisfies ErrorResponse;
     }
 
