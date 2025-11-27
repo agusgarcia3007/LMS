@@ -53,8 +53,16 @@ export const authPlugin = new Elysia({ name: "auth" })
       };
     }
 
-    // Tenant check (superadmin bypasses)
-    if (user.role !== "superadmin" && tenant && tenant.id !== user.tenantId) {
+    // Tenant check
+    // - Superadmin bypasses always
+    // - Owner without tenant (tenantId null) bypasses
+    // - Owner with tenant must match
+    // - Student/Admin must match
+    const bypassesTenantCheck =
+      user.role === "superadmin" ||
+      (user.role === "owner" && user.tenantId === null);
+
+    if (!bypassesTenantCheck && tenant && tenant.id !== user.tenantId) {
       return {
         user: null as UserWithoutPassword | null,
         userId: null as string | null,

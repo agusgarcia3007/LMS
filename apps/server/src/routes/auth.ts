@@ -14,13 +14,9 @@ authRoutes.post(
   "/signup",
   async ({ body, jwt, refreshJwt, tenant, set }) => {
     try {
-      if (!tenant) {
-        throw new AppError(
-          ErrorCode.TENANT_NOT_SPECIFIED,
-          "Tenant not specified. Use X-Tenant-Slug header.",
-          400
-        );
-      }
+      // Parent app signup (no tenant) → owner
+      // Tenant signup (with tenant) → student
+      const isParentAppSignup = !tenant;
 
       const [existing] = await db
         .select()
@@ -44,8 +40,8 @@ authRoutes.post(
           email: body.email,
           password: hashedPassword,
           name: body.name,
-          role: "student",
-          tenantId: tenant.id,
+          role: isParentAppSignup ? "owner" : "student",
+          tenantId: isParentAppSignup ? null : tenant.id,
         })
         .returning();
 
@@ -125,21 +121,40 @@ authRoutes.post(
         );
       }
 
-      // Tenant check (superadmin bypasses)
+      // Tenant check
+      // - Superadmin bypasses always
+      // - Owner without tenant can login in parent app
+      // - Owner with tenant must login in their tenant
+      // - Student must login in their tenant
       if (user.role !== "superadmin") {
-        if (!tenant) {
-          throw new AppError(
-            ErrorCode.TENANT_NOT_SPECIFIED,
-            "Tenant not specified",
-            400
-          );
-        }
-        if (user.tenantId !== tenant.id) {
-          throw new AppError(
-            ErrorCode.WRONG_TENANT,
-            "User does not belong to this tenant",
-            403
-          );
+        const isOwnerWithoutTenant =
+          user.role === "owner" && user.tenantId === null;
+
+        if (isOwnerWithoutTenant) {
+          // Owner without tenant can only login in parent app (no tenant)
+          if (tenant) {
+            throw new AppError(
+              ErrorCode.WRONG_TENANT,
+              "Owner without tenant must login in parent app",
+              403
+            );
+          }
+        } else {
+          // All other users need a tenant context
+          if (!tenant) {
+            throw new AppError(
+              ErrorCode.TENANT_NOT_SPECIFIED,
+              "Tenant not specified",
+              400
+            );
+          }
+          if (user.tenantId !== tenant.id) {
+            throw new AppError(
+              ErrorCode.WRONG_TENANT,
+              "User does not belong to this tenant",
+              403
+            );
+          }
         }
       }
 
