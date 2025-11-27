@@ -1,11 +1,10 @@
-import { Elysia } from "elysia";
 import { cors } from "@elysiajs/cors";
-import { rateLimit } from "elysia-rate-limit";
 import { openapi } from "@elysiajs/openapi";
+import { Elysia } from "elysia";
+import { rateLimit } from "elysia-rate-limit";
 import { env } from "./lib/env";
-import { authRoutes } from "./routes/auth";
-import { profileRoutes } from "./routes/profile";
-import { tenantsRoutes } from "./routes/tenants";
+import { parseDuration } from "./lib/utils";
+import { ROUTES } from "./routes";
 
 const app = new Elysia()
   .use(cors({ origin: env.CORS_ORIGIN || true }))
@@ -29,16 +28,23 @@ const app = new Elysia()
       },
     })
   )
-  .use(authRoutes)
-  .use(profileRoutes)
-  .use(tenantsRoutes)
   .derive(() => ({ startTime: performance.now() }))
   .onAfterResponse(({ request, startTime }) => {
     const duration = (performance.now() - startTime).toFixed(2);
     const timestamp = new Date().toISOString();
-    console.log(`[${timestamp}] ${request.method} ${request.url} ${duration}ms`);
+
+    console.log(
+      `[${timestamp}] ${request.method} ${request.url} ${parseDuration(
+        +duration
+      )}`
+    );
   })
-  .get("/", () => ({ message: "LMS API", version: "1.0.0" }))
   .listen(env.PORT);
+
+app.get("/", () => ({ message: "LMS API", version: "1.0.0" }));
+
+ROUTES.forEach(({ path, route }) => {
+  app.group(path, (app) => app.use(route));
+});
 
 console.log(`LMS API running at ${app.server?.hostname}:${app.server?.port}`);
