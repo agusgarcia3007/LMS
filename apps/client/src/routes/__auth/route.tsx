@@ -32,10 +32,7 @@ function AuthLayout() {
     <div className="flex min-h-screen items-center justify-center">
       <div className="flex flex-1 flex-col justify-center px-4 py-10 lg:px-6">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
-          <Logo
-            className="mx-auto h-10 w-10 text-foreground"
-            aria-hidden={true}
-          />
+          <Logo className="mx-auto h-10 w-10 text-primary" aria-hidden={true} />
         </div>
         <Outlet />
       </div>

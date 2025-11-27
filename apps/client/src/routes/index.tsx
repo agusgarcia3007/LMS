@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+import { Header } from "@/components/header";
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/")({
@@ -8,7 +8,10 @@ export const Route = createFileRoute("/")({
 function RouteComponent() {
   return (
     <div>
-      Hello "/"! <Button>This is a button</Button>
+      <Header />
+      <main className="container mx-auto px-4 py-8">
+        <h1 className="text-2xl font-bold">Welcome to LMS</h1>
+      </main>
     </div>
   );
 }
