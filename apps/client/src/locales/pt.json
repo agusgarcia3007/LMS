@@ -6,7 +6,35 @@
     "signUp": "Cadastrar",
     "logIn": "Entrar",
     "logOut": "Sair",
-    "unexpected_error": "Ocorreu um erro inesperado. Por favor, tente novamente."
+    "backToHome": "Voltar ao inicio",
+    "unexpected_error": "Ocorreu um erro inesperado. Por favor, tente novamente.",
+    "cancel": "Cancelar",
+    "delete": "Excluir",
+    "save": "Salvar",
+    "edit": "Editar",
+    "actions": "Acoes",
+    "name": "Nome",
+    "typeToConfirm": "Digite \"{{value}}\" para confirmar",
+    "noOrganization": "Sem organizacao"
+  },
+  "dataTable": {
+    "search": "Buscar...",
+    "noResults": "Nenhum resultado encontrado",
+    "rowsPerPage": "Linhas por pagina",
+    "page": "Pagina",
+    "of": "de",
+    "showing": "Mostrando {{from}} a {{to}} de {{total}}",
+    "filters": {
+      "title": "Filtros",
+      "clear": "Limpar filtros",
+      "apply": "Aplicar"
+    }
+  },
+  "roles": {
+    "superadmin": "Super Admin",
+    "owner": "Proprietario",
+    "admin": "Administrador",
+    "student": "Estudante"
   },
   "errors": {
     "tenant_not_specified": "Organização não especificada. Por favor, entre em contato com o suporte.",
@@ -103,6 +131,76 @@
       "modules": "Modulos",
       "classes": "Aulas",
       "adminPanel": "Painel de administracao"
+    }
+  },
+  "backoffice": {
+    "title": "Backoffice",
+    "sidebar": {
+      "overview": "Visao geral",
+      "home": "Inicio",
+      "management": "Gestao",
+      "users": "Usuarios",
+      "tenants": "Organizacoes"
+    },
+    "dashboard": {
+      "title": "Painel de controle",
+      "description": "Visao geral do sistema",
+      "totalUsers": "Total de usuarios",
+      "totalTenants": "Total de organizacoes"
+    },
+    "users": {
+      "title": "Gestao de usuarios",
+      "description": "Gerencie todos os usuarios do sistema",
+      "columns": {
+        "name": "Nome",
+        "email": "E-mail",
+        "role": "Funcao",
+        "tenant": "Organizacao",
+        "createdAt": "Data de criacao"
+      },
+      "filters": {
+        "role": "Funcao",
+        "tenant": "Organizacao",
+        "createdAt": "Data de criacao"
+      },
+      "edit": {
+        "title": "Editar usuario",
+        "success": "Usuario atualizado com sucesso"
+      },
+      "delete": {
+        "title": "Excluir usuario",
+        "description": "Tem certeza de que deseja excluir {{name}}? Esta acao nao pode ser desfeita.",
+        "confirm": "Digite o nome do usuario para confirmar",
+        "success": "Usuario excluido com sucesso"
+      },
+      "empty": {
+        "title": "Nenhum usuario",
+        "description": "Nenhum usuario encontrado com os filtros atuais"
+      }
+    },
+    "tenants": {
+      "title": "Gestao de organizacoes",
+      "description": "Gerencie todas as organizacoes",
+      "columns": {
+        "name": "Nome",
+        "slug": "Identificador",
+        "usersCount": "Usuarios",
+        "createdAt": "Data de criacao"
+      },
+      "edit": {
+        "title": "Editar organizacao",
+        "success": "Organizacao atualizada com sucesso"
+      },
+      "delete": {
+        "title": "Excluir organizacao",
+        "description": "Tem certeza de que deseja excluir {{name}}? Todos os usuarios associados serao excluidos. Esta acao nao pode ser desfeita.",
+        "confirm": "Digite o nome da organizacao para confirmar",
+        "success": "Organizacao excluida com sucesso"
+      },
+      "empty": {
+        "title": "Nenhuma organizacao",
+        "description": "Nenhuma organizacao encontrada com os filtros atuais"
+      }
     }
   }
 }

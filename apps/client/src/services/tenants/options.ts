@@ -3,13 +3,26 @@ import {
   queryOptions,
   useQueryClient,
 } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { i18n } from "@/i18n";
 import { QUERY_KEYS as PROFILE_QUERY_KEYS } from "@/services/profile/service";
-import { TenantsService, QUERY_KEYS } from "./service";
+import {
+  TenantsService,
+  QUERY_KEYS,
+  type TenantListParams,
+  type UpdateTenantRequest,
+} from "./service";
 
 export const tenantsOptions = queryOptions({
-  queryFn: TenantsService.list,
+  queryFn: () => TenantsService.list(),
   queryKey: QUERY_KEYS.TENANTS,
 });
+
+export const tenantsListOptions = (params: TenantListParams = {}) =>
+  queryOptions({
+    queryFn: () => TenantsService.list(params),
+    queryKey: QUERY_KEYS.TENANTS_LIST(params),
+  });
 
 export const tenantOptions = (slug: string) =>
   queryOptions({
@@ -24,6 +37,29 @@ export const createTenantOptions = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.TENANTS });
       queryClient.invalidateQueries({ queryKey: PROFILE_QUERY_KEYS.PROFILE });
+    },
+  });
+};
+
+export const updateTenantOptions = () => {
+  const queryClient = useQueryClient();
+  return mutationOptions({
+    mutationFn: ({ id, ...payload }: { id: string } & UpdateTenantRequest) =>
+      TenantsService.update(id, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.TENANTS });
+      toast.success(i18n.t("backoffice.tenants.edit.success"));
+    },
+  });
+};
+
+export const deleteTenantOptions = () => {
+  const queryClient = useQueryClient();
+  return mutationOptions({
+    mutationFn: TenantsService.delete,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.TENANTS });
+      toast.success(i18n.t("backoffice.tenants.delete.success"));
     },
   });
 };

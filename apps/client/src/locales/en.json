@@ -6,7 +6,35 @@
     "signUp": "Sign up",
     "logIn": "Log in",
     "logOut": "Log out",
-    "unexpected_error": "An unexpected error occurred. Please try again."
+    "backToHome": "Back to home",
+    "unexpected_error": "An unexpected error occurred. Please try again.",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "save": "Save",
+    "edit": "Edit",
+    "actions": "Actions",
+    "name": "Name",
+    "typeToConfirm": "Type \"{{value}}\" to confirm",
+    "noOrganization": "No organization"
+  },
+  "dataTable": {
+    "search": "Search...",
+    "noResults": "No results found",
+    "rowsPerPage": "Rows per page",
+    "page": "Page",
+    "of": "of",
+    "showing": "Showing {{from}} to {{to}} of {{total}}",
+    "filters": {
+      "title": "Filters",
+      "clear": "Clear filters",
+      "apply": "Apply"
+    }
+  },
+  "roles": {
+    "superadmin": "Super Admin",
+    "owner": "Owner",
+    "admin": "Administrator",
+    "student": "Student"
   },
   "errors": {
     "tenant_not_specified": "Organization not specified. Please contact support.",
@@ -103,6 +131,76 @@
       "modules": "Modules",
       "classes": "Classes",
       "adminPanel": "Admin Panel"
+    }
+  },
+  "backoffice": {
+    "title": "Backoffice",
+    "sidebar": {
+      "overview": "Overview",
+      "home": "Home",
+      "management": "Management",
+      "users": "Users",
+      "tenants": "Organizations"
+    },
+    "dashboard": {
+      "title": "Dashboard",
+      "description": "System overview",
+      "totalUsers": "Total users",
+      "totalTenants": "Total organizations"
+    },
+    "users": {
+      "title": "User management",
+      "description": "Manage all system users",
+      "columns": {
+        "name": "Name",
+        "email": "Email",
+        "role": "Role",
+        "tenant": "Organization",
+        "createdAt": "Created at"
+      },
+      "filters": {
+        "role": "Role",
+        "tenant": "Organization",
+        "createdAt": "Created at"
+      },
+      "edit": {
+        "title": "Edit user",
+        "success": "User updated successfully"
+      },
+      "delete": {
+        "title": "Delete user",
+        "description": "Are you sure you want to delete {{name}}? This action cannot be undone.",
+        "confirm": "Type the user's name to confirm",
+        "success": "User deleted successfully"
+      },
+      "empty": {
+        "title": "No users",
+        "description": "No users found with the current filters"
+      }
+    },
+    "tenants": {
+      "title": "Organization management",
+      "description": "Manage all organizations",
+      "columns": {
+        "name": "Name",
+        "slug": "Identifier",
+        "usersCount": "Users",
+        "createdAt": "Created at"
+      },
+      "edit": {
+        "title": "Edit organization",
+        "success": "Organization updated successfully"
+      },
+      "delete": {
+        "title": "Delete organization",
+        "description": "Are you sure you want to delete {{name}}? All associated users will be deleted. This action cannot be undone.",
+        "confirm": "Type the organization's name to confirm",
+        "success": "Organization deleted successfully"
+      },
+      "empty": {
+        "title": "No organizations",
+        "description": "No organizations found with the current filters"
+      }
     }
   }
 }

@@ -1,0 +1,86 @@
+import { http } from "@/lib/http";
+
+export type UserRole = "superadmin" | "owner" | "admin" | "student";
+
+export type User = {
+  id: string;
+  email: string;
+  name: string;
+  avatar: string | null;
+  role: UserRole;
+  tenantId: string | null;
+  createdAt: string;
+  updatedAt: string;
+  tenant: {
+    id: string;
+    name: string | null;
+    slug: string | null;
+  } | null;
+};
+
+export type PaginationResult = {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+};
+
+export type UserListParams = {
+  page?: number;
+  limit?: number;
+  sort?: string;
+  search?: string;
+  role?: string;
+  tenantId?: string;
+  createdAt?: string;
+};
+
+export type UserListResponse = {
+  users: User[];
+  pagination: PaginationResult;
+};
+
+export type UpdateUserRequest = {
+  name?: string;
+  role?: UserRole;
+  tenantId?: string | null;
+};
+
+export const QUERY_KEYS = {
+  USERS: ["users"],
+  USERS_LIST: (params: UserListParams) => ["users", "list", params],
+  USER: (id: string) => ["users", id],
+} as const;
+
+export const UsersService = {
+  async list(params: UserListParams = {}) {
+    const searchParams = new URLSearchParams();
+    if (params.page) searchParams.set("page", String(params.page));
+    if (params.limit) searchParams.set("limit", String(params.limit));
+    if (params.sort) searchParams.set("sort", params.sort);
+    if (params.search) searchParams.set("search", params.search);
+    if (params.role) searchParams.set("role", params.role);
+    if (params.tenantId) searchParams.set("tenantId", params.tenantId);
+    if (params.createdAt) searchParams.set("createdAt", params.createdAt);
+
+    const queryString = searchParams.toString();
+    const url = queryString ? `/users?${queryString}` : "/users";
+    const { data } = await http.get<UserListResponse>(url);
+    return data;
+  },
+
+  async getById(id: string) {
+    const { data } = await http.get<{ user: User }>(`/users/${id}`);
+    return data;
+  },
+
+  async update(id: string, payload: UpdateUserRequest) {
+    const { data } = await http.put<{ user: User }>(`/users/${id}`, payload);
+    return data;
+  },
+
+  async delete(id: string) {
+    const { data } = await http.delete<{ success: boolean }>(`/users/${id}`);
+    return data;
+  },
+} as const;

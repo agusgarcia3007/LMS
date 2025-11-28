@@ -11,10 +11,14 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as CreateTenantRouteImport } from './routes/create-tenant'
+import { Route as BackofficeRouteRouteImport } from './routes/backoffice/route'
 import { Route as _authRouteRouteImport } from './routes/__auth/route'
 import { Route as TenantSlugRouteRouteImport } from './routes/$tenantSlug/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as BackofficeIndexRouteImport } from './routes/backoffice/index'
 import { Route as TenantSlugIndexRouteImport } from './routes/$tenantSlug/index'
+import { Route as BackofficeUsersRouteImport } from './routes/backoffice/users'
+import { Route as BackofficeTenantsRouteImport } from './routes/backoffice/tenants'
 import { Route as _authSignupRouteImport } from './routes/__auth/signup'
 import { Route as _authResetPasswordRouteImport } from './routes/__auth/reset-password'
 import { Route as _authLoginRouteImport } from './routes/__auth/login'
@@ -33,6 +37,11 @@ const CreateTenantRoute = CreateTenantRouteImport.update({
   path: '/create-tenant',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BackofficeRouteRoute = BackofficeRouteRouteImport.update({
+  id: '/backoffice',
+  path: '/backoffice',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const _authRouteRoute = _authRouteRouteImport.update({
   id: '/__auth',
   getParentRoute: () => rootRouteImport,
@@ -47,10 +56,25 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BackofficeIndexRoute = BackofficeIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => BackofficeRouteRoute,
+} as any)
 const TenantSlugIndexRoute = TenantSlugIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => TenantSlugRouteRoute,
+} as any)
+const BackofficeUsersRoute = BackofficeUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => BackofficeRouteRoute,
+} as any)
+const BackofficeTenantsRoute = BackofficeTenantsRouteImport.update({
+  id: '/tenants',
+  path: '/tenants',
+  getParentRoute: () => BackofficeRouteRoute,
 } as any)
 const _authSignupRoute = _authSignupRouteImport.update({
   id: '/signup',
@@ -94,13 +118,17 @@ const TenantSlugContentClassesRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$tenantSlug': typeof TenantSlugRouteRouteWithChildren
+  '/backoffice': typeof BackofficeRouteRouteWithChildren
   '/create-tenant': typeof CreateTenantRoute
   '/profile': typeof ProfileRoute
   '/forgot-password': typeof _authForgotPasswordRoute
   '/login': typeof _authLoginRoute
   '/reset-password': typeof _authResetPasswordRoute
   '/signup': typeof _authSignupRoute
+  '/backoffice/tenants': typeof BackofficeTenantsRoute
+  '/backoffice/users': typeof BackofficeUsersRoute
   '/$tenantSlug/': typeof TenantSlugIndexRoute
+  '/backoffice/': typeof BackofficeIndexRoute
   '/$tenantSlug/content/classes': typeof TenantSlugContentClassesRoute
   '/$tenantSlug/content/courses': typeof TenantSlugContentCoursesRoute
   '/$tenantSlug/content/modules': typeof TenantSlugContentModulesRoute
@@ -113,7 +141,10 @@ export interface FileRoutesByTo {
   '/login': typeof _authLoginRoute
   '/reset-password': typeof _authResetPasswordRoute
   '/signup': typeof _authSignupRoute
+  '/backoffice/tenants': typeof BackofficeTenantsRoute
+  '/backoffice/users': typeof BackofficeUsersRoute
   '/$tenantSlug': typeof TenantSlugIndexRoute
+  '/backoffice': typeof BackofficeIndexRoute
   '/$tenantSlug/content/classes': typeof TenantSlugContentClassesRoute
   '/$tenantSlug/content/courses': typeof TenantSlugContentCoursesRoute
   '/$tenantSlug/content/modules': typeof TenantSlugContentModulesRoute
@@ -123,13 +154,17 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/$tenantSlug': typeof TenantSlugRouteRouteWithChildren
   '/__auth': typeof _authRouteRouteWithChildren
+  '/backoffice': typeof BackofficeRouteRouteWithChildren
   '/create-tenant': typeof CreateTenantRoute
   '/profile': typeof ProfileRoute
   '/__auth/forgot-password': typeof _authForgotPasswordRoute
   '/__auth/login': typeof _authLoginRoute
   '/__auth/reset-password': typeof _authResetPasswordRoute
   '/__auth/signup': typeof _authSignupRoute
+  '/backoffice/tenants': typeof BackofficeTenantsRoute
+  '/backoffice/users': typeof BackofficeUsersRoute
   '/$tenantSlug/': typeof TenantSlugIndexRoute
+  '/backoffice/': typeof BackofficeIndexRoute
   '/$tenantSlug/content/classes': typeof TenantSlugContentClassesRoute
   '/$tenantSlug/content/courses': typeof TenantSlugContentCoursesRoute
   '/$tenantSlug/content/modules': typeof TenantSlugContentModulesRoute
@@ -139,13 +174,17 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/$tenantSlug'
+    | '/backoffice'
     | '/create-tenant'
     | '/profile'
     | '/forgot-password'
     | '/login'
     | '/reset-password'
     | '/signup'
+    | '/backoffice/tenants'
+    | '/backoffice/users'
     | '/$tenantSlug/'
+    | '/backoffice/'
     | '/$tenantSlug/content/classes'
     | '/$tenantSlug/content/courses'
     | '/$tenantSlug/content/modules'
@@ -158,7 +197,10 @@ export interface FileRouteTypes {
     | '/login'
     | '/reset-password'
     | '/signup'
+    | '/backoffice/tenants'
+    | '/backoffice/users'
     | '/$tenantSlug'
+    | '/backoffice'
     | '/$tenantSlug/content/classes'
     | '/$tenantSlug/content/courses'
     | '/$tenantSlug/content/modules'
@@ -167,13 +209,17 @@ export interface FileRouteTypes {
     | '/'
     | '/$tenantSlug'
     | '/__auth'
+    | '/backoffice'
     | '/create-tenant'
     | '/profile'
     | '/__auth/forgot-password'
     | '/__auth/login'
     | '/__auth/reset-password'
     | '/__auth/signup'
+    | '/backoffice/tenants'
+    | '/backoffice/users'
     | '/$tenantSlug/'
+    | '/backoffice/'
     | '/$tenantSlug/content/classes'
     | '/$tenantSlug/content/courses'
     | '/$tenantSlug/content/modules'
@@ -183,6 +229,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   TenantSlugRouteRoute: typeof TenantSlugRouteRouteWithChildren
   _authRouteRoute: typeof _authRouteRouteWithChildren
+  BackofficeRouteRoute: typeof BackofficeRouteRouteWithChildren
   CreateTenantRoute: typeof CreateTenantRoute
   ProfileRoute: typeof ProfileRoute
 }
@@ -201,6 +248,13 @@ declare module '@tanstack/react-router' {
       path: '/create-tenant'
       fullPath: '/create-tenant'
       preLoaderRoute: typeof CreateTenantRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/backoffice': {
+      id: '/backoffice'
+      path: '/backoffice'
+      fullPath: '/backoffice'
+      preLoaderRoute: typeof BackofficeRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/__auth': {
@@ -224,12 +278,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/backoffice/': {
+      id: '/backoffice/'
+      path: '/'
+      fullPath: '/backoffice/'
+      preLoaderRoute: typeof BackofficeIndexRouteImport
+      parentRoute: typeof BackofficeRouteRoute
+    }
     '/$tenantSlug/': {
       id: '/$tenantSlug/'
       path: '/'
       fullPath: '/$tenantSlug/'
       preLoaderRoute: typeof TenantSlugIndexRouteImport
       parentRoute: typeof TenantSlugRouteRoute
+    }
+    '/backoffice/users': {
+      id: '/backoffice/users'
+      path: '/users'
+      fullPath: '/backoffice/users'
+      preLoaderRoute: typeof BackofficeUsersRouteImport
+      parentRoute: typeof BackofficeRouteRoute
+    }
+    '/backoffice/tenants': {
+      id: '/backoffice/tenants'
+      path: '/tenants'
+      fullPath: '/backoffice/tenants'
+      preLoaderRoute: typeof BackofficeTenantsRouteImport
+      parentRoute: typeof BackofficeRouteRoute
     }
     '/__auth/signup': {
       id: '/__auth/signup'
@@ -319,10 +394,27 @@ const _authRouteRouteWithChildren = _authRouteRoute._addFileChildren(
   _authRouteRouteChildren,
 )
 
+interface BackofficeRouteRouteChildren {
+  BackofficeTenantsRoute: typeof BackofficeTenantsRoute
+  BackofficeUsersRoute: typeof BackofficeUsersRoute
+  BackofficeIndexRoute: typeof BackofficeIndexRoute
+}
+
+const BackofficeRouteRouteChildren: BackofficeRouteRouteChildren = {
+  BackofficeTenantsRoute: BackofficeTenantsRoute,
+  BackofficeUsersRoute: BackofficeUsersRoute,
+  BackofficeIndexRoute: BackofficeIndexRoute,
+}
+
+const BackofficeRouteRouteWithChildren = BackofficeRouteRoute._addFileChildren(
+  BackofficeRouteRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   TenantSlugRouteRoute: TenantSlugRouteRouteWithChildren,
   _authRouteRoute: _authRouteRouteWithChildren,
+  BackofficeRouteRoute: BackofficeRouteRouteWithChildren,
   CreateTenantRoute: CreateTenantRoute,
   ProfileRoute: ProfileRoute,
 }

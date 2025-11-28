@@ -4,7 +4,29 @@ import { AppError, ErrorCode } from "@/lib/errors";
 import { withHandler } from "@/lib/handler";
 import { db } from "@/db";
 import { tenantsTable, usersTable } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { count, eq, sql } from "drizzle-orm";
+import {
+  parseListParams,
+  buildWhereClause,
+  getSortColumn,
+  getPaginationParams,
+  calculatePagination,
+  type FieldMap,
+  type SearchableFields,
+} from "@/lib/filters";
+
+const tenantFieldMap: FieldMap<typeof tenantsTable> = {
+  id: tenantsTable.id,
+  name: tenantsTable.name,
+  slug: tenantsTable.slug,
+  createdAt: tenantsTable.createdAt,
+  updatedAt: tenantsTable.updatedAt,
+};
+
+const tenantSearchableFields: SearchableFields<typeof tenantsTable> = [
+  tenantsTable.name,
+  tenantsTable.slug,
+];
 
 function checkCanCreateTenant(user: UserWithoutPassword | null, userRole: string | null) {
   if (!user) {
@@ -86,30 +108,97 @@ export const tenantsRoutes = new Elysia()
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
 
-        // Superadmin sees all tenants
-        if (ctx.userRole === "superadmin") {
-          const tenants = await db.select().from(tenantsTable);
-          return { tenants };
-        }
-
-        // Owner sees only their tenant
+        // Owner sees only their tenant (no pagination)
         if (ctx.userRole === "owner") {
           if (!ctx.user.tenantId) {
-            return { tenants: [] };
+            return { tenants: [], pagination: null };
           }
           const tenants = await db
             .select()
             .from(tenantsTable)
             .where(eq(tenantsTable.id, ctx.user.tenantId));
-          return { tenants };
+          return { tenants, pagination: null };
         }
 
-        throw new AppError(ErrorCode.FORBIDDEN, "Access denied", 403);
+        // Superadmin sees all tenants with pagination
+        if (ctx.userRole !== "superadmin") {
+          throw new AppError(ErrorCode.FORBIDDEN, "Access denied", 403);
+        }
+
+        const params = parseListParams(ctx.query);
+        const whereClause = buildWhereClause(
+          params,
+          tenantFieldMap,
+          tenantSearchableFields
+        );
+
+        const usersCountSubquery = db
+          .select({
+            tenantId: usersTable.tenantId,
+            usersCount: count(usersTable.id).as("users_count"),
+          })
+          .from(usersTable)
+          .groupBy(usersTable.tenantId)
+          .as("users_count_sq");
+
+        const baseQuery = db
+          .select({
+            id: tenantsTable.id,
+            slug: tenantsTable.slug,
+            name: tenantsTable.name,
+            createdAt: tenantsTable.createdAt,
+            updatedAt: tenantsTable.updatedAt,
+            usersCount: sql<number>`COALESCE(${usersCountSubquery.usersCount}, 0)`.as(
+              "users_count"
+            ),
+          })
+          .from(tenantsTable)
+          .leftJoin(
+            usersCountSubquery,
+            eq(tenantsTable.id, usersCountSubquery.tenantId)
+          );
+
+        const sortColumn = getSortColumn(params.sort, tenantFieldMap, {
+          field: "createdAt",
+          order: "desc",
+        });
+        const { limit, offset } = getPaginationParams(params.page, params.limit);
+
+        let query = baseQuery.$dynamic();
+        if (whereClause) {
+          query = query.where(whereClause);
+        }
+        if (sortColumn) {
+          query = query.orderBy(sortColumn);
+        }
+        query = query.limit(limit).offset(offset);
+
+        const countQuery = db.select({ count: count() }).from(tenantsTable);
+        const countWithWhere = whereClause
+          ? countQuery.where(whereClause)
+          : countQuery;
+
+        const [tenants, [{ count: total }]] = await Promise.all([
+          query,
+          countWithWhere,
+        ]);
+
+        return {
+          tenants,
+          pagination: calculatePagination(total, params.page, params.limit),
+        };
       }),
     {
+      query: t.Object({
+        page: t.Optional(t.String()),
+        limit: t.Optional(t.String()),
+        sort: t.Optional(t.String()),
+        search: t.Optional(t.String()),
+        createdAt: t.Optional(t.String()),
+      }),
       detail: {
         tags: ["Tenants"],
-        summary: "List tenants (superadmin: all, owner: their tenant)",
+        summary: "List tenants (superadmin: paginated, owner: their tenant)",
       },
     }
   )
@@ -147,6 +236,93 @@ export const tenantsRoutes = new Elysia()
       detail: {
         tags: ["Tenants"],
         summary: "Get tenant by slug (superadmin or owner)",
+      },
+    }
+  )
+  .put(
+    "/:id",
+    (ctx) =>
+      withHandler(ctx, async () => {
+        if (!ctx.user) {
+          throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
+        }
+
+        if (ctx.userRole !== "superadmin") {
+          throw new AppError(
+            ErrorCode.SUPERADMIN_REQUIRED,
+            "Only superadmins can update tenants",
+            403
+          );
+        }
+
+        const [existingTenant] = await db
+          .select()
+          .from(tenantsTable)
+          .where(eq(tenantsTable.id, ctx.params.id))
+          .limit(1);
+
+        if (!existingTenant) {
+          throw new AppError(ErrorCode.TENANT_NOT_FOUND, "Tenant not found", 404);
+        }
+
+        const [updatedTenant] = await db
+          .update(tenantsTable)
+          .set({ name: ctx.body.name })
+          .where(eq(tenantsTable.id, ctx.params.id))
+          .returning();
+
+        return { tenant: updatedTenant };
+      }),
+    {
+      params: t.Object({
+        id: t.String({ format: "uuid" }),
+      }),
+      body: t.Object({
+        name: t.String({ minLength: 1 }),
+      }),
+      detail: {
+        tags: ["Tenants"],
+        summary: "Update tenant (superadmin only)",
+      },
+    }
+  )
+  .delete(
+    "/:id",
+    (ctx) =>
+      withHandler(ctx, async () => {
+        if (!ctx.user) {
+          throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
+        }
+
+        if (ctx.userRole !== "superadmin") {
+          throw new AppError(
+            ErrorCode.SUPERADMIN_REQUIRED,
+            "Only superadmins can delete tenants",
+            403
+          );
+        }
+
+        const [existingTenant] = await db
+          .select()
+          .from(tenantsTable)
+          .where(eq(tenantsTable.id, ctx.params.id))
+          .limit(1);
+
+        if (!existingTenant) {
+          throw new AppError(ErrorCode.TENANT_NOT_FOUND, "Tenant not found", 404);
+        }
+
+        await db.delete(tenantsTable).where(eq(tenantsTable.id, ctx.params.id));
+
+        return { success: true };
+      }),
+    {
+      params: t.Object({
+        id: t.String({ format: "uuid" }),
+      }),
+      detail: {
+        tags: ["Tenants"],
+        summary: "Delete tenant (superadmin only)",
       },
     }
   );

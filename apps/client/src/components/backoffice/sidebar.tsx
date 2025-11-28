@@ -1,0 +1,180 @@
+import { Link, useRouterState } from "@tanstack/react-router";
+import {
+  Building2,
+  ChevronsUpDown,
+  Home,
+  LogOut,
+  Shield,
+  Users,
+} from "lucide-react";
+import { useTranslation } from "react-i18next";
+
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarRail,
+} from "@/components/ui/sidebar";
+import { useLogout } from "@/services/auth/mutations";
+import type { User } from "@/services/profile/service";
+
+type BackofficeSidebarProps = {
+  user: User;
+};
+
+export function BackofficeSidebar({ user }: BackofficeSidebarProps) {
+  const routerState = useRouterState();
+  const currentPath = routerState.location.pathname;
+  const { mutate: logout } = useLogout();
+  const { t } = useTranslation();
+
+  const getInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  const navMain = [
+    {
+      title: t("backoffice.sidebar.overview"),
+      items: [
+        {
+          title: t("backoffice.sidebar.home"),
+          url: "/backoffice",
+          icon: Home,
+          isActive: currentPath === "/backoffice",
+        },
+      ],
+    },
+    {
+      title: t("backoffice.sidebar.management"),
+      items: [
+        {
+          title: t("backoffice.sidebar.users"),
+          url: "/backoffice/users",
+          icon: Users,
+          isActive: currentPath === "/backoffice/users",
+        },
+        {
+          title: t("backoffice.sidebar.tenants"),
+          url: "/backoffice/tenants",
+          icon: Building2,
+          isActive: currentPath === "/backoffice/tenants",
+        },
+      ],
+    },
+  ];
+
+  return (
+    <Sidebar collapsible="icon">
+      <SidebarHeader>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton size="lg" asChild>
+              <Link to="/backoffice">
+                <div className="bg-primary text-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
+                  <Shield className="size-4" />
+                </div>
+                <div className="flex flex-col gap-0.5 leading-none">
+                  <span className="font-semibold">
+                    {t("backoffice.title")}
+                  </span>
+                </div>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarHeader>
+
+      <SidebarContent>
+        {navMain.map((group) => (
+          <SidebarGroup key={group.title}>
+            <SidebarGroupLabel>{group.title}</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {group.items.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild isActive={item.isActive}>
+                      <Link to={item.url}>
+                        <item.icon />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ))}
+      </SidebarContent>
+
+      <SidebarFooter>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <SidebarMenuButton
+                  size="lg"
+                  className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                >
+                  <Avatar className="size-8 rounded-lg">
+                    <AvatarImage
+                      src={user.avatar ?? undefined}
+                      alt={user.name}
+                    />
+                    <AvatarFallback className="rounded-lg">
+                      {getInitials(user.name)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="grid flex-1 text-left text-sm leading-tight">
+                    <span className="truncate font-semibold">{user.name}</span>
+                    <span className="text-muted-foreground truncate text-xs">
+                      {user.email}
+                    </span>
+                  </div>
+                  <ChevronsUpDown className="ml-auto size-4" />
+                </SidebarMenuButton>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+                side="bottom"
+                align="end"
+                sideOffset={4}
+              >
+                <DropdownMenuItem asChild>
+                  <Link to="/">
+                    <Home />
+                    {t("common.backToHome")}
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => logout()}>
+                  <LogOut />
+                  {t("common.logOut")}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
+
+      <SidebarRail />
+    </Sidebar>
+  );
+}

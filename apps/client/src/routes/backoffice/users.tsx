@@ -1,0 +1,344 @@
+import { useMemo, useState } from "react";
+import { createFileRoute } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
+import {
+  type ColumnDef,
+  getCoreRowModel,
+  useReactTable,
+  type SortingState,
+  type OnChangeFn,
+} from "@tanstack/react-table";
+import { Ellipsis } from "lucide-react";
+
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardFooter,
+  CardHeader,
+  CardHeading,
+  CardTable,
+} from "@/components/ui/card";
+import { DataGrid } from "@/components/ui/data-grid";
+import { DataGridColumnHeader } from "@/components/ui/data-grid-column-header";
+import { DataGridPagination } from "@/components/ui/data-grid-pagination";
+import { DataGridTable } from "@/components/ui/data-grid-table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { Skeleton } from "@/components/ui/skeleton";
+
+import { DataTableToolbar, DeleteDialog, DataTableEmpty } from "@/components/data-table";
+import { useDataTableState } from "@/hooks/use-data-table-state";
+import { useGetUsers, useDeleteUser, useUpdateUser } from "@/services/users";
+import type { User, UserRole } from "@/services/users/service";
+import { EditUserDialog } from "./-components/edit-user-dialog";
+
+export const Route = createFileRoute("/backoffice/users")({
+  component: BackofficeUsers,
+  validateSearch: (search: Record<string, unknown>) => ({
+    page: Number(search.page) || 1,
+    limit: Number(search.limit) || 10,
+    sort: (search.sort as string) || undefined,
+    search: (search.search as string) || undefined,
+    role: (search.role as string) || undefined,
+    tenantId: (search.tenantId as string) || undefined,
+  }),
+});
+
+function BackofficeUsers() {
+  const { t } = useTranslation();
+  const { params, sortState, setPage, setLimit, setSort, setSearch } =
+    useDataTableState({
+      defaultSort: { field: "createdAt", order: "desc" },
+    });
+
+  const { data, isLoading } = useGetUsers({
+    page: params.page,
+    limit: params.limit,
+    sort: params.sort,
+    search: params.search,
+    role: params.role as string | undefined,
+    tenantId: params.tenantId as string | undefined,
+  });
+
+  const [editUser, setEditUser] = useState<User | null>(null);
+  const [deleteUser, setDeleteUser] = useState<User | null>(null);
+
+  const updateMutation = useUpdateUser();
+  const deleteMutation = useDeleteUser();
+
+  const handleDelete = () => {
+    if (!deleteUser) return;
+    deleteMutation.mutate(deleteUser.id, {
+      onSuccess: () => setDeleteUser(null),
+    });
+  };
+
+  const handleUpdate = (data: { name: string; role: UserRole }) => {
+    if (!editUser) return;
+    updateMutation.mutate(
+      { id: editUser.id, ...data },
+      { onSuccess: () => setEditUser(null) }
+    );
+  };
+
+  const getRoleBadge = (role: UserRole) => {
+    const variants: Record<UserRole, "primary" | "success" | "warning" | "info"> = {
+      superadmin: "primary",
+      owner: "success",
+      admin: "warning",
+      student: "info",
+    };
+    return (
+      <Badge variant={variants[role]} appearance="outline" size="sm">
+        {t(`roles.${role}`)}
+      </Badge>
+    );
+  };
+
+  const columns = useMemo<ColumnDef<User>[]>(
+    () => [
+      {
+        accessorKey: "name",
+        id: "name",
+        header: ({ column }) => (
+          <DataGridColumnHeader title={t("backoffice.users.columns.name")} column={column} />
+        ),
+        cell: ({ row }) => (
+          <div className="flex items-center gap-3">
+            <Avatar className="size-8">
+              <AvatarImage
+                src={row.original.avatar ?? undefined}
+                alt={row.original.name}
+              />
+              <AvatarFallback>
+                {row.original.name.charAt(0).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            <div className="space-y-px">
+              <div className="font-medium text-foreground">{row.original.name}</div>
+              <div className="text-muted-foreground text-xs">{row.original.email}</div>
+            </div>
+          </div>
+        ),
+        size: 280,
+        enableSorting: true,
+        meta: {
+          headerTitle: t("backoffice.users.columns.name"),
+          skeleton: (
+            <div className="flex items-center gap-3">
+              <Skeleton className="size-8 rounded-lg" />
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-3 w-40" />
+              </div>
+            </div>
+          ),
+        },
+      },
+      {
+        accessorKey: "role",
+        id: "role",
+        header: ({ column }) => (
+          <DataGridColumnHeader title={t("backoffice.users.columns.role")} column={column} />
+        ),
+        cell: ({ row }) => getRoleBadge(row.original.role),
+        size: 140,
+        enableSorting: true,
+        meta: {
+          headerTitle: t("backoffice.users.columns.role"),
+          skeleton: <Skeleton className="h-5 w-20" />,
+        },
+      },
+      {
+        accessorKey: "tenant",
+        id: "tenant",
+        header: ({ column }) => (
+          <DataGridColumnHeader title={t("backoffice.users.columns.tenant")} column={column} />
+        ),
+        cell: ({ row }) => (
+          <span className="text-foreground">
+            {row.original.tenant?.name ?? (
+              <span className="text-muted-foreground">{t("common.noOrganization")}</span>
+            )}
+          </span>
+        ),
+        size: 180,
+        enableSorting: false,
+        meta: {
+          headerTitle: t("backoffice.users.columns.tenant"),
+          skeleton: <Skeleton className="h-4 w-28" />,
+        },
+      },
+      {
+        accessorKey: "createdAt",
+        id: "createdAt",
+        header: ({ column }) => (
+          <DataGridColumnHeader title={t("backoffice.users.columns.createdAt")} column={column} />
+        ),
+        cell: ({ row }) => (
+          <span className="text-muted-foreground">
+            {new Date(row.original.createdAt).toLocaleDateString()}
+          </span>
+        ),
+        size: 140,
+        enableSorting: true,
+        meta: {
+          headerTitle: t("backoffice.users.columns.createdAt"),
+          skeleton: <Skeleton className="h-4 w-24" />,
+        },
+      },
+      {
+        id: "actions",
+        header: "",
+        cell: ({ row }) => (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button className="size-7" mode="icon" variant="ghost">
+                <Ellipsis />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent side="bottom" align="end">
+              <DropdownMenuItem onClick={() => setEditUser(row.original)}>
+                {t("common.edit")}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                variant="destructive"
+                onClick={() => setDeleteUser(row.original)}
+              >
+                {t("common.delete")}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ),
+        size: 60,
+        enableSorting: false,
+        enableHiding: false,
+      },
+    ],
+    [t]
+  );
+
+  const sorting: SortingState = sortState
+    ? [{ id: sortState.field, desc: sortState.order === "desc" }]
+    : [];
+
+  const onSortingChange: OnChangeFn<SortingState> = (updater) => {
+    const newSorting = typeof updater === "function" ? updater(sorting) : updater;
+    if (newSorting.length === 0) {
+      setSort(undefined);
+    } else {
+      setSort({
+        field: newSorting[0].id,
+        order: newSorting[0].desc ? "desc" : "asc",
+      });
+    }
+  };
+
+  const users = data?.users ?? [];
+  const pagination = data?.pagination;
+  const recordCount = pagination?.total ?? 0;
+  const pageCount = pagination?.totalPages ?? 0;
+
+  const table = useReactTable({
+    columns,
+    data: users,
+    pageCount,
+    manualPagination: true,
+    manualSorting: true,
+    state: {
+      pagination: {
+        pageIndex: params.page - 1,
+        pageSize: params.limit,
+      },
+      sorting,
+    },
+    onPaginationChange: (updater) => {
+      const newPagination =
+        typeof updater === "function"
+          ? updater({ pageIndex: params.page - 1, pageSize: params.limit })
+          : updater;
+      if (newPagination.pageSize !== params.limit) {
+        setLimit(newPagination.pageSize);
+      } else if (newPagination.pageIndex !== params.page - 1) {
+        setPage(newPagination.pageIndex + 1);
+      }
+    },
+    onSortingChange,
+    getCoreRowModel: getCoreRowModel(),
+  });
+
+  if (!isLoading && users.length === 0 && !params.search) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold">{t("backoffice.users.title")}</h1>
+          <p className="text-muted-foreground">{t("backoffice.users.description")}</p>
+        </div>
+        <DataTableEmpty
+          title={t("backoffice.users.empty.title")}
+          description={t("backoffice.users.empty.description")}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold">{t("backoffice.users.title")}</h1>
+        <p className="text-muted-foreground">{t("backoffice.users.description")}</p>
+      </div>
+
+      <DataGrid table={table} recordCount={recordCount} isLoading={isLoading}>
+        <Card>
+          <CardHeader className="py-4">
+            <CardHeading className="flex-1">
+              <DataTableToolbar
+                searchValue={params.search}
+                onSearchChange={setSearch}
+              />
+            </CardHeading>
+          </CardHeader>
+          <CardTable>
+            <ScrollArea>
+              <DataGridTable />
+              <ScrollBar orientation="horizontal" />
+            </ScrollArea>
+          </CardTable>
+          <CardFooter>
+            <DataGridPagination />
+          </CardFooter>
+        </Card>
+      </DataGrid>
+
+      <EditUserDialog
+        user={editUser}
+        open={!!editUser}
+        onOpenChange={(open) => !open && setEditUser(null)}
+        onSubmit={handleUpdate}
+        isPending={updateMutation.isPending}
+      />
+
+      <DeleteDialog
+        open={!!deleteUser}
+        onOpenChange={(open) => !open && setDeleteUser(null)}
+        title={t("backoffice.users.delete.title")}
+        description={t("backoffice.users.delete.description", {
+          name: deleteUser?.name,
+        })}
+        confirmValue={deleteUser?.name ?? ""}
+        onConfirm={handleDelete}
+        isPending={deleteMutation.isPending}
+      />
+    </div>
+  );
+}

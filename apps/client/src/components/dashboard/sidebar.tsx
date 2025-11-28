@@ -171,6 +171,12 @@ export function DashboardSidebar({ tenant, user }: DashboardSidebarProps) {
                 align="end"
                 sideOffset={4}
               >
+                <DropdownMenuItem asChild>
+                  <Link to="/">
+                    <Home />
+                    {t("common.backToHome")}
+                  </Link>
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => logout()}>
                   <LogOut />
                   {t("common.logOut")}

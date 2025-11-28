@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { LayoutDashboard, LogOut, User } from "lucide-react";
+import { LayoutDashboard, LogOut, Shield, User } from "lucide-react";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -76,6 +76,14 @@ export function Header() {
                       </Link>
                     </DropdownMenuItem>
                   )}
+                {user.role === "superadmin" && (
+                  <DropdownMenuItem asChild>
+                    <Link to="/backoffice">
+                      <Shield />
+                      {t("backoffice.title")}
+                    </Link>
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   disabled={isLoggingOut}
