@@ -15,6 +15,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Header } from "@/components/header";
 import AvatarUpload from "@/components/file-upload/avatar-upload";
 import {
@@ -32,6 +33,39 @@ import { useEffect } from "react";
 export const Route = createFileRoute("/profile")({
   component: ProfilePage,
 });
+
+function ProfileSkeleton() {
+  return (
+    <>
+      <div className="flex flex-col items-center gap-2">
+        <Skeleton className="size-24 rounded-full" />
+        <div className="text-center space-y-1">
+          <Skeleton className="h-4 w-28 mx-auto" />
+          <Skeleton className="h-3 w-36 mx-auto" />
+        </div>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <Skeleton className="h-6 w-32" />
+          <Skeleton className="h-4 w-48" />
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-12" />
+            <Skeleton className="h-10 w-full" />
+          </div>
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-12" />
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-4 w-44" />
+          </div>
+          <Skeleton className="h-10 w-36" />
+        </CardContent>
+      </Card>
+    </>
+  );
+}
 
 function ProfilePage() {
   const { t } = useTranslation();
@@ -62,7 +96,7 @@ function ProfilePage() {
       <Header />
       <main className="container mx-auto max-w-2xl px-4 py-8 space-y-6">
         {isLoading ? (
-          <p>{t("profile.loading")}</p>
+          <ProfileSkeleton />
         ) : user ? (
           <>
             <AvatarUpload currentAvatar={user.avatar} userName={user.name} />

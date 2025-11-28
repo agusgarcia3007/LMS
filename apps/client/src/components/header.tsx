@@ -1,5 +1,6 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { LogOut, User } from "lucide-react";
+import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -11,17 +12,25 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useGetProfile } from "@/services/profile/queries";
 import { useLogout } from "@/services/auth/mutations";
 
 export function Header() {
   const { t } = useTranslation();
-  const { data: profileData } = useGetProfile();
+  const { data: profileData, isLoading } = useGetProfile();
   const { mutate: logout, isPending: isLoggingOut } = useLogout();
   const navigate = useNavigate();
 
   const user = profileData?.user;
-  const isLoggedIn = !!user;
+
+  // Preload avatar image to avoid flash when switching from skeleton to avatar
+  useEffect(() => {
+    if (user?.avatar) {
+      const img = new Image();
+      img.src = user.avatar;
+    }
+  }, [user?.avatar]);
 
   return (
     <header className="border-b">
@@ -31,14 +40,16 @@ export function Header() {
         </Link>
 
         <nav className="flex items-center gap-2">
-          {isLoggedIn ? (
+          {isLoading ? (
+            <Skeleton className="size-8 rounded-full" />
+          ) : user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="rounded-full">
                   <Avatar className="size-8">
-                    <AvatarImage src={user?.avatar || ""} alt={t("header.userAvatar")} />
+                    <AvatarImage src={user.avatar || ""} alt={t("header.userAvatar")} />
                     <AvatarFallback>
-                      {user?.name?.charAt(0).toUpperCase() || "U"}
+                      {user.name?.charAt(0).toUpperCase() || "U"}
                     </AvatarFallback>
                   </Avatar>
                 </Button>
