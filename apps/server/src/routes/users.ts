@@ -9,7 +9,7 @@ import {
   userRoleEnum,
   type SelectUser,
 } from "@/db/schema";
-import { count, eq } from "drizzle-orm";
+import { count, eq, ilike, and } from "drizzle-orm";
 import {
   parseListParams,
   buildWhereClause,
@@ -18,6 +18,7 @@ import {
   calculatePagination,
   type FieldMap,
   type SearchableFields,
+  type DateFields,
 } from "@/lib/filters";
 import { getPresignedUrl } from "@/lib/upload";
 
@@ -28,7 +29,6 @@ const userFieldMap: FieldMap<typeof usersTable> = {
   name: usersTable.name,
   email: usersTable.email,
   role: usersTable.role,
-  tenantId: usersTable.tenantId,
   createdAt: usersTable.createdAt,
   updatedAt: usersTable.updatedAt,
 };
@@ -37,6 +37,8 @@ const userSearchableFields: SearchableFields<typeof usersTable> = [
   usersTable.name,
   usersTable.email,
 ];
+
+const userDateFields: DateFields = new Set(["createdAt"]);
 
 function excludePassword(user: SelectUser): UserWithoutPassword {
   const { password: _, ...userWithoutPassword } = user;
@@ -62,11 +64,20 @@ export const usersRoutes = new Elysia()
         }
 
         const params = parseListParams(ctx.query);
-        const whereClause = buildWhereClause(
+        const baseWhereClause = buildWhereClause(
           params,
           userFieldMap,
-          userSearchableFields
+          userSearchableFields,
+          userDateFields
         );
+
+        const tenantNameFilter = ctx.query.tenantId
+          ? ilike(tenantsTable.name, `%${ctx.query.tenantId}%`)
+          : undefined;
+
+        const whereClause = baseWhereClause && tenantNameFilter
+          ? and(baseWhereClause, tenantNameFilter)
+          : baseWhereClause ?? tenantNameFilter;
 
         const baseQuery = db
           .select({
@@ -101,7 +112,8 @@ export const usersRoutes = new Elysia()
 
         const countQuery = db
           .select({ count: count() })
-          .from(usersTable);
+          .from(usersTable)
+          .leftJoin(tenantsTable, eq(usersTable.tenantId, tenantsTable.id));
 
         const countWithWhere = whereClause
           ? countQuery.where(whereClause)

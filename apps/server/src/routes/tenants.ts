@@ -13,6 +13,7 @@ import {
   calculatePagination,
   type FieldMap,
   type SearchableFields,
+  type DateFields,
 } from "@/lib/filters";
 
 const tenantFieldMap: FieldMap<typeof tenantsTable> = {
@@ -27,6 +28,8 @@ const tenantSearchableFields: SearchableFields<typeof tenantsTable> = [
   tenantsTable.name,
   tenantsTable.slug,
 ];
+
+const tenantDateFields: DateFields = new Set(["createdAt"]);
 
 function checkCanCreateTenant(user: UserWithoutPassword | null, userRole: string | null) {
   if (!user) {
@@ -129,7 +132,8 @@ export const tenantsRoutes = new Elysia()
         const whereClause = buildWhereClause(
           params,
           tenantFieldMap,
-          tenantSearchableFields
+          tenantSearchableFields,
+          tenantDateFields
         );
 
         const usersCountSubquery = db

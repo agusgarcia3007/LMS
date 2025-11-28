@@ -47,11 +47,12 @@ export function useDataTableState(config: UseDataTableStateConfig = {}) {
   }, [searchParams, defaultLimit, defaultSort]);
 
   const sortState = useMemo<SortState | undefined>(() => {
-    if (!params.sort) return defaultSort;
-    const [field, order] = params.sort.split(":");
-    if (!field || !order) return defaultSort;
+    const urlSort = searchParams.sort as string | undefined;
+    if (!urlSort) return undefined;
+    const [field, order] = urlSort.split(":");
+    if (!field || !order) return undefined;
     return { field, order: order as SortOrder };
-  }, [params.sort, defaultSort]);
+  }, [searchParams.sort]);
 
   const updateParams = useCallback(
     (updates: Partial<DataTableParams>) => {
@@ -137,13 +138,39 @@ export function useDataTableState(config: UseDataTableStateConfig = {}) {
 
   const getFilterValue = useCallback(
     (key: string): string | undefined => {
-      return params[key] as string | undefined;
+      const value = params[key] as string | undefined;
+      if (!value) return undefined;
+      const colonIndex = value.indexOf(":");
+      return colonIndex > 0 ? value.substring(colonIndex + 1) : value;
     },
     [params]
   );
 
+  const serverParams = useMemo(() => {
+    const result: DataTableParams = {
+      page: params.page,
+      limit: params.limit,
+      sort: params.sort,
+      search: params.search,
+    };
+
+    for (const [key, value] of Object.entries(params)) {
+      if (["page", "limit", "sort", "search"].includes(key)) continue;
+      if (typeof value === "string" && value) {
+        const colonIndex = value.indexOf(":");
+        const rawValue = colonIndex > 0 ? value.substring(colonIndex + 1) : value;
+        if (rawValue) {
+          result[key] = rawValue;
+        }
+      }
+    }
+
+    return result;
+  }, [params]);
+
   return {
     params,
+    serverParams,
     sortState,
     setPage,
     setLimit,

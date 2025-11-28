@@ -29,6 +29,7 @@ export const Route = createFileRoute("/backoffice/tenants")({
     limit: Number(search.limit) || 10,
     sort: (search.sort as string) || undefined,
     search: (search.search as string) || undefined,
+    createdAt: (search.createdAt as string) || undefined,
   }),
 });
 
@@ -39,10 +40,11 @@ function BackofficeTenants() {
   });
 
   const { data, isLoading } = useGetTenantsList({
-    page: tableState.params.page,
-    limit: tableState.params.limit,
-    sort: tableState.params.sort,
-    search: tableState.params.search,
+    page: tableState.serverParams.page,
+    limit: tableState.serverParams.limit,
+    sort: tableState.serverParams.sort,
+    search: tableState.serverParams.search,
+    createdAt: tableState.serverParams.createdAt as string | undefined,
   });
 
   const [editTenant, setEditTenant] = useState<Tenant | null>(null);

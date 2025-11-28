@@ -81,3 +81,61 @@ routes.get("/", (ctx) =>
 - Never use manual try/catch in routes
 - Never add comments in the code
 - Always use descriptive function names
+
+## Server Filters
+
+The filter system in `apps/server/src/lib/filters.ts` handles pagination, sorting, search, and filters.
+
+### URL Format
+
+Filters are sent as query params with format `field=value`:
+- Text/Select: `role=admin` or `role=admin,owner` (comma for multiple)
+- Date range: `createdAt=2025-01-01,2025-01-31` (from,to)
+
+### Usage in Routes
+
+```typescript
+import {
+  parseListParams,
+  buildWhereClause,
+  type FieldMap,
+  type SearchableFields,
+  type DateFields,
+} from "@/lib/filters";
+
+const fieldMap: FieldMap<typeof table> = {
+  name: table.name,
+  createdAt: table.createdAt,
+};
+
+const searchableFields: SearchableFields<typeof table> = [table.name];
+const dateFields: DateFields = new Set(["createdAt"]);
+
+// In route handler:
+const params = parseListParams(ctx.query);
+const whereClause = buildWhereClause(params, fieldMap, searchableFields, dateFields);
+```
+
+### Filter Types
+
+| Type | URL Example | Server Behavior |
+|------|-------------|-----------------|
+| Single value | `role=admin` | `eq(column, value)` |
+| Multiple values | `role=admin,owner` | `inArray(column, values)` |
+| Date range | `createdAt=2025-01-01,2025-01-31` | `gte(column, from) AND lte(column, to)` |
+| Text search | `search=john` | `ilike(column, '%john%')` on searchable fields |
+
+### Custom Filters
+
+For filters that don't map directly to a column (e.g., searching by related table):
+
+```typescript
+// Remove from fieldMap, handle manually:
+const tenantNameFilter = ctx.query.tenantId
+  ? ilike(tenantsTable.name, `%${ctx.query.tenantId}%`)
+  : undefined;
+
+const whereClause = baseWhereClause && tenantNameFilter
+  ? and(baseWhereClause, tenantNameFilter)
+  : baseWhereClause ?? tenantNameFilter;
+```

@@ -43,12 +43,13 @@ function BackofficeUsers() {
   });
 
   const { data, isLoading } = useGetUsers({
-    page: tableState.params.page,
-    limit: tableState.params.limit,
-    sort: tableState.params.sort,
-    search: tableState.params.search,
-    role: tableState.params.role as string | undefined,
-    tenantId: tableState.params.tenantId as string | undefined,
+    page: tableState.serverParams.page,
+    limit: tableState.serverParams.limit,
+    sort: tableState.serverParams.sort,
+    search: tableState.serverParams.search,
+    role: tableState.serverParams.role as string | undefined,
+    tenantId: tableState.serverParams.tenantId as string | undefined,
+    createdAt: tableState.serverParams.createdAt as string | undefined,
   });
 
   const [editUser, setEditUser] = useState<User | null>(null);

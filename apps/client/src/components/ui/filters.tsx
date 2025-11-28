@@ -23,7 +23,6 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Switch } from '@/components/ui/switch';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Calendar } from '@/components/ui/calendar';
-import { Button } from '@/components/ui/button';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { AlertCircle, CalendarIcon, Check, Plus, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -36,6 +35,7 @@ export interface FilterI18nConfig {
   noFieldsFound: string;
   noResultsFound: string;
   select: string;
+  selectDateRange: string;
   true: string;
   false: string;
   min: string;
@@ -110,6 +110,7 @@ export const DEFAULT_I18N: FilterI18nConfig = {
   noFieldsFound: 'No fields found.',
   noResultsFound: 'No results found.',
   select: 'Select...',
+  selectDateRange: 'Select date range',
   true: 'True',
   false: 'False',
   min: 'Min',
@@ -782,104 +783,55 @@ const createOperatorsFromI18n = (i18n: FilterI18nConfig): Record<string, FilterO
   select: [
     { value: 'is', label: i18n.operators.is },
     { value: 'is_not', label: i18n.operators.isNot },
-    { value: 'empty', label: i18n.operators.empty },
-    { value: 'not_empty', label: i18n.operators.notEmpty },
   ],
   multiselect: [
-    { value: 'is_any_of', label: i18n.operators.isAnyOf },
-    { value: 'is_not_any_of', label: i18n.operators.isNotAnyOf },
-    { value: 'includes_all', label: i18n.operators.includesAll },
-    { value: 'excludes_all', label: i18n.operators.excludesAll },
-    { value: 'empty', label: i18n.operators.empty },
-    { value: 'not_empty', label: i18n.operators.notEmpty },
-  ],
-  date: [
-    { value: 'before', label: i18n.operators.before },
-    { value: 'after', label: i18n.operators.after },
     { value: 'is', label: i18n.operators.is },
     { value: 'is_not', label: i18n.operators.isNot },
-    { value: 'empty', label: i18n.operators.empty },
-    { value: 'not_empty', label: i18n.operators.notEmpty },
+  ],
+  date: [
+    { value: 'is', label: i18n.operators.is },
+    { value: 'before', label: i18n.operators.before },
+    { value: 'after', label: i18n.operators.after },
   ],
   daterange: [
     { value: 'between', label: i18n.operators.between },
-    { value: 'not_between', label: i18n.operators.notBetween },
-    { value: 'empty', label: i18n.operators.empty },
-    { value: 'not_empty', label: i18n.operators.notEmpty },
   ],
   text: [
     { value: 'contains', label: i18n.operators.contains },
-    { value: 'not_contains', label: i18n.operators.notContains },
-    { value: 'starts_with', label: i18n.operators.startsWith },
-    { value: 'ends_with', label: i18n.operators.endsWith },
     { value: 'is', label: i18n.operators.isExactly },
-    { value: 'empty', label: i18n.operators.empty },
-    { value: 'not_empty', label: i18n.operators.notEmpty },
   ],
   number: [
     { value: 'equals', label: i18n.operators.equals },
-    { value: 'not_equals', label: i18n.operators.notEquals },
     { value: 'greater_than', label: i18n.operators.greaterThan },
     { value: 'less_than', label: i18n.operators.lessThan },
-    { value: 'between', label: i18n.operators.between },
-    { value: 'empty', label: i18n.operators.empty },
-    { value: 'not_empty', label: i18n.operators.notEmpty },
   ],
   numberrange: [
     { value: 'between', label: i18n.operators.between },
-    { value: 'overlaps', label: i18n.operators.overlaps },
-    { value: 'contains', label: i18n.operators.contains },
-    { value: 'empty', label: i18n.operators.empty },
-    { value: 'not_empty', label: i18n.operators.notEmpty },
   ],
   boolean: [
     { value: 'is', label: i18n.operators.is },
-    { value: 'is_not', label: i18n.operators.isNot },
-    { value: 'empty', label: i18n.operators.empty },
-    { value: 'not_empty', label: i18n.operators.notEmpty },
   ],
   email: [
     { value: 'contains', label: i18n.operators.contains },
-    { value: 'not_contains', label: i18n.operators.notContains },
-    { value: 'starts_with', label: i18n.operators.startsWith },
-    { value: 'ends_with', label: i18n.operators.endsWith },
     { value: 'is', label: i18n.operators.isExactly },
-    { value: 'empty', label: i18n.operators.empty },
-    { value: 'not_empty', label: i18n.operators.notEmpty },
   ],
   url: [
     { value: 'contains', label: i18n.operators.contains },
-    { value: 'not_contains', label: i18n.operators.notContains },
-    { value: 'starts_with', label: i18n.operators.startsWith },
-    { value: 'ends_with', label: i18n.operators.endsWith },
     { value: 'is', label: i18n.operators.isExactly },
-    { value: 'empty', label: i18n.operators.empty },
-    { value: 'not_empty', label: i18n.operators.notEmpty },
   ],
   tel: [
     { value: 'contains', label: i18n.operators.contains },
-    { value: 'not_contains', label: i18n.operators.notContains },
-    { value: 'starts_with', label: i18n.operators.startsWith },
-    { value: 'ends_with', label: i18n.operators.endsWith },
     { value: 'is', label: i18n.operators.isExactly },
-    { value: 'empty', label: i18n.operators.empty },
-    { value: 'not_empty', label: i18n.operators.notEmpty },
   ],
   time: [
+    { value: 'is', label: i18n.operators.is },
     { value: 'before', label: i18n.operators.before },
     { value: 'after', label: i18n.operators.after },
-    { value: 'is', label: i18n.operators.is },
-    { value: 'between', label: i18n.operators.between },
-    { value: 'empty', label: i18n.operators.empty },
-    { value: 'not_empty', label: i18n.operators.notEmpty },
   ],
   datetime: [
+    { value: 'is', label: i18n.operators.is },
     { value: 'before', label: i18n.operators.before },
     { value: 'after', label: i18n.operators.after },
-    { value: 'is', label: i18n.operators.is },
-    { value: 'between', label: i18n.operators.between },
-    { value: 'empty', label: i18n.operators.empty },
-    { value: 'not_empty', label: i18n.operators.notEmpty },
   ],
 });
 
@@ -1215,6 +1167,7 @@ interface DateRangeFilterProps {
 
 function DateRangeFilter({ values, onChange, placeholder, className, toLabel }: DateRangeFilterProps) {
   const [open, setOpen] = useState(false);
+  const context = useFilterContext();
   const startDate = values[0] || '';
   const endDate = values[1] || '';
 
@@ -1268,29 +1221,29 @@ function DateRangeFilter({ values, onChange, placeholder, className, toLabel }: 
         setTempRange(savedRange);
       }
     }}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="ghost"
-          size="sm"
-          className={cn(
-            'h-8 justify-start text-left font-normal border-0 hover:bg-secondary',
-            !displayRange?.from && 'text-muted-foreground',
-            className
-          )}
-        >
-          <CalendarIcon className="mr-2 size-3.5 opacity-60" />
-          {displayRange?.from ? (
-            displayRange.to ? (
-              <>
-                {formatDisplayDate(displayRange.from)} {toLabel} {formatDisplayDate(displayRange.to)}
-              </>
-            ) : (
-              formatDisplayDate(displayRange.from)
-            )
+      <PopoverTrigger
+        className={cn(
+          filterFieldValueVariants({
+            variant: context.variant,
+            size: context.size,
+            cursorPointer: context.cursorPointer,
+          }),
+          !displayRange?.from && 'text-muted-foreground',
+          className
+        )}
+      >
+        <CalendarIcon className="size-3.5 opacity-60" />
+        {displayRange?.from ? (
+          displayRange.to ? (
+            <>
+              {formatDisplayDate(displayRange.from)} {toLabel} {formatDisplayDate(displayRange.to)}
+            </>
           ) : (
-            <span>{placeholder || 'Select date range'}</span>
-          )}
-        </Button>
+            formatDisplayDate(displayRange.from)
+          )
+        ) : (
+          <span>{placeholder || context.i18n.selectDateRange}</span>
+        )}
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0" align="start">
         <Calendar

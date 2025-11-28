@@ -43,6 +43,8 @@ export type FieldMap<T extends PgTable> = {
 
 export type SearchableFields<T extends PgTable> = AnyColumn[];
 
+export type DateFields = Set<string>;
+
 export function parseListParams(query: Record<string, string | undefined>): ListParams {
   const page = Math.max(1, parseInt(query.page ?? "1", 10));
   const limit = Math.min(100, Math.max(1, parseInt(query.limit ?? "10", 10)));
@@ -86,9 +88,24 @@ export function buildSearchCondition<T extends PgTable>(
   return conditions.length === 1 ? conditions[0] : or(...conditions);
 }
 
+function parseDate(dateStr: string): Date | undefined {
+  if (!dateStr) return undefined;
+  const date = new Date(dateStr);
+  return isNaN(date.getTime()) ? undefined : date;
+}
+
+function parseDateEnd(dateStr: string): Date | undefined {
+  if (!dateStr) return undefined;
+  const date = new Date(dateStr);
+  if (isNaN(date.getTime())) return undefined;
+  date.setHours(23, 59, 59, 999);
+  return date;
+}
+
 export function buildFilterConditions<T extends PgTable>(
   filters: Record<string, string | undefined>,
-  fieldMap: FieldMap<T>
+  fieldMap: FieldMap<T>,
+  dateFields?: DateFields
 ): SQL[] {
   const conditions: SQL[] = [];
 
@@ -98,7 +115,17 @@ export function buildFilterConditions<T extends PgTable>(
     const column = fieldMap[key];
     if (!column) continue;
 
-    if (value.includes(":")) {
+    if (dateFields?.has(key) && value.includes(",")) {
+      const [fromStr, toStr] = value.split(",");
+      const fromDate = parseDate(fromStr);
+      const toDate = parseDateEnd(toStr);
+      if (fromDate) {
+        conditions.push(gte(column, fromDate));
+      }
+      if (toDate) {
+        conditions.push(lte(column, toDate));
+      }
+    } else if (value.includes(":")) {
       const [start, end] = value.split(":");
       if (start && end) {
         conditions.push(gte(column, start));
@@ -124,7 +151,8 @@ export function buildFilterConditions<T extends PgTable>(
 export function buildWhereClause<T extends PgTable>(
   params: ListParams,
   fieldMap: FieldMap<T>,
-  searchableFields: SearchableFields<T>
+  searchableFields: SearchableFields<T>,
+  dateFields?: DateFields
 ): SQL | undefined {
   const conditions: SQL[] = [];
 
@@ -135,7 +163,7 @@ export function buildWhereClause<T extends PgTable>(
     }
   }
 
-  const filterConditions = buildFilterConditions(params.filters, fieldMap);
+  const filterConditions = buildFilterConditions(params.filters, fieldMap, dateFields);
   conditions.push(...filterConditions);
 
   if (conditions.length === 0) {

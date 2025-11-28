@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useState, useRef, useEffect, useCallback, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import {
   type ColumnDef,
@@ -65,6 +65,9 @@ export function DataTable<TData>({
 }: DataTableProps<TData>) {
   const { t } = useTranslation();
   const { params, sortState, setPage, setLimit, setSort, setSearch, setFilters } = tableState;
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [localFilters, setLocalFilters] = useState<Filter[]>([]);
+  const isInitialMount = useRef(true);
 
   const pageCount = pagination?.totalPages ?? 0;
   const recordCount = pagination?.total ?? 0;
@@ -119,6 +122,7 @@ export function DataTable<TData>({
     noFieldsFound: t("filters.noFieldsFound"),
     noResultsFound: t("filters.noResultsFound"),
     select: t("filters.select"),
+    selectDateRange: t("filters.selectDateRange"),
     true: t("filters.true"),
     false: t("filters.false"),
     min: t("filters.min"),
@@ -206,20 +210,18 @@ export function DataTable<TData>({
           rawValues = value;
         }
 
-        if (rawValues) {
-          filters.push({
-            id: `${field.key}-filter`,
-            field: field.key,
-            operator,
-            values: rawValues.split(","),
-          });
-        }
+        filters.push({
+          id: `${field.key}-filter`,
+          field: field.key,
+          operator,
+          values: rawValues ? rawValues.split(",") : [""],
+        });
       }
     }
     return filters;
   };
 
-  const handleFiltersChange = (newFilters: Filter[]) => {
+  const syncFiltersToUrl = useCallback((filters: Filter[]) => {
     const filterParams: Record<string, string | undefined> = {};
 
     if (filterFields) {
@@ -230,17 +232,50 @@ export function DataTable<TData>({
       }
     }
 
-    for (const filter of newFilters) {
-      const nonEmptyValues = filter.values.filter((v) => v !== "");
-      if (nonEmptyValues.length > 0) {
-        filterParams[filter.field] = `${filter.operator}:${nonEmptyValues.join(",")}`;
-      }
+    for (const filter of filters) {
+      const valuesStr = filter.values.join(",");
+      filterParams[filter.field] = `${filter.operator}:${valuesStr}`;
     }
 
     setFilters(filterParams);
-  };
+  }, [filterFields, setFilters]);
 
-  const activeFilters = urlFiltersToFilters();
+  const urlFilters = urlFiltersToFilters();
+
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      setLocalFilters(urlFilters);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!isInitialMount.current && localFilters !== urlFilters) {
+      setLocalFilters(urlFilters);
+    }
+  }, [params]);
+
+  const handleFiltersChange = useCallback((newFilters: Filter[]) => {
+    setLocalFilters(newFilters);
+
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+
+    debounceRef.current = setTimeout(() => {
+      syncFiltersToUrl(newFilters);
+    }, 300);
+  }, [syncFiltersToUrl]);
+
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+    };
+  }, []);
+
+  const activeFilters = localFilters.length > 0 ? localFilters : urlFilters;
 
   if (!isLoading && data.length === 0 && !params.search && activeFilters.length === 0 && emptyState) {
     return (
