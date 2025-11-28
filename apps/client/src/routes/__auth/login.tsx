@@ -32,7 +32,14 @@ function LoginPage() {
 
   function onSubmit(data: LoginInput) {
     login(data, {
-      onSuccess: () => navigate({ to: "/" }),
+      onSuccess: (response) => {
+        const { user } = response;
+        if (user.role === "owner" && user.tenantId === null) {
+          navigate({ to: "/create-tenant" });
+        } else {
+          navigate({ to: "/" });
+        }
+      },
     });
   }
 

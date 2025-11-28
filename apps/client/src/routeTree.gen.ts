@@ -10,26 +10,47 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as CreateTenantRouteImport } from './routes/create-tenant'
 import { Route as _authRouteRouteImport } from './routes/__auth/route'
+import { Route as TenantSlugRouteRouteImport } from './routes/$tenantSlug/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as TenantSlugIndexRouteImport } from './routes/$tenantSlug/index'
 import { Route as _authSignupRouteImport } from './routes/__auth/signup'
 import { Route as _authResetPasswordRouteImport } from './routes/__auth/reset-password'
 import { Route as _authLoginRouteImport } from './routes/__auth/login'
 import { Route as _authForgotPasswordRouteImport } from './routes/__auth/forgot-password'
+import { Route as TenantSlugContentModulesRouteImport } from './routes/$tenantSlug/content/modules'
+import { Route as TenantSlugContentCoursesRouteImport } from './routes/$tenantSlug/content/courses'
+import { Route as TenantSlugContentClassesRouteImport } from './routes/$tenantSlug/content/classes'
 
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CreateTenantRoute = CreateTenantRouteImport.update({
+  id: '/create-tenant',
+  path: '/create-tenant',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const _authRouteRoute = _authRouteRouteImport.update({
   id: '/__auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TenantSlugRouteRoute = TenantSlugRouteRouteImport.update({
+  id: '/$tenantSlug',
+  path: '/$tenantSlug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const TenantSlugIndexRoute = TenantSlugIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => TenantSlugRouteRoute,
 } as any)
 const _authSignupRoute = _authSignupRouteImport.update({
   id: '/signup',
@@ -51,64 +72,118 @@ const _authForgotPasswordRoute = _authForgotPasswordRouteImport.update({
   path: '/forgot-password',
   getParentRoute: () => _authRouteRoute,
 } as any)
+const TenantSlugContentModulesRoute =
+  TenantSlugContentModulesRouteImport.update({
+    id: '/content/modules',
+    path: '/content/modules',
+    getParentRoute: () => TenantSlugRouteRoute,
+  } as any)
+const TenantSlugContentCoursesRoute =
+  TenantSlugContentCoursesRouteImport.update({
+    id: '/content/courses',
+    path: '/content/courses',
+    getParentRoute: () => TenantSlugRouteRoute,
+  } as any)
+const TenantSlugContentClassesRoute =
+  TenantSlugContentClassesRouteImport.update({
+    id: '/content/classes',
+    path: '/content/classes',
+    getParentRoute: () => TenantSlugRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/$tenantSlug': typeof TenantSlugRouteRouteWithChildren
+  '/create-tenant': typeof CreateTenantRoute
   '/profile': typeof ProfileRoute
   '/forgot-password': typeof _authForgotPasswordRoute
   '/login': typeof _authLoginRoute
   '/reset-password': typeof _authResetPasswordRoute
   '/signup': typeof _authSignupRoute
+  '/$tenantSlug/': typeof TenantSlugIndexRoute
+  '/$tenantSlug/content/classes': typeof TenantSlugContentClassesRoute
+  '/$tenantSlug/content/courses': typeof TenantSlugContentCoursesRoute
+  '/$tenantSlug/content/modules': typeof TenantSlugContentModulesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/create-tenant': typeof CreateTenantRoute
   '/profile': typeof ProfileRoute
   '/forgot-password': typeof _authForgotPasswordRoute
   '/login': typeof _authLoginRoute
   '/reset-password': typeof _authResetPasswordRoute
   '/signup': typeof _authSignupRoute
+  '/$tenantSlug': typeof TenantSlugIndexRoute
+  '/$tenantSlug/content/classes': typeof TenantSlugContentClassesRoute
+  '/$tenantSlug/content/courses': typeof TenantSlugContentCoursesRoute
+  '/$tenantSlug/content/modules': typeof TenantSlugContentModulesRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/$tenantSlug': typeof TenantSlugRouteRouteWithChildren
   '/__auth': typeof _authRouteRouteWithChildren
+  '/create-tenant': typeof CreateTenantRoute
   '/profile': typeof ProfileRoute
   '/__auth/forgot-password': typeof _authForgotPasswordRoute
   '/__auth/login': typeof _authLoginRoute
   '/__auth/reset-password': typeof _authResetPasswordRoute
   '/__auth/signup': typeof _authSignupRoute
+  '/$tenantSlug/': typeof TenantSlugIndexRoute
+  '/$tenantSlug/content/classes': typeof TenantSlugContentClassesRoute
+  '/$tenantSlug/content/courses': typeof TenantSlugContentCoursesRoute
+  '/$tenantSlug/content/modules': typeof TenantSlugContentModulesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/$tenantSlug'
+    | '/create-tenant'
     | '/profile'
     | '/forgot-password'
     | '/login'
     | '/reset-password'
     | '/signup'
+    | '/$tenantSlug/'
+    | '/$tenantSlug/content/classes'
+    | '/$tenantSlug/content/courses'
+    | '/$tenantSlug/content/modules'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/create-tenant'
     | '/profile'
     | '/forgot-password'
     | '/login'
     | '/reset-password'
     | '/signup'
+    | '/$tenantSlug'
+    | '/$tenantSlug/content/classes'
+    | '/$tenantSlug/content/courses'
+    | '/$tenantSlug/content/modules'
   id:
     | '__root__'
     | '/'
+    | '/$tenantSlug'
     | '/__auth'
+    | '/create-tenant'
     | '/profile'
     | '/__auth/forgot-password'
     | '/__auth/login'
     | '/__auth/reset-password'
     | '/__auth/signup'
+    | '/$tenantSlug/'
+    | '/$tenantSlug/content/classes'
+    | '/$tenantSlug/content/courses'
+    | '/$tenantSlug/content/modules'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  TenantSlugRouteRoute: typeof TenantSlugRouteRouteWithChildren
   _authRouteRoute: typeof _authRouteRouteWithChildren
+  CreateTenantRoute: typeof CreateTenantRoute
   ProfileRoute: typeof ProfileRoute
 }
 
@@ -121,11 +196,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/create-tenant': {
+      id: '/create-tenant'
+      path: '/create-tenant'
+      fullPath: '/create-tenant'
+      preLoaderRoute: typeof CreateTenantRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/__auth': {
       id: '/__auth'
       path: ''
       fullPath: ''
       preLoaderRoute: typeof _authRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/$tenantSlug': {
+      id: '/$tenantSlug'
+      path: '/$tenantSlug'
+      fullPath: '/$tenantSlug'
+      preLoaderRoute: typeof TenantSlugRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -134,6 +223,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/$tenantSlug/': {
+      id: '/$tenantSlug/'
+      path: '/'
+      fullPath: '/$tenantSlug/'
+      preLoaderRoute: typeof TenantSlugIndexRouteImport
+      parentRoute: typeof TenantSlugRouteRoute
     }
     '/__auth/signup': {
       id: '/__auth/signup'
@@ -163,8 +259,47 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof _authForgotPasswordRouteImport
       parentRoute: typeof _authRouteRoute
     }
+    '/$tenantSlug/content/modules': {
+      id: '/$tenantSlug/content/modules'
+      path: '/content/modules'
+      fullPath: '/$tenantSlug/content/modules'
+      preLoaderRoute: typeof TenantSlugContentModulesRouteImport
+      parentRoute: typeof TenantSlugRouteRoute
+    }
+    '/$tenantSlug/content/courses': {
+      id: '/$tenantSlug/content/courses'
+      path: '/content/courses'
+      fullPath: '/$tenantSlug/content/courses'
+      preLoaderRoute: typeof TenantSlugContentCoursesRouteImport
+      parentRoute: typeof TenantSlugRouteRoute
+    }
+    '/$tenantSlug/content/classes': {
+      id: '/$tenantSlug/content/classes'
+      path: '/content/classes'
+      fullPath: '/$tenantSlug/content/classes'
+      preLoaderRoute: typeof TenantSlugContentClassesRouteImport
+      parentRoute: typeof TenantSlugRouteRoute
+    }
   }
 }
+
+interface TenantSlugRouteRouteChildren {
+  TenantSlugIndexRoute: typeof TenantSlugIndexRoute
+  TenantSlugContentClassesRoute: typeof TenantSlugContentClassesRoute
+  TenantSlugContentCoursesRoute: typeof TenantSlugContentCoursesRoute
+  TenantSlugContentModulesRoute: typeof TenantSlugContentModulesRoute
+}
+
+const TenantSlugRouteRouteChildren: TenantSlugRouteRouteChildren = {
+  TenantSlugIndexRoute: TenantSlugIndexRoute,
+  TenantSlugContentClassesRoute: TenantSlugContentClassesRoute,
+  TenantSlugContentCoursesRoute: TenantSlugContentCoursesRoute,
+  TenantSlugContentModulesRoute: TenantSlugContentModulesRoute,
+}
+
+const TenantSlugRouteRouteWithChildren = TenantSlugRouteRoute._addFileChildren(
+  TenantSlugRouteRouteChildren,
+)
 
 interface _authRouteRouteChildren {
   _authForgotPasswordRoute: typeof _authForgotPasswordRoute
@@ -186,7 +321,9 @@ const _authRouteRouteWithChildren = _authRouteRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  TenantSlugRouteRoute: TenantSlugRouteRouteWithChildren,
   _authRouteRoute: _authRouteRouteWithChildren,
+  CreateTenantRoute: CreateTenantRoute,
   ProfileRoute: ProfileRoute,
 }
 export const routeTree = rootRouteImport

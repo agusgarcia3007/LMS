@@ -33,7 +33,7 @@ function SignupPage() {
   function onSubmit(data: SignupInput) {
     signup(
       { name: data.name, email: data.email, password: data.password },
-      { onSuccess: () => navigate({ to: "/" }) }
+      { onSuccess: () => navigate({ to: "/create-tenant" }) }
     );
   }
 

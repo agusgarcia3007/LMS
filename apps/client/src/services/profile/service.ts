@@ -4,8 +4,8 @@ export type User = {
   id: string;
   email: string;
   name: string;
-  role: "superadmin" | "admin" | "instructor" | "student";
-  tenantId: string;
+  role: "superadmin" | "owner" | "admin" | "student";
+  tenantId: string | null;
   avatar: string | null;
   createdAt: string;
   updatedAt: string;

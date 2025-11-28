@@ -30,125 +30,123 @@ function checkCanCreateTenant(user: UserWithoutPassword | null, userRole: string
   );
 }
 
-export const tenantsRoutes = new Elysia().use(authPlugin);
+export const tenantsRoutes = new Elysia()
+  .use(authPlugin)
+  .post(
+    "/",
+    (ctx) =>
+      withHandler(ctx, async () => {
+        checkCanCreateTenant(ctx.user, ctx.userRole);
 
-tenantsRoutes.post(
-  "/",
-  (ctx) =>
-    withHandler(ctx, async () => {
-      checkCanCreateTenant(ctx.user, ctx.userRole);
+        const result = await db.transaction(async (tx) => {
+          // Use INSERT ON CONFLICT to avoid separate SELECT query
+          const [tenant] = await tx
+            .insert(tenantsTable)
+            .values({ slug: ctx.body.slug, name: ctx.body.name })
+            .onConflictDoNothing({ target: tenantsTable.slug })
+            .returning();
 
-      const [existing] = await db
-        .select()
-        .from(tenantsTable)
-        .where(eq(tenantsTable.slug, ctx.body.slug))
-        .limit(1);
+          if (!tenant) {
+            throw new AppError(
+              ErrorCode.TENANT_SLUG_EXISTS,
+              "Tenant slug already exists",
+              409
+            );
+          }
 
-      if (existing) {
-        throw new AppError(
-          ErrorCode.TENANT_SLUG_EXISTS,
-          "Tenant slug already exists",
-          409
-        );
-      }
+          // If owner, link them to this tenant (in same transaction)
+          if (ctx.userRole === "owner" && ctx.user) {
+            await tx
+              .update(usersTable)
+              .set({ tenantId: tenant.id })
+              .where(eq(usersTable.id, ctx.user.id));
+          }
 
-      const [tenant] = await db
-        .insert(tenantsTable)
-        .values({ slug: ctx.body.slug, name: ctx.body.name })
-        .returning();
+          return { tenant };
+        });
 
-      // If owner, link them to this tenant
-      if (ctx.userRole === "owner" && ctx.user) {
-        await db
-          .update(usersTable)
-          .set({ tenantId: tenant.id })
-          .where(eq(usersTable.id, ctx.user.id));
-      }
-
-      return { tenant };
-    }),
-  {
-    body: t.Object({
-      slug: t.String({ minLength: 1, pattern: "^[a-z0-9-]+$" }),
-      name: t.String({ minLength: 1 }),
-    }),
-    detail: {
-      tags: ["Tenants"],
-      summary: "Create a new tenant (superadmin or owner)",
-    },
-  }
-);
-
-tenantsRoutes.get(
-  "/",
-  (ctx) =>
-    withHandler(ctx, async () => {
-      if (!ctx.user) {
-        throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
-      }
-
-      // Superadmin sees all tenants
-      if (ctx.userRole === "superadmin") {
-        const tenants = await db.select().from(tenantsTable);
-        return { tenants };
-      }
-
-      // Owner sees only their tenant
-      if (ctx.userRole === "owner") {
-        if (!ctx.user.tenantId) {
-          return { tenants: [] };
+        return result;
+      }),
+    {
+      body: t.Object({
+        slug: t.String({ minLength: 1, pattern: "^[a-z0-9-]+$" }),
+        name: t.String({ minLength: 1 }),
+      }),
+      detail: {
+        tags: ["Tenants"],
+        summary: "Create a new tenant (superadmin or owner)",
+      },
+    }
+  )
+  .get(
+    "/",
+    (ctx) =>
+      withHandler(ctx, async () => {
+        if (!ctx.user) {
+          throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
-        const tenants = await db
+
+        // Superadmin sees all tenants
+        if (ctx.userRole === "superadmin") {
+          const tenants = await db.select().from(tenantsTable);
+          return { tenants };
+        }
+
+        // Owner sees only their tenant
+        if (ctx.userRole === "owner") {
+          if (!ctx.user.tenantId) {
+            return { tenants: [] };
+          }
+          const tenants = await db
+            .select()
+            .from(tenantsTable)
+            .where(eq(tenantsTable.id, ctx.user.tenantId));
+          return { tenants };
+        }
+
+        throw new AppError(ErrorCode.FORBIDDEN, "Access denied", 403);
+      }),
+    {
+      detail: {
+        tags: ["Tenants"],
+        summary: "List tenants (superadmin: all, owner: their tenant)",
+      },
+    }
+  )
+  .get(
+    "/:slug",
+    (ctx) =>
+      withHandler(ctx, async () => {
+        if (!ctx.user) {
+          throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
+        }
+
+        const [tenant] = await db
           .select()
           .from(tenantsTable)
-          .where(eq(tenantsTable.id, ctx.user.tenantId));
-        return { tenants };
-      }
+          .where(eq(tenantsTable.slug, ctx.params.slug))
+          .limit(1);
 
-      throw new AppError(ErrorCode.FORBIDDEN, "Access denied", 403);
-    }),
-  {
-    detail: {
-      tags: ["Tenants"],
-      summary: "List tenants (superadmin: all, owner: their tenant)",
-    },
-  }
-);
+        if (!tenant) {
+          throw new AppError(ErrorCode.TENANT_NOT_FOUND, "Tenant not found", 404);
+        }
 
-tenantsRoutes.get(
-  "/:slug",
-  (ctx) =>
-    withHandler(ctx, async () => {
-      if (!ctx.user) {
-        throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
-      }
+        // Superadmin can see any tenant
+        if (ctx.userRole === "superadmin") {
+          return { tenant };
+        }
 
-      const [tenant] = await db
-        .select()
-        .from(tenantsTable)
-        .where(eq(tenantsTable.slug, ctx.params.slug))
-        .limit(1);
+        // Owner can only see their own tenant
+        if (ctx.userRole === "owner" && ctx.user.tenantId === tenant.id) {
+          return { tenant };
+        }
 
-      if (!tenant) {
-        throw new AppError(ErrorCode.TENANT_NOT_FOUND, "Tenant not found", 404);
-      }
-
-      // Superadmin can see any tenant
-      if (ctx.userRole === "superadmin") {
-        return { tenant };
-      }
-
-      // Owner can only see their own tenant
-      if (ctx.userRole === "owner" && ctx.user.tenantId === tenant.id) {
-        return { tenant };
-      }
-
-      throw new AppError(ErrorCode.FORBIDDEN, "Access denied", 403);
-    }),
-  {
-    detail: {
-      tags: ["Tenants"],
-      summary: "Get tenant by slug (superadmin or owner)",
-    },
-  }
-);
+        throw new AppError(ErrorCode.FORBIDDEN, "Access denied", 403);
+      }),
+    {
+      detail: {
+        tags: ["Tenants"],
+        summary: "Get tenant by slug (superadmin or owner)",
+      },
+    }
+  );

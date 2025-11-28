@@ -3,6 +3,7 @@ import {
   queryOptions,
   useQueryClient,
 } from "@tanstack/react-query";
+import { QUERY_KEYS as PROFILE_QUERY_KEYS } from "@/services/profile/service";
 import { TenantsService, QUERY_KEYS } from "./service";
 
 export const tenantsOptions = queryOptions({
@@ -22,6 +23,7 @@ export const createTenantOptions = () => {
     mutationFn: TenantsService.create,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.TENANTS });
+      queryClient.invalidateQueries({ queryKey: PROFILE_QUERY_KEYS.PROFILE });
     },
   });
 };
