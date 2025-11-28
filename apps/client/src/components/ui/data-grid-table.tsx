@@ -1,5 +1,6 @@
 import * as React from "react";
 import { type CSSProperties, Fragment, type ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useDataGrid } from "@/components/ui/data-grid";
 import {
@@ -392,6 +393,7 @@ function DataGridTableBodyRowCell<TData>({
 }
 
 function DataGridTableEmpty() {
+  const { t } = useTranslation();
   const { table, props } = useDataGrid();
   const totalColumns = table.getAllColumns().length;
 
@@ -401,7 +403,7 @@ function DataGridTableEmpty() {
         colSpan={totalColumns}
         className="text-center text-muted-foreground py-6"
       >
-        {props.emptyMessage || "No data available"}
+        {props.emptyMessage || t("dataTable.noDataAvailable")}
       </td>
     </tr>
   );

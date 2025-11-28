@@ -21,6 +21,7 @@
     "search": "Buscar...",
     "searchButton": "Buscar",
     "noResults": "No se encontraron resultados",
+    "noDataAvailable": "No hay datos disponibles",
     "rowsPerPage": "Filas por página",
     "page": "Página",
     "of": "de",

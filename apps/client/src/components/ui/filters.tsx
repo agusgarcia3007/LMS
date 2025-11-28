@@ -1249,11 +1249,13 @@ function DateRangeFilter({ values, onChange, placeholder, className, toLabel }: 
 
   const handleDateRangeSelect = (range: DateRange | undefined) => {
     setTempRange(range);
-    if (range?.from && range?.to) {
-      const fromStr = formatDateForStorage(range.from);
-      const toStr = formatDateForStorage(range.to);
+    if (range?.from || range?.to) {
+      const fromStr = formatDateForStorage(range?.from);
+      const toStr = formatDateForStorage(range?.to);
       onChange([fromStr, toStr]);
-      setOpen(false);
+      if (range?.from && range?.to) {
+        setOpen(false);
+      }
     }
   };
 

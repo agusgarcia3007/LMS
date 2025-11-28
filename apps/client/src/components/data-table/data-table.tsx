@@ -175,14 +175,12 @@ export function DataTable<TData>({
   const getDefaultOperator = (fieldType: string | undefined): string => {
     switch (fieldType) {
       case "multiselect":
-        return "is_any_of";
+      case "select":
+        return "is";
       case "daterange":
-      case "numberrange":
         return "between";
       case "text":
         return "contains";
-      case "number":
-        return "equals";
       default:
         return "is";
     }
@@ -196,13 +194,26 @@ export function DataTable<TData>({
       if (!field.key) continue;
       const value = params[field.key];
       if (value && typeof value === "string") {
-        const values = value.split(",");
-        filters.push({
-          id: `${field.key}-${Date.now()}`,
-          field: field.key,
-          operator: field.defaultOperator ?? getDefaultOperator(field.type),
-          values,
-        });
+        const colonIndex = value.indexOf(":");
+        let operator: string;
+        let rawValues: string;
+
+        if (colonIndex > 0) {
+          operator = value.substring(0, colonIndex);
+          rawValues = value.substring(colonIndex + 1);
+        } else {
+          operator = field.defaultOperator ?? getDefaultOperator(field.type);
+          rawValues = value;
+        }
+
+        if (rawValues) {
+          filters.push({
+            id: `${field.key}-filter`,
+            field: field.key,
+            operator,
+            values: rawValues.split(","),
+          });
+        }
       }
     }
     return filters;
@@ -220,8 +231,9 @@ export function DataTable<TData>({
     }
 
     for (const filter of newFilters) {
-      if (filter.values.length > 0) {
-        filterParams[filter.field] = filter.values.join(",");
+      const nonEmptyValues = filter.values.filter((v) => v !== "");
+      if (nonEmptyValues.length > 0) {
+        filterParams[filter.field] = `${filter.operator}:${nonEmptyValues.join(",")}`;
       }
     }
 
