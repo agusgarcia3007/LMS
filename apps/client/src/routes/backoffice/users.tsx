@@ -1,29 +1,13 @@
 import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
-import {
-  type ColumnDef,
-  getCoreRowModel,
-  useReactTable,
-  type SortingState,
-  type OnChangeFn,
-} from "@tanstack/react-table";
-import { Ellipsis } from "lucide-react";
+import type { ColumnDef } from "@tanstack/react-table";
+import { Ellipsis, Shield, Building2, Calendar } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardFooter,
-  CardHeader,
-  CardHeading,
-  CardTable,
-} from "@/components/ui/card";
-import { DataGrid } from "@/components/ui/data-grid";
 import { DataGridColumnHeader } from "@/components/ui/data-grid-column-header";
-import { DataGridPagination } from "@/components/ui/data-grid-pagination";
-import { DataGridTable } from "@/components/ui/data-grid-table";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,14 +15,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import type { FilterFieldConfig } from "@/components/ui/filters";
 import { Skeleton } from "@/components/ui/skeleton";
 
-import { DataTableToolbar, DeleteDialog, DataTableEmpty } from "@/components/data-table";
+import { DataTable, DeleteDialog } from "@/components/data-table";
+import { EditUserDialog } from "@/components/backoffice/edit-user-dialog";
 import { useDataTableState } from "@/hooks/use-data-table-state";
 import { useGetUsers, useDeleteUser, useUpdateUser } from "@/services/users";
 import type { User, UserRole } from "@/services/users/service";
-import { EditUserDialog } from "./-components/edit-user-dialog";
 
 export const Route = createFileRoute("/backoffice/users")({
   component: BackofficeUsers,
@@ -54,18 +38,17 @@ export const Route = createFileRoute("/backoffice/users")({
 
 function BackofficeUsers() {
   const { t } = useTranslation();
-  const { params, sortState, setPage, setLimit, setSort, setSearch } =
-    useDataTableState({
-      defaultSort: { field: "createdAt", order: "desc" },
-    });
+  const tableState = useDataTableState({
+    defaultSort: { field: "createdAt", order: "desc" },
+  });
 
   const { data, isLoading } = useGetUsers({
-    page: params.page,
-    limit: params.limit,
-    sort: params.sort,
-    search: params.search,
-    role: params.role as string | undefined,
-    tenantId: params.tenantId as string | undefined,
+    page: tableState.params.page,
+    limit: tableState.params.limit,
+    sort: tableState.params.sort,
+    search: tableState.params.search,
+    role: tableState.params.role as string | undefined,
+    tenantId: tableState.params.tenantId as string | undefined,
   });
 
   const [editUser, setEditUser] = useState<User | null>(null);
@@ -81,10 +64,10 @@ function BackofficeUsers() {
     });
   };
 
-  const handleUpdate = (data: { name: string; role: UserRole }) => {
+  const handleUpdate = (formData: { name: string; role: UserRole }) => {
     if (!editUser) return;
     updateMutation.mutate(
-      { id: editUser.id, ...data },
+      { id: editUser.id, ...formData },
       { onSuccess: () => setEditUser(null) }
     );
   };
@@ -227,69 +210,38 @@ function BackofficeUsers() {
     [t]
   );
 
-  const sorting: SortingState = sortState
-    ? [{ id: sortState.field, desc: sortState.order === "desc" }]
-    : [];
-
-  const onSortingChange: OnChangeFn<SortingState> = (updater) => {
-    const newSorting = typeof updater === "function" ? updater(sorting) : updater;
-    if (newSorting.length === 0) {
-      setSort(undefined);
-    } else {
-      setSort({
-        field: newSorting[0].id,
-        order: newSorting[0].desc ? "desc" : "asc",
-      });
-    }
-  };
+  const filterFields = useMemo<FilterFieldConfig[]>(
+    () => [
+      {
+        key: "role",
+        label: t("backoffice.users.filters.role"),
+        type: "multiselect",
+        icon: <Shield className="size-3.5" />,
+        options: [
+          { value: "superadmin", label: t("roles.superadmin") },
+          { value: "owner", label: t("roles.owner") },
+          { value: "admin", label: t("roles.admin") },
+          { value: "student", label: t("roles.student") },
+        ],
+      },
+      {
+        key: "tenantId",
+        label: t("backoffice.users.filters.tenant"),
+        type: "text",
+        icon: <Building2 className="size-3.5" />,
+        placeholder: t("backoffice.users.filters.tenantPlaceholder"),
+      },
+      {
+        key: "createdAt",
+        label: t("backoffice.users.filters.createdAt"),
+        type: "daterange",
+        icon: <Calendar className="size-3.5" />,
+      },
+    ],
+    [t]
+  );
 
   const users = data?.users ?? [];
-  const pagination = data?.pagination;
-  const recordCount = pagination?.total ?? 0;
-  const pageCount = pagination?.totalPages ?? 0;
-
-  const table = useReactTable({
-    columns,
-    data: users,
-    pageCount,
-    manualPagination: true,
-    manualSorting: true,
-    state: {
-      pagination: {
-        pageIndex: params.page - 1,
-        pageSize: params.limit,
-      },
-      sorting,
-    },
-    onPaginationChange: (updater) => {
-      const newPagination =
-        typeof updater === "function"
-          ? updater({ pageIndex: params.page - 1, pageSize: params.limit })
-          : updater;
-      if (newPagination.pageSize !== params.limit) {
-        setLimit(newPagination.pageSize);
-      } else if (newPagination.pageIndex !== params.page - 1) {
-        setPage(newPagination.pageIndex + 1);
-      }
-    },
-    onSortingChange,
-    getCoreRowModel: getCoreRowModel(),
-  });
-
-  if (!isLoading && users.length === 0 && !params.search) {
-    return (
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold">{t("backoffice.users.title")}</h1>
-          <p className="text-muted-foreground">{t("backoffice.users.description")}</p>
-        </div>
-        <DataTableEmpty
-          title={t("backoffice.users.empty.title")}
-          description={t("backoffice.users.empty.description")}
-        />
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
@@ -298,27 +250,18 @@ function BackofficeUsers() {
         <p className="text-muted-foreground">{t("backoffice.users.description")}</p>
       </div>
 
-      <DataGrid table={table} recordCount={recordCount} isLoading={isLoading}>
-        <Card>
-          <CardHeader className="py-4">
-            <CardHeading className="flex-1">
-              <DataTableToolbar
-                searchValue={params.search}
-                onSearchChange={setSearch}
-              />
-            </CardHeading>
-          </CardHeader>
-          <CardTable>
-            <ScrollArea>
-              <DataGridTable />
-              <ScrollBar orientation="horizontal" />
-            </ScrollArea>
-          </CardTable>
-          <CardFooter>
-            <DataGridPagination />
-          </CardFooter>
-        </Card>
-      </DataGrid>
+      <DataTable
+        data={users}
+        columns={columns}
+        pagination={data?.pagination}
+        isLoading={isLoading}
+        tableState={tableState}
+        filterFields={filterFields}
+        emptyState={{
+          title: t("backoffice.users.empty.title"),
+          description: t("backoffice.users.empty.description"),
+        }}
+      />
 
       <EditUserDialog
         user={editUser}

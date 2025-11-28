@@ -2,6 +2,8 @@
 
 import type React from 'react';
 import { createContext, useCallback, useContext, useMemo, useState } from 'react';
+import { format, parse } from 'date-fns';
+import type { DateRange } from 'react-day-picker';
 import {
   Command,
   CommandEmpty,
@@ -20,8 +22,10 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Switch } from '@/components/ui/switch';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Calendar } from '@/components/ui/calendar';
+import { Button } from '@/components/ui/button';
 import { cva, type VariantProps } from 'class-variance-authority';
-import { AlertCircle, Check, Plus, X } from 'lucide-react';
+import { AlertCircle, CalendarIcon, Check, Plus, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 // i18n Configuration Interface
@@ -1201,6 +1205,104 @@ function SelectOptionsPopover<T = unknown>({
   );
 }
 
+interface DateRangeFilterProps {
+  values: string[];
+  onChange: (values: string[]) => void;
+  placeholder?: string;
+  className?: string;
+  toLabel: string;
+}
+
+function DateRangeFilter({ values, onChange, placeholder, className, toLabel }: DateRangeFilterProps) {
+  const [open, setOpen] = useState(false);
+  const startDate = values[0] || '';
+  const endDate = values[1] || '';
+
+  const parseDate = (dateStr: string): Date | undefined => {
+    if (!dateStr) return undefined;
+    try {
+      return parse(dateStr, 'yyyy-MM-dd', new Date());
+    } catch {
+      return undefined;
+    }
+  };
+
+  const formatDateForStorage = (date: Date | undefined): string => {
+    if (!date) return '';
+    return format(date, 'yyyy-MM-dd');
+  };
+
+  const formatDisplayDate = (date: Date | undefined): string => {
+    if (!date) return '';
+    return format(date, 'dd/MM/yyyy');
+  };
+
+  const savedRange: DateRange | undefined =
+    startDate || endDate
+      ? {
+          from: parseDate(startDate),
+          to: parseDate(endDate),
+        }
+      : undefined;
+
+  const [tempRange, setTempRange] = useState<DateRange | undefined>(savedRange);
+
+  const handleDateRangeSelect = (range: DateRange | undefined) => {
+    setTempRange(range);
+    if (range?.from && range?.to) {
+      const fromStr = formatDateForStorage(range.from);
+      const toStr = formatDateForStorage(range.to);
+      onChange([fromStr, toStr]);
+      setOpen(false);
+    }
+  };
+
+  const displayRange = open ? tempRange : savedRange;
+
+  return (
+    <Popover open={open} onOpenChange={(isOpen) => {
+      setOpen(isOpen);
+      if (isOpen) {
+        setTempRange(savedRange);
+      }
+    }}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="ghost"
+          size="sm"
+          className={cn(
+            'h-8 justify-start text-left font-normal border-0 hover:bg-secondary',
+            !displayRange?.from && 'text-muted-foreground',
+            className
+          )}
+        >
+          <CalendarIcon className="mr-2 size-3.5 opacity-60" />
+          {displayRange?.from ? (
+            displayRange.to ? (
+              <>
+                {formatDisplayDate(displayRange.from)} {toLabel} {formatDisplayDate(displayRange.to)}
+              </>
+            ) : (
+              formatDisplayDate(displayRange.from)
+            )
+          ) : (
+            <span>{placeholder || 'Select date range'}</span>
+          )}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0" align="start">
+        <Calendar
+          mode="range"
+          defaultMonth={displayRange?.from}
+          selected={tempRange}
+          onSelect={handleDateRangeSelect}
+          numberOfMonths={2}
+        />
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 function FilterValueSelector<T = unknown>({ field, values, onChange, operator }: FilterValueSelectorProps<T>) {
   const [open, setOpen] = useState(false);
   const [searchInput, setSearchInput] = useState('');
@@ -1383,40 +1485,14 @@ function FilterValueSelector<T = unknown>({ field, values, onChange, operator }:
   }
 
   if (field.type === 'daterange') {
-    const startDate = (values[0] as string) || '';
-    const endDate = (values[1] as string) || '';
-
     return (
-      <div
-        className={filterFieldValueVariants({
-          variant: context.variant,
-          size: context.size,
-          cursorPointer: context.cursorPointer,
-        })}
-      >
-        <FilterInput
-          type="date"
-          value={startDate}
-          onChange={(e) => onChange([e.target.value, endDate] as T[])}
-          onInputChange={field.onInputChange}
-          className={cn('w-24', field.className)}
-          field={field}
-        />
-        <div
-          data-slot="filters-between"
-          className={filterFieldBetweenVariants({ variant: context.variant, size: context.size })}
-        >
-          {context.i18n.to}
-        </div>
-        <FilterInput
-          type="date"
-          value={endDate}
-          onChange={(e) => onChange([startDate, e.target.value] as T[])}
-          onInputChange={field.onInputChange}
-          className={cn('w-24', field.className)}
-          field={field}
-        />
-      </div>
+      <DateRangeFilter
+        values={values as string[]}
+        onChange={onChange as (values: string[]) => void}
+        placeholder={field.placeholder}
+        className={field.className}
+        toLabel={context.i18n.to}
+      />
     );
   }
 

@@ -19,15 +19,68 @@
   },
   "dataTable": {
     "search": "Buscar...",
+    "searchButton": "Buscar",
     "noResults": "Nenhum resultado encontrado",
-    "rowsPerPage": "Linhas por pagina",
-    "page": "Pagina",
+    "rowsPerPage": "Linhas por página",
+    "page": "Página",
     "of": "de",
-    "showing": "Mostrando {{from}} a {{to}} de {{total}}",
-    "filters": {
-      "title": "Filtros",
-      "clear": "Limpar filtros",
-      "apply": "Aplicar"
+    "showing": "{{from}} - {{to}} de {{total}}",
+    "previousPage": "Ir para a página anterior",
+    "nextPage": "Ir para a próxima página"
+  },
+  "filters": {
+    "addFilter": "Adicionar filtro",
+    "searchFields": "Buscar campos...",
+    "noFieldsFound": "Nenhum campo encontrado.",
+    "noResultsFound": "Nenhum resultado encontrado.",
+    "select": "Selecionar...",
+    "true": "Verdadeiro",
+    "false": "Falso",
+    "min": "Min",
+    "max": "Max",
+    "to": "ate",
+    "selected": "selecionados",
+    "selectDateRange": "Selecionar intervalo de datas",
+    "operators": {
+      "is": "e",
+      "isNot": "nao e",
+      "isAnyOf": "e qualquer um de",
+      "isNotAnyOf": "nao e nenhum de",
+      "includesAll": "inclui todos",
+      "excludesAll": "exclui todos",
+      "before": "antes de",
+      "after": "depois de",
+      "between": "entre",
+      "notBetween": "nao entre",
+      "contains": "contem",
+      "notContains": "nao contem",
+      "startsWith": "comeca com",
+      "endsWith": "termina com",
+      "isExactly": "e exatamente",
+      "equals": "igual a",
+      "notEquals": "diferente de",
+      "greaterThan": "maior que",
+      "lessThan": "menor que",
+      "overlaps": "sobrepoe",
+      "includes": "inclui",
+      "excludes": "exclui",
+      "includesAllOf": "inclui todos de",
+      "includesAnyOf": "inclui algum de",
+      "empty": "esta vazio",
+      "notEmpty": "nao esta vazio"
+    },
+    "placeholders": {
+      "enterField": "Digite {{fieldType}}...",
+      "selectField": "Selecionar...",
+      "searchField": "Buscar {{fieldName}}...",
+      "enterKey": "Digite chave...",
+      "enterValue": "Digite valor..."
+    },
+    "validation": {
+      "invalidEmail": "Formato de e-mail invalido",
+      "invalidUrl": "Formato de URL invalido",
+      "invalidTel": "Formato de telefone invalido",
+      "invalid": "Formato invalido"
     }
   },
   "roles": {
@@ -161,6 +214,7 @@
       "filters": {
         "role": "Funcao",
         "tenant": "Organizacao",
+        "tenantPlaceholder": "Buscar organizacao...",
         "createdAt": "Data de criacao"
       },
       "edit": {

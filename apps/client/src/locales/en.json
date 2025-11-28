@@ -19,15 +19,68 @@
   },
   "dataTable": {
     "search": "Search...",
+    "searchButton": "Search",
     "noResults": "No results found",
     "rowsPerPage": "Rows per page",
     "page": "Page",
     "of": "of",
-    "showing": "Showing {{from}} to {{to}} of {{total}}",
-    "filters": {
-      "title": "Filters",
-      "clear": "Clear filters",
-      "apply": "Apply"
+    "showing": "{{from}} - {{to}} of {{total}}",
+    "previousPage": "Go to previous page",
+    "nextPage": "Go to next page"
+  },
+  "filters": {
+    "addFilter": "Add filter",
+    "searchFields": "Search fields...",
+    "noFieldsFound": "No fields found.",
+    "noResultsFound": "No results found.",
+    "select": "Select...",
+    "true": "True",
+    "false": "False",
+    "min": "Min",
+    "max": "Max",
+    "to": "to",
+    "selected": "selected",
+    "selectDateRange": "Select date range",
+    "operators": {
+      "is": "is",
+      "isNot": "is not",
+      "isAnyOf": "is any of",
+      "isNotAnyOf": "is not any of",
+      "includesAll": "includes all",
+      "excludesAll": "excludes all",
+      "before": "before",
+      "after": "after",
+      "between": "between",
+      "notBetween": "not between",
+      "contains": "contains",
+      "notContains": "does not contain",
+      "startsWith": "starts with",
+      "endsWith": "ends with",
+      "isExactly": "is exactly",
+      "equals": "equals",
+      "notEquals": "not equals",
+      "greaterThan": "greater than",
+      "lessThan": "less than",
+      "overlaps": "overlaps",
+      "includes": "includes",
+      "excludes": "excludes",
+      "includesAllOf": "includes all of",
+      "includesAnyOf": "includes any of",
+      "empty": "is empty",
+      "notEmpty": "is not empty"
+    },
+    "placeholders": {
+      "enterField": "Enter {{fieldType}}...",
+      "selectField": "Select...",
+      "searchField": "Search {{fieldName}}...",
+      "enterKey": "Enter key...",
+      "enterValue": "Enter value..."
+    },
+    "validation": {
+      "invalidEmail": "Invalid email format",
+      "invalidUrl": "Invalid URL format",
+      "invalidTel": "Invalid phone format",
+      "invalid": "Invalid format"
     }
   },
   "roles": {
@@ -161,6 +214,7 @@
       "filters": {
         "role": "Role",
         "tenant": "Organization",
+        "tenantPlaceholder": "Search organization...",
         "createdAt": "Created at"
       },
       "edit": {

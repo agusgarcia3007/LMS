@@ -1,8 +1,12 @@
-import { useCallback, useState, useEffect, type ReactNode } from "react";
+import { useCallback, useState, useEffect, useRef, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { Search, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Search } from "lucide-react";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+} from "@/components/ui/input-group";
 
 type DataTableToolbarProps = {
   searchValue?: string;
@@ -10,6 +14,7 @@ type DataTableToolbarProps = {
   searchPlaceholder?: string;
   children?: ReactNode;
   actions?: ReactNode;
+  debounceMs?: number;
 };
 
 export function DataTableToolbar({
@@ -18,50 +23,67 @@ export function DataTableToolbar({
   searchPlaceholder,
   children,
   actions,
+  debounceMs = 300,
 }: DataTableToolbarProps) {
   const { t } = useTranslation();
   const [localSearch, setLocalSearch] = useState(searchValue);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isInitialMount = useRef(true);
 
   useEffect(() => {
     setLocalSearch(searchValue);
   }, [searchValue]);
 
-  const handleSearchChange = useCallback(
-    (value: string) => {
-      setLocalSearch(value);
-      onSearchChange?.(value);
-    },
-    [onSearchChange]
-  );
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
 
-  const clearSearch = useCallback(() => {
-    setLocalSearch("");
-    onSearchChange?.("");
-  }, [onSearchChange]);
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+
+    debounceRef.current = setTimeout(() => {
+      onSearchChange?.(localSearch);
+    }, debounceMs);
+
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+    };
+  }, [localSearch, debounceMs, onSearchChange]);
+
+  const handleSubmit = useCallback(
+    (e: React.FormEvent) => {
+      e.preventDefault();
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+      onSearchChange?.(localSearch);
+    },
+    [onSearchChange, localSearch]
+  );
 
   return (
     <div className="flex items-center justify-between gap-4">
       <div className="flex items-center gap-2 flex-1">
         {onSearchChange && (
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-            <Input
-              placeholder={searchPlaceholder ?? t("dataTable.search")}
-              value={localSearch}
-              onChange={(e) => handleSearchChange(e.target.value)}
-              className="pl-9 w-64"
-            />
-            {localSearch && (
-              <Button
-                mode="icon"
-                variant="ghost"
-                className="absolute right-1.5 top-1/2 -translate-y-1/2 h-6 w-6"
-                onClick={clearSearch}
-              >
-                <X className="size-3.5" />
-              </Button>
-            )}
-          </div>
+          <form onSubmit={handleSubmit}>
+            <InputGroup className="w-64">
+              <InputGroupInput
+                placeholder={searchPlaceholder ?? t("dataTable.search")}
+                value={localSearch}
+                onChange={(e) => setLocalSearch(e.target.value)}
+              />
+              <InputGroupAddon align="inline-end">
+                <InputGroupButton type="submit" variant="dim" size="icon-xs">
+                  <Search />
+                </InputGroupButton>
+              </InputGroupAddon>
+            </InputGroup>
+          </form>
         )}
         {children}
       </div>

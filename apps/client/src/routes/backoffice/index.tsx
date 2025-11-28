@@ -3,6 +3,8 @@ import { Building2, Users } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useGetDashboardStats } from "@/services/dashboard";
 
 export const Route = createFileRoute("/backoffice/")({
   component: BackofficeDashboard,
@@ -10,6 +12,7 @@ export const Route = createFileRoute("/backoffice/")({
 
 function BackofficeDashboard() {
   const { t } = useTranslation();
+  const { data, isLoading } = useGetDashboardStats();
 
   return (
     <div className="space-y-6">
@@ -29,7 +32,11 @@ function BackofficeDashboard() {
             <Users className="text-muted-foreground size-4" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">-</div>
+            {isLoading ? (
+              <Skeleton className="h-8 w-16" />
+            ) : (
+              <div className="text-2xl font-bold">{data?.stats.totalUsers}</div>
+            )}
           </CardContent>
         </Card>
 
@@ -41,7 +48,13 @@ function BackofficeDashboard() {
             <Building2 className="text-muted-foreground size-4" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">-</div>
+            {isLoading ? (
+              <Skeleton className="h-8 w-16" />
+            ) : (
+              <div className="text-2xl font-bold">
+                {data?.stats.totalTenants}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

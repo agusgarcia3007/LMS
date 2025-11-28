@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { useDataGrid } from '@/components/ui/data-grid';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -24,6 +25,7 @@ interface DataGridPaginationProps {
 }
 
 function DataGridPagination(props: DataGridPaginationProps) {
+  const { t } = useTranslation();
   const { table, recordCount, isLoading } = useDataGrid();
 
   const defaultProps: Partial<DataGridPaginationProps> = {
@@ -33,11 +35,10 @@ function DataGridPagination(props: DataGridPaginationProps) {
     sizesSkeleton: <Skeleton className="h-8 w-44" />,
     moreLimit: 5,
     more: false,
-    info: '{from} - {to} of {count}',
     infoSkeleton: <Skeleton className="h-8 w-60" />,
-    rowsPerPageLabel: 'Rows per page',
-    previousPageLabel: 'Go to previous page',
-    nextPageLabel: 'Go to next page',
+    rowsPerPageLabel: t('dataTable.rowsPerPage'),
+    previousPageLabel: t('dataTable.previousPage'),
+    nextPageLabel: t('dataTable.nextPage'),
     ellipsisText: '...',
   };
 
@@ -51,13 +52,12 @@ function DataGridPagination(props: DataGridPaginationProps) {
   const to = Math.min((pageIndex + 1) * pageSize, recordCount);
   const pageCount = table.getPageCount();
 
-  // Replace placeholders in paginationInfo
   const paginationInfo = mergedProps?.info
     ? mergedProps.info
         .replace('{from}', from.toString())
         .replace('{to}', to.toString())
         .replace('{count}', recordCount.toString())
-    : `${from} - ${to} of ${recordCount}`;
+    : t('dataTable.showing', { from, to, total: recordCount });
 
   // Pagination limit logic
   const paginationMoreLimit = mergedProps?.moreLimit || 5;
