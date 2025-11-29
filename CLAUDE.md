@@ -82,6 +82,24 @@ routes.get("/", (ctx) =>
 - Never add comments in the code
 - Always use descriptive function names
 
+## Database Indexes
+
+Always add indexes on columns used for filtering, especially:
+- Foreign keys (`tenantId`, `userId`, etc.)
+- Columns used in WHERE clauses (`role`, `status`, etc.)
+
+```typescript
+import { pgTable, uuid, index } from "drizzle-orm/pg-core";
+
+export const usersTable = pgTable("users", {
+  tenantId: uuid("tenant_id").references(() => tenantsTable.id),
+  role: userRoleEnum("role").notNull(),
+}, (table) => [
+  index("users_tenant_id_idx").on(table.tenantId),
+  index("users_role_idx").on(table.role),
+]);
+```
+
 ## Server Filters
 
 The filter system in `apps/server/src/lib/filters.ts` handles pagination, sorting, search, and filters.

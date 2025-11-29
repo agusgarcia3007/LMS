@@ -1,4 +1,5 @@
 import { Link, useParams, useRouterState } from "@tanstack/react-router";
+import { useEffect } from "react";
 import {
   BookOpen,
   ChevronsUpDown,
@@ -31,6 +32,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { useLogout } from "@/services/auth/mutations";
 import type { User } from "@/services/profile/service";
@@ -45,8 +47,13 @@ export function DashboardSidebar({ tenant, user }: DashboardSidebarProps) {
   const { tenantSlug } = useParams({ strict: false });
   const routerState = useRouterState();
   const currentPath = routerState.location.pathname;
-  const { mutate: logout } = useLogout();
+  const { mutate: logout, isPending } = useLogout();
   const { t } = useTranslation();
+  const { setOpenMobile } = useSidebar();
+
+  useEffect(() => {
+    setOpenMobile(false);
+  }, [currentPath, setOpenMobile]);
 
   const getInitials = (name: string) => {
     return name
@@ -208,7 +215,7 @@ export function DashboardSidebar({ tenant, user }: DashboardSidebarProps) {
                     {t("common.backToHome")}
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => logout()}>
+                <DropdownMenuItem onClick={() => logout()} disabled={isPending}>
                   <LogOut />
                   {t("common.logOut")}
                 </DropdownMenuItem>

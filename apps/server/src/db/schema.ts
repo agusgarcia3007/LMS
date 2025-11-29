@@ -1,4 +1,4 @@
-import { pgTable, pgEnum, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { pgTable, pgEnum, text, timestamp, uuid, index } from "drizzle-orm/pg-core";
 
 export const userRoleEnum = pgEnum("user_role", [
   "superadmin",
@@ -33,7 +33,10 @@ export const usersTable = pgTable("users", {
     .notNull()
     .defaultNow()
     .$onUpdate(() => new Date()),
-});
+}, (table) => [
+  index("users_tenant_id_idx").on(table.tenantId),
+  index("users_role_idx").on(table.role),
+]);
 
 export const refreshTokensTable = pgTable("refresh_tokens", {
   id: uuid("id").primaryKey().defaultRandom(),

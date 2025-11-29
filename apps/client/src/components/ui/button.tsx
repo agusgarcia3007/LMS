@@ -425,6 +425,7 @@ function Button({
       )}
       {...(selected && { "data-state": "open" })}
       {...props}
+      disabled={isLoading || props.disabled}
     >
       {isMobile && isLoading ? null : props.children}
       {isLoading && <Spinner className="ml-1" />}

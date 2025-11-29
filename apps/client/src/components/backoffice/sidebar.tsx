@@ -1,4 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
+import { useEffect } from "react";
 import {
   Building2,
   ChevronsUpDown,
@@ -28,6 +29,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { useLogout } from "@/services/auth/mutations";
 import type { User } from "@/services/profile/service";
@@ -39,8 +41,13 @@ type BackofficeSidebarProps = {
 export function BackofficeSidebar({ user }: BackofficeSidebarProps) {
   const routerState = useRouterState();
   const currentPath = routerState.location.pathname;
-  const { mutate: logout } = useLogout();
+  const { mutate: logout, isPending } = useLogout();
   const { t } = useTranslation();
+  const { setOpenMobile } = useSidebar();
+
+  useEffect(() => {
+    setOpenMobile(false);
+  }, [currentPath, setOpenMobile]);
 
   const getInitials = (name: string) => {
     return name
@@ -164,7 +171,7 @@ export function BackofficeSidebar({ user }: BackofficeSidebarProps) {
                     {t("common.backToHome")}
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => logout()}>
+                <DropdownMenuItem onClick={() => logout()} disabled={isPending}>
                   <LogOut />
                   {t("common.logOut")}
                 </DropdownMenuItem>
