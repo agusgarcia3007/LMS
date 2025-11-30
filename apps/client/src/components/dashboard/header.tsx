@@ -23,10 +23,13 @@ export function DashboardHeader() {
   const getSegmentLabel = (segment: string) => {
     const labels: Record<string, string> = {
       home: t("dashboard.sidebar.home"),
+      content: t("dashboard.sidebar.content"),
       courses: t("dashboard.sidebar.courses"),
       modules: t("dashboard.sidebar.modules"),
       classes: t("dashboard.sidebar.classes"),
+      management: t("dashboard.sidebar.management"),
       users: t("dashboard.sidebar.users"),
+      site: t("dashboard.sidebar.mySite"),
       configuration: t("dashboard.sidebar.configuration"),
       customization: t("dashboard.sidebar.customization"),
     };

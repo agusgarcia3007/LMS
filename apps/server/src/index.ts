@@ -8,9 +8,24 @@ import { logger } from "./lib/logger";
 import { parseDuration } from "./lib/utils";
 import { ROUTES } from "./routes";
 
+function isAllowedOrigin(origin: string | undefined): boolean {
+  if (!origin) return true;
+
+  if (env.CORS_ORIGIN) {
+    if (env.CORS_ORIGIN.includes("*")) {
+      const pattern = env.CORS_ORIGIN.replace(/\*/g, "[a-z0-9-]+");
+      const regex = new RegExp(`^https?://${pattern}$`);
+      return regex.test(origin);
+    }
+    return origin === env.CORS_ORIGIN;
+  }
+
+  return true;
+}
+
 const app = new Elysia()
   .use(errorHandler)
-  .use(cors({ origin: env.CORS_ORIGIN || true }))
+  .use(cors({ origin: (ctx) => isAllowedOrigin(ctx.headers.get("origin") ?? undefined) }))
   .use(rateLimit({ max: 100, duration: 60_000 }))
   .use(
     openapi({

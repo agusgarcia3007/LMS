@@ -25,6 +25,8 @@ const router = createRouter({
   routeTree,
   context: {
     queryClient,
+    isCampus: false,
+    tenantSlug: null,
   },
   defaultPreload: "intent",
   // Since we're using React Query, we don't want loader calls to ever be stale

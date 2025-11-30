@@ -1,5 +1,6 @@
 import axios from "axios";
 import { AuthService } from "@/services/auth/service";
+import { getTenantFromHost } from "@/lib/tenant";
 
 const TOKEN_KEY = "accessToken";
 const REFRESH_TOKEN_KEY = "refreshToken";
@@ -17,6 +18,12 @@ http.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+
+  const { slug, isCampus } = getTenantFromHost();
+  if (isCampus && slug) {
+    config.headers["X-Tenant-Slug"] = slug;
+  }
+
   return config;
 });
 

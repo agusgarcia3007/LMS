@@ -1,5 +1,6 @@
 {
   "common": {
+    "toggleSidebar": "Alternar barra lateral",
     "email": "Correo electrónico",
     "password": "Contraseña",
     "signIn": "Iniciar sesión",

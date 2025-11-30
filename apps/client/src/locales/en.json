@@ -1,5 +1,6 @@
 {
   "common": {
+    "toggleSidebar": "Toggle Sidebar",
     "email": "Email",
     "password": "Password",
     "signIn": "Sign in",

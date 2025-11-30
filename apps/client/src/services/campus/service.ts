@@ -1,0 +1,80 @@
+import { http } from "@/lib/http";
+import type { Course, CourseCategory } from "@/data/mock-courses";
+
+export type CampusTenant = {
+  id: string;
+  name: string;
+  slug: string;
+};
+
+export type CampusStats = {
+  totalCourses: number;
+  totalStudents: number;
+  categories: number;
+};
+
+export type CoursesListParams = {
+  page?: number;
+  limit?: number;
+  category?: string;
+  level?: string;
+  search?: string;
+};
+
+export type PaginationResult = {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+};
+
+export type CoursesListResponse = {
+  courses: Course[];
+  pagination: PaginationResult;
+};
+
+export const QUERY_KEYS = {
+  CAMPUS: ["campus"],
+  TENANT: ["campus", "tenant"],
+  COURSES: ["campus", "courses"],
+  COURSES_LIST: (params: CoursesListParams) => ["campus", "courses", "list", params],
+  COURSE: (slug: string) => ["campus", "courses", slug],
+  CATEGORIES: ["campus", "categories"],
+  STATS: ["campus", "stats"],
+} as const;
+
+export const CampusService = {
+  async getTenant() {
+    const { data } = await http.get<{ tenant: CampusTenant }>("/campus/tenant");
+    return data;
+  },
+
+  async listCourses(params: CoursesListParams = {}) {
+    const searchParams = new URLSearchParams();
+    if (params.page) searchParams.set("page", String(params.page));
+    if (params.limit) searchParams.set("limit", String(params.limit));
+    if (params.category) searchParams.set("category", params.category);
+    if (params.level) searchParams.set("level", params.level);
+    if (params.search) searchParams.set("search", params.search);
+
+    const query = searchParams.toString();
+    const url = query ? `/campus/courses?${query}` : "/campus/courses";
+    const { data } = await http.get<CoursesListResponse>(url);
+    return data;
+  },
+
+  async getCourse(slug: string) {
+    const { data } = await http.get<{ course: Course }>(`/campus/courses/${slug}`);
+    return data;
+  },
+
+  async getCategories() {
+    const { data } = await http.get<{ categories: CourseCategory[] }>("/campus/categories");
+    return data;
+  },
+
+  async getStats() {
+    const { data } = await http.get<{ stats: CampusStats }>("/campus/stats");
+    return data;
+  },
+} as const;

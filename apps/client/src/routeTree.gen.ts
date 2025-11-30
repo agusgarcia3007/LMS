@@ -11,12 +11,14 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as CreateTenantRouteImport } from './routes/create-tenant'
+import { Route as CoursesRouteImport } from './routes/courses'
 import { Route as BackofficeRouteRouteImport } from './routes/backoffice/route'
 import { Route as _authRouteRouteImport } from './routes/__auth/route'
 import { Route as TenantSlugRouteRouteImport } from './routes/$tenantSlug/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as BackofficeIndexRouteImport } from './routes/backoffice/index'
 import { Route as TenantSlugIndexRouteImport } from './routes/$tenantSlug/index'
+import { Route as CoursesCourseSlugRouteImport } from './routes/courses.$courseSlug'
 import { Route as BackofficeUsersRouteImport } from './routes/backoffice/users'
 import { Route as BackofficeTenantsRouteImport } from './routes/backoffice/tenants'
 import { Route as _authSignupRouteImport } from './routes/__auth/signup'
@@ -38,6 +40,11 @@ const ProfileRoute = ProfileRouteImport.update({
 const CreateTenantRoute = CreateTenantRouteImport.update({
   id: '/create-tenant',
   path: '/create-tenant',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CoursesRoute = CoursesRouteImport.update({
+  id: '/courses',
+  path: '/courses',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BackofficeRouteRoute = BackofficeRouteRouteImport.update({
@@ -68,6 +75,11 @@ const TenantSlugIndexRoute = TenantSlugIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => TenantSlugRouteRoute,
+} as any)
+const CoursesCourseSlugRoute = CoursesCourseSlugRouteImport.update({
+  id: '/$courseSlug',
+  path: '/$courseSlug',
+  getParentRoute: () => CoursesRoute,
 } as any)
 const BackofficeUsersRoute = BackofficeUsersRouteImport.update({
   id: '/users',
@@ -140,6 +152,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$tenantSlug': typeof TenantSlugRouteRouteWithChildren
   '/backoffice': typeof BackofficeRouteRouteWithChildren
+  '/courses': typeof CoursesRouteWithChildren
   '/create-tenant': typeof CreateTenantRoute
   '/profile': typeof ProfileRoute
   '/forgot-password': typeof _authForgotPasswordRoute
@@ -148,6 +161,7 @@ export interface FileRoutesByFullPath {
   '/signup': typeof _authSignupRoute
   '/backoffice/tenants': typeof BackofficeTenantsRoute
   '/backoffice/users': typeof BackofficeUsersRoute
+  '/courses/$courseSlug': typeof CoursesCourseSlugRoute
   '/$tenantSlug/': typeof TenantSlugIndexRoute
   '/backoffice/': typeof BackofficeIndexRoute
   '/$tenantSlug/content/classes': typeof TenantSlugContentClassesRoute
@@ -159,6 +173,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/courses': typeof CoursesRouteWithChildren
   '/create-tenant': typeof CreateTenantRoute
   '/profile': typeof ProfileRoute
   '/forgot-password': typeof _authForgotPasswordRoute
@@ -167,6 +182,7 @@ export interface FileRoutesByTo {
   '/signup': typeof _authSignupRoute
   '/backoffice/tenants': typeof BackofficeTenantsRoute
   '/backoffice/users': typeof BackofficeUsersRoute
+  '/courses/$courseSlug': typeof CoursesCourseSlugRoute
   '/$tenantSlug': typeof TenantSlugIndexRoute
   '/backoffice': typeof BackofficeIndexRoute
   '/$tenantSlug/content/classes': typeof TenantSlugContentClassesRoute
@@ -182,6 +198,7 @@ export interface FileRoutesById {
   '/$tenantSlug': typeof TenantSlugRouteRouteWithChildren
   '/__auth': typeof _authRouteRouteWithChildren
   '/backoffice': typeof BackofficeRouteRouteWithChildren
+  '/courses': typeof CoursesRouteWithChildren
   '/create-tenant': typeof CreateTenantRoute
   '/profile': typeof ProfileRoute
   '/__auth/forgot-password': typeof _authForgotPasswordRoute
@@ -190,6 +207,7 @@ export interface FileRoutesById {
   '/__auth/signup': typeof _authSignupRoute
   '/backoffice/tenants': typeof BackofficeTenantsRoute
   '/backoffice/users': typeof BackofficeUsersRoute
+  '/courses/$courseSlug': typeof CoursesCourseSlugRoute
   '/$tenantSlug/': typeof TenantSlugIndexRoute
   '/backoffice/': typeof BackofficeIndexRoute
   '/$tenantSlug/content/classes': typeof TenantSlugContentClassesRoute
@@ -205,6 +223,7 @@ export interface FileRouteTypes {
     | '/'
     | '/$tenantSlug'
     | '/backoffice'
+    | '/courses'
     | '/create-tenant'
     | '/profile'
     | '/forgot-password'
@@ -213,6 +232,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/backoffice/tenants'
     | '/backoffice/users'
+    | '/courses/$courseSlug'
     | '/$tenantSlug/'
     | '/backoffice/'
     | '/$tenantSlug/content/classes'
@@ -224,6 +244,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/courses'
     | '/create-tenant'
     | '/profile'
     | '/forgot-password'
@@ -232,6 +253,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/backoffice/tenants'
     | '/backoffice/users'
+    | '/courses/$courseSlug'
     | '/$tenantSlug'
     | '/backoffice'
     | '/$tenantSlug/content/classes'
@@ -246,6 +268,7 @@ export interface FileRouteTypes {
     | '/$tenantSlug'
     | '/__auth'
     | '/backoffice'
+    | '/courses'
     | '/create-tenant'
     | '/profile'
     | '/__auth/forgot-password'
@@ -254,6 +277,7 @@ export interface FileRouteTypes {
     | '/__auth/signup'
     | '/backoffice/tenants'
     | '/backoffice/users'
+    | '/courses/$courseSlug'
     | '/$tenantSlug/'
     | '/backoffice/'
     | '/$tenantSlug/content/classes'
@@ -269,6 +293,7 @@ export interface RootRouteChildren {
   TenantSlugRouteRoute: typeof TenantSlugRouteRouteWithChildren
   _authRouteRoute: typeof _authRouteRouteWithChildren
   BackofficeRouteRoute: typeof BackofficeRouteRouteWithChildren
+  CoursesRoute: typeof CoursesRouteWithChildren
   CreateTenantRoute: typeof CreateTenantRoute
   ProfileRoute: typeof ProfileRoute
 }
@@ -287,6 +312,13 @@ declare module '@tanstack/react-router' {
       path: '/create-tenant'
       fullPath: '/create-tenant'
       preLoaderRoute: typeof CreateTenantRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/courses': {
+      id: '/courses'
+      path: '/courses'
+      fullPath: '/courses'
+      preLoaderRoute: typeof CoursesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/backoffice': {
@@ -330,6 +362,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/$tenantSlug/'
       preLoaderRoute: typeof TenantSlugIndexRouteImport
       parentRoute: typeof TenantSlugRouteRoute
+    }
+    '/courses/$courseSlug': {
+      id: '/courses/$courseSlug'
+      path: '/$courseSlug'
+      fullPath: '/courses/$courseSlug'
+      preLoaderRoute: typeof CoursesCourseSlugRouteImport
+      parentRoute: typeof CoursesRoute
     }
     '/backoffice/users': {
       id: '/backoffice/users'
@@ -476,11 +515,23 @@ const BackofficeRouteRouteWithChildren = BackofficeRouteRoute._addFileChildren(
   BackofficeRouteRouteChildren,
 )
 
+interface CoursesRouteChildren {
+  CoursesCourseSlugRoute: typeof CoursesCourseSlugRoute
+}
+
+const CoursesRouteChildren: CoursesRouteChildren = {
+  CoursesCourseSlugRoute: CoursesCourseSlugRoute,
+}
+
+const CoursesRouteWithChildren =
+  CoursesRoute._addFileChildren(CoursesRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   TenantSlugRouteRoute: TenantSlugRouteRouteWithChildren,
   _authRouteRoute: _authRouteRouteWithChildren,
   BackofficeRouteRoute: BackofficeRouteRouteWithChildren,
+  CoursesRoute: CoursesRouteWithChildren,
   CreateTenantRoute: CreateTenantRoute,
   ProfileRoute: ProfileRoute,
 }

@@ -1,5 +1,6 @@
 {
   "common": {
+    "toggleSidebar": "Alternar barra lateral",
     "email": "E-mail",
     "password": "Senha",
     "signIn": "Entrar",
