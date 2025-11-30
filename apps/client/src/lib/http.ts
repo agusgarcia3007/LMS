@@ -3,6 +3,7 @@ import { AuthService } from "@/services/auth/service";
 
 const TOKEN_KEY = "accessToken";
 const REFRESH_TOKEN_KEY = "refreshToken";
+const REDIRECT_PATH_KEY = "redirectPath";
 
 let isRefreshing = false;
 let refreshPromise: Promise<string> | null = null;
@@ -40,6 +41,10 @@ http.interceptors.response.use(
             isRefreshing = false;
             refreshPromise = null;
             clearTokens();
+            const currentPath = window.location.pathname + window.location.search;
+            if (currentPath !== "/login") {
+              sessionStorage.setItem(REDIRECT_PATH_KEY, currentPath);
+            }
             window.location.href = "/login";
             return Promise.reject(refreshError);
           });
@@ -66,3 +71,7 @@ export const clearTokens = () => {
 };
 
 export const getRefreshToken = () => localStorage.getItem(REFRESH_TOKEN_KEY);
+
+export const getRedirectPath = () => sessionStorage.getItem(REDIRECT_PATH_KEY);
+
+export const clearRedirectPath = () => sessionStorage.removeItem(REDIRECT_PATH_KEY);

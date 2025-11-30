@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { loginSchema, type LoginInput } from "@/lib/schemas/auth";
 import { useLogin } from "@/services/auth/mutations";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { getRedirectPath, clearRedirectPath } from "@/lib/http";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
@@ -37,7 +38,9 @@ function LoginPage() {
         if (user.role === "owner" && user.tenantId === null) {
           navigate({ to: "/create-tenant" });
         } else {
-          navigate({ to: "/" });
+          const redirectPath = getRedirectPath();
+          clearRedirectPath();
+          navigate({ to: redirectPath || "/" });
         }
       },
     });
