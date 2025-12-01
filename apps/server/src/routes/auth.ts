@@ -129,7 +129,7 @@ authRoutes.post(
             throw new AppError(
               ErrorCode.INVALID_CREDENTIALS,
               "Owner without tenant must login in parent app",
-              403
+              400
             );
           }
         } else {
@@ -145,7 +145,7 @@ authRoutes.post(
             throw new AppError(
               ErrorCode.INVALID_CREDENTIALS,
               "User does not belong to this tenant",
-              403
+              400
             );
           }
         }
