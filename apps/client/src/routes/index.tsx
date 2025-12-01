@@ -28,7 +28,10 @@ export const Route = createFileRoute("/")({
         content:
           "La plataforma todo-en-uno para creadores, empresas y organizaciones que quieren transformar el conocimiento en impacto. Agente IA integrado, WhatsApp y mas.",
       },
-      { property: "og:title", content: "LearnPress - Crea tu academia online con IA" },
+      {
+        property: "og:title",
+        content: "LearnPress - Crea tu academia online con IA",
+      },
       {
         property: "og:description",
         content:
@@ -36,7 +39,10 @@ export const Route = createFileRoute("/")({
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "LearnPress - Crea tu academia online con IA" },
+      {
+        name: "twitter:title",
+        content: "LearnPress - Crea tu academia online con IA",
+      },
       {
         name: "twitter:description",
         content:
@@ -72,7 +78,9 @@ function MainHome() {
 
 function CampusHome() {
   const { data: tenantData, isLoading: tenantLoading } = useCampusTenant();
-  const { data: coursesData, isLoading: coursesLoading } = useCampusCourses({ limit: 8 });
+  const { data: coursesData, isLoading: coursesLoading } = useCampusCourses({
+    limit: 8,
+  });
   const { data: statsData } = useCampusStats();
 
   if (tenantLoading) {
@@ -127,7 +135,10 @@ function CourseGridSkeleton() {
       <Skeleton className="mb-8 h-5 w-72" />
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {Array.from({ length: 8 }).map((_, i) => (
-          <div key={i} className="overflow-hidden rounded-xl border border-border/50">
+          <div
+            key={i}
+            className="overflow-hidden rounded-xl border border-border/50"
+          >
             <Skeleton className="aspect-video w-full" />
             <div className="p-5">
               <Skeleton className="mb-3 h-6 w-24" />
@@ -150,7 +161,9 @@ function CampusNotFound() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4">
       <div className="mx-auto max-w-md text-center">
-        <div className="mb-6 text-6xl font-bold text-muted-foreground/30">404</div>
+        <div className="mb-6 text-6xl font-bold text-muted-foreground/30">
+          404
+        </div>
         <h1 className="mb-3 text-2xl font-semibold text-foreground">
           {t("campusNotFound.title")}
         </h1>
@@ -160,9 +173,10 @@ function CampusNotFound() {
         <p className="mb-8 text-sm text-muted-foreground">
           {t("campusNotFound.hint")}
         </p>
-        <Button asChild>
-          <a href={mainDomainUrl}>{t("campusNotFound.goToMain")}</a>
-        </Button>
+
+        <a href={mainDomainUrl}>
+          <Button>{t("campusNotFound.goToMain")} </Button>
+        </a>
       </div>
     </div>
   );

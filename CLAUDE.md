@@ -8,89 +8,74 @@ apps/
 └── server/   # Elysia + Bun + Drizzle + PostgreSQL
 ```
 
+## Commands
+
+- **Type check**: Use IDE diagnostics or `bun run build` in client/server (no direct `tsc`)
+- **Dev**: `bun run dev` in each app
+
 ## Multi-Tenant
 
-- Each tenant has subdomain: `tenant1.domain.com`
-- Users isolated by tenant
-- Superadmin has global access
+- Subdomain per tenant: `tenant1.domain.com`
+- Users isolated by tenant, superadmin has global access
 - Dev: use `X-Tenant-Slug` header
 
-## TypeScript
+## Code Style
 
-- Create abstractions only when needed
+- No emojis, no `any`, no comments, minimal `try/catch`
 - Clear names over comments
-- No emojis, no `any` casts, minimal `try/catch`
+- Small composable components, avoid `useEffect`
 
-## React
+## Client (React)
 
-- Small composable components
-- Colocate related code
-- Avoid `useEffect`
+### i18n
 
-## Button Component
+All UI text must be translated using `useTranslation`:
+- Translations in `apps/client/src/locales/{en,es,pt}.json`
+- Use `t("key")` or `t("key", { param })` for interpolation
 
-- Use `isLoading` prop to show spinner
-- On mobile, hides children when loading (shows only spinner)
+### TanStack Query
 
-## TanStack Query
+- Global error handler (`catchAxiosError`) - no try/catch needed
+- `const { mutate, isPending } = useMyMutation()`
+- `const { data, isLoading } = useMyQuery()`
 
-- Global `onError` handler (`catchAxiosError`) for all mutations
-- No try/catch or custom onError needed in components
-- Mutations: `const {mutate, isPending} = useMyMutation()`
-- Queries: `const {data, isLoading} = useMyQuery()`
-- Use `isPending` for loading states in forms/buttons
-
-## Services Structure
-
-Each service in `apps/client/src/services/` follows this pattern:
+### Services Structure
 
 ```
-services/
-└── [resource]/
-    ├── service.ts    # Types, QUERY_KEYS, and HTTP calls (ResourceService)
-    ├── options.ts    # queryOptions and mutationOptions
-    ├── queries.ts    # useQuery hooks (useGetResource, etc.)
-    └── mutations.ts  # useMutation hooks (useUpdateResource, etc.)
+services/[resource]/
+├── service.ts    # Types, QUERY_KEYS, HTTP calls
+├── options.ts    # queryOptions, mutationOptions
+├── queries.ts    # useQuery hooks
+└── mutations.ts  # useMutation hooks
 ```
 
-## Tailwind
+### Button Component
 
-- Use v4 + shadcn/ui
-- Prefer built-in values
+- `isLoading` prop shows spinner (hides children on mobile)
 
-## Elysia API (Server)
+## Server (Elysia)
 
-All route handlers use `withHandler` wrapper for consistent error handling and logging:
+### Route Handlers
+
+Always use `withHandler` wrapper:
 
 ```typescript
-import { withHandler } from "@/lib/handler";
-
 routes.get("/", (ctx) =>
   withHandler(ctx, async () => {
-    if (!ctx.user) {
-      throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
-    }
+    if (!ctx.user) throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
     return { data: ctx.user };
   })
 );
 ```
 
-- `withHandler` automatically logs errors with endpoint context: `[GET /profile] Error: ...`
-- Throw `AppError` for expected errors (sets status code)
-- Unknown errors become 500 with generic message
-- Never use manual try/catch in routes
-- Never add comments in the code
-- Always use descriptive function names
+- Throw `AppError` for expected errors
+- Never manual try/catch in routes
 
-## Database Indexes
+### Database
 
-Always add indexes on columns used for filtering, especially:
-- Foreign keys (`tenantId`, `userId`, etc.)
-- Columns used in WHERE clauses (`role`, `status`, etc.)
+Add indexes on filter columns (foreign keys, WHERE clauses):
 
 ```typescript
-import { pgTable, uuid, index } from "drizzle-orm/pg-core";
-
 export const usersTable = pgTable("users", {
   tenantId: uuid("tenant_id").references(() => tenantsTable.id),
   role: userRoleEnum("role").notNull(),
@@ -100,60 +85,13 @@ export const usersTable = pgTable("users", {
 ]);
 ```
 
-## Server Filters
+### Filters
 
-The filter system in `apps/server/src/lib/filters.ts` handles pagination, sorting, search, and filters.
+Use `parseListParams` and `buildWhereClause` from `@/lib/filters`:
 
-### URL Format
-
-Filters are sent as query params with format `field=value`:
-- Text/Select: `role=admin` or `role=admin,owner` (comma for multiple)
-- Date range: `createdAt=2025-01-01,2025-01-31` (from,to)
-
-### Usage in Routes
-
-```typescript
-import {
-  parseListParams,
-  buildWhereClause,
-  type FieldMap,
-  type SearchableFields,
-  type DateFields,
-} from "@/lib/filters";
-
-const fieldMap: FieldMap<typeof table> = {
-  name: table.name,
-  createdAt: table.createdAt,
-};
-
-const searchableFields: SearchableFields<typeof table> = [table.name];
-const dateFields: DateFields = new Set(["createdAt"]);
-
-// In route handler:
-const params = parseListParams(ctx.query);
-const whereClause = buildWhereClause(params, fieldMap, searchableFields, dateFields);
-```
-
-### Filter Types
-
-| Type | URL Example | Server Behavior |
-|------|-------------|-----------------|
-| Single value | `role=admin` | `eq(column, value)` |
-| Multiple values | `role=admin,owner` | `inArray(column, values)` |
-| Date range | `createdAt=2025-01-01,2025-01-31` | `gte(column, from) AND lte(column, to)` |
-| Text search | `search=john` | `ilike(column, '%john%')` on searchable fields |
-
-### Custom Filters
-
-For filters that don't map directly to a column (e.g., searching by related table):
-
-```typescript
-// Remove from fieldMap, handle manually:
-const tenantNameFilter = ctx.query.tenantId
-  ? ilike(tenantsTable.name, `%${ctx.query.tenantId}%`)
-  : undefined;
-
-const whereClause = baseWhereClause && tenantNameFilter
-  ? and(baseWhereClause, tenantNameFilter)
-  : baseWhereClause ?? tenantNameFilter;
-```
+| Type | URL | Behavior |
+|------|-----|----------|
+| Single | `role=admin` | `eq()` |
+| Multiple | `role=admin,owner` | `inArray()` |
+| Date range | `createdAt=2025-01-01,2025-01-31` | `gte() AND lte()` |
+| Search | `search=john` | `ilike()` on searchable fields |
