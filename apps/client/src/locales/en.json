@@ -12,6 +12,7 @@
     "cancel": "Cancel",
     "delete": "Delete",
     "save": "Save",
+    "create": "Create",
     "edit": "Edit",
     "actions": "Actions",
     "name": "Name",
@@ -296,6 +297,79 @@
         "title": "No organizations",
         "description": "No organizations found with the current filters"
       }
+    }
+  },
+  "lessons": {
+    "title": "Classes",
+    "description": "Manage your platform classes",
+    "preview": "Preview",
+    "types": {
+      "video": "Video",
+      "text": "Text",
+      "quiz": "Quiz"
+    },
+    "statuses": {
+      "draft": "Draft",
+      "published": "Published"
+    },
+    "columns": {
+      "title": "Title",
+      "video": "Video",
+      "type": "Type",
+      "duration": "Duration",
+      "preview": "Preview",
+      "status": "Status",
+      "createdAt": "Created at"
+    },
+    "filters": {
+      "type": "Type",
+      "status": "Status",
+      "createdAt": "Created at"
+    },
+    "fields": {
+      "title": "Title",
+      "titlePlaceholder": "E.g.: Introduction to the course",
+      "description": "Description",
+      "descriptionPlaceholder": "Brief description of the class",
+      "type": "Content type",
+      "status": "Status",
+      "isPreview": "Preview class",
+      "video": "Video",
+      "publish": "Publish",
+      "publishDescription": "The class will be available for students"
+    },
+    "create": {
+      "title": "New class",
+      "description": "Fill in the new class information",
+      "button": "New class",
+      "success": "Class created successfully"
+    },
+    "edit": {
+      "title": "Edit class",
+      "description": "Modify the class information",
+      "success": "Class updated successfully"
+    },
+    "delete": {
+      "title": "Delete class",
+      "description": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone.",
+      "success": "Class deleted successfully"
+    },
+    "empty": {
+      "title": "No classes",
+      "description": "Create your first class to get started"
+    },
+    "video": {
+      "uploadTitle": "Upload video",
+      "uploadDescription": "Drag and drop a video or click to select (max {{maxSize}})",
+      "selectVideo": "Select video",
+      "existingVideo": "Existing video",
+      "duration": "Duration",
+      "processing": "Processing video...",
+      "uploading": "Uploading video...",
+      "extractingMetadata": "Extracting video metadata",
+      "uploadingToServer": "Uploading to server",
+      "uploadSuccess": "Video uploaded successfully",
+      "deleteSuccess": "Video deleted successfully"
     }
   }
 }

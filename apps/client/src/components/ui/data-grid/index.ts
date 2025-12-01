@@ -35,7 +35,6 @@ export {
   DataGridTableLoader,
   DataGridTableRowSelect,
   DataGridTableRowSelectAll,
-  DataGridTableRowSpacer,
 } from './table';
 
 export { DataGridTableDnd } from './dnd/data-grid-table-dnd';

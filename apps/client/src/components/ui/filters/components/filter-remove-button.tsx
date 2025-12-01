@@ -1,11 +1,9 @@
-'use client';
-
-import type React from 'react';
-import { X } from 'lucide-react';
-import type { VariantProps } from 'class-variance-authority';
-import { cn } from '@/lib/utils';
-import { useFilterContext } from '../filter-context';
-import { filterRemoveButtonVariants } from '../filter-variants';
+import { cn } from "@/lib/utils";
+import type { VariantProps } from "class-variance-authority";
+import { X } from "lucide-react";
+import type React from "react";
+import { useFilterContext } from "../filter-context";
+import { filterRemoveButtonVariants } from "../filter-variants";
 
 interface FilterRemoveButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
@@ -13,7 +11,11 @@ interface FilterRemoveButtonProps
   icon?: React.ReactNode;
 }
 
-export function FilterRemoveButton({ className, icon = <X />, ...props }: FilterRemoveButtonProps) {
+export function FilterRemoveButton({
+  className,
+  icon = <X />,
+  ...props
+}: FilterRemoveButtonProps) {
   const context = useFilterContext();
 
   return (
@@ -26,7 +28,7 @@ export function FilterRemoveButton({ className, icon = <X />, ...props }: Filter
           cursorPointer: context.cursorPointer,
           radius: context.radius,
         }),
-        className,
+        className
       )}
       {...props}
     >

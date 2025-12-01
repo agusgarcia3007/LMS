@@ -142,9 +142,6 @@ function DataGridTableHeadRowCellResize<TData>({ header }: { header: Header<TDat
   );
 }
 
-function DataGridTableRowSpacer() {
-  return <tbody aria-hidden="true" className="h-2"></tbody>;
-}
 
 function DataGridTableBody({ children }: { children: ReactNode }) {
   const { props } = useDataGrid();
@@ -411,8 +408,6 @@ function DataGridTable() {
         })}
       </DataGridTableHead>
 
-      {(props.tableLayout?.stripped || !props.tableLayout?.rowBorder) && <DataGridTableRowSpacer />}
-
       <DataGridTableBody>
         {isLoading && props.loadingMode === 'skeleton' && pagination?.pageSize ? (
           Array.from({ length: pagination.pageSize }).map((_, rowIndex) => (
@@ -489,5 +484,4 @@ export {
   DataGridTableLoader,
   DataGridTableRowSelect,
   DataGridTableRowSelectAll,
-  DataGridTableRowSpacer,
 };

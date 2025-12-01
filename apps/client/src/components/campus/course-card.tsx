@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { Clock, Star, Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Image } from "@/components/ui/image";
 import type { Course } from "@/data/mock-courses";
 import { formatDuration, formatPrice } from "@/data/mock-courses";
 
@@ -35,10 +36,12 @@ export function CourseCard({ course }: CourseCardProps) {
     >
       <article className="overflow-hidden rounded-xl border border-border/50 bg-card transition-all duration-300 hover:border-border hover:shadow-lg hover:shadow-primary/5">
         <div className="relative aspect-video overflow-hidden">
-          <img
+          <Image
             src={course.thumbnail}
             alt={course.title}
-            className="size-full object-cover transition-transform duration-500 group-hover:scale-105"
+            layout="fullWidth"
+            aspectRatio={16 / 9}
+            className="transition-transform duration-500 group-hover:scale-105"
           />
           {hasDiscount && (
             <div className="absolute right-3 top-3">

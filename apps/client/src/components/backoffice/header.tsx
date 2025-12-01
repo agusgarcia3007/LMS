@@ -1,4 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
+import { Fragment } from "react";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -47,16 +48,18 @@ export function BackofficeHeader() {
             const isLast = index === pathSegments.length - 1;
 
             return (
-              <BreadcrumbItem key={segment}>
+              <Fragment key={segment}>
                 <BreadcrumbSeparator />
-                {isLast ? (
-                  <BreadcrumbPage>{getSegmentLabel(segment)}</BreadcrumbPage>
-                ) : (
-                  <span className="text-muted-foreground">
-                    {getSegmentLabel(segment)}
-                  </span>
-                )}
-              </BreadcrumbItem>
+                <BreadcrumbItem>
+                  {isLast ? (
+                    <BreadcrumbPage>{getSegmentLabel(segment)}</BreadcrumbPage>
+                  ) : (
+                    <span className="text-muted-foreground">
+                      {getSegmentLabel(segment)}
+                    </span>
+                  )}
+                </BreadcrumbItem>
+              </Fragment>
             );
           })}
         </BreadcrumbList>

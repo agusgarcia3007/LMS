@@ -1,7 +1,3 @@
-'use client';
-
-import { useState } from 'react';
-import { Check } from 'lucide-react';
 import {
   Command,
   CommandEmpty,
@@ -10,12 +6,18 @@ import {
   CommandItem,
   CommandList,
   CommandSeparator,
-} from '@/components/ui/command';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { cn } from '@/lib/utils';
-import { useFilterContext } from '../filter-context';
-import { filterFieldValueVariants } from '../filter-variants';
-import type { FilterFieldConfig } from '../filter-types';
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import { Check } from "lucide-react";
+import { useState } from "react";
+import { useFilterContext } from "../filter-context";
+import type { FilterFieldConfig } from "../filter-types";
+import { filterFieldValueVariants } from "../filter-variants";
 
 interface SelectOptionsPopoverProps<T = unknown> {
   field: FilterFieldConfig<T>;
@@ -35,13 +37,16 @@ export function SelectOptionsPopover<T = unknown>({
   inline = false,
 }: SelectOptionsPopoverProps<T>) {
   const [open, setOpen] = useState(false);
-  const [searchInput, setSearchInput] = useState('');
+  const [searchInput, setSearchInput] = useState("");
   const context = useFilterContext();
 
-  const isMultiSelect = field.type === 'multiselect' || values.length > 1;
-  const effectiveValues = (field.value !== undefined ? (field.value as T[]) : values) || [];
-  const selectedOptions = field.options?.filter((opt) => effectiveValues.includes(opt.value)) || [];
-  const unselectedOptions = field.options?.filter((opt) => !effectiveValues.includes(opt.value)) || [];
+  const isMultiSelect = field.type === "multiselect" || values.length > 1;
+  const effectiveValues =
+    (field.value !== undefined ? (field.value as T[]) : values) || [];
+  const selectedOptions =
+    field.options?.filter((opt) => effectiveValues.includes(opt.value)) || [];
+  const unselectedOptions =
+    field.options?.filter((opt) => !effectiveValues.includes(opt.value)) || [];
 
   const handleClose = () => {
     setOpen(false);
@@ -54,7 +59,9 @@ export function SelectOptionsPopover<T = unknown>({
         <Command>
           {field.searchable !== false && (
             <CommandInput
-              placeholder={context.i18n.placeholders.searchField(field.label || '')}
+              placeholder={context.i18n.placeholders.searchField(
+                field.label || ""
+              )}
               className="h-8.5 text-sm"
               value={searchInput}
               onValueChange={setSearchInput}
@@ -64,14 +71,16 @@ export function SelectOptionsPopover<T = unknown>({
             <CommandEmpty>{context.i18n.noResultsFound}</CommandEmpty>
 
             {selectedOptions.length > 0 && (
-              <CommandGroup heading={field.label || 'Selected'}>
+              <CommandGroup heading={field.label || "Selected"}>
                 {selectedOptions.map((option) => (
                   <CommandItem
                     key={String(option.value)}
                     className="group flex gap-2 items-center"
                     onSelect={() => {
                       if (isMultiSelect) {
-                        const next = effectiveValues.filter((v) => v !== option.value) as T[];
+                        const next = effectiveValues.filter(
+                          (v) => v !== option.value
+                        ) as T[];
                         if (field.onValueChange) {
                           field.onValueChange(next);
                         } else {
@@ -87,7 +96,9 @@ export function SelectOptionsPopover<T = unknown>({
                     }}
                   >
                     {option.icon && option.icon}
-                    <span className="text-accent-foreground truncate">{option.label}</span>
+                    <span className="text-accent-foreground truncate">
+                      {option.label}
+                    </span>
                     <Check className="text-primary ms-auto" />
                   </CommandItem>
                 ))}
@@ -105,8 +116,14 @@ export function SelectOptionsPopover<T = unknown>({
                       value={option.label}
                       onSelect={() => {
                         if (isMultiSelect) {
-                          const newValues = [...effectiveValues, option.value] as T[];
-                          if (field.maxSelections && newValues.length > field.maxSelections) {
+                          const newValues = [
+                            ...effectiveValues,
+                            option.value,
+                          ] as T[];
+                          if (
+                            field.maxSelections &&
+                            newValues.length > field.maxSelections
+                          ) {
                             return;
                           }
                           if (field.onValueChange) {
@@ -125,7 +142,9 @@ export function SelectOptionsPopover<T = unknown>({
                       }}
                     >
                       {option.icon && option.icon}
-                      <span className="text-accent-foreground truncate">{option.label}</span>
+                      <span className="text-accent-foreground truncate">
+                        {option.label}
+                      </span>
                       <Check className="text-primary ms-auto opacity-0" />
                     </CommandItem>
                   ))}
@@ -144,7 +163,7 @@ export function SelectOptionsPopover<T = unknown>({
       onOpenChange={(open) => {
         setOpen(open);
         if (!open) {
-          setTimeout(() => setSearchInput(''), 200);
+          setTimeout(() => setSearchInput(""), 200);
         }
       }}
     >
@@ -161,7 +180,12 @@ export function SelectOptionsPopover<T = unknown>({
           ) : (
             <>
               {selectedOptions.length > 0 && (
-                <div className={cn('-space-x-1.5 flex items-center', field.selectedOptionsClassName)}>
+                <div
+                  className={cn(
+                    "-space-x-1.5 flex items-center",
+                    field.selectedOptionsClassName
+                  )}
+                >
                   {selectedOptions.slice(0, 3).map((option) => (
                     <div key={String(option.value)}>{option.icon}</div>
                   ))}
@@ -170,17 +194,22 @@ export function SelectOptionsPopover<T = unknown>({
               {selectedOptions.length === 1
                 ? selectedOptions[0].label
                 : selectedOptions.length > 1
-                  ? `${selectedOptions.length} ${context.i18n.selectedCount}`
-                  : context.i18n.select}
+                ? `${selectedOptions.length} ${context.i18n.selectedCount}`
+                : context.i18n.select}
             </>
           )}
         </div>
       </PopoverTrigger>
-      <PopoverContent align="start" className={cn('w-[200px] p-0', field.className)}>
+      <PopoverContent
+        align="start"
+        className={cn("w-[200px] p-0", field.className)}
+      >
         <Command>
           {field.searchable !== false && (
             <CommandInput
-              placeholder={context.i18n.placeholders.searchField(field.label || '')}
+              placeholder={context.i18n.placeholders.searchField(
+                field.label || ""
+              )}
               className="h-9 text-sm"
               value={searchInput}
               onValueChange={setSearchInput}
@@ -197,7 +226,9 @@ export function SelectOptionsPopover<T = unknown>({
                     className="group flex gap-2 items-center"
                     onSelect={() => {
                       if (isMultiSelect) {
-                        onChange(values.filter((v) => v !== option.value) as T[]);
+                        onChange(
+                          values.filter((v) => v !== option.value) as T[]
+                        );
                       } else {
                         onChange([] as T[]);
                       }
@@ -208,7 +239,9 @@ export function SelectOptionsPopover<T = unknown>({
                     }}
                   >
                     {option.icon && option.icon}
-                    <span className="text-accent-foreground truncate">{option.label}</span>
+                    <span className="text-accent-foreground truncate">
+                      {option.label}
+                    </span>
                     <Check className="text-primary ms-auto" />
                   </CommandItem>
                 ))}
@@ -227,7 +260,10 @@ export function SelectOptionsPopover<T = unknown>({
                       onSelect={() => {
                         if (isMultiSelect) {
                           const newValues = [...values, option.value] as T[];
-                          if (field.maxSelections && newValues.length > field.maxSelections) {
+                          if (
+                            field.maxSelections &&
+                            newValues.length > field.maxSelections
+                          ) {
                             return;
                           }
                           onChange(newValues);
@@ -239,7 +275,9 @@ export function SelectOptionsPopover<T = unknown>({
                       }}
                     >
                       {option.icon && option.icon}
-                      <span className="text-accent-foreground truncate">{option.label}</span>
+                      <span className="text-accent-foreground truncate">
+                        {option.label}
+                      </span>
                       <Check className="text-primary ms-auto opacity-0" />
                     </CommandItem>
                   ))}

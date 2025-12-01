@@ -1,5 +1,5 @@
 import { Link, useParams, useRouterState } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import {
   BookOpen,
   ChevronsUpDown,
@@ -64,70 +64,73 @@ export function DashboardSidebar({ tenant, user }: DashboardSidebarProps) {
       .slice(0, 2);
   };
 
-  const navMain = [
-    {
-      title: t("dashboard.sidebar.overview"),
-      items: [
-        {
-          title: t("dashboard.sidebar.home"),
-          url: `/${tenantSlug}`,
-          icon: Home,
-          isActive: currentPath === `/${tenantSlug}`,
-        },
-      ],
-    },
-    {
-      title: t("dashboard.sidebar.content"),
-      items: [
-        {
-          title: t("dashboard.sidebar.courses"),
-          url: `/${tenantSlug}/content/courses`,
-          icon: BookOpen,
-          isActive: currentPath.endsWith("/content/courses"),
-        },
-        {
-          title: t("dashboard.sidebar.modules"),
-          url: `/${tenantSlug}/content/modules`,
-          icon: Layers,
-          isActive: currentPath.endsWith("/content/modules"),
-        },
-        {
-          title: t("dashboard.sidebar.classes"),
-          url: `/${tenantSlug}/content/classes`,
-          icon: GraduationCap,
-          isActive: currentPath.endsWith("/content/classes"),
-        },
-      ],
-    },
-    {
-      title: t("dashboard.sidebar.management"),
-      items: [
-        {
-          title: t("dashboard.sidebar.users"),
-          url: `/${tenantSlug}/management/users`,
-          icon: Users,
-          isActive: currentPath.endsWith("/management/users"),
-        },
-      ],
-    },
-    {
-      title: t("dashboard.sidebar.mySite"),
-      items: [
-        {
-          title: t("dashboard.sidebar.configuration"),
-          url: `/${tenantSlug}/site/configuration`,
-          icon: Settings,
-          isActive: currentPath.endsWith("/site/configuration"),
-        },
-        {
-          title: t("dashboard.sidebar.customization"),
-          url: `/${tenantSlug}/site/customization`,
-          icon: Palette,
-          isActive: currentPath.endsWith("/site/customization"),
-        },
-      ],
-    },
-  ];
+  const navMain = useMemo(
+    () => [
+      {
+        title: t("dashboard.sidebar.overview"),
+        items: [
+          {
+            title: t("dashboard.sidebar.home"),
+            url: `/${tenantSlug}`,
+            icon: Home,
+            isActive: currentPath === `/${tenantSlug}`,
+          },
+        ],
+      },
+      {
+        title: t("dashboard.sidebar.content"),
+        items: [
+          {
+            title: t("dashboard.sidebar.courses"),
+            url: `/${tenantSlug}/content/courses`,
+            icon: BookOpen,
+            isActive: currentPath.endsWith("/content/courses"),
+          },
+          {
+            title: t("dashboard.sidebar.modules"),
+            url: `/${tenantSlug}/content/modules`,
+            icon: Layers,
+            isActive: currentPath.endsWith("/content/modules"),
+          },
+          {
+            title: t("dashboard.sidebar.classes"),
+            url: `/${tenantSlug}/content/classes`,
+            icon: GraduationCap,
+            isActive: currentPath.endsWith("/content/classes"),
+          },
+        ],
+      },
+      {
+        title: t("dashboard.sidebar.management"),
+        items: [
+          {
+            title: t("dashboard.sidebar.users"),
+            url: `/${tenantSlug}/management/users`,
+            icon: Users,
+            isActive: currentPath.endsWith("/management/users"),
+          },
+        ],
+      },
+      {
+        title: t("dashboard.sidebar.mySite"),
+        items: [
+          {
+            title: t("dashboard.sidebar.configuration"),
+            url: `/${tenantSlug}/site/configuration`,
+            icon: Settings,
+            isActive: currentPath.endsWith("/site/configuration"),
+          },
+          {
+            title: t("dashboard.sidebar.customization"),
+            url: `/${tenantSlug}/site/customization`,
+            icon: Palette,
+            isActive: currentPath.endsWith("/site/customization"),
+          },
+        ],
+      },
+    ],
+    [tenantSlug, currentPath, t]
+  );
 
   return (
     <Sidebar collapsible="icon">

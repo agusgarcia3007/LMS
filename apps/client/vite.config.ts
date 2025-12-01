@@ -11,11 +11,7 @@ export default defineConfig({
       target: "react",
       autoCodeSplitting: true,
     }),
-    react({
-      babel: {
-        plugins: [["babel-plugin-react-compiler"]],
-      },
-    }),
+    react(),
     tailwindcss(),
   ],
   resolve: {

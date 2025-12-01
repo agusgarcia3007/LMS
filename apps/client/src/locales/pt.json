@@ -12,6 +12,7 @@
     "cancel": "Cancelar",
     "delete": "Excluir",
     "save": "Salvar",
+    "create": "Criar",
     "edit": "Editar",
     "actions": "Acoes",
     "name": "Nome",
@@ -296,6 +297,79 @@
         "title": "Nenhuma organizacao",
         "description": "Nenhuma organizacao encontrada com os filtros atuais"
       }
+    }
+  },
+  "lessons": {
+    "title": "Aulas",
+    "description": "Gerencie as aulas da sua plataforma",
+    "preview": "Pre-visualizacao",
+    "types": {
+      "video": "Video",
+      "text": "Texto",
+      "quiz": "Quiz"
+    },
+    "statuses": {
+      "draft": "Rascunho",
+      "published": "Publicado"
+    },
+    "columns": {
+      "title": "Titulo",
+      "video": "Video",
+      "type": "Tipo",
+      "duration": "Duracao",
+      "preview": "Pre-visualizacao",
+      "status": "Status",
+      "createdAt": "Data de criacao"
+    },
+    "filters": {
+      "type": "Tipo",
+      "status": "Status",
+      "createdAt": "Data de criacao"
+    },
+    "fields": {
+      "title": "Titulo",
+      "titlePlaceholder": "Ex: Introducao ao curso",
+      "description": "Descricao",
+      "descriptionPlaceholder": "Descricao breve da aula",
+      "type": "Tipo de conteudo",
+      "status": "Status",
+      "isPreview": "Aula de pre-visualizacao",
+      "video": "Video",
+      "publish": "Publicar",
+      "publishDescription": "A aula estara disponivel para os estudantes"
+    },
+    "create": {
+      "title": "Nova aula",
+      "description": "Preencha as informacoes da nova aula",
+      "button": "Nova aula",
+      "success": "Aula criada com sucesso"
+    },
+    "edit": {
+      "title": "Editar aula",
+      "description": "Modifique as informacoes da aula",
+      "success": "Aula atualizada com sucesso"
+    },
+    "delete": {
+      "title": "Excluir aula",
+      "description": "Tem certeza de que deseja excluir \"{{name}}\"? Esta acao nao pode ser desfeita.",
+      "success": "Aula excluida com sucesso"
+    },
+    "empty": {
+      "title": "Nenhuma aula",
+      "description": "Crie sua primeira aula para comecar"
+    },
+    "video": {
+      "uploadTitle": "Enviar video",
+      "uploadDescription": "Arraste e solte um video ou clique para selecionar (max {{maxSize}})",
+      "selectVideo": "Selecionar video",
+      "existingVideo": "Video existente",
+      "duration": "Duracao",
+      "processing": "Processando video...",
+      "uploading": "Enviando video...",
+      "extractingMetadata": "Extraindo metadados do video",
+      "uploadingToServer": "Enviando para o servidor",
+      "uploadSuccess": "Video enviado com sucesso",
+      "deleteSuccess": "Video excluido com sucesso"
     }
   }
 }

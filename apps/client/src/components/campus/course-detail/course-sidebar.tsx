@@ -1,6 +1,7 @@
 import { Check, Clock, FileText, Infinity, Medal, MessageCircle, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Image } from "@/components/ui/image";
 import type { Course } from "@/data/mock-courses";
 import { formatDuration, formatPrice } from "@/data/mock-courses";
 
@@ -17,10 +18,11 @@ export function CourseSidebar({ course }: CourseSidebarProps) {
   return (
     <Card className="sticky top-24 overflow-hidden border-border/50">
       <div className="relative aspect-video">
-        <img
+        <Image
           src={course.thumbnail}
           alt={course.title}
-          className="size-full object-cover"
+          layout="fullWidth"
+          aspectRatio={16 / 9}
         />
         <div className="absolute inset-0 flex items-center justify-center bg-black/40">
           <button className="flex size-16 items-center justify-center rounded-full bg-white/90 text-primary shadow-xl transition-transform hover:scale-105">
@@ -128,10 +130,13 @@ export function CourseInstructor({ course }: { course: Course }) {
     <div>
       <h2 className="mb-4 text-xl font-semibold">Tu instructor</h2>
       <div className="flex gap-4 rounded-xl border border-border/50 bg-muted/30 p-4">
-        <img
+        <Image
           src={course.instructor.avatar}
           alt={course.instructor.name}
-          className="size-20 rounded-xl object-cover"
+          layout="fixed"
+          width={80}
+          height={80}
+          className="rounded-xl"
         />
         <div>
           <h3 className="font-semibold">{course.instructor.name}</h3>

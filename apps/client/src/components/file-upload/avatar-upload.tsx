@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { Image } from "@/components/ui/image";
 import { formatBytes, useFileUpload } from "@/hooks/use-file-upload";
 import { cn } from "@/lib/utils";
 import { useDeleteAvatar, useUploadAvatar } from "@/services/profile/mutations";
@@ -107,10 +108,12 @@ export default function AvatarUpload({
               <Loader2 className="size-6 animate-spin text-muted-foreground" />
             </div>
           ) : currentAvatar ? (
-            <img
+            <Image
               src={currentAvatar}
               alt="Avatar"
-              className="h-full w-full object-cover"
+              layout="fixed"
+              width={96}
+              height={96}
             />
           ) : (
             <div className="flex h-full w-full items-center justify-center bg-muted">

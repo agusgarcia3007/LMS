@@ -1,14 +1,16 @@
-'use client';
-
-import { useState } from 'react';
-import { format, parse } from 'date-fns';
-import type { DateRange } from 'react-day-picker';
-import { CalendarIcon } from 'lucide-react';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
-import { cn } from '@/lib/utils';
-import { useFilterContext } from '../filter-context';
-import { filterFieldValueVariants } from '../filter-variants';
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import { format, parse } from "date-fns";
+import { CalendarIcon } from "lucide-react";
+import { useState } from "react";
+import type { DateRange } from "react-day-picker";
+import { useFilterContext } from "../filter-context";
+import { filterFieldValueVariants } from "../filter-variants";
 
 interface DateRangeFilterProps {
   values: string[];
@@ -18,29 +20,35 @@ interface DateRangeFilterProps {
   toLabel: string;
 }
 
-export function DateRangeFilter({ values, onChange, placeholder, className, toLabel }: DateRangeFilterProps) {
+export function DateRangeFilter({
+  values,
+  onChange,
+  placeholder,
+  className,
+  toLabel,
+}: DateRangeFilterProps) {
   const [open, setOpen] = useState(false);
   const context = useFilterContext();
-  const startDate = values[0] || '';
-  const endDate = values[1] || '';
+  const startDate = values[0] || "";
+  const endDate = values[1] || "";
 
   const parseDate = (dateStr: string): Date | undefined => {
     if (!dateStr) return undefined;
     try {
-      return parse(dateStr, 'yyyy-MM-dd', new Date());
+      return parse(dateStr, "yyyy-MM-dd", new Date());
     } catch {
       return undefined;
     }
   };
 
   const formatDateForStorage = (date: Date | undefined): string => {
-    if (!date) return '';
-    return format(date, 'yyyy-MM-dd');
+    if (!date) return "";
+    return format(date, "yyyy-MM-dd");
   };
 
   const formatDisplayDate = (date: Date | undefined): string => {
-    if (!date) return '';
-    return format(date, 'dd/MM/yyyy');
+    if (!date) return "";
+    return format(date, "dd/MM/yyyy");
   };
 
   const savedRange: DateRange | undefined =
@@ -84,15 +92,16 @@ export function DateRangeFilter({ values, onChange, placeholder, className, toLa
             size: context.size,
             cursorPointer: context.cursorPointer,
           }),
-          !displayRange?.from && 'text-muted-foreground',
-          className,
+          !displayRange?.from && "text-muted-foreground",
+          className
         )}
       >
         <CalendarIcon className="size-3.5 opacity-60" />
         {displayRange?.from ? (
           displayRange.to ? (
             <>
-              {formatDisplayDate(displayRange.from)} {toLabel} {formatDisplayDate(displayRange.to)}
+              {formatDisplayDate(displayRange.from)} {toLabel}{" "}
+              {formatDisplayDate(displayRange.to)}
             </>
           ) : (
             formatDisplayDate(displayRange.from)

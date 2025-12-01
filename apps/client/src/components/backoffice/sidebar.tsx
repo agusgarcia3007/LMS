@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import {
   Building2,
   ChevronsUpDown,
@@ -58,36 +58,39 @@ export function BackofficeSidebar({ user }: BackofficeSidebarProps) {
       .slice(0, 2);
   };
 
-  const navMain = [
-    {
-      title: t("backoffice.sidebar.overview"),
-      items: [
-        {
-          title: t("backoffice.sidebar.home"),
-          url: "/backoffice",
-          icon: Home,
-          isActive: currentPath === "/backoffice",
-        },
-      ],
-    },
-    {
-      title: t("backoffice.sidebar.management"),
-      items: [
-        {
-          title: t("backoffice.sidebar.users"),
-          url: "/backoffice/users",
-          icon: Users,
-          isActive: currentPath === "/backoffice/users",
-        },
-        {
-          title: t("backoffice.sidebar.tenants"),
-          url: "/backoffice/tenants",
-          icon: Building2,
-          isActive: currentPath === "/backoffice/tenants",
-        },
-      ],
-    },
-  ];
+  const navMain = useMemo(
+    () => [
+      {
+        title: t("backoffice.sidebar.overview"),
+        items: [
+          {
+            title: t("backoffice.sidebar.home"),
+            url: "/backoffice",
+            icon: Home,
+            isActive: currentPath === "/backoffice",
+          },
+        ],
+      },
+      {
+        title: t("backoffice.sidebar.management"),
+        items: [
+          {
+            title: t("backoffice.sidebar.users"),
+            url: "/backoffice/users",
+            icon: Users,
+            isActive: currentPath === "/backoffice/users",
+          },
+          {
+            title: t("backoffice.sidebar.tenants"),
+            url: "/backoffice/tenants",
+            icon: Building2,
+            isActive: currentPath === "/backoffice/tenants",
+          },
+        ],
+      },
+    ],
+    [currentPath, t]
+  );
 
   return (
     <Sidebar collapsible="icon">

@@ -12,6 +12,7 @@
     "cancel": "Cancelar",
     "delete": "Eliminar",
     "save": "Guardar",
+    "create": "Crear",
     "edit": "Editar",
     "actions": "Acciones",
     "name": "Nombre",
@@ -296,6 +297,79 @@
         "title": "No hay organizaciones",
         "description": "No se encontraron organizaciones con los filtros actuales"
       }
+    }
+  },
+  "lessons": {
+    "title": "Clases",
+    "description": "Gestiona las clases de tu plataforma",
+    "preview": "Vista previa",
+    "types": {
+      "video": "Video",
+      "text": "Texto",
+      "quiz": "Quiz"
+    },
+    "statuses": {
+      "draft": "Borrador",
+      "published": "Publicado"
+    },
+    "columns": {
+      "title": "Titulo",
+      "video": "Video",
+      "type": "Tipo",
+      "duration": "Duracion",
+      "preview": "Vista previa",
+      "status": "Estado",
+      "createdAt": "Fecha de creacion"
+    },
+    "filters": {
+      "type": "Tipo",
+      "status": "Estado",
+      "createdAt": "Fecha de creacion"
+    },
+    "fields": {
+      "title": "Titulo",
+      "titlePlaceholder": "Ej: Introduccion al curso",
+      "description": "Descripcion",
+      "descriptionPlaceholder": "Descripcion breve de la clase",
+      "type": "Tipo de contenido",
+      "status": "Estado",
+      "isPreview": "Clase de vista previa",
+      "video": "Video",
+      "publish": "Publicar",
+      "publishDescription": "La clase estara disponible para los estudiantes"
+    },
+    "create": {
+      "title": "Nueva clase",
+      "description": "Completa la informacion de la nueva clase",
+      "button": "Nueva clase",
+      "success": "Clase creada correctamente"
+    },
+    "edit": {
+      "title": "Editar clase",
+      "description": "Modifica la informacion de la clase",
+      "success": "Clase actualizada correctamente"
+    },
+    "delete": {
+      "title": "Eliminar clase",
+      "description": "¿Estas seguro de que deseas eliminar \"{{name}}\"? Esta accion no se puede deshacer.",
+      "success": "Clase eliminada correctamente"
+    },
+    "empty": {
+      "title": "No hay clases",
+      "description": "Crea tu primera clase para comenzar"
+    },
+    "video": {
+      "uploadTitle": "Subir video",
+      "uploadDescription": "Arrastra y suelta un video o haz clic para seleccionar (max {{maxSize}})",
+      "selectVideo": "Seleccionar video",
+      "existingVideo": "Video existente",
+      "duration": "Duracion",
+      "processing": "Procesando video...",
+      "uploading": "Subiendo video...",
+      "extractingMetadata": "Extrayendo metadatos del video",
+      "uploadingToServer": "Subiendo al servidor",
+      "uploadSuccess": "Video subido correctamente",
+      "deleteSuccess": "Video eliminado correctamente"
     }
   }
 }

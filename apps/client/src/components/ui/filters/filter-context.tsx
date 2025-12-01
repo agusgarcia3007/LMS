@@ -1,13 +1,11 @@
-'use client';
-
-import { createContext, useContext } from 'react';
-import type { FilterContextValue } from './filter-types';
-import { DEFAULT_I18N } from './filter-i18n';
+import { createContext, useContext } from "react";
+import type { FilterContextValue } from "./filter-types";
+import { DEFAULT_I18N } from "./filter-i18n";
 
 export const FilterContext = createContext<FilterContextValue>({
-  variant: 'outline',
-  size: 'md',
-  radius: 'md',
+  variant: "outline",
+  size: "md",
+  radius: "md",
   i18n: DEFAULT_I18N,
   cursorPointer: true,
   className: undefined,

@@ -1,7 +1,3 @@
-'use client';
-
-import { useState } from 'react';
-import { Check } from 'lucide-react';
 import {
   Command,
   CommandEmpty,
@@ -10,16 +6,25 @@ import {
   CommandItem,
   CommandList,
   CommandSeparator,
-} from '@/components/ui/command';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Switch } from '@/components/ui/switch';
-import { cn } from '@/lib/utils';
-import { useFilterContext } from '../filter-context';
-import { filterFieldValueVariants, filterFieldBetweenVariants } from '../filter-variants';
-import type { FilterFieldConfig } from '../filter-types';
-import { FilterInput } from './filter-input';
-import { SelectOptionsPopover } from './select-options-popover';
-import { DateRangeFilter } from './date-range-filter';
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Switch } from "@/components/ui/switch";
+import { cn } from "@/lib/utils";
+import { Check } from "lucide-react";
+import { useState } from "react";
+import { useFilterContext } from "../filter-context";
+import type { FilterFieldConfig } from "../filter-types";
+import {
+  filterFieldBetweenVariants,
+  filterFieldValueVariants,
+} from "../filter-variants";
+import { DateRangeFilter } from "./date-range-filter";
+import { FilterInput } from "./filter-input";
+import { SelectOptionsPopover } from "./select-options-popover";
 
 interface FilterValueSelectorProps<T = unknown> {
   field: FilterFieldConfig<T>;
@@ -28,12 +33,17 @@ interface FilterValueSelectorProps<T = unknown> {
   operator: string;
 }
 
-export function FilterValueSelector<T = unknown>({ field, values, onChange, operator }: FilterValueSelectorProps<T>) {
+export function FilterValueSelector<T = unknown>({
+  field,
+  values,
+  onChange,
+  operator,
+}: FilterValueSelectorProps<T>) {
   const [open, setOpen] = useState(false);
-  const [searchInput, setSearchInput] = useState('');
+  const [searchInput, setSearchInput] = useState("");
   const context = useFilterContext();
 
-  if (operator === 'empty' || operator === 'not_empty') {
+  if (operator === "empty" || operator === "not_empty") {
     return null;
   }
 
@@ -51,7 +61,7 @@ export function FilterValueSelector<T = unknown>({ field, values, onChange, oper
     );
   }
 
-  if (field.type === 'boolean') {
+  if (field.type === "boolean") {
     const isChecked = values[0] === true;
     const onLabel = field.onLabel || context.i18n.true;
     const offLabel = field.offLabel || context.i18n.false;
@@ -65,19 +75,24 @@ export function FilterValueSelector<T = unknown>({ field, values, onChange, oper
         })}
       >
         <div className="flex items-center gap-2">
-          <Switch checked={isChecked} onCheckedChange={(checked) => onChange([checked as T])} size="sm" />
+          <Switch
+            checked={isChecked}
+            onCheckedChange={(checked) => onChange([checked as T])}
+          />
           {field.onLabel && field.offLabel && (
-            <span className="text-xs text-muted-foreground">{isChecked ? onLabel : offLabel}</span>
+            <span className="text-xs text-muted-foreground">
+              {isChecked ? onLabel : offLabel}
+            </span>
           )}
         </div>
       </div>
     );
   }
 
-  if (field.type === 'time') {
-    if (operator === 'between') {
-      const startTime = (values[0] as string) || '';
-      const endTime = (values[1] as string) || '';
+  if (field.type === "time") {
+    if (operator === "between") {
+      const startTime = (values[0] as string) || "";
+      const endTime = (values[1] as string) || "";
 
       return (
         <div className="flex items-center" data-slot="filters-item">
@@ -91,7 +106,10 @@ export function FilterValueSelector<T = unknown>({ field, values, onChange, oper
           />
           <div
             data-slot="filters-between"
-            className={filterFieldBetweenVariants({ variant: context.variant, size: context.size })}
+            className={filterFieldBetweenVariants({
+              variant: context.variant,
+              size: context.size,
+            })}
           >
             {context.i18n.to}
           </div>
@@ -110,7 +128,7 @@ export function FilterValueSelector<T = unknown>({ field, values, onChange, oper
     return (
       <FilterInput
         type="time"
-        value={(values[0] as string) || ''}
+        value={(values[0] as string) || ""}
         onChange={(e) => onChange([e.target.value] as T[])}
         onInputChange={field.onInputChange}
         field={field}
@@ -119,10 +137,10 @@ export function FilterValueSelector<T = unknown>({ field, values, onChange, oper
     );
   }
 
-  if (field.type === 'datetime') {
-    if (operator === 'between') {
-      const startDateTime = (values[0] as string) || '';
-      const endDateTime = (values[1] as string) || '';
+  if (field.type === "datetime") {
+    if (operator === "between") {
+      const startDateTime = (values[0] as string) || "";
+      const endDateTime = (values[1] as string) || "";
 
       return (
         <div className="flex items-center" data-slot="filters-item">
@@ -131,12 +149,15 @@ export function FilterValueSelector<T = unknown>({ field, values, onChange, oper
             value={startDateTime}
             onChange={(e) => onChange([e.target.value, endDateTime] as T[])}
             onInputChange={field.onInputChange}
-            className={cn('w-36', field.className)}
+            className={cn("w-36", field.className)}
             field={field}
           />
           <div
             data-slot="filters-between"
-            className={filterFieldBetweenVariants({ variant: context.variant, size: context.size })}
+            className={filterFieldBetweenVariants({
+              variant: context.variant,
+              size: context.size,
+            })}
           >
             {context.i18n.to}
           </div>
@@ -145,7 +166,7 @@ export function FilterValueSelector<T = unknown>({ field, values, onChange, oper
             value={endDateTime}
             onChange={(e) => onChange([startDateTime, e.target.value] as T[])}
             onInputChange={field.onInputChange}
-            className={cn('w-36', field.className)}
+            className={cn("w-36", field.className)}
             field={field}
           />
         </div>
@@ -155,37 +176,37 @@ export function FilterValueSelector<T = unknown>({ field, values, onChange, oper
     return (
       <FilterInput
         type="datetime-local"
-        value={(values[0] as string) || ''}
+        value={(values[0] as string) || ""}
         onChange={(e) => onChange([e.target.value] as T[])}
         onInputChange={field.onInputChange}
-        className={cn('w-36', field.className)}
+        className={cn("w-36", field.className)}
         field={field}
       />
     );
   }
 
-  if (['email', 'url', 'tel'].includes(field.type || '')) {
+  if (["email", "url", "tel"].includes(field.type || "")) {
     const getInputType = () => {
       switch (field.type) {
-        case 'email':
-          return 'email';
-        case 'url':
-          return 'url';
-        case 'tel':
-          return 'tel';
+        case "email":
+          return "email";
+        case "url":
+          return "url";
+        case "tel":
+          return "tel";
         default:
-          return 'text';
+          return "text";
       }
     };
 
     const getPattern = () => {
       switch (field.type) {
-        case 'email':
-          return '^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$';
-        case 'url':
-          return '^https?:\\/\\/(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_\\+.~#?&//=]*)$';
-        case 'tel':
-          return '^[\\+]?[1-9][\\d]{0,15}$';
+        case "email":
+          return "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$";
+        case "url":
+          return "^https?:\\/\\/(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_\\+.~#?&//=]*)$";
+        case "tel":
+          return "^[\\+]?[1-9][\\d]{0,15}$";
         default:
           return undefined;
       }
@@ -194,10 +215,13 @@ export function FilterValueSelector<T = unknown>({ field, values, onChange, oper
     return (
       <FilterInput
         type={getInputType()}
-        value={(values[0] as string) || ''}
+        value={(values[0] as string) || ""}
         onChange={(e) => onChange([e.target.value] as T[])}
         onInputChange={field.onInputChange}
-        placeholder={field.placeholder || context.i18n.placeholders.enterField(field.type || 'text')}
+        placeholder={
+          field.placeholder ||
+          context.i18n.placeholders.enterField(field.type || "text")
+        }
         pattern={field.pattern || getPattern()}
         className={field.className}
         field={field}
@@ -205,7 +229,7 @@ export function FilterValueSelector<T = unknown>({ field, values, onChange, oper
     );
   }
 
-  if (field.type === 'daterange') {
+  if (field.type === "daterange") {
     return (
       <DateRangeFilter
         values={values as string[]}
@@ -217,10 +241,10 @@ export function FilterValueSelector<T = unknown>({ field, values, onChange, oper
     );
   }
 
-  if (field.type === 'text' || field.type === 'number') {
-    if (field.type === 'number' && operator === 'between') {
-      const minVal = (values[0] as string) || '';
-      const maxVal = (values[1] as string) || '';
+  if (field.type === "text" || field.type === "number") {
+    if (field.type === "number" && operator === "between") {
+      const minVal = (values[0] as string) || "";
+      const maxVal = (values[1] as string) || "";
 
       return (
         <div className="flex items-center" data-slot="filters-item">
@@ -230,7 +254,7 @@ export function FilterValueSelector<T = unknown>({ field, values, onChange, oper
             onChange={(e) => onChange([e.target.value, maxVal] as T[])}
             onInputChange={field.onInputChange}
             placeholder={context.i18n.min}
-            className={cn('w-16', field.className)}
+            className={cn("w-16", field.className)}
             min={field.min}
             max={field.max}
             step={field.step}
@@ -239,7 +263,10 @@ export function FilterValueSelector<T = unknown>({ field, values, onChange, oper
           />
           <div
             data-slot="filters-between"
-            className={filterFieldBetweenVariants({ variant: context.variant, size: context.size })}
+            className={filterFieldBetweenVariants({
+              variant: context.variant,
+              size: context.size,
+            })}
           >
             {context.i18n.to}
           </div>
@@ -249,7 +276,7 @@ export function FilterValueSelector<T = unknown>({ field, values, onChange, oper
             onChange={(e) => onChange([minVal, e.target.value] as T[])}
             onInputChange={field.onInputChange}
             placeholder={context.i18n.max}
-            className={cn('w-16', field.className)}
+            className={cn("w-16", field.className)}
             min={field.min}
             max={field.max}
             step={field.step}
@@ -263,42 +290,46 @@ export function FilterValueSelector<T = unknown>({ field, values, onChange, oper
     return (
       <div className="flex items-center" data-slot="filters-item">
         <FilterInput
-          type={field.type === 'number' ? 'number' : 'text'}
-          value={(values[0] as string) || ''}
+          type={field.type === "number" ? "number" : "text"}
+          value={(values[0] as string) || ""}
           onChange={(e) => onChange([e.target.value] as T[])}
           onInputChange={field.onInputChange}
           placeholder={field.placeholder}
-          min={field.type === 'number' ? field.min : undefined}
-          max={field.type === 'number' ? field.max : undefined}
-          step={field.type === 'number' ? field.step : undefined}
+          min={field.type === "number" ? field.min : undefined}
+          max={field.type === "number" ? field.max : undefined}
+          step={field.type === "number" ? field.step : undefined}
           pattern={field.pattern}
           field={field}
-          className={cn('w-36', field.className)}
+          className={cn("w-36", field.className)}
         />
       </div>
     );
   }
 
-  if (field.type === 'date') {
+  if (field.type === "date") {
     return (
       <FilterInput
         type="date"
-        value={(values[0] as string) || ''}
+        value={(values[0] as string) || ""}
         onChange={(e) => onChange([e.target.value] as T[])}
         onInputChange={field.onInputChange}
         field={field}
-        className={cn('w-16', field.className)}
+        className={cn("w-16", field.className)}
       />
     );
   }
 
-  if (field.type === 'select' || field.type === 'multiselect') {
-    return <SelectOptionsPopover field={field} values={values} onChange={onChange} />;
+  if (field.type === "select" || field.type === "multiselect") {
+    return (
+      <SelectOptionsPopover field={field} values={values} onChange={onChange} />
+    );
   }
 
   const isMultiSelect = values.length > 1;
-  const selectedOptions = field.options?.filter((opt) => values.includes(opt.value)) || [];
-  const unselectedOptions = field.options?.filter((opt) => !values.includes(opt.value)) || [];
+  const selectedOptions =
+    field.options?.filter((opt) => values.includes(opt.value)) || [];
+  const unselectedOptions =
+    field.options?.filter((opt) => !values.includes(opt.value)) || [];
 
   return (
     <Popover
@@ -306,7 +337,7 @@ export function FilterValueSelector<T = unknown>({ field, values, onChange, oper
       onOpenChange={(open) => {
         setOpen(open);
         if (!open) {
-          setTimeout(() => setSearchInput(''), 200);
+          setTimeout(() => setSearchInput(""), 200);
         }
       }}
     >
@@ -332,17 +363,19 @@ export function FilterValueSelector<T = unknown>({ field, values, onChange, oper
               {selectedOptions.length === 1
                 ? selectedOptions[0].label
                 : selectedOptions.length > 1
-                  ? `${selectedOptions.length} ${context.i18n.selectedCount}`
-                  : context.i18n.select}
+                ? `${selectedOptions.length} ${context.i18n.selectedCount}`
+                : context.i18n.select}
             </>
           )}
         </div>
       </PopoverTrigger>
-      <PopoverContent className={cn('w-36 p-0', field.popoverContentClassName)}>
+      <PopoverContent className={cn("w-36 p-0", field.popoverContentClassName)}>
         <Command>
           {field.searchable !== false && (
             <CommandInput
-              placeholder={context.i18n.placeholders.searchField(field.label || '')}
+              placeholder={context.i18n.placeholders.searchField(
+                field.label || ""
+              )}
               className="h-9 text-sm"
               value={searchInput}
               onValueChange={setSearchInput}
@@ -359,7 +392,9 @@ export function FilterValueSelector<T = unknown>({ field, values, onChange, oper
                     className="group flex gap-2 items-center"
                     onSelect={() => {
                       if (isMultiSelect) {
-                        onChange(values.filter((v) => v !== option.value) as T[]);
+                        onChange(
+                          values.filter((v) => v !== option.value) as T[]
+                        );
                       } else {
                         onChange([] as T[]);
                       }
@@ -367,7 +402,9 @@ export function FilterValueSelector<T = unknown>({ field, values, onChange, oper
                     }}
                   >
                     {option.icon && option.icon}
-                    <span className="text-accent-foreground truncate">{option.label}</span>
+                    <span className="text-accent-foreground truncate">
+                      {option.label}
+                    </span>
                     <Check className="text-primary ms-auto" />
                   </CommandItem>
                 ))}
@@ -386,7 +423,10 @@ export function FilterValueSelector<T = unknown>({ field, values, onChange, oper
                       onSelect={() => {
                         if (isMultiSelect) {
                           const newValues = [...values, option.value] as T[];
-                          if (field.maxSelections && newValues.length > field.maxSelections) {
+                          if (
+                            field.maxSelections &&
+                            newValues.length > field.maxSelections
+                          ) {
                             return;
                           }
                           onChange(newValues);
@@ -397,7 +437,9 @@ export function FilterValueSelector<T = unknown>({ field, values, onChange, oper
                       }}
                     >
                       {option.icon && option.icon}
-                      <span className="text-accent-foreground truncate">{option.label}</span>
+                      <span className="text-accent-foreground truncate">
+                        {option.label}
+                      </span>
                       <Check className="text-primary ms-auto opacity-0" />
                     </CommandItem>
                   ))}

@@ -1,7 +1,3 @@
-'use client';
-
-import { useCallback, useMemo, useState } from 'react';
-import { Plus } from 'lucide-react';
 import {
   Command,
   CommandEmpty,
@@ -10,23 +6,40 @@ import {
   CommandItem,
   CommandList,
   CommandSeparator,
-} from '@/components/ui/command';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { cn } from '@/lib/utils';
-import { FilterContext } from './filter-context';
-import { DEFAULT_I18N } from './filter-i18n';
+} from "@/components/ui/command";
 import {
-  filtersContainerVariants,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import { Plus } from "lucide-react";
+import { useCallback, useMemo, useState } from "react";
+import { FilterOperatorDropdown } from "./components/filter-operator-dropdown";
+import { FilterRemoveButton } from "./components/filter-remove-button";
+import { FilterValueSelector } from "./components/filter-value-selector";
+import { SelectOptionsPopover } from "./components/select-options-popover";
+import { FilterContext } from "./filter-context";
+import { DEFAULT_I18N } from "./filter-i18n";
+import type {
+  Filter,
+  FilterFieldConfig,
+  FilterFieldsConfig,
+  FilterI18nConfig,
+} from "./filter-types";
+import {
+  createFilter,
+  flattenFields,
+  getFieldsMap,
+  isFieldGroup,
+  isGroupLevelField,
+} from "./filter-utils";
+import {
   filterAddButtonVariants,
-  filterItemVariants,
   filterFieldLabelVariants,
-} from './filter-variants';
-import { flattenFields, getFieldsMap, isFieldGroup, isGroupLevelField, createFilter } from './filter-utils';
-import { FilterOperatorDropdown } from './components/filter-operator-dropdown';
-import { FilterValueSelector } from './components/filter-value-selector';
-import { FilterRemoveButton } from './components/filter-remove-button';
-import { SelectOptionsPopover } from './components/select-options-popover';
-import type { Filter, FilterFieldConfig, FilterFieldsConfig, FilterI18nConfig } from './filter-types';
+  filterItemVariants,
+  filtersContainerVariants,
+} from "./filter-variants";
 
 interface FiltersProps<T = unknown> {
   filters: Filter<T>[];
@@ -38,9 +51,9 @@ interface FiltersProps<T = unknown> {
   addButtonIcon?: React.ReactNode;
   addButtonClassName?: string;
   addButton?: React.ReactNode;
-  variant?: 'solid' | 'outline';
-  size?: 'sm' | 'md' | 'lg';
-  radius?: 'md' | 'full';
+  variant?: "solid" | "outline";
+  size?: "sm" | "md" | "lg";
+  radius?: "md" | "full";
   i18n?: Partial<FilterI18nConfig>;
   showSearchInput?: boolean;
   cursorPointer?: boolean;
@@ -59,9 +72,9 @@ export function Filters<T = unknown>({
   addButtonIcon,
   addButtonClassName,
   addButton,
-  variant = 'outline',
-  size = 'md',
-  radius = 'md',
+  variant = "outline",
+  size = "md",
+  radius = "md",
   i18n,
   showSearchInput = true,
   cursorPointer = true,
@@ -70,7 +83,8 @@ export function Filters<T = unknown>({
   popoverContentClassName,
 }: FiltersProps<T>) {
   const [addFilterOpen, setAddFilterOpen] = useState(false);
-  const [selectedFieldForOptions, setSelectedFieldForOptions] = useState<FilterFieldConfig<T> | null>(null);
+  const [selectedFieldForOptions, setSelectedFieldForOptions] =
+    useState<FilterFieldConfig<T> | null>(null);
   const [tempSelectedValues, setTempSelectedValues] = useState<unknown[]>([]);
 
   const mergedI18n: FilterI18nConfig = {
@@ -98,77 +112,104 @@ export function Filters<T = unknown>({
         filters.map((filter) => {
           if (filter.id === filterId) {
             const updatedFilter = { ...filter, ...updates };
-            if (updates.operator === 'empty' || updates.operator === 'not_empty') {
+            if (
+              updates.operator === "empty" ||
+              updates.operator === "not_empty"
+            ) {
               updatedFilter.values = [] as T[];
             }
             return updatedFilter;
           }
           return filter;
-        }),
+        })
       );
     },
-    [filters, onChange],
+    [filters, onChange]
   );
 
   const removeFilter = useCallback(
     (filterId: string) => {
       onChange(filters.filter((filter) => filter.id !== filterId));
     },
-    [filters, onChange],
+    [filters, onChange]
   );
 
   const addFilterHandler = useCallback(
     (fieldKey: string) => {
       const field = fieldsMap[fieldKey];
       if (field && field.key) {
-        if (field.type === 'select' || field.type === 'multiselect') {
+        if (field.type === "select" || field.type === "multiselect") {
           setSelectedFieldForOptions(field);
           const existingFilter = filters.find((f) => f.field === fieldKey);
-          const initialValues = field.type === 'multiselect' && existingFilter ? existingFilter.values : [];
+          const initialValues =
+            field.type === "multiselect" && existingFilter
+              ? existingFilter.values
+              : [];
           setTempSelectedValues(initialValues);
           return;
         }
 
         const defaultOperator =
           field.defaultOperator ||
-          (field.type === 'daterange'
-            ? 'between'
-            : field.type === 'numberrange'
-              ? 'between'
-              : field.type === 'boolean'
-                ? 'is'
-                : 'is');
+          (field.type === "daterange"
+            ? "between"
+            : field.type === "numberrange"
+            ? "between"
+            : field.type === "boolean"
+            ? "is"
+            : "is");
         let defaultValues: unknown[] = [];
 
-        if (['text', 'number', 'date', 'email', 'url', 'tel', 'time', 'datetime'].includes(field.type || '')) {
-          defaultValues = [''] as unknown[];
-        } else if (field.type === 'daterange') {
-          defaultValues = ['', ''] as unknown[];
-        } else if (field.type === 'numberrange') {
+        if (
+          [
+            "text",
+            "number",
+            "date",
+            "email",
+            "url",
+            "tel",
+            "time",
+            "datetime",
+          ].includes(field.type || "")
+        ) {
+          defaultValues = [""] as unknown[];
+        } else if (field.type === "daterange") {
+          defaultValues = ["", ""] as unknown[];
+        } else if (field.type === "numberrange") {
           defaultValues = [field.min || 0, field.max || 100] as unknown[];
-        } else if (field.type === 'boolean') {
+        } else if (field.type === "boolean") {
           defaultValues = [false] as unknown[];
-        } else if (field.type === 'time') {
-          defaultValues = [''] as unknown[];
-        } else if (field.type === 'datetime') {
-          defaultValues = [''] as unknown[];
+        } else if (field.type === "time") {
+          defaultValues = [""] as unknown[];
+        } else if (field.type === "datetime") {
+          defaultValues = [""] as unknown[];
         }
 
-        const newFilter = createFilter<T>(fieldKey, defaultOperator, defaultValues as T[]);
+        const newFilter = createFilter<T>(
+          fieldKey,
+          defaultOperator,
+          defaultValues as T[]
+        );
         const newFilters = [...filters, newFilter];
         onChange(newFilters);
         setAddFilterOpen(false);
       }
     },
-    [fieldsMap, filters, onChange],
+    [fieldsMap, filters, onChange]
   );
 
   const addFilterWithOption = useCallback(
-    (field: FilterFieldConfig<T>, values: unknown[], closePopover: boolean = true) => {
+    (
+      field: FilterFieldConfig<T>,
+      values: unknown[],
+      closePopover: boolean = true
+    ) => {
       if (!field.key) return;
 
-      const defaultOperator = field.defaultOperator || 'is';
-      const existingFilterIndex = filters.findIndex((f) => f.field === field.key);
+      const defaultOperator = field.defaultOperator || "is";
+      const existingFilterIndex = filters.findIndex(
+        (f) => f.field === field.key
+      );
 
       if (existingFilterIndex >= 0) {
         const updatedFilters = [...filters];
@@ -178,7 +219,11 @@ export function Filters<T = unknown>({
         };
         onChange(updatedFilters);
       } else {
-        const newFilter = createFilter<T>(field.key, defaultOperator, values as T[]);
+        const newFilter = createFilter<T>(
+          field.key,
+          defaultOperator,
+          values as T[]
+        );
         const newFilters = [...filters, newFilter];
         onChange(newFilters);
       }
@@ -191,13 +236,13 @@ export function Filters<T = unknown>({
         setTempSelectedValues(values as unknown[]);
       }
     },
-    [filters, onChange],
+    [filters, onChange]
   );
 
   const selectableFields = useMemo(() => {
     const flatFields = flattenFields(fields);
     return flatFields.filter((field) => {
-      if (!field.key || field.type === 'separator') {
+      if (!field.key || field.type === "separator") {
         return false;
       }
       if (allowMultiple) {
@@ -226,7 +271,9 @@ export function Filters<T = unknown>({
         allowMultiple,
       }}
     >
-      <div className={cn(filtersContainerVariants({ variant, size }), className)}>
+      <div
+        className={cn(filtersContainerVariants({ variant, size }), className)}
+      >
         {showAddButton && selectableFields.length > 0 && (
           <Popover
             open={addFilterOpen}
@@ -250,7 +297,7 @@ export function Filters<T = unknown>({
                       cursorPointer: cursorPointer,
                       radius: radius,
                     }),
-                    addButtonClassName,
+                    addButtonClassName
                   )}
                   title={mergedI18n.addFilterTitle}
                 >
@@ -259,49 +306,73 @@ export function Filters<T = unknown>({
                 </button>
               )}
             </PopoverTrigger>
-            <PopoverContent className={cn('w-[200px] p-0', popoverContentClassName)} align="start">
+            <PopoverContent
+              className={cn("w-[200px] p-0", popoverContentClassName)}
+              align="start"
+            >
               <Command>
                 {selectedFieldForOptions ? (
                   <SelectOptionsPopover<T>
                     field={selectedFieldForOptions}
                     values={tempSelectedValues as T[]}
                     onChange={(values) => {
-                      const shouldClosePopover = selectedFieldForOptions.type === 'select';
-                      addFilterWithOption(selectedFieldForOptions, values as unknown[], shouldClosePopover);
+                      const shouldClosePopover =
+                        selectedFieldForOptions.type === "select";
+                      addFilterWithOption(
+                        selectedFieldForOptions,
+                        values as unknown[],
+                        shouldClosePopover
+                      );
                     }}
                     onClose={() => setAddFilterOpen(false)}
                     inline={true}
                   />
                 ) : (
                   <>
-                    {showSearchInput && <CommandInput placeholder={mergedI18n.searchFields} className="h-9" />}
+                    {showSearchInput && (
+                      <CommandInput
+                        placeholder={mergedI18n.searchFields}
+                        className="h-9"
+                      />
+                    )}
                     <CommandList>
                       <CommandEmpty>{mergedI18n.noFieldsFound}</CommandEmpty>
                       {fields.map((item, index) => {
                         if (isFieldGroup(item)) {
                           const groupFields = item.fields.filter((field) => {
-                            if (field.type === 'separator') {
+                            if (field.type === "separator") {
                               return true;
                             }
                             if (allowMultiple) {
                               return true;
                             }
-                            return !filters.some((filter) => filter.field === field.key);
+                            return !filters.some(
+                              (filter) => filter.field === field.key
+                            );
                           });
 
                           if (groupFields.length === 0) return null;
 
                           return (
-                            <CommandGroup key={`group-${index}`} heading={item.group || 'Fields'}>
+                            <CommandGroup
+                              key={`group-${index}`}
+                              heading={item.group || "Fields"}
+                            >
                               {groupFields.map((field, fieldIndex) => {
-                                if (field.type === 'separator') {
-                                  return <CommandSeparator key={`separator-${fieldIndex}`} />;
+                                if (field.type === "separator") {
+                                  return (
+                                    <CommandSeparator
+                                      key={`separator-${fieldIndex}`}
+                                    />
+                                  );
                                 }
 
                                 return (
                                   <CommandItem
                                     key={field.key}
-                                    onSelect={() => field.key && addFilterHandler(field.key)}
+                                    onSelect={() =>
+                                      field.key && addFilterHandler(field.key)
+                                    }
                                   >
                                     {field.icon}
                                     <span>{field.label}</span>
@@ -314,28 +385,39 @@ export function Filters<T = unknown>({
 
                         if (isGroupLevelField(item)) {
                           const groupFields = item.fields!.filter((field) => {
-                            if (field.type === 'separator') {
+                            if (field.type === "separator") {
                               return true;
                             }
                             if (allowMultiple) {
                               return true;
                             }
-                            return !filters.some((filter) => filter.field === field.key);
+                            return !filters.some(
+                              (filter) => filter.field === field.key
+                            );
                           });
 
                           if (groupFields.length === 0) return null;
 
                           return (
-                            <CommandGroup key={`group-${index}`} heading={item.group || 'Fields'}>
+                            <CommandGroup
+                              key={`group-${index}`}
+                              heading={item.group || "Fields"}
+                            >
                               {groupFields.map((field, fieldIndex) => {
-                                if (field.type === 'separator') {
-                                  return <CommandSeparator key={`separator-${fieldIndex}`} />;
+                                if (field.type === "separator") {
+                                  return (
+                                    <CommandSeparator
+                                      key={`separator-${fieldIndex}`}
+                                    />
+                                  );
                                 }
 
                                 return (
                                   <CommandItem
                                     key={field.key}
-                                    onSelect={() => field.key && addFilterHandler(field.key)}
+                                    onSelect={() =>
+                                      field.key && addFilterHandler(field.key)
+                                    }
                                   >
                                     {field.icon}
                                     <span>{field.label}</span>
@@ -348,12 +430,19 @@ export function Filters<T = unknown>({
 
                         const field = item as FilterFieldConfig<T>;
 
-                        if (field.type === 'separator') {
-                          return <CommandSeparator key={`separator-${index}`} />;
+                        if (field.type === "separator") {
+                          return (
+                            <CommandSeparator key={`separator-${index}`} />
+                          );
                         }
 
                         return (
-                          <CommandItem key={field.key} onSelect={() => field.key && addFilterHandler(field.key)}>
+                          <CommandItem
+                            key={field.key}
+                            onSelect={() =>
+                              field.key && addFilterHandler(field.key)
+                            }
+                          >
                             {field.icon}
                             <span>{field.label}</span>
                           </CommandItem>
@@ -372,8 +461,18 @@ export function Filters<T = unknown>({
           if (!field) return null;
 
           return (
-            <div key={filter.id} className={filterItemVariants({ variant })} data-slot="filter-item">
-              <div className={filterFieldLabelVariants({ variant: variant, size: size, radius: radius })}>
+            <div
+              key={filter.id}
+              className={filterItemVariants({ variant })}
+              data-slot="filter-item"
+            >
+              <div
+                className={filterFieldLabelVariants({
+                  variant: variant,
+                  size: size,
+                  radius: radius,
+                })}
+              >
                 {field.icon}
                 {field.label}
               </div>

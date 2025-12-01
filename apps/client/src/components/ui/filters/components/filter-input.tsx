@@ -1,15 +1,21 @@
-'use client';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
+import { AlertCircle } from "lucide-react";
+import type React from "react";
+import { useState } from "react";
+import { useFilterContext } from "../filter-context";
+import type { FilterFieldConfig } from "../filter-types";
+import {
+  filterFieldAddonVariants,
+  filterInputVariants,
+} from "../filter-variants";
 
-import type React from 'react';
-import { useState } from 'react';
-import { AlertCircle } from 'lucide-react';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { cn } from '@/lib/utils';
-import { useFilterContext } from '../filter-context';
-import { filterInputVariants, filterFieldAddonVariants } from '../filter-variants';
-import type { FilterFieldConfig } from '../filter-types';
-
-interface FilterInputProps<T = unknown> extends React.InputHTMLAttributes<HTMLInputElement> {
+interface FilterInputProps<T = unknown>
+  extends React.InputHTMLAttributes<HTMLInputElement> {
   className?: string;
   field?: FilterFieldConfig<T>;
   onInputChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -26,7 +32,7 @@ export function FilterInput<T = unknown>({
 }: FilterInputProps<T>) {
   const context = useFilterContext();
   const [isValid, setIsValid] = useState(true);
-  const [validationMessage, setValidationMessage] = useState('');
+  const [validationMessage, setValidationMessage] = useState("");
 
   const validateInput = (value: string, pattern?: string): boolean => {
     if (!pattern || !value) return true;
@@ -34,17 +40,20 @@ export function FilterInput<T = unknown>({
     return regex.test(value);
   };
 
-  const getValidationMessage = (fieldType: string, hasCustomPattern: boolean = false): string => {
-    if ((fieldType === 'text' || fieldType === 'number') && hasCustomPattern) {
+  const getValidationMessage = (
+    fieldType: string,
+    hasCustomPattern: boolean = false
+  ): string => {
+    if ((fieldType === "text" || fieldType === "number") && hasCustomPattern) {
       return context.i18n.validation.invalid;
     }
 
     switch (fieldType) {
-      case 'email':
+      case "email":
         return context.i18n.validation.invalidEmail;
-      case 'url':
+      case "url":
         return context.i18n.validation.invalidUrl;
-      case 'tel':
+      case "tel":
         return context.i18n.validation.invalidTel;
       default:
         return context.i18n.validation.invalid;
@@ -70,10 +79,12 @@ export function FilterInput<T = unknown>({
 
       setIsValid(valid);
       const hasCustomPattern = !!(field?.pattern || props.pattern);
-      setValidationMessage(valid ? '' : getValidationMessage(field?.type || '', hasCustomPattern));
+      setValidationMessage(
+        valid ? "" : getValidationMessage(field?.type || "", hasCustomPattern)
+      );
     } else {
       setIsValid(true);
-      setValidationMessage('');
+      setValidationMessage("");
     }
 
     if (onInputChange) {
@@ -84,12 +95,23 @@ export function FilterInput<T = unknown>({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (!isValid && !['Tab', 'Escape', 'Enter', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+    if (
+      !isValid &&
+      ![
+        "Tab",
+        "Escape",
+        "Enter",
+        "ArrowUp",
+        "ArrowDown",
+        "ArrowLeft",
+        "ArrowRight",
+      ].includes(e.key)
+    ) {
       setIsValid(true);
-      setValidationMessage('');
+      setValidationMessage("");
     }
 
-    if (e.key === 'Enter' && onInputChange) {
+    if (e.key === "Enter" && onInputChange) {
       const syntheticEvent = {
         ...e,
         target: e.target as HTMLInputElement,
@@ -103,13 +125,20 @@ export function FilterInput<T = unknown>({
 
   return (
     <div
-      className={cn('w-36', filterInputVariants({ variant: context.variant, size: context.size }), className)}
+      className={cn(
+        "w-36",
+        filterInputVariants({ variant: context.variant, size: context.size }),
+        className
+      )}
       data-slot="filters-input-wrapper"
     >
       {field?.prefix && (
         <div
           data-slot="filters-prefix"
-          className={filterFieldAddonVariants({ variant: context.variant, size: context.size })}
+          className={filterFieldAddonVariants({
+            variant: context.variant,
+            size: context.size,
+          })}
         >
           {field.prefix}
         </div>
@@ -119,7 +148,11 @@ export function FilterInput<T = unknown>({
         <input
           className="w-full outline-none"
           aria-invalid={!isValid}
-          aria-describedby={!isValid && validationMessage ? `${field?.key || 'input'}-error` : undefined}
+          aria-describedby={
+            !isValid && validationMessage
+              ? `${field?.key || "input"}-error`
+              : undefined
+          }
           onChange={handleChange}
           onBlur={handleBlur}
           onKeyDown={handleKeyDown}
@@ -143,7 +176,12 @@ export function FilterInput<T = unknown>({
       {field?.suffix && (
         <div
           data-slot="filters-suffix"
-          className={cn(filterFieldAddonVariants({ variant: context.variant, size: context.size }))}
+          className={cn(
+            filterFieldAddonVariants({
+              variant: context.variant,
+              size: context.size,
+            })
+          )}
         >
           {field.suffix}
         </div>

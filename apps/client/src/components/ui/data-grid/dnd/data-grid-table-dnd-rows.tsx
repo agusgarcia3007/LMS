@@ -29,7 +29,6 @@ import {
   DataGridTableHeadRow,
   DataGridTableHeadRowCell,
   DataGridTableHeadRowCellResize,
-  DataGridTableRowSpacer,
 } from '../table/data-grid-table';
 
 function DataGridTableDndRowHandle({ rowId }: { rowId: string }) {
@@ -111,8 +110,6 @@ function DataGridTableDndRows({
               );
             })}
           </DataGridTableHead>
-
-          {(props.tableLayout?.stripped || !props.tableLayout?.rowBorder) && <DataGridTableRowSpacer />}
 
           <DataGridTableBody>
             {props.loadingMode === 'skeleton' && isLoading && pagination?.pageSize ? (

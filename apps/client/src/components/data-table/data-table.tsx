@@ -20,6 +20,7 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Filters, type FilterFieldConfig } from "@/components/ui/filters";
 
 import { DataTableToolbar } from "./data-table-toolbar";
+import { DataTableEmpty } from "./data-table-empty";
 import { getFiltersI18n } from "./data-table-filters-i18n";
 import { useFiltersUrlSync } from "./use-filters-url-sync";
 import type { useDataTableState } from "@/hooks/use-data-table-state";
@@ -28,6 +29,13 @@ type PaginationInfo = {
   total: number;
   totalPages: number;
 } | null;
+
+type EmptyStateConfig = {
+  icon?: ReactNode;
+  title: string;
+  description?: string;
+  action?: ReactNode;
+};
 
 interface DataTableProps<TData> {
   data: TData[];
@@ -38,6 +46,7 @@ interface DataTableProps<TData> {
   filterFields?: FilterFieldConfig[];
   toolbarActions?: ReactNode;
   searchPlaceholder?: string;
+  emptyState?: EmptyStateConfig;
 }
 
 export function DataTable<TData>({
@@ -49,6 +58,7 @@ export function DataTable<TData>({
   filterFields,
   toolbarActions,
   searchPlaceholder,
+  emptyState,
 }: DataTableProps<TData>) {
   const { t } = useTranslation();
   const { params, sortState, setPage, setLimit, setSort, setSearch, setFilters } = tableState;
@@ -132,12 +142,16 @@ export function DataTable<TData>({
             </DataTableToolbar>
           </CardHeading>
         </CardHeader>
-        <CardTable>
-          <ScrollArea>
-            <DataGridTable />
-            <ScrollBar orientation="horizontal" />
-          </ScrollArea>
-        </CardTable>
+        {emptyState && data.length === 0 && !isLoading ? (
+          <DataTableEmpty {...emptyState} />
+        ) : (
+          <CardTable>
+            <ScrollArea>
+              <DataGridTable />
+              <ScrollBar orientation="horizontal" />
+            </ScrollArea>
+          </CardTable>
+        )}
         <CardFooter>
           <DataGridPagination />
         </CardFooter>
