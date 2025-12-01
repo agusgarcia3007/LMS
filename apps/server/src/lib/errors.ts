@@ -52,6 +52,7 @@ export class AppError extends Error {
 }
 
 export const errorHandler = new Elysia({ name: "error-handler" }).onError(
+  { as: "global" },
   ({ error, set, code }) => {
     logger.error("Error occurred", {
       name: error instanceof Error ? error.name : "Unknown",
