@@ -11,7 +11,7 @@ import {
   type SelectModule,
   type SelectLesson,
 } from "@/db/schema";
-import { count, eq, and, desc } from "drizzle-orm";
+import { count, eq, and, desc, inArray } from "drizzle-orm";
 import {
   parseListParams,
   buildWhereClause,
@@ -123,20 +123,17 @@ export const modulesRoutes = new Elysia()
 
         const moduleIds = modules.map((m) => m.id);
 
-        const lessonsCounts = moduleIds.length > 0
-          ? await db
-              .select({
-                moduleId: moduleLessonsTable.moduleId,
-                count: count(),
-              })
-              .from(moduleLessonsTable)
-              .where(
-                moduleIds.length === 1
-                  ? eq(moduleLessonsTable.moduleId, moduleIds[0])
-                  : undefined
-              )
-              .groupBy(moduleLessonsTable.moduleId)
-          : [];
+        const lessonsCounts =
+          moduleIds.length > 0
+            ? await db
+                .select({
+                  moduleId: moduleLessonsTable.moduleId,
+                  count: count(),
+                })
+                .from(moduleLessonsTable)
+                .where(inArray(moduleLessonsTable.moduleId, moduleIds))
+                .groupBy(moduleLessonsTable.moduleId)
+            : [];
 
         const lessonsCountMap = new Map(
           lessonsCounts.map((lc) => [lc.moduleId, lc.count])

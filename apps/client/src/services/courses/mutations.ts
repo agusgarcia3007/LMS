@@ -6,6 +6,8 @@ import {
   updateCourseModulesOptions,
   uploadThumbnailOptions,
   deleteThumbnailOptions,
+  uploadVideoOptions,
+  deleteVideoOptions,
 } from "./options";
 
 export const useCreateCourse = () => useMutation(createCourseOptions());
@@ -19,3 +21,7 @@ export const useUpdateCourseModules = () => useMutation(updateCourseModulesOptio
 export const useUploadThumbnail = () => useMutation(uploadThumbnailOptions());
 
 export const useDeleteThumbnail = () => useMutation(deleteThumbnailOptions());
+
+export const useUploadVideo = () => useMutation(uploadVideoOptions());
+
+export const useDeleteVideo = () => useMutation(deleteVideoOptions());

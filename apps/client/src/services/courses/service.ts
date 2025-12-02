@@ -116,6 +116,12 @@ export type UploadThumbnailResponse = {
   course: Course;
 };
 
+export type UploadVideoResponse = {
+  videoKey: string;
+  videoUrl: string;
+  course: Course;
+};
+
 export const QUERY_KEYS = {
   COURSES: ["courses"],
   COURSES_LIST: (params: CourseListParams) => ["courses", "list", params],
@@ -185,6 +191,21 @@ export const CoursesService = {
   async deleteThumbnail(id: string) {
     const { data } = await http.delete<{ course: Course }>(
       `/courses/${id}/thumbnail`
+    );
+    return data;
+  },
+
+  async uploadVideo(id: string, video: string) {
+    const { data } = await http.post<UploadVideoResponse>(
+      `/courses/${id}/video`,
+      { video }
+    );
+    return data;
+  },
+
+  async deleteVideo(id: string) {
+    const { data } = await http.delete<{ course: Course }>(
+      `/courses/${id}/video`
     );
     return data;
   },

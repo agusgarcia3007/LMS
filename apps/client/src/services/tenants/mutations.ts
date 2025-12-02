@@ -7,6 +7,7 @@ import {
 
 export const useCreateTenant = () => useMutation(createTenantOptions());
 
-export const useUpdateTenant = () => useMutation(updateTenantOptions());
+export const useUpdateTenant = (successMessage?: string) =>
+  useMutation(updateTenantOptions(successMessage));
 
 export const useDeleteTenant = () => useMutation(deleteTenantOptions());

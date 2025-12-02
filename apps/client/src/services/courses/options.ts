@@ -138,3 +138,26 @@ export const deleteThumbnailOptions = () => {
     },
   });
 };
+
+export const uploadVideoOptions = () => {
+  const queryClient = useQueryClient();
+  return mutationOptions({
+    mutationFn: ({ id, video }: { id: string; video: string }) =>
+      CoursesService.uploadVideo(id, video),
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.COURSE(id) });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.COURSES });
+    },
+  });
+};
+
+export const deleteVideoOptions = () => {
+  const queryClient = useQueryClient();
+  return mutationOptions({
+    mutationFn: (id: string) => CoursesService.deleteVideo(id),
+    onSuccess: (_, id) => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.COURSE(id) });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.COURSES });
+    },
+  });
+};

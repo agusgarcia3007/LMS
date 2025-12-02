@@ -1,9 +1,27 @@
 import { http } from "@/lib/http";
 
+export type TenantSocialLinks = {
+  twitter?: string;
+  facebook?: string;
+  instagram?: string;
+  linkedin?: string;
+  youtube?: string;
+};
+
 export type Tenant = {
   id: string;
   slug: string;
   name: string;
+  logo: string | null;
+  primaryColor: string | null;
+  description: string | null;
+  contactEmail: string | null;
+  contactPhone: string | null;
+  contactAddress: string | null;
+  socialLinks: TenantSocialLinks | null;
+  seoTitle: string | null;
+  seoDescription: string | null;
+  seoKeywords: string | null;
   createdAt: string;
   updatedAt: string;
   usersCount?: number;
@@ -36,6 +54,16 @@ export type CreateTenantRequest = {
 
 export type UpdateTenantRequest = {
   name: string;
+  logo?: string | null;
+  primaryColor?: string | null;
+  description?: string | null;
+  contactEmail?: string | null;
+  contactPhone?: string | null;
+  contactAddress?: string | null;
+  socialLinks?: TenantSocialLinks | null;
+  seoTitle?: string | null;
+  seoDescription?: string | null;
+  seoKeywords?: string | null;
 };
 
 export const QUERY_KEYS = {

@@ -9,7 +9,7 @@ import {
   lessonStatusEnum,
   type SelectLesson,
 } from "@/db/schema";
-import { count, eq, and } from "drizzle-orm";
+import { count, eq, and, desc } from "drizzle-orm";
 import {
   parseListParams,
   buildWhereClause,
@@ -266,7 +266,7 @@ export const lessonsRoutes = new Elysia()
           .select({ maxOrder: lessonsTable.order })
           .from(lessonsTable)
           .where(eq(lessonsTable.tenantId, ctx.user.tenantId))
-          .orderBy(lessonsTable.order)
+          .orderBy(desc(lessonsTable.order))
           .limit(1);
 
         const nextOrder = (maxOrder?.maxOrder ?? -1) + 1;

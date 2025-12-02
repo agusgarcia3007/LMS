@@ -41,14 +41,25 @@ export const createTenantOptions = () => {
   });
 };
 
-export const updateTenantOptions = () => {
+export const updateTenantOptions = (successMessage?: string) => {
   const queryClient = useQueryClient();
   return mutationOptions({
-    mutationFn: ({ id, ...payload }: { id: string } & UpdateTenantRequest) =>
+    mutationFn: ({
+      id,
+      slug,
+      ...payload
+    }: { id: string; slug?: string } & UpdateTenantRequest) =>
       TenantsService.update(id, payload),
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.TENANTS });
-      toast.success(i18n.t("backoffice.tenants.edit.success"));
+      if (variables.slug) {
+        queryClient.invalidateQueries({
+          queryKey: QUERY_KEYS.TENANT(variables.slug),
+        });
+      }
+      toast.success(
+        successMessage ?? i18n.t("backoffice.tenants.edit.success")
+      );
     },
   });
 };

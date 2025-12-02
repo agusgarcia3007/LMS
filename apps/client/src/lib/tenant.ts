@@ -6,6 +6,14 @@ type TenantInfo = {
 const RESERVED_SUBDOMAINS = ["www", "api", "admin", "app"];
 
 export function getTenantFromHost(): TenantInfo {
+  if (import.meta.env.DEV) {
+    const url = new URL(window.location.href);
+    const campusSlug = url.searchParams.get("campus");
+    if (campusSlug) {
+      return { slug: campusSlug, isCampus: true };
+    }
+  }
+
   const hostname = window.location.hostname;
   const parts = hostname.split(".");
 

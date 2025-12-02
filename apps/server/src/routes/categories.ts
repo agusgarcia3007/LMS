@@ -8,7 +8,7 @@ import {
   coursesTable,
   type SelectCategory,
 } from "@/db/schema";
-import { count, eq, and, desc } from "drizzle-orm";
+import { count, eq, and, desc, inArray } from "drizzle-orm";
 import {
   parseListParams,
   buildWhereClause,
@@ -110,7 +110,12 @@ export const categoriesRoutes = new Elysia()
                   count: count(),
                 })
                 .from(coursesTable)
-                .where(eq(coursesTable.tenantId, ctx.user.tenantId))
+                .where(
+                  and(
+                    eq(coursesTable.tenantId, ctx.user.tenantId),
+                    inArray(coursesTable.categoryId, categoryIds)
+                  )
+                )
                 .groupBy(coursesTable.categoryId)
             : [];
 
@@ -172,7 +177,12 @@ export const categoriesRoutes = new Elysia()
         const [coursesCount] = await db
           .select({ count: count() })
           .from(coursesTable)
-          .where(eq(coursesTable.categoryId, category.id));
+          .where(
+            and(
+              eq(coursesTable.categoryId, category.id),
+              eq(coursesTable.tenantId, ctx.user.tenantId)
+            )
+          );
 
         return {
           category: {
@@ -315,7 +325,12 @@ export const categoriesRoutes = new Elysia()
         const [coursesCount] = await db
           .select({ count: count() })
           .from(coursesTable)
-          .where(eq(coursesTable.categoryId, ctx.params.id));
+          .where(
+            and(
+              eq(coursesTable.categoryId, ctx.params.id),
+              eq(coursesTable.tenantId, ctx.user.tenantId)
+            )
+          );
 
         return {
           category: { ...updatedCategory, coursesCount: coursesCount.count },

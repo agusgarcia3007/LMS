@@ -52,17 +52,20 @@ import {
   KanbanCard,
 } from "@/components/kibo-ui/kanban";
 import { ImageUpload } from "@/components/file-upload/image-upload";
+import { VideoUpload } from "@/components/file-upload/video-upload";
+import { CategoryCombobox } from "@/components/courses/category-combobox";
+import { InstructorCombobox } from "@/components/courses/instructor-combobox";
 import {
   useGetCourse,
   useCreateCourse,
   useUpdateCourse,
   useUploadThumbnail,
   useDeleteThumbnail,
+  useUploadVideo,
+  useDeleteVideo,
 } from "@/services/courses";
 import type { Course, CourseLevel, CourseStatus } from "@/services/courses";
 import { useGetModules, type Module } from "@/services/modules";
-import { useGetCategories } from "@/services/categories";
-import { useGetInstructors } from "@/services/instructors";
 
 const schema = z.object({
   title: z.string().min(1),
@@ -219,19 +222,13 @@ export function CourseEditor({
     { limit: 200 },
     { enabled: open && currentStep === 3 }
   );
-  const { data: categoriesData } = useGetCategories(
-    { limit: 100 },
-    { enabled: open && currentStep === 1 }
-  );
-  const { data: instructorsData } = useGetInstructors(
-    { limit: 100 },
-    { enabled: open && currentStep === 1 }
-  );
 
   const createMutation = useCreateCourse();
   const updateMutation = useUpdateCourse();
   const uploadThumbnailMutation = useUploadThumbnail();
   const deleteThumbnailMutation = useDeleteThumbnail();
+  const uploadVideoMutation = useUploadVideo();
+  const deleteVideoMutation = useDeleteVideo();
 
   const form = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -414,6 +411,29 @@ export function CourseEditor({
     form.setValue("thumbnail", "");
   }, [course?.id, form, deleteThumbnailMutation]);
 
+  const handleVideoUpload = useCallback(
+    async (base64: string) => {
+      if (!course?.id) {
+        form.setValue("previewVideoUrl", base64);
+        return base64;
+      }
+      const result = await uploadVideoMutation.mutateAsync({
+        id: course.id,
+        video: base64,
+      });
+      form.setValue("previewVideoUrl", result.videoUrl);
+      return result.videoUrl;
+    },
+    [course?.id, form, uploadVideoMutation]
+  );
+
+  const handleVideoDelete = useCallback(async () => {
+    if (course?.id) {
+      await deleteVideoMutation.mutateAsync(course.id);
+    }
+    form.setValue("previewVideoUrl", "");
+  }, [course?.id, form, deleteVideoMutation]);
+
   const columnsWithLabels = useMemo(
     () =>
       COLUMNS.map((col) => ({
@@ -432,9 +452,6 @@ export function CourseEditor({
   const courseCount = kanbanData.filter((i) => i.column === "course").length;
 
   const isPending = createMutation.isPending || updateMutation.isPending;
-
-  const categories = categoriesData?.categories ?? [];
-  const instructors = instructorsData?.instructors ?? [];
 
   const canGoNext = () => {
     if (currentStep === 1) {
@@ -591,9 +608,13 @@ export function CourseEditor({
                         <FormItem>
                           <FormLabel>{t("courses.form.previewVideo")}</FormLabel>
                           <FormControl>
-                            <Input
-                              {...field}
-                              placeholder="https://"
+                            <VideoUpload
+                              value={field.value || null}
+                              onChange={(url) => field.onChange(url || "")}
+                              onUpload={handleVideoUpload}
+                              onDelete={handleVideoDelete}
+                              isUploading={uploadVideoMutation.isPending}
+                              isDeleting={deleteVideoMutation.isPending}
                               disabled={isPending}
                             />
                           </FormControl>
@@ -610,28 +631,13 @@ export function CourseEditor({
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>{t("courses.form.category")}</FormLabel>
-                          <Select
-                            value={field.value}
-                            onValueChange={field.onChange}
-                            disabled={isPending}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue
-                                  placeholder={t(
-                                    "courses.form.categoryPlaceholder"
-                                  )}
-                                />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {categories.map((cat) => (
-                                <SelectItem key={cat.id} value={cat.id}>
-                                  {cat.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                          <FormControl>
+                            <CategoryCombobox
+                              value={field.value}
+                              onChange={(id) => field.onChange(id || "")}
+                              disabled={isPending}
+                            />
+                          </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -642,28 +648,13 @@ export function CourseEditor({
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>{t("courses.form.instructor")}</FormLabel>
-                          <Select
-                            value={field.value}
-                            onValueChange={field.onChange}
-                            disabled={isPending}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue
-                                  placeholder={t(
-                                    "courses.form.instructorPlaceholder"
-                                  )}
-                                />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {instructors.map((inst) => (
-                                <SelectItem key={inst.id} value={inst.id}>
-                                  {inst.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                          <FormControl>
+                            <InstructorCombobox
+                              value={field.value}
+                              onChange={(id) => field.onChange(id || "")}
+                              disabled={isPending}
+                            />
+                          </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}

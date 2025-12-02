@@ -1,0 +1,200 @@
+import { useState, useCallback } from "react";
+import { useTranslation } from "react-i18next";
+import { Check, Plus, Loader2 } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button, ButtonArrow } from "@/components/ui/button";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandSeparator,
+} from "@/components/ui/command";
+import { Input } from "@/components/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { useGetInstructors, useCreateInstructor } from "@/services/instructors";
+
+interface InstructorComboboxProps {
+  value?: string | null;
+  onChange: (instructorId: string | null) => void;
+  disabled?: boolean;
+}
+
+function getInitials(name: string) {
+  return name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+}
+
+export function InstructorCombobox({
+  value,
+  onChange,
+  disabled = false,
+}: InstructorComboboxProps) {
+  const { t } = useTranslation();
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const [isCreating, setIsCreating] = useState(false);
+  const [newName, setNewName] = useState("");
+
+  const { data, isLoading } = useGetInstructors(
+    { limit: 100, search: search || undefined },
+    { enabled: open }
+  );
+  const createMutation = useCreateInstructor();
+
+  const instructors = data?.instructors ?? [];
+  const selectedInstructor = instructors.find((i) => i.id === value);
+
+  const handleSelect = useCallback(
+    (instructorId: string) => {
+      onChange(instructorId === value ? null : instructorId);
+      setOpen(false);
+      setSearch("");
+    },
+    [onChange, value]
+  );
+
+  const handleCreate = useCallback(async () => {
+    if (!newName.trim()) return;
+
+    createMutation.mutate(
+      { name: newName.trim() },
+      {
+        onSuccess: (data) => {
+          onChange(data.instructor.id);
+          setIsCreating(false);
+          setNewName("");
+          setOpen(false);
+        },
+      }
+    );
+  }, [newName, createMutation, onChange]);
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && newName.trim()) {
+      e.preventDefault();
+      handleCreate();
+    }
+    if (e.key === "Escape") {
+      setIsCreating(false);
+      setNewName("");
+    }
+  };
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          mode="input"
+          placeholder={!value}
+          aria-expanded={open}
+          disabled={disabled}
+          className="w-full justify-between"
+        >
+          {selectedInstructor ? (
+            <div className="flex items-center gap-2">
+              <Avatar className="size-5">
+                <AvatarImage src={selectedInstructor.avatar ?? undefined} />
+                <AvatarFallback className="text-[10px]">
+                  {getInitials(selectedInstructor.name)}
+                </AvatarFallback>
+              </Avatar>
+              <span className="truncate">{selectedInstructor.name}</span>
+            </div>
+          ) : (
+            <span className="text-muted-foreground">
+              {t("courses.form.instructorPlaceholder")}
+            </span>
+          )}
+          <ButtonArrow />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[--radix-popper-anchor-width] p-0">
+        <Command shouldFilter={false}>
+          <CommandInput
+            placeholder={t("courses.form.searchInstructor")}
+            value={search}
+            onValueChange={setSearch}
+          />
+          <CommandList>
+            <ScrollArea className="max-h-[200px]">
+              {isLoading ? (
+                <div className="flex items-center justify-center py-6">
+                  <Loader2 className="size-4 animate-spin text-muted-foreground" />
+                </div>
+              ) : instructors.length === 0 ? (
+                <CommandEmpty>{t("courses.form.noInstructors")}</CommandEmpty>
+              ) : (
+                <CommandGroup>
+                  {instructors.map((instructor) => (
+                    <CommandItem
+                      key={instructor.id}
+                      value={instructor.id}
+                      onSelect={handleSelect}
+                    >
+                      <div className="flex items-center gap-2">
+                        <Avatar className="size-6">
+                          <AvatarImage src={instructor.avatar ?? undefined} />
+                          <AvatarFallback className="text-[10px]">
+                            {getInitials(instructor.name)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span>{instructor.name}</span>
+                      </div>
+                      {value === instructor.id && (
+                        <Check className="ml-auto size-4" />
+                      )}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              )}
+            </ScrollArea>
+          </CommandList>
+          <CommandSeparator />
+          <CommandGroup>
+            {isCreating ? (
+              <div className="flex items-center gap-2 p-1">
+                <Input
+                  autoFocus
+                  value={newName}
+                  onChange={(e) => setNewName(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder={t("courses.form.instructorName")}
+                  className="h-8"
+                  disabled={createMutation.isPending}
+                />
+                <Button
+                  size="sm"
+                  onClick={handleCreate}
+                  disabled={!newName.trim() || createMutation.isPending}
+                  isLoading={createMutation.isPending}
+                >
+                  {t("common.add")}
+                </Button>
+              </div>
+            ) : (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full justify-start font-normal px-2"
+                onClick={() => setIsCreating(true)}
+              >
+                <Plus className="size-4" />
+                {t("courses.form.createInstructor")}
+              </Button>
+            )}
+          </CommandGroup>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
+}

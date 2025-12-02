@@ -22,7 +22,9 @@
     "next": "Siguiente",
     "dropHere": "Suelta aqui",
     "dragOrClick": "Arrastra o haz clic para seleccionar",
-    "maxFileSize": "Max {{size}}"
+    "maxFileSize": "Max {{size}}",
+    "videoFormats": "MP4, WebM, MOV (max {{size}})",
+    "add": "Agregar"
   },
   "dataTable": {
     "search": "Buscar...",
@@ -389,8 +391,62 @@
     },
     "site": {
       "configuration": {
-        "title": "Configuracion",
-        "description": "Configura los ajustes de tu sitio aqui."
+        "title": "Configuracion del sitio",
+        "description": "Administra la configuracion, marca y SEO de tu sitio",
+        "updateSuccess": "Configuracion actualizada correctamente",
+        "tabs": {
+          "branding": "Marca",
+          "contact": "Contacto",
+          "social": "Redes sociales",
+          "seo": "SEO"
+        },
+        "branding": {
+          "title": "Marca",
+          "description": "Personaliza la apariencia de tu sitio",
+          "name": "Nombre del sitio",
+          "namePlaceholder": "Mi Academia",
+          "logo": "URL del logo",
+          "logoPlaceholder": "https://ejemplo.com/logo.png",
+          "logoHelp": "Ingresa una URL a la imagen de tu logo",
+          "primaryColor": "Color primario",
+          "primaryColorPlaceholder": "#3B82F6",
+          "primaryColorHelp": "Codigo de color hexadecimal (ej. #3B82F6)",
+          "siteDescription": "Descripcion del sitio",
+          "siteDescriptionPlaceholder": "Una breve descripcion de tu academia"
+        },
+        "contact": {
+          "title": "Informacion de contacto",
+          "description": "Como pueden contactarte tus estudiantes",
+          "email": "Email de contacto",
+          "emailPlaceholder": "contacto@ejemplo.com",
+          "phone": "Numero de telefono",
+          "phonePlaceholder": "+54 11 1234 5678",
+          "address": "Direccion",
+          "addressPlaceholder": "Calle 123, Ciudad, Pais"
+        },
+        "social": {
+          "title": "Redes sociales",
+          "description": "Conecta con tu audiencia",
+          "twitter": "Twitter / X",
+          "facebook": "Facebook",
+          "instagram": "Instagram",
+          "linkedin": "LinkedIn",
+          "youtube": "YouTube",
+          "placeholder": "https://"
+        },
+        "seo": {
+          "title": "Configuracion SEO",
+          "description": "Optimiza para motores de busqueda",
+          "seoTitle": "Titulo SEO",
+          "seoTitlePlaceholder": "Mi Academia - Aprendizaje Online",
+          "seoTitleHelp": "Recomendado: 50-60 caracteres",
+          "seoDescription": "Meta descripcion",
+          "seoDescriptionPlaceholder": "Aprende de los mejores instructores...",
+          "seoDescriptionHelp": "Recomendado: 150-160 caracteres",
+          "seoKeywords": "Palabras clave",
+          "seoKeywordsPlaceholder": "cursos online, aprendizaje, educacion",
+          "seoKeywordsHelp": "Palabras clave separadas por comas"
+        }
       },
       "customization": {
         "title": "Personalizacion",
@@ -737,8 +793,16 @@
       "description": "Descripcion completa",
       "category": "Categoria",
       "categoryPlaceholder": "Seleccionar categoria",
+      "searchCategory": "Buscar categoria...",
+      "noCategories": "No se encontraron categorias",
+      "createCategory": "Crear categoria",
+      "categoryName": "Nombre de la categoria",
       "instructor": "Instructor",
       "instructorPlaceholder": "Seleccionar instructor",
+      "searchInstructor": "Buscar instructor...",
+      "noInstructors": "No se encontraron instructores",
+      "createInstructor": "Crear instructor",
+      "instructorName": "Nombre del instructor",
       "level": "Nivel",
       "language": "Idioma",
       "thumbnail": "Imagen de portada",

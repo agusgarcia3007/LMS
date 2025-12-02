@@ -256,12 +256,11 @@ export const tenantsRoutes = new Elysia()
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
 
-        if (ctx.userRole !== "superadmin") {
-          throw new AppError(
-            ErrorCode.SUPERADMIN_REQUIRED,
-            "Only superadmins can update tenants",
-            403
-          );
+        const isOwnerUpdatingOwnTenant =
+          ctx.userRole === "owner" && ctx.user.tenantId === ctx.params.id;
+
+        if (ctx.userRole !== "superadmin" && !isOwnerUpdatingOwnTenant) {
+          throw new AppError(ErrorCode.FORBIDDEN, "Access denied", 403);
         }
 
         const [existingTenant] = await db
@@ -276,7 +275,19 @@ export const tenantsRoutes = new Elysia()
 
         const [updatedTenant] = await db
           .update(tenantsTable)
-          .set({ name: ctx.body.name })
+          .set({
+            name: ctx.body.name,
+            logo: ctx.body.logo,
+            primaryColor: ctx.body.primaryColor,
+            description: ctx.body.description,
+            contactEmail: ctx.body.contactEmail,
+            contactPhone: ctx.body.contactPhone,
+            contactAddress: ctx.body.contactAddress,
+            socialLinks: ctx.body.socialLinks,
+            seoTitle: ctx.body.seoTitle,
+            seoDescription: ctx.body.seoDescription,
+            seoKeywords: ctx.body.seoKeywords,
+          })
           .where(eq(tenantsTable.id, ctx.params.id))
           .returning();
 
@@ -290,10 +301,30 @@ export const tenantsRoutes = new Elysia()
       }),
       body: t.Object({
         name: t.String({ minLength: 1 }),
+        logo: t.Optional(t.Nullable(t.String())),
+        primaryColor: t.Optional(t.Nullable(t.String())),
+        description: t.Optional(t.Nullable(t.String())),
+        contactEmail: t.Optional(t.Nullable(t.String())),
+        contactPhone: t.Optional(t.Nullable(t.String())),
+        contactAddress: t.Optional(t.Nullable(t.String())),
+        socialLinks: t.Optional(
+          t.Nullable(
+            t.Object({
+              twitter: t.Optional(t.String()),
+              facebook: t.Optional(t.String()),
+              instagram: t.Optional(t.String()),
+              linkedin: t.Optional(t.String()),
+              youtube: t.Optional(t.String()),
+            })
+          )
+        ),
+        seoTitle: t.Optional(t.Nullable(t.String())),
+        seoDescription: t.Optional(t.Nullable(t.String())),
+        seoKeywords: t.Optional(t.Nullable(t.String())),
       }),
       detail: {
         tags: ["Tenants"],
-        summary: "Update tenant (superadmin only)",
+        summary: "Update tenant (superadmin or owner)",
       },
     }
   )

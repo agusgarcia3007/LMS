@@ -8,7 +8,7 @@ import {
   coursesTable,
   type SelectInstructor,
 } from "@/db/schema";
-import { count, eq, and, desc } from "drizzle-orm";
+import { count, eq, and, desc, inArray } from "drizzle-orm";
 import {
   parseListParams,
   buildWhereClause,
@@ -111,7 +111,12 @@ export const instructorsRoutes = new Elysia()
                   count: count(),
                 })
                 .from(coursesTable)
-                .where(eq(coursesTable.tenantId, ctx.user.tenantId))
+                .where(
+                  and(
+                    eq(coursesTable.tenantId, ctx.user.tenantId),
+                    inArray(coursesTable.instructorId, instructorIds)
+                  )
+                )
                 .groupBy(coursesTable.instructorId)
             : [];
 
@@ -173,7 +178,12 @@ export const instructorsRoutes = new Elysia()
         const [coursesCount] = await db
           .select({ count: count() })
           .from(coursesTable)
-          .where(eq(coursesTable.instructorId, instructor.id));
+          .where(
+            and(
+              eq(coursesTable.instructorId, instructor.id),
+              eq(coursesTable.tenantId, ctx.user.tenantId)
+            )
+          );
 
         return {
           instructor: {
@@ -325,7 +335,12 @@ export const instructorsRoutes = new Elysia()
         const [coursesCount] = await db
           .select({ count: count() })
           .from(coursesTable)
-          .where(eq(coursesTable.instructorId, ctx.params.id));
+          .where(
+            and(
+              eq(coursesTable.instructorId, ctx.params.id),
+              eq(coursesTable.tenantId, ctx.user.tenantId)
+            )
+          );
 
         return {
           instructor: { ...updatedInstructor, coursesCount: coursesCount.count },

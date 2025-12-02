@@ -32,6 +32,22 @@ export const tenantsTable = pgTable("tenants", {
   id: uuid("id").primaryKey().defaultRandom(),
   slug: text("slug").notNull().unique(),
   name: text("name").notNull(),
+  logo: text("logo"),
+  primaryColor: text("primary_color"),
+  description: text("description"),
+  contactEmail: text("contact_email"),
+  contactPhone: text("contact_phone"),
+  contactAddress: text("contact_address"),
+  socialLinks: jsonb("social_links").$type<{
+    twitter?: string;
+    facebook?: string;
+    instagram?: string;
+    linkedin?: string;
+    youtube?: string;
+  }>(),
+  seoTitle: text("seo_title"),
+  seoDescription: text("seo_description"),
+  seoKeywords: text("seo_keywords"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at")
     .notNull()

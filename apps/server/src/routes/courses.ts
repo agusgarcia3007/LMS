@@ -15,7 +15,7 @@ import {
   courseStatusEnum,
   type SelectCourse,
 } from "@/db/schema";
-import { count, eq, and, desc, sql } from "drizzle-orm";
+import { count, eq, and, desc, sql, inArray } from "drizzle-orm";
 import {
   parseListParams,
   buildWhereClause,
@@ -138,6 +138,7 @@ export const coursesRoutes = new Elysia()
                   count: count(),
                 })
                 .from(courseModulesTable)
+                .where(inArray(courseModulesTable.courseId, courseIds))
                 .groupBy(courseModulesTable.courseId)
             : [];
 
@@ -235,6 +236,7 @@ export const coursesRoutes = new Elysia()
                   count: count(),
                 })
                 .from(moduleLessonsTable)
+                .where(inArray(moduleLessonsTable.moduleId, moduleIds))
                 .groupBy(moduleLessonsTable.moduleId)
             : [];
 
@@ -792,6 +794,146 @@ export const coursesRoutes = new Elysia()
       detail: {
         tags: ["Courses"],
         summary: "Delete course thumbnail",
+      },
+    }
+  )
+  .post(
+    "/:id/video",
+    (ctx) =>
+      withHandler(ctx, async () => {
+        if (!ctx.user) {
+          throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
+        }
+
+        if (!ctx.user.tenantId) {
+          throw new AppError(ErrorCode.TENANT_NOT_FOUND, "User has no tenant", 404);
+        }
+
+        const canManageCourses =
+          ctx.userRole === "owner" ||
+          ctx.userRole === "admin" ||
+          ctx.userRole === "superadmin";
+
+        if (!canManageCourses) {
+          throw new AppError(
+            ErrorCode.FORBIDDEN,
+            "Only owners and admins can upload videos",
+            403
+          );
+        }
+
+        const [existingCourse] = await db
+          .select()
+          .from(coursesTable)
+          .where(
+            and(
+              eq(coursesTable.id, ctx.params.id),
+              eq(coursesTable.tenantId, ctx.user.tenantId)
+            )
+          )
+          .limit(1);
+
+        if (!existingCourse) {
+          throw new AppError(ErrorCode.NOT_FOUND, "Course not found", 404);
+        }
+
+        if (!ctx.body.video.startsWith("data:video/")) {
+          throw new AppError(ErrorCode.BAD_REQUEST, "File must be a video", 400);
+        }
+
+        const [, videoKey] = await Promise.all([
+          existingCourse.previewVideoUrl ? deleteFromS3(existingCourse.previewVideoUrl) : Promise.resolve(),
+          uploadBase64ToS3({
+            base64: ctx.body.video,
+            folder: "courses/videos",
+            userId: ctx.user.tenantId,
+          }),
+        ]);
+
+        const [updatedCourse] = await db
+          .update(coursesTable)
+          .set({ previewVideoUrl: videoKey })
+          .where(eq(coursesTable.id, ctx.params.id))
+          .returning();
+
+        return {
+          videoKey,
+          videoUrl: getPresignedUrl(videoKey),
+          course: updatedCourse,
+        };
+      }),
+    {
+      params: t.Object({
+        id: t.String({ format: "uuid" }),
+      }),
+      body: t.Object({
+        video: t.String(),
+      }),
+      detail: {
+        tags: ["Courses"],
+        summary: "Upload course preview video",
+      },
+    }
+  )
+  .delete(
+    "/:id/video",
+    (ctx) =>
+      withHandler(ctx, async () => {
+        if (!ctx.user) {
+          throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
+        }
+
+        if (!ctx.user.tenantId) {
+          throw new AppError(ErrorCode.TENANT_NOT_FOUND, "User has no tenant", 404);
+        }
+
+        const canManageCourses =
+          ctx.userRole === "owner" ||
+          ctx.userRole === "admin" ||
+          ctx.userRole === "superadmin";
+
+        if (!canManageCourses) {
+          throw new AppError(
+            ErrorCode.FORBIDDEN,
+            "Only owners and admins can delete videos",
+            403
+          );
+        }
+
+        const [existingCourse] = await db
+          .select()
+          .from(coursesTable)
+          .where(
+            and(
+              eq(coursesTable.id, ctx.params.id),
+              eq(coursesTable.tenantId, ctx.user.tenantId)
+            )
+          )
+          .limit(1);
+
+        if (!existingCourse) {
+          throw new AppError(ErrorCode.NOT_FOUND, "Course not found", 404);
+        }
+
+        if (existingCourse.previewVideoUrl) {
+          await deleteFromS3(existingCourse.previewVideoUrl);
+        }
+
+        const [updatedCourse] = await db
+          .update(coursesTable)
+          .set({ previewVideoUrl: null })
+          .where(eq(coursesTable.id, ctx.params.id))
+          .returning();
+
+        return { course: updatedCourse };
+      }),
+    {
+      params: t.Object({
+        id: t.String({ format: "uuid" }),
+      }),
+      detail: {
+        tags: ["Courses"],
+        summary: "Delete course preview video",
       },
     }
   );

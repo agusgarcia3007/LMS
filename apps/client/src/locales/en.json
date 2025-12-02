@@ -22,7 +22,9 @@
     "next": "Next",
     "dropHere": "Drop here",
     "dragOrClick": "Drag or click to select",
-    "maxFileSize": "Max {{size}}"
+    "maxFileSize": "Max {{size}}",
+    "videoFormats": "MP4, WebM, MOV (max {{size}})",
+    "add": "Add"
   },
   "dataTable": {
     "search": "Search...",
@@ -389,8 +391,62 @@
     },
     "site": {
       "configuration": {
-        "title": "Configuration",
-        "description": "Configure your site settings here."
+        "title": "Site Configuration",
+        "description": "Manage your site settings, branding, and SEO",
+        "updateSuccess": "Settings updated successfully",
+        "tabs": {
+          "branding": "Branding",
+          "contact": "Contact",
+          "social": "Social",
+          "seo": "SEO"
+        },
+        "branding": {
+          "title": "Branding",
+          "description": "Customize your site appearance",
+          "name": "Site Name",
+          "namePlaceholder": "My Academy",
+          "logo": "Logo URL",
+          "logoPlaceholder": "https://example.com/logo.png",
+          "logoHelp": "Enter a URL to your logo image",
+          "primaryColor": "Primary Color",
+          "primaryColorPlaceholder": "#3B82F6",
+          "primaryColorHelp": "Hex color code (e.g., #3B82F6)",
+          "siteDescription": "Site Description",
+          "siteDescriptionPlaceholder": "A brief description of your academy"
+        },
+        "contact": {
+          "title": "Contact Information",
+          "description": "How students can reach you",
+          "email": "Contact Email",
+          "emailPlaceholder": "contact@example.com",
+          "phone": "Phone Number",
+          "phonePlaceholder": "+1 234 567 890",
+          "address": "Address",
+          "addressPlaceholder": "123 Main St, City, Country"
+        },
+        "social": {
+          "title": "Social Links",
+          "description": "Connect with your audience",
+          "twitter": "Twitter / X",
+          "facebook": "Facebook",
+          "instagram": "Instagram",
+          "linkedin": "LinkedIn",
+          "youtube": "YouTube",
+          "placeholder": "https://"
+        },
+        "seo": {
+          "title": "SEO Settings",
+          "description": "Optimize for search engines",
+          "seoTitle": "SEO Title",
+          "seoTitlePlaceholder": "My Academy - Online Learning",
+          "seoTitleHelp": "Recommended: 50-60 characters",
+          "seoDescription": "Meta Description",
+          "seoDescriptionPlaceholder": "Learn from the best instructors...",
+          "seoDescriptionHelp": "Recommended: 150-160 characters",
+          "seoKeywords": "Keywords",
+          "seoKeywordsPlaceholder": "online courses, learning, education",
+          "seoKeywordsHelp": "Comma-separated keywords"
+        }
       },
       "customization": {
         "title": "Customization",
@@ -737,8 +793,16 @@
       "description": "Full description",
       "category": "Category",
       "categoryPlaceholder": "Select category",
+      "searchCategory": "Search category...",
+      "noCategories": "No categories found",
+      "createCategory": "Create category",
+      "categoryName": "Category name",
       "instructor": "Instructor",
       "instructorPlaceholder": "Select instructor",
+      "searchInstructor": "Search instructor...",
+      "noInstructors": "No instructors found",
+      "createInstructor": "Create instructor",
+      "instructorName": "Instructor name",
       "level": "Level",
       "language": "Language",
       "thumbnail": "Cover image",
