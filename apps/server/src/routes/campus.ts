@@ -3,6 +3,7 @@ import { tenantPlugin } from "@/plugins/tenant";
 import { withHandler } from "@/lib/handler";
 import { AppError, ErrorCode } from "@/lib/errors";
 import { db } from "@/db";
+import { getPresignedUrl } from "@/lib/upload";
 import {
   coursesTable,
   courseModulesTable,
@@ -25,6 +26,8 @@ export const campusRoutes = new Elysia({ name: "campus" })
           id: ctx.tenant.id,
           name: ctx.tenant.name,
           slug: ctx.tenant.slug,
+          logo: ctx.tenant.logo ? getPresignedUrl(ctx.tenant.logo) : null,
+          primaryColor: ctx.tenant.primaryColor,
         },
       };
     })

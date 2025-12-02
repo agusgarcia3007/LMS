@@ -4,6 +4,8 @@ export type CampusTenant = {
   id: string;
   name: string;
   slug: string;
+  logo: string | null;
+  primaryColor: string | null;
 };
 
 export type CampusInstructor = {

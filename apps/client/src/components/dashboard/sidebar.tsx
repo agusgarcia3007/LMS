@@ -156,9 +156,17 @@ export function DashboardSidebar({ tenant, user }: DashboardSidebarProps) {
                 to="/$tenantSlug"
                 params={{ tenantSlug: tenantSlug as string }}
               >
-                <div className="bg-primary text-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
-                  {tenant.name.charAt(0).toUpperCase()}
-                </div>
+                {tenant.logo ? (
+                  <img
+                    src={tenant.logo}
+                    alt={tenant.name}
+                    className="size-8 rounded-lg object-cover"
+                  />
+                ) : (
+                  <div className="bg-primary text-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
+                    {tenant.name.charAt(0).toUpperCase()}
+                  </div>
+                )}
                 <div className="flex flex-col gap-0.5 leading-none">
                   <span className="font-semibold">{tenant.name}</span>
                 </div>
