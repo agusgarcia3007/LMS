@@ -17,7 +17,12 @@
     "actions": "Actions",
     "name": "Name",
     "typeToConfirm": "Type \"{{value}}\" to confirm",
-    "noOrganization": "No organization"
+    "noOrganization": "No organization",
+    "previous": "Previous",
+    "next": "Next",
+    "dropHere": "Drop here",
+    "dragOrClick": "Drag or click to select",
+    "maxFileSize": "Max {{size}}"
   },
   "dataTable": {
     "search": "Search...",
@@ -697,6 +702,7 @@
     "title": "Courses",
     "description": "Manage your platform courses",
     "free": "Free",
+    "viewOnCampus": "View on campus",
     "levels": {
       "beginner": "Beginner",
       "intermediate": "Intermediate",
@@ -754,6 +760,11 @@
       "tabs": {
         "basic": "Basic",
         "content": "Content",
+        "pricing": "Pricing",
+        "modules": "Modules"
+      },
+      "steps": {
+        "information": "Information",
         "pricing": "Pricing",
         "modules": "Modules"
       },

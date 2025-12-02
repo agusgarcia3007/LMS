@@ -110,6 +110,12 @@ export type UpdateCourseModulesRequest = {
   modules: Array<{ moduleId: string; order?: number }>;
 };
 
+export type UploadThumbnailResponse = {
+  thumbnailKey: string;
+  thumbnailUrl: string;
+  course: Course;
+};
+
 export const QUERY_KEYS = {
   COURSES: ["courses"],
   COURSES_LIST: (params: CourseListParams) => ["courses", "list", params],
@@ -164,6 +170,21 @@ export const CoursesService = {
     const { data } = await http.put<{ course: CourseWithModules }>(
       `/courses/${id}/modules`,
       payload
+    );
+    return data;
+  },
+
+  async uploadThumbnail(id: string, thumbnail: string) {
+    const { data } = await http.post<UploadThumbnailResponse>(
+      `/courses/${id}/thumbnail`,
+      { thumbnail }
+    );
+    return data;
+  },
+
+  async deleteThumbnail(id: string) {
+    const { data } = await http.delete<{ course: Course }>(
+      `/courses/${id}/thumbnail`
     );
     return data;
   },

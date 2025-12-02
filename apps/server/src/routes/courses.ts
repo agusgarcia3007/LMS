@@ -26,6 +26,7 @@ import {
   type SearchableFields,
   type DateFields,
 } from "@/lib/filters";
+import { uploadBase64ToS3, getPresignedUrl, deleteFromS3 } from "@/lib/upload";
 
 const courseFieldMap: FieldMap<typeof coursesTable> = {
   id: coursesTable.id,
@@ -651,6 +652,146 @@ export const coursesRoutes = new Elysia()
       detail: {
         tags: ["Courses"],
         summary: "Batch update course modules (replaces all)",
+      },
+    }
+  )
+  .post(
+    "/:id/thumbnail",
+    (ctx) =>
+      withHandler(ctx, async () => {
+        if (!ctx.user) {
+          throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
+        }
+
+        if (!ctx.user.tenantId) {
+          throw new AppError(ErrorCode.TENANT_NOT_FOUND, "User has no tenant", 404);
+        }
+
+        const canManageCourses =
+          ctx.userRole === "owner" ||
+          ctx.userRole === "admin" ||
+          ctx.userRole === "superadmin";
+
+        if (!canManageCourses) {
+          throw new AppError(
+            ErrorCode.FORBIDDEN,
+            "Only owners and admins can upload thumbnails",
+            403
+          );
+        }
+
+        const [existingCourse] = await db
+          .select()
+          .from(coursesTable)
+          .where(
+            and(
+              eq(coursesTable.id, ctx.params.id),
+              eq(coursesTable.tenantId, ctx.user.tenantId)
+            )
+          )
+          .limit(1);
+
+        if (!existingCourse) {
+          throw new AppError(ErrorCode.NOT_FOUND, "Course not found", 404);
+        }
+
+        if (!ctx.body.thumbnail.startsWith("data:image/")) {
+          throw new AppError(ErrorCode.BAD_REQUEST, "Thumbnail must be an image", 400);
+        }
+
+        const [, thumbnailKey] = await Promise.all([
+          existingCourse.thumbnail ? deleteFromS3(existingCourse.thumbnail) : Promise.resolve(),
+          uploadBase64ToS3({
+            base64: ctx.body.thumbnail,
+            folder: "courses",
+            userId: ctx.user.tenantId,
+          }),
+        ]);
+
+        const [updatedCourse] = await db
+          .update(coursesTable)
+          .set({ thumbnail: thumbnailKey })
+          .where(eq(coursesTable.id, ctx.params.id))
+          .returning();
+
+        return {
+          thumbnailKey,
+          thumbnailUrl: getPresignedUrl(thumbnailKey),
+          course: updatedCourse,
+        };
+      }),
+    {
+      params: t.Object({
+        id: t.String({ format: "uuid" }),
+      }),
+      body: t.Object({
+        thumbnail: t.String(),
+      }),
+      detail: {
+        tags: ["Courses"],
+        summary: "Upload course thumbnail",
+      },
+    }
+  )
+  .delete(
+    "/:id/thumbnail",
+    (ctx) =>
+      withHandler(ctx, async () => {
+        if (!ctx.user) {
+          throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
+        }
+
+        if (!ctx.user.tenantId) {
+          throw new AppError(ErrorCode.TENANT_NOT_FOUND, "User has no tenant", 404);
+        }
+
+        const canManageCourses =
+          ctx.userRole === "owner" ||
+          ctx.userRole === "admin" ||
+          ctx.userRole === "superadmin";
+
+        if (!canManageCourses) {
+          throw new AppError(
+            ErrorCode.FORBIDDEN,
+            "Only owners and admins can delete thumbnails",
+            403
+          );
+        }
+
+        const [existingCourse] = await db
+          .select()
+          .from(coursesTable)
+          .where(
+            and(
+              eq(coursesTable.id, ctx.params.id),
+              eq(coursesTable.tenantId, ctx.user.tenantId)
+            )
+          )
+          .limit(1);
+
+        if (!existingCourse) {
+          throw new AppError(ErrorCode.NOT_FOUND, "Course not found", 404);
+        }
+
+        if (existingCourse.thumbnail) {
+          await deleteFromS3(existingCourse.thumbnail);
+        }
+
+        const [updatedCourse] = await db
+          .update(coursesTable)
+          .set({ thumbnail: null })
+          .where(eq(coursesTable.id, ctx.params.id))
+          .returning();
+
+        return { course: updatedCourse };
+      }),
+    {
+      params: t.Object({
+        id: t.String({ format: "uuid" }),
+      }),
+      detail: {
+        tags: ["Courses"],
+        summary: "Delete course thumbnail",
       },
     }
   );

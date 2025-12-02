@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Layers, Plus, X } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
@@ -33,8 +33,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Stepper,
+  StepperContent,
+  StepperIndicator,
+  StepperItem,
+  StepperNav,
+  StepperSeparator,
+  StepperTitle,
+  StepperTrigger,
+} from "@/components/ui/stepper";
 import {
   KanbanProvider,
   KanbanBoard,
@@ -42,11 +51,13 @@ import {
   KanbanCards,
   KanbanCard,
 } from "@/components/kibo-ui/kanban";
+import { ImageUpload } from "@/components/file-upload/image-upload";
 import {
   useGetCourse,
   useCreateCourse,
   useUpdateCourse,
-  useUpdateCourseModules,
+  useUploadThumbnail,
+  useDeleteThumbnail,
 } from "@/services/courses";
 import type { Course, CourseLevel, CourseStatus } from "@/services/courses";
 import { useGetModules, type Module } from "@/services/modules";
@@ -195,19 +206,32 @@ export function CourseEditor({
   const { t } = useTranslation();
   const isEditing = !!course;
 
-  const { data: courseData } = useGetCourse(course?.id ?? "");
-  const { data: modulesData } = useGetModules({ limit: 200 });
-  const { data: categoriesData } = useGetCategories({ limit: 100 });
-  const { data: instructorsData } = useGetInstructors({ limit: 100 });
+  const [kanbanData, setKanbanData] = useState<KanbanItem[]>([]);
+  const [currentStep, setCurrentStep] = useState(1);
+  const [pendingModules, setPendingModules] = useState<
+    { moduleId: string; order: number }[]
+  >([]);
+
+  const { data: courseData } = useGetCourse(course?.id ?? "", {
+    enabled: open && isEditing,
+  });
+  const { data: modulesData } = useGetModules(
+    { limit: 200 },
+    { enabled: open && currentStep === 3 }
+  );
+  const { data: categoriesData } = useGetCategories(
+    { limit: 100 },
+    { enabled: open && currentStep === 1 }
+  );
+  const { data: instructorsData } = useGetInstructors(
+    { limit: 100 },
+    { enabled: open && currentStep === 1 }
+  );
 
   const createMutation = useCreateCourse();
   const updateMutation = useUpdateCourse();
-  const updateModulesMutation = useUpdateCourseModules();
-
-  const [kanbanData, setKanbanData] = useState<KanbanItem[]>([]);
-  const [activeTab, setActiveTab] = useState("basic");
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const pendingModulesRef = useRef<{ moduleId: string; order: number }[]>([]);
+  const uploadThumbnailMutation = useUploadThumbnail();
+  const deleteThumbnailMutation = useDeleteThumbnail();
 
   const form = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -233,16 +257,9 @@ export function CourseEditor({
   });
 
   useEffect(() => {
-    return () => {
-      if (debounceRef.current) {
-        clearTimeout(debounceRef.current);
-      }
-    };
-  }, []);
-
-  useEffect(() => {
     if (open) {
-      setActiveTab("basic");
+      setCurrentStep(1);
+      setPendingModules([]);
       if (course) {
         form.reset({
           title: course.title,
@@ -284,7 +301,6 @@ export function CourseEditor({
           objectives: [],
         });
         setKanbanData([]);
-        pendingModulesRef.current = [];
       }
     }
   }, [course, open, form]);
@@ -328,31 +344,18 @@ export function CourseEditor({
     }
   }, [courseData, modulesData, open, isEditing]);
 
-  const handleDataChange = useCallback(
-    (newData: KanbanItem[]) => {
-      setKanbanData(newData);
+  const handleDataChange = useCallback((newData: KanbanItem[]) => {
+    setKanbanData(newData);
 
-      const courseModules = newData
-        .filter((item) => item.column === "course")
-        .map((item, index) => ({
-          moduleId: item.id,
-          order: index,
-        }));
+    const courseModules = newData
+      .filter((item) => item.column === "course")
+      .map((item, index) => ({
+        moduleId: item.id,
+        order: index,
+      }));
 
-      if (isEditing && course) {
-        if (debounceRef.current) {
-          clearTimeout(debounceRef.current);
-        }
-
-        debounceRef.current = setTimeout(() => {
-          updateModulesMutation.mutate({ id: course.id, modules: courseModules });
-        }, 500);
-      } else {
-        pendingModulesRef.current = courseModules;
-      }
-    },
-    [isEditing, course, updateModulesMutation]
-  );
+    setPendingModules(courseModules);
+  }, []);
 
   const handleFormSubmit = async (data: FormData) => {
     const payload = {
@@ -373,6 +376,7 @@ export function CourseEditor({
       features: data.features?.length ? data.features : undefined,
       requirements: data.requirements?.length ? data.requirements : undefined,
       objectives: data.objectives?.length ? data.objectives : undefined,
+      modules: pendingModules,
     };
 
     if (isEditing && course) {
@@ -382,19 +386,33 @@ export function CourseEditor({
       );
     } else {
       createMutation.mutate(payload, {
-        onSuccess: (response) => {
-          if (pendingModulesRef.current.length > 0) {
-            updateModulesMutation.mutate(
-              { id: response.course.id, modules: pendingModulesRef.current },
-              { onSuccess: () => onOpenChange(false) }
-            );
-          } else {
-            onOpenChange(false);
-          }
-        },
+        onSuccess: () => onOpenChange(false),
       });
     }
   };
+
+  const handleThumbnailUpload = useCallback(
+    async (base64: string) => {
+      if (!course?.id) {
+        form.setValue("thumbnail", base64);
+        return base64;
+      }
+      const result = await uploadThumbnailMutation.mutateAsync({
+        id: course.id,
+        thumbnail: base64,
+      });
+      form.setValue("thumbnail", result.thumbnailUrl);
+      return result.thumbnailUrl;
+    },
+    [course?.id, form, uploadThumbnailMutation]
+  );
+
+  const handleThumbnailDelete = useCallback(async () => {
+    if (course?.id) {
+      await deleteThumbnailMutation.mutateAsync(course.id);
+    }
+    form.setValue("thumbnail", "");
+  }, [course?.id, form, deleteThumbnailMutation]);
 
   const columnsWithLabels = useMemo(
     () =>
@@ -408,20 +426,26 @@ export function CourseEditor({
     [t]
   );
 
-  const availableCount = kanbanData.filter((i) => i.column === "available").length;
+  const availableCount = kanbanData.filter(
+    (i) => i.column === "available"
+  ).length;
   const courseCount = kanbanData.filter((i) => i.column === "course").length;
 
-  const isPending =
-    createMutation.isPending ||
-    updateMutation.isPending ||
-    updateModulesMutation.isPending;
+  const isPending = createMutation.isPending || updateMutation.isPending;
 
   const categories = categoriesData?.categories ?? [];
   const instructors = instructorsData?.instructors ?? [];
 
+  const canGoNext = () => {
+    if (currentStep === 1) {
+      return form.watch("title").length > 0;
+    }
+    return true;
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-full max-w-[95vw] lg:max-w-6xl h-[90vh] lg:h-[85vh] flex flex-col">
+      <DialogContent className="w-full max-w-[95vw] lg:max-w-5xl h-[90vh] lg:h-[85vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>
             {isEditing ? t("courses.edit.title") : t("courses.create.title")}
@@ -438,28 +462,42 @@ export function CourseEditor({
             onSubmit={form.handleSubmit(handleFormSubmit)}
             className="flex-1 min-h-0 flex flex-col overflow-hidden"
           >
-            <Tabs
-              value={activeTab}
-              onValueChange={setActiveTab}
+            <Stepper
+              value={currentStep}
+              onValueChange={setCurrentStep}
               className="flex-1 min-h-0 flex flex-col"
             >
-              <TabsList className="w-full justify-start">
-                <TabsTrigger value="basic">
-                  {t("courses.editor.tabs.basic")}
-                </TabsTrigger>
-                <TabsTrigger value="content">
-                  {t("courses.editor.tabs.content")}
-                </TabsTrigger>
-                <TabsTrigger value="pricing">
-                  {t("courses.editor.tabs.pricing")}
-                </TabsTrigger>
-                <TabsTrigger value="modules">
-                  {t("courses.editor.tabs.modules")}
-                </TabsTrigger>
-              </TabsList>
+              <StepperNav className="mb-6">
+                <StepperItem step={1}>
+                  <StepperTrigger>
+                    <StepperIndicator>1</StepperIndicator>
+                    <StepperTitle className="hidden sm:block">
+                      {t("courses.editor.steps.information")}
+                    </StepperTitle>
+                  </StepperTrigger>
+                  <StepperSeparator />
+                </StepperItem>
+                <StepperItem step={2}>
+                  <StepperTrigger>
+                    <StepperIndicator>2</StepperIndicator>
+                    <StepperTitle className="hidden sm:block">
+                      {t("courses.editor.steps.pricing")}
+                    </StepperTitle>
+                  </StepperTrigger>
+                  <StepperSeparator />
+                </StepperItem>
+                <StepperItem step={3}>
+                  <StepperTrigger>
+                    <StepperIndicator>3</StepperIndicator>
+                    <StepperTitle className="hidden sm:block">
+                      {t("courses.editor.steps.modules")}
+                    </StepperTitle>
+                  </StepperTrigger>
+                </StepperItem>
+              </StepperNav>
 
-              <div className="flex-1 min-h-0 overflow-y-auto mt-4">
-                <TabsContent value="basic" className="mt-0 space-y-4 h-full">
+              <div className="flex-1 min-h-0 overflow-y-auto">
+                <StepperContent value={1} className="space-y-4">
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
@@ -498,7 +536,9 @@ export function CourseEditor({
                     name="shortDescription"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t("courses.form.shortDescription")}</FormLabel>
+                        <FormLabel>
+                          {t("courses.form.shortDescription")}
+                        </FormLabel>
                         <FormControl>
                           <Textarea {...field} rows={2} disabled={isPending} />
                         </FormControl>
@@ -514,12 +554,54 @@ export function CourseEditor({
                       <FormItem>
                         <FormLabel>{t("courses.form.description")}</FormLabel>
                         <FormControl>
-                          <Textarea {...field} rows={4} disabled={isPending} />
+                          <Textarea {...field} rows={3} disabled={isPending} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
+
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="thumbnail"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t("courses.form.thumbnail")}</FormLabel>
+                          <FormControl>
+                            <ImageUpload
+                              value={field.value || null}
+                              onChange={(url) => field.onChange(url || "")}
+                              onUpload={handleThumbnailUpload}
+                              onDelete={handleThumbnailDelete}
+                              isUploading={uploadThumbnailMutation.isPending}
+                              isDeleting={deleteThumbnailMutation.isPending}
+                              disabled={isPending}
+                              aspectRatio="16/9"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="previewVideoUrl"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t("courses.form.previewVideo")}</FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              placeholder="https://"
+                              disabled={isPending}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
 
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                     <FormField
@@ -536,7 +618,9 @@ export function CourseEditor({
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue
-                                  placeholder={t("courses.form.categoryPlaceholder")}
+                                  placeholder={t(
+                                    "courses.form.categoryPlaceholder"
+                                  )}
                                 />
                               </SelectTrigger>
                             </FormControl>
@@ -566,7 +650,9 @@ export function CourseEditor({
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue
-                                  placeholder={t("courses.form.instructorPlaceholder")}
+                                  placeholder={t(
+                                    "courses.form.instructorPlaceholder"
+                                  )}
                                 />
                               </SelectTrigger>
                             </FormControl>
@@ -584,7 +670,7 @@ export function CourseEditor({
                     />
                   </div>
 
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
                       name="level"
@@ -634,64 +720,10 @@ export function CourseEditor({
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="es">Español</SelectItem>
+                              <SelectItem value="es">Espanol</SelectItem>
                               <SelectItem value="en">English</SelectItem>
                             </SelectContent>
                           </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <div className="flex items-center justify-between rounded-lg border p-3">
-                      <div className="space-y-0.5">
-                        <Label>{t("courses.form.publish")}</Label>
-                        <p className="text-xs text-muted-foreground">
-                          {t("courses.form.publishDescription")}
-                        </p>
-                      </div>
-                      <Switch
-                        checked={form.watch("status") === "published"}
-                        onCheckedChange={(checked) =>
-                          form.setValue("status", checked ? "published" : "draft")
-                        }
-                        disabled={isPending}
-                      />
-                    </div>
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="content" className="mt-0 space-y-4 h-full">
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="thumbnail"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{t("courses.form.thumbnail")}</FormLabel>
-                          <FormControl>
-                            <Input
-                              {...field}
-                              placeholder="https://"
-                              disabled={isPending}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="previewVideoUrl"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{t("courses.form.previewVideo")}</FormLabel>
-                          <FormControl>
-                            <Input
-                              {...field}
-                              placeholder="https://"
-                              disabled={isPending}
-                            />
-                          </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -727,7 +759,9 @@ export function CourseEditor({
                           <ArrayFieldEditor
                             value={field.value ?? []}
                             onChange={field.onChange}
-                            placeholder={t("courses.form.requirementsPlaceholder")}
+                            placeholder={t(
+                              "courses.form.requirementsPlaceholder"
+                            )}
                             disabled={isPending}
                           />
                         </FormControl>
@@ -754,9 +788,9 @@ export function CourseEditor({
                       </FormItem>
                     )}
                   />
-                </TabsContent>
+                </StepperContent>
 
-                <TabsContent value="pricing" className="mt-0 space-y-4 h-full">
+                <StepperContent value={2} className="space-y-4">
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                     <FormField
                       control={form.control}
@@ -834,9 +868,25 @@ export function CourseEditor({
                       )}
                     />
                   </div>
-                </TabsContent>
 
-                <TabsContent value="modules" className="mt-0 h-full">
+                  <div className="flex items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-0.5">
+                      <Label>{t("courses.form.publish")}</Label>
+                      <p className="text-xs text-muted-foreground">
+                        {t("courses.form.publishDescription")}
+                      </p>
+                    </div>
+                    <Switch
+                      checked={form.watch("status") === "published"}
+                      onCheckedChange={(checked) =>
+                        form.setValue("status", checked ? "published" : "draft")
+                      }
+                      disabled={isPending}
+                    />
+                  </div>
+                </StepperContent>
+
+                <StepperContent value={3} className="h-full">
                   <div className="h-full min-h-[400px]">
                     <KanbanProvider
                       columns={columnsWithLabels}
@@ -845,11 +895,19 @@ export function CourseEditor({
                       className="h-full"
                     >
                       {(column) => (
-                        <KanbanBoard id={column.id} key={column.id} className="h-full">
+                        <KanbanBoard
+                          id={column.id}
+                          key={column.id}
+                          className="h-full"
+                        >
                           <KanbanHeader className="flex items-center justify-between">
-                            <span className="text-sm lg:text-base">{column.label}</span>
+                            <span className="text-sm lg:text-base">
+                              {column.label}
+                            </span>
                             <Badge variant="secondary" size="sm">
-                              {column.id === "available" ? availableCount : courseCount}
+                              {column.id === "available"
+                                ? availableCount
+                                : courseCount}
                             </Badge>
                           </KanbanHeader>
                           <KanbanCards id={column.id} className="flex-1">
@@ -868,27 +926,51 @@ export function CourseEditor({
                       )}
                     </KanbanProvider>
                   </div>
-                </TabsContent>
+                </StepperContent>
               </div>
-            </Tabs>
+            </Stepper>
 
             <DialogFooter className="flex-row gap-2 sm:gap-0 mt-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => onOpenChange(false)}
-                disabled={isPending}
-                className="flex-1 sm:flex-none"
-              >
-                {t("common.cancel")}
-              </Button>
-              <Button
-                type="submit"
-                isLoading={isPending}
-                className="flex-1 sm:flex-none"
-              >
-                {isEditing ? t("common.save") : t("common.create")}
-              </Button>
+              {currentStep > 1 && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setCurrentStep(currentStep - 1)}
+                  disabled={isPending}
+                  className="flex-1 sm:flex-none"
+                >
+                  {t("common.previous")}
+                </Button>
+              )}
+              {currentStep < 3 ? (
+                <Button
+                  type="button"
+                  onClick={() => setCurrentStep(currentStep + 1)}
+                  disabled={isPending || !canGoNext()}
+                  className="flex-1 sm:flex-none"
+                >
+                  {t("common.next")}
+                </Button>
+              ) : (
+                <>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => onOpenChange(false)}
+                    disabled={isPending}
+                    className="flex-1 sm:flex-none"
+                  >
+                    {t("common.cancel")}
+                  </Button>
+                  <Button
+                    type="submit"
+                    isLoading={isPending}
+                    className="flex-1 sm:flex-none"
+                  >
+                    {isEditing ? t("common.save") : t("common.create")}
+                  </Button>
+                </>
+              )}
             </DialogFooter>
           </form>
         </Form>

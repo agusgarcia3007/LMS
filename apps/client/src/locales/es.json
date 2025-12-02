@@ -17,7 +17,12 @@
     "actions": "Acciones",
     "name": "Nombre",
     "typeToConfirm": "Escribe \"{{value}}\" para confirmar",
-    "noOrganization": "Sin organización"
+    "noOrganization": "Sin organización",
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "dropHere": "Suelta aqui",
+    "dragOrClick": "Arrastra o haz clic para seleccionar",
+    "maxFileSize": "Max {{size}}"
   },
   "dataTable": {
     "search": "Buscar...",
@@ -697,6 +702,7 @@
     "title": "Cursos",
     "description": "Gestiona los cursos de tu plataforma",
     "free": "Gratis",
+    "viewOnCampus": "Ver en campus",
     "levels": {
       "beginner": "Principiante",
       "intermediate": "Intermedio",
@@ -754,6 +760,11 @@
       "tabs": {
         "basic": "Basico",
         "content": "Contenido",
+        "pricing": "Precios",
+        "modules": "Modulos"
+      },
+      "steps": {
+        "information": "Informacion",
         "pricing": "Precios",
         "modules": "Modulos"
       },

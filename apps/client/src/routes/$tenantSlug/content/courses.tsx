@@ -5,6 +5,7 @@ import {
   Calendar,
   DollarSign,
   Ellipsis,
+  ExternalLink,
   FolderTree,
   Layers,
   ListFilter,
@@ -66,6 +67,7 @@ const LEVEL_VARIANTS: Record<CourseLevel, "primary" | "secondary" | "success"> =
 
 function CoursesPage() {
   const { t } = useTranslation();
+  const { tenantSlug } = Route.useParams();
   const tableState = useDataTableState({
     defaultSort: { field: "createdAt", order: "desc" },
   });
@@ -112,6 +114,14 @@ function CoursesPage() {
       onSuccess: () => setDeleteCourse(null),
     });
   }, [deleteCourse, deleteMutation]);
+
+  const handleViewOnCampus = useCallback(
+    (course: Course) => {
+      const campusUrl = `${window.location.protocol}//${tenantSlug}.${window.location.host.split(".").slice(-2).join(".")}/courses/${course.slug}`;
+      window.open(campusUrl, "_blank");
+    },
+    [tenantSlug]
+  );
 
   const formatPrice = (price: number, currency: string) => {
     if (price === 0) return t("courses.free");
@@ -379,6 +389,12 @@ function CoursesPage() {
               <DropdownMenuItem onClick={() => handleOpenEdit(row.original)}>
                 {t("common.edit")}
               </DropdownMenuItem>
+              {row.original.status === "published" && (
+                <DropdownMenuItem onClick={() => handleViewOnCampus(row.original)}>
+                  <ExternalLink className="mr-2 size-4" />
+                  {t("courses.viewOnCampus")}
+                </DropdownMenuItem>
+              )}
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 variant="destructive"
@@ -394,7 +410,7 @@ function CoursesPage() {
         enableHiding: false,
       },
     ],
-    [t, handleOpenEdit]
+    [t, handleOpenEdit, handleViewOnCampus]
   );
 
   const categoryOptions = useMemo(() => {

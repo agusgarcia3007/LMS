@@ -17,7 +17,12 @@
     "actions": "Acoes",
     "name": "Nome",
     "typeToConfirm": "Digite \"{{value}}\" para confirmar",
-    "noOrganization": "Sem organizacao"
+    "noOrganization": "Sem organizacao",
+    "previous": "Anterior",
+    "next": "Proximo",
+    "dropHere": "Solte aqui",
+    "dragOrClick": "Arraste ou clique para selecionar",
+    "maxFileSize": "Max {{size}}"
   },
   "dataTable": {
     "search": "Buscar...",
@@ -697,6 +702,7 @@
     "title": "Cursos",
     "description": "Gerencie os cursos da sua plataforma",
     "free": "Gratis",
+    "viewOnCampus": "Ver no campus",
     "levels": {
       "beginner": "Iniciante",
       "intermediate": "Intermediario",
@@ -754,6 +760,11 @@
       "tabs": {
         "basic": "Basico",
         "content": "Conteudo",
+        "pricing": "Precos",
+        "modules": "Modulos"
+      },
+      "steps": {
+        "information": "Informacao",
         "pricing": "Precos",
         "modules": "Modulos"
       },

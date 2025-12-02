@@ -115,3 +115,26 @@ export const updateCourseModulesOptions = () => {
     },
   });
 };
+
+export const uploadThumbnailOptions = () => {
+  const queryClient = useQueryClient();
+  return mutationOptions({
+    mutationFn: ({ id, thumbnail }: { id: string; thumbnail: string }) =>
+      CoursesService.uploadThumbnail(id, thumbnail),
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.COURSE(id) });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.COURSES });
+    },
+  });
+};
+
+export const deleteThumbnailOptions = () => {
+  const queryClient = useQueryClient();
+  return mutationOptions({
+    mutationFn: (id: string) => CoursesService.deleteThumbnail(id),
+    onSuccess: (_, id) => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.COURSE(id) });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.COURSES });
+    },
+  });
+};
