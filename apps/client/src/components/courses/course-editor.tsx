@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Layers, Minus, Plus, X } from "lucide-react";
+import { Layers, Plus, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
@@ -62,12 +62,12 @@ const schema = z.object({
   previewVideoUrl: z.string().optional(),
   instructorId: z.string().optional(),
   categoryId: z.string().optional(),
-  price: z.number().min(0).default(0),
+  price: z.number().min(0),
   originalPrice: z.number().min(0).optional(),
-  currency: z.string().default("USD"),
-  level: z.enum(["beginner", "intermediate", "advanced"]).default("beginner"),
-  language: z.string().default("es"),
-  status: z.enum(["draft", "published", "archived"]).default("draft"),
+  currency: z.string(),
+  level: z.enum(["beginner", "intermediate", "advanced"]),
+  language: z.string(),
+  status: z.enum(["draft", "published", "archived"]),
   features: z.array(z.string()).optional(),
   requirements: z.array(z.string()).optional(),
   objectives: z.array(z.string()).optional(),

@@ -58,8 +58,8 @@ const STATUS_VARIANTS: Record<CourseStatus, "success" | "secondary" | "warning">
   archived: "warning",
 };
 
-const LEVEL_VARIANTS: Record<CourseLevel, "default" | "secondary" | "success"> = {
-  beginner: "default",
+const LEVEL_VARIANTS: Record<CourseLevel, "primary" | "secondary" | "success"> = {
+  beginner: "primary",
   intermediate: "secondary",
   advanced: "success",
 };
@@ -280,7 +280,7 @@ function CoursesPage() {
         ),
         cell: ({ row }) => (
           <Badge
-            variant={row.original.price === 0 ? "success" : "default"}
+            variant={row.original.price === 0 ? "success" : "primary"}
             appearance="light"
             size="sm"
             className="gap-1"
