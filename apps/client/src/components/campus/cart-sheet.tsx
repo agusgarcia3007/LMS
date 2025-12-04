@@ -55,14 +55,12 @@ export function CartSheet() {
                 {t("cart.continueShopping")}
               </p>
             </div>
-            <SheetClose>
-              <Link to="/courses">
-                <Button>
-                  <BookOpen className="mr-2 size-4" />
-                  {t("campus.navigation.courses")}
-                </Button>
-              </Link>
-            </SheetClose>
+            <Link to="/courses">
+              <Button>
+                <BookOpen className="mr-2 size-4" />
+                {t("campus.navigation.courses")}
+              </Button>
+            </Link>
           </div>
         ) : (
           <>
