@@ -15,6 +15,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Image } from "@/components/ui/image";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { formatPrice, getInitials } from "@/lib/format";
+import { useCart } from "@/hooks/use-cart";
 import type { CampusCourseDetail } from "@/services/campus/service";
 
 type CourseSidebarProps = {
@@ -23,6 +24,7 @@ type CourseSidebarProps = {
 
 export function CourseSidebar({ course }: CourseSidebarProps) {
   const { t, i18n } = useTranslation();
+  const { addToCart, removeFromCart, isInCart, isPending } = useCart();
 
   const hasDiscount = course.originalPrice && course.originalPrice > course.price;
   const discountPercent = hasDiscount
@@ -31,6 +33,15 @@ export function CourseSidebar({ course }: CourseSidebarProps) {
 
   const isFree = course.price === 0;
   const priceText = formatPrice(course.price, course.currency, i18n.language) ?? t("campus.course.free");
+  const inCart = isInCart(course.id);
+
+  const handleCartClick = () => {
+    if (inCart) {
+      removeFromCart(course.id);
+    } else {
+      addToCart(course.id);
+    }
+  };
 
   return (
     <Card className="sticky top-20 overflow-hidden border-border/50 shadow-xl">
@@ -84,8 +95,14 @@ export function CourseSidebar({ course }: CourseSidebarProps) {
           </Button>
 
           {!isFree && (
-            <Button size="lg" variant="outline" className="w-full font-semibold">
-              {t("campus.courseDetail.addToCart")}
+            <Button
+              size="lg"
+              variant={inCart ? "secondary" : "outline"}
+              className="w-full font-semibold"
+              onClick={handleCartClick}
+              isLoading={isPending}
+            >
+              {inCart ? t("cart.removeFromCart") : t("cart.addToCart")}
             </Button>
           )}
         </div>
