@@ -36,6 +36,8 @@ export const configurationSchema = z.object({
   heroSubtitle: z.string().max(200).optional(),
   heroCta: z.string().max(50).optional(),
   footerText: z.string().max(200).optional(),
+  heroPattern: z.enum(["none", "grid", "dots", "waves"]).nullable().optional(),
+  coursesPagePattern: z.enum(["none", "grid", "dots", "waves"]).nullable().optional(),
   showHeaderName: z.boolean().optional(),
 });
 

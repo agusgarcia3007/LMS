@@ -18,6 +18,7 @@ import { ImageUpload } from "@/components/file-upload/image-upload";
 import { Alert, AlertDescription, AlertIcon } from "@/components/ui/alert";
 
 import { ThemeSelector } from "../theme-selector";
+import { PatternSelector } from "../pattern-selector";
 import { SaveButton } from "../save-button";
 import type { ConfigurationFormData } from "../schema";
 
@@ -144,6 +145,52 @@ export function BrandingTab({
               </FormControl>
               <FormDescription>
                 {t("dashboard.site.configuration.branding.themeHelp")}
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
+
+      <div className="grid gap-8 sm:grid-cols-2">
+        <FormField
+          control={form.control}
+          name="heroPattern"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>
+                {t("dashboard.site.customization.heroPattern")}
+              </FormLabel>
+              <FormControl>
+                <PatternSelector
+                  value={field.value}
+                  onChange={field.onChange}
+                />
+              </FormControl>
+              <FormDescription>
+                {t("dashboard.site.customization.heroPatternHelp")}
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="coursesPagePattern"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>
+                {t("dashboard.site.customization.coursesPagePattern")}
+              </FormLabel>
+              <FormControl>
+                <PatternSelector
+                  value={field.value}
+                  onChange={field.onChange}
+                />
+              </FormControl>
+              <FormDescription>
+                {t("dashboard.site.customization.coursesPagePatternHelp")}
               </FormDescription>
               <FormMessage />
             </FormItem>

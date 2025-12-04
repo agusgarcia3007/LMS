@@ -92,6 +92,8 @@ function ConfigurationPage() {
       heroSubtitle: "",
       heroCta: "",
       footerText: "",
+      heroPattern: "grid",
+      coursesPagePattern: "grid",
       showHeaderName: true,
     },
   });
@@ -121,6 +123,8 @@ function ConfigurationPage() {
         heroSubtitle: tenant.heroSubtitle ?? "",
         heroCta: tenant.heroCta ?? "",
         footerText: tenant.footerText ?? "",
+        heroPattern: tenant.heroPattern ?? "grid",
+        coursesPagePattern: tenant.coursesPagePattern ?? "grid",
         showHeaderName: tenant.showHeaderName ?? true,
       });
       setLogoUrl(tenant.logo);
@@ -182,6 +186,8 @@ function ConfigurationPage() {
         heroSubtitle: values.heroSubtitle || null,
         heroCta: values.heroCta || null,
         footerText: values.footerText || null,
+        heroPattern: values.heroPattern || null,
+        coursesPagePattern: values.coursesPagePattern || null,
         showHeaderName: values.showHeaderName ?? true,
       },
       {
