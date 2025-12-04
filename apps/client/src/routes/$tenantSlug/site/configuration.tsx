@@ -98,6 +98,7 @@ function ConfigurationPage() {
     },
   });
 
+
   const watchedSlug = form.watch("slug");
   const isSlugChanged = tenant && watchedSlug !== tenant.slug;
 
@@ -130,7 +131,8 @@ function ConfigurationPage() {
       setLogoUrl(tenant.logo);
       setCustomDomain(tenant.customDomain ?? "");
     }
-  }, [tenant, form]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tenant?.id]);
 
   const handleLogoUpload = async (base64: string) => {
     if (!tenant) return "";
