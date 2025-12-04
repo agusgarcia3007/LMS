@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import {
   boolean,
   index,
@@ -80,7 +81,7 @@ export const usersTable = pgTable(
   "users",
   {
     id: uuid("id").primaryKey().defaultRandom(),
-    email: text("email").notNull().unique(),
+    email: text("email").notNull(),
     password: text("password").notNull(),
     name: text("name").notNull(),
     avatar: text("avatar"),
@@ -97,6 +98,10 @@ export const usersTable = pgTable(
   (table) => [
     index("users_tenant_id_idx").on(table.tenantId),
     index("users_role_idx").on(table.role),
+    uniqueIndex("users_email_tenant_idx").on(table.email, table.tenantId),
+    uniqueIndex("users_email_null_tenant_idx")
+      .on(table.email)
+      .where(sql`tenant_id IS NULL`),
   ]
 );
 

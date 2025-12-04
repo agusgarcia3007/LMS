@@ -7,7 +7,7 @@ import { sendEmail } from "@/lib/utils";
 import { invalidateUserCache } from "@/plugins/auth";
 import { jwtPlugin } from "@/plugins/jwt";
 import { tenantPlugin } from "@/plugins/tenant";
-import { eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { Elysia, t } from "elysia";
 
 export const authRoutes = new Elysia().use(jwtPlugin).use(tenantPlugin);
@@ -23,7 +23,11 @@ authRoutes.post(
       const [existing] = await db
         .select()
         .from(usersTable)
-        .where(eq(usersTable.email, ctx.body.email))
+        .where(
+          isParentAppSignup
+            ? and(eq(usersTable.email, ctx.body.email), isNull(usersTable.tenantId))
+            : and(eq(usersTable.email, ctx.body.email), eq(usersTable.tenantId, ctx.tenant!.id))
+        )
         .limit(1);
 
       if (existing) {
@@ -88,11 +92,28 @@ authRoutes.post(
   "/login",
   (ctx) =>
     withHandler(ctx, async () => {
-      const [user] = await db
+      let [user] = await db
         .select()
         .from(usersTable)
-        .where(eq(usersTable.email, ctx.body.email))
+        .where(
+          ctx.tenant
+            ? and(eq(usersTable.email, ctx.body.email), eq(usersTable.tenantId, ctx.tenant.id))
+            : and(eq(usersTable.email, ctx.body.email), isNull(usersTable.tenantId))
+        )
         .limit(1);
+
+      if (!user && ctx.tenant) {
+        [user] = await db
+          .select()
+          .from(usersTable)
+          .where(
+            and(
+              eq(usersTable.email, ctx.body.email),
+              eq(usersTable.role, "superadmin")
+            )
+          )
+          .limit(1);
+      }
 
       if (!user) {
         throw new AppError(
@@ -112,43 +133,6 @@ authRoutes.post(
           "Invalid credentials",
           400
         );
-      }
-
-      // Tenant check
-      // - Superadmin bypasses always
-      // - Owner without tenant can login in parent app
-      // - Owner with tenant must login in their tenant
-      // - Student must login in their tenant
-      if (user.role !== "superadmin") {
-        const isOwnerWithoutTenant =
-          user.role === "owner" && user.tenantId === null;
-
-        if (isOwnerWithoutTenant) {
-          // Owner without tenant can only login in parent app (no tenant)
-          if (ctx.tenant) {
-            throw new AppError(
-              ErrorCode.INVALID_CREDENTIALS,
-              "Owner without tenant must login in parent app",
-              400
-            );
-          }
-        } else {
-          // All other users need a tenant context
-          if (!ctx.tenant) {
-            throw new AppError(
-              ErrorCode.INVALID_CREDENTIALS,
-              "Tenant not specified",
-              400
-            );
-          }
-          if (user.tenantId !== ctx.tenant.id) {
-            throw new AppError(
-              ErrorCode.INVALID_CREDENTIALS,
-              "User does not belong to this tenant",
-              400
-            );
-          }
-        }
       }
 
       const [accessToken, refreshToken] = await Promise.all([

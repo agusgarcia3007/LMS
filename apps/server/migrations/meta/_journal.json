@@ -120,6 +120,13 @@
       "when": 1764874191738,
       "tag": "0016_huge_toxin",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1764874964987,
+      "tag": "0017_soft_carnage",
+      "breakpoints": true
     }
   ]
 }

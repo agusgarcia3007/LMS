@@ -6,6 +6,7 @@ import "./i18n";
 import "./index.css";
 import { catchAxiosError } from "./lib/utils";
 import { routeTree } from "./routeTree.gen";
+import { ThemeProvider } from "./components/ui/theme-provider";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -27,6 +28,7 @@ const router = createRouter({
     queryClient,
     isCampus: false,
     tenantSlug: null,
+    isCustomDomain: false,
   },
   defaultPreload: "intent",
   defaultPreloadStaleTime: 0,
@@ -48,8 +50,10 @@ if (!rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement);
   root.render(
     <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
-      <Toaster />
+      <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+        <RouterProvider router={router} />
+        <Toaster />
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }
