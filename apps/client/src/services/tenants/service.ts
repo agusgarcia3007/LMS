@@ -125,7 +125,9 @@ export const TenantsService = {
   },
 
   async getBySlug(slug: string) {
-    const { data } = await http.get<{ tenant: Tenant }>(`/tenants/${slug}`);
+    const { data } = await http.get<{ tenant: Tenant }>(
+      `/tenants/by-slug/${slug}`
+    );
     return data;
   },
 

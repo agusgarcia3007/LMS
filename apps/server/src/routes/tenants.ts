@@ -5,7 +5,7 @@ import { AppError, ErrorCode } from "@/lib/errors";
 import { withHandler } from "@/lib/handler";
 import { db } from "@/db";
 import { tenantsTable, usersTable, coursesTable } from "@/db/schema";
-import { count, eq, sql, and, ne, isNotNull } from "drizzle-orm";
+import { count, eq, sql, and, ne } from "drizzle-orm";
 import { uploadBase64ToS3, getPresignedUrl, deleteFromS3 } from "@/lib/upload";
 import { verifyCnamePointsToUs } from "@/lib/dns";
 import { env } from "@/lib/env";
@@ -224,7 +224,7 @@ export const tenantsRoutes = new Elysia()
     }
   )
   .get(
-    "/:slug",
+    "/by-slug/:slug",
     (ctx) =>
       withHandler(ctx, async () => {
         if (!ctx.user) {
@@ -241,12 +241,10 @@ export const tenantsRoutes = new Elysia()
           throw new AppError(ErrorCode.TENANT_NOT_FOUND, "Tenant not found", 404);
         }
 
-        // Superadmin can see any tenant
         if (ctx.userRole === "superadmin") {
           return { tenant: transformTenant(tenant) };
         }
 
-        // Owner can only see their own tenant
         if (ctx.userRole === "owner" && ctx.user.tenantId === tenant.id) {
           return { tenant: transformTenant(tenant) };
         }
@@ -254,6 +252,9 @@ export const tenantsRoutes = new Elysia()
         throw new AppError(ErrorCode.FORBIDDEN, "Access denied", 403);
       }),
     {
+      params: t.Object({
+        slug: t.String(),
+      }),
       detail: {
         tags: ["Tenants"],
         summary: "Get tenant by slug (superadmin or owner)",
