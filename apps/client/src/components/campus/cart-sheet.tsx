@@ -1,20 +1,19 @@
-import { Link } from "@tanstack/react-router";
-import { ShoppingCart, Trash2, BookOpen } from "lucide-react";
-import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
-import { Image } from "@/components/ui/image";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Sheet,
+  SheetClose,
   SheetContent,
+  SheetFooter,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-  SheetFooter,
-  SheetClose,
 } from "@/components/ui/sheet";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { formatPrice } from "@/lib/format";
 import { useCart } from "@/hooks/use-cart";
+import { formatPrice } from "@/lib/format";
+import { Link } from "@tanstack/react-router";
+import { BookOpen, ShoppingCart, Trash2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export function CartSheet() {
   const { t, i18n } = useTranslation();
@@ -56,7 +55,7 @@ export function CartSheet() {
                 {t("cart.continueShopping")}
               </p>
             </div>
-            <SheetClose asChild>
+            <SheetClose>
               <Link to="/courses">
                 <Button>
                   <BookOpen className="mr-2 size-4" />
@@ -76,7 +75,7 @@ export function CartSheet() {
                   >
                     <div className="relative size-16 shrink-0 overflow-hidden rounded-md bg-muted">
                       {item.course.thumbnail ? (
-                        <Image
+                        <img
                           src={item.course.thumbnail}
                           alt={item.course.title}
                           className="size-full object-cover"
@@ -106,7 +105,11 @@ export function CartSheet() {
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-sm font-semibold">
-                          {formatPrice(item.course.price, item.course.currency, i18n.language)}
+                          {formatPrice(
+                            item.course.price,
+                            item.course.currency,
+                            i18n.language
+                          )}
                         </span>
                         <Button
                           variant="ghost"
