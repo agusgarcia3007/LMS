@@ -6,14 +6,32 @@ type GuestCartStore = {
   courseIds: string[];
 };
 
+let cachedSnapshot: string[] = [];
+let cachedRawValue: string | null = null;
+
 const getSnapshot = (): string[] => {
   const stored = sessionStorage.getItem(GUEST_CART_KEY);
-  if (!stored) return [];
+
+  if (stored === cachedRawValue) {
+    return cachedSnapshot;
+  }
+
+
+  cachedRawValue = stored;
+
+  if (!stored) {
+    cachedSnapshot = [];
+    return cachedSnapshot;
+  }
+
   const parsed = JSON.parse(stored) as GuestCartStore;
-  return parsed.courseIds;
+  cachedSnapshot = parsed.courseIds;
+  return cachedSnapshot;
 };
 
-const getServerSnapshot = (): string[] => [];
+
+const emptyArray: string[] = [];
+const getServerSnapshot = (): string[] => emptyArray;
 
 const subscribe = (callback: () => void) => {
   window.addEventListener("storage", callback);
