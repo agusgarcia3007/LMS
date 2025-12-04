@@ -18,7 +18,7 @@ export const Route = createFileRoute("/$tenantSlug/")({
 
 function DashboardHome() {
   const { tenant } = Route.useRouteContext();
-  const campusUrl = getCampusUrl(tenant.slug);
+  const campusUrl = getCampusUrl(tenant.slug, tenant.customDomain);
   const { data, isLoading } = useGetTenantStats(tenant.id);
 
   return (

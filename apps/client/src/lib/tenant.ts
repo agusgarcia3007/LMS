@@ -47,8 +47,13 @@ export function getTenantFromHost(): TenantInfo {
   return { slug: null, isCampus: true, isCustomDomain: true };
 }
 
-export function getCampusUrl(slug: string): string {
+export function getCampusUrl(slug: string, customDomain?: string | null): string {
   const { protocol } = window.location;
+
+  if (customDomain) {
+    return `${protocol}//${customDomain}`;
+  }
+
   const hostname = window.location.hostname;
   const parts = hostname.split(".");
 
