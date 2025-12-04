@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { Image } from "@/components/ui/image";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,6 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { getInitials } from "@/lib/format";
 import type { CampusTenant } from "@/services/campus/service";
 import { useGetProfile } from "@/services/profile/queries";
 import { useLogout } from "@/services/auth/mutations";
@@ -29,24 +31,17 @@ export function CampusHeader({ tenant }: CampusHeaderProps) {
   const user = profileData?.user;
   const isAuthenticated = !!user;
 
-  const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
-  };
-
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-8">
           <Link to="/" className="flex items-center gap-2.5 transition-opacity hover:opacity-80">
             {tenant.logo ? (
-              <img
+              <Image
                 src={tenant.logo}
                 alt={tenant.name}
+                width={36}
+                height={36}
                 className="size-9 rounded-lg object-cover"
               />
             ) : (
@@ -54,18 +49,20 @@ export function CampusHeader({ tenant }: CampusHeaderProps) {
                 <GraduationCap className="size-5 text-primary-foreground" />
               </div>
             )}
-            <span className="text-lg font-semibold tracking-tight">{tenant.name}</span>
+            {tenant.showHeaderName && (
+              <span className="text-lg font-semibold tracking-tight">{tenant.name}</span>
+            )}
           </Link>
 
           <nav className="hidden items-center gap-1 md:flex">
             <Link to="/">
               <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
-                Inicio
+                {t("campus.navigation.home")}
               </Button>
             </Link>
             <Link to="/courses">
               <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
-                Cursos
+                {t("campus.navigation.courses")}
               </Button>
             </Link>
           </nav>
@@ -115,11 +112,11 @@ export function CampusHeader({ tenant }: CampusHeaderProps) {
             <>
               <Link to="/login">
                 <Button variant="ghost" size="sm">
-                  Iniciar sesion
+                  {t("campus.navigation.login")}
                 </Button>
               </Link>
               <Link to="/signup">
-                <Button size="sm">Registrarse</Button>
+                <Button size="sm">{t("campus.navigation.signup")}</Button>
               </Link>
             </>
           )}
@@ -141,12 +138,12 @@ export function CampusHeader({ tenant }: CampusHeaderProps) {
           <nav className="flex flex-col gap-2">
             <Link to="/" onClick={() => setMobileMenuOpen(false)}>
               <Button variant="ghost" className="w-full justify-start">
-                Inicio
+                {t("campus.navigation.home")}
               </Button>
             </Link>
             <Link to="/courses" onClick={() => setMobileMenuOpen(false)}>
               <Button variant="ghost" className="w-full justify-start">
-                Cursos
+                {t("campus.navigation.courses")}
               </Button>
             </Link>
             <div className="my-2 border-t border-border/40" />
@@ -185,11 +182,11 @@ export function CampusHeader({ tenant }: CampusHeaderProps) {
               <>
                 <Link to="/login" onClick={() => setMobileMenuOpen(false)}>
                   <Button variant="outline" className="w-full">
-                    Iniciar sesion
+                    {t("campus.navigation.login")}
                   </Button>
                 </Link>
                 <Link to="/signup" onClick={() => setMobileMenuOpen(false)}>
-                  <Button className="w-full">Registrarse</Button>
+                  <Button className="w-full">{t("campus.navigation.signup")}</Button>
                 </Link>
               </>
             )}

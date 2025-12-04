@@ -1,48 +1,25 @@
 import { Link } from "@tanstack/react-router";
 import { BookOpen, Star, Users } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Image } from "@/components/ui/image";
+import { formatPrice, getInitials } from "@/lib/format";
 import type { CampusCourse } from "@/services/campus/service";
 
 type CourseCardProps = {
   course: CampusCourse;
 };
 
-const levelLabels: Record<string, string> = {
-  beginner: "Principiante",
-  intermediate: "Intermedio",
-  advanced: "Avanzado",
-};
-
-const levelVariants: Record<string, "success" | "warning" | "info"> = {
-  beginner: "success",
-  intermediate: "warning",
-  advanced: "info",
-};
-
-function formatPrice(price: number, currency: string): string {
-  if (price === 0) return "Gratis";
-  return new Intl.NumberFormat("es", {
-    style: "currency",
-    currency,
-  }).format(price / 100);
-}
-
 export function CourseCard({ course }: CourseCardProps) {
+  const { t, i18n } = useTranslation();
+
   const hasDiscount = course.originalPrice && course.originalPrice > course.price;
   const discountPercent = hasDiscount
     ? Math.round((1 - course.price / course.originalPrice!) * 100)
     : 0;
 
-  const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
-  };
+  const priceText = formatPrice(course.price, course.currency, i18n.language) ?? t("campus.course.free");
 
   return (
     <Link
@@ -50,7 +27,7 @@ export function CourseCard({ course }: CourseCardProps) {
       params={{ courseSlug: course.slug }}
       className="group block"
     >
-      <article className="overflow-hidden rounded-xl border border-border/50 bg-card transition-all duration-300 hover:border-border hover:shadow-lg hover:shadow-primary/5">
+      <article className="overflow-hidden rounded-xl border border-border/50 bg-card transition-all duration-300 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5">
         <div className="relative aspect-video overflow-hidden">
           {course.thumbnail ? (
             <Image
@@ -74,11 +51,11 @@ export function CourseCard({ course }: CourseCardProps) {
           )}
           <div className="absolute bottom-3 left-3">
             <Badge
-              variant={levelVariants[course.level]}
-              appearance="light"
+              variant="secondary"
+              className="bg-primary/10 text-primary"
               size="sm"
             >
-              {levelLabels[course.level]}
+              {t(`campus.course.levels.${course.level}`)}
             </Badge>
           </div>
         </div>
@@ -88,7 +65,7 @@ export function CourseCard({ course }: CourseCardProps) {
             <div className="mb-3 flex items-center gap-2">
               <Avatar className="size-6">
                 <AvatarImage src={course.instructor.avatar ?? undefined} alt={course.instructor.name} />
-                <AvatarFallback>{getInitials(course.instructor.name)}</AvatarFallback>
+                <AvatarFallback className="text-[10px]">{getInitials(course.instructor.name)}</AvatarFallback>
               </Avatar>
               <span className="text-xs text-muted-foreground">
                 {course.instructor.name}
@@ -109,7 +86,7 @@ export function CourseCard({ course }: CourseCardProps) {
               <div className="flex items-center gap-1">
                 <Star className="size-3.5 fill-amber-400 text-amber-400" />
                 <span className="font-medium text-foreground">{course.rating}</span>
-                <span>({course.reviewsCount})</span>
+                <span>{t("campus.course.reviews", { count: course.reviewsCount })}</span>
               </div>
             )}
             {course.studentsCount > 0 && (
@@ -120,17 +97,17 @@ export function CourseCard({ course }: CourseCardProps) {
             )}
             <div className="flex items-center gap-1">
               <BookOpen className="size-3.5" />
-              <span>{course.modulesCount} modulos</span>
+              <span>{t("campus.course.modules", { count: course.modulesCount })}</span>
             </div>
           </div>
 
           <div className="flex items-baseline gap-2 border-t border-border/50 pt-4">
             <span className="text-xl font-bold">
-              {formatPrice(course.price, course.currency)}
+              {priceText}
             </span>
             {hasDiscount && (
               <span className="text-sm text-muted-foreground line-through">
-                {formatPrice(course.originalPrice!, course.currency)}
+                {formatPrice(course.originalPrice!, course.currency, i18n.language)}
               </span>
             )}
           </div>

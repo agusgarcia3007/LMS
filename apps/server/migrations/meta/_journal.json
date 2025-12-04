@@ -71,6 +71,13 @@
       "when": 1764781797491,
       "tag": "0009_grey_psylocke",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1764860445936,
+      "tag": "0010_spicy_lord_tyger",
+      "breakpoints": true
     }
   ]
 }

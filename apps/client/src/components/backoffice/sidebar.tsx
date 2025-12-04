@@ -11,6 +11,7 @@ import {
 import { useTranslation } from "react-i18next";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { getInitials } from "@/lib/format";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -48,15 +49,6 @@ export function BackofficeSidebar({ user }: BackofficeSidebarProps) {
   useEffect(() => {
     setOpenMobile(false);
   }, [currentPath, setOpenMobile]);
-
-  const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
-  };
 
   const navMain = useMemo(
     () => [

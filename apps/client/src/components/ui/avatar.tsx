@@ -38,7 +38,7 @@ function AvatarImage({
   ...props
 }: React.ComponentProps<typeof AvatarPrimitive.Image>) {
   return (
-    <div className={cn("relative overflow-hidden rounded-lg", className)}>
+    <div className={cn("relative overflow-hidden rounded-full", className)}>
       <AvatarPrimitive.Image
         data-slot="avatar-image"
         className={cn("aspect-square h-full w-full")}
@@ -56,7 +56,7 @@ function AvatarFallback({
     <AvatarPrimitive.Fallback
       data-slot="avatar-fallback"
       className={cn(
-        "flex h-full w-full items-center justify-center rounded-lg border border-border bg-accent text-accent-foreground text-xs",
+        "flex h-full w-full items-center justify-center rounded-full border border-border bg-accent text-accent-foreground text-xs",
         className
       )}
       {...props}

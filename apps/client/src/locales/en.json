@@ -422,7 +422,9 @@
             "coral": "Coral"
           },
           "siteDescription": "Site Description",
-          "siteDescriptionPlaceholder": "A brief description of your academy"
+          "siteDescriptionPlaceholder": "A brief description of your academy",
+          "showHeaderName": "Show name in header",
+          "showHeaderNameHelp": "Display the site name next to the logo in the header"
         },
         "logo": {
           "uploaded": "Logo uploaded successfully",
@@ -887,6 +889,71 @@
     },
     "modules": {
       "updateError": "Failed to update course modules"
+    }
+  },
+  "campus": {
+    "course": {
+      "levels": {
+        "beginner": "Beginner",
+        "intermediate": "Intermediate",
+        "advanced": "Advanced"
+      },
+      "free": "Free",
+      "modules": "{{count}} modules",
+      "lessons": "{{count}} lessons",
+      "students": "{{count}} students",
+      "reviews": "({{count}} reviews)",
+      "instructor": "Instructor",
+      "createdBy": "Created by",
+      "lastUpdated": "Recently updated",
+      "bestseller": "Bestseller"
+    },
+    "courseDetail": {
+      "enrollFree": "Enroll for free",
+      "buyNow": "Buy now",
+      "addToCart": "Add to cart",
+      "moneyBackGuarantee": "30-day money-back guarantee",
+      "offerEndsSoon": "Offer ends soon",
+      "discount": "{{percent}}% off",
+      "includes": "This course includes:",
+      "videoLessons": "{{count}} video lessons",
+      "contentModules": "{{count}} content modules",
+      "downloadableResources": "Downloadable resources",
+      "lifetimeAccess": "Lifetime access",
+      "mobileAccess": "Mobile & TV access",
+      "certificate": "Certificate of completion",
+      "share": "Share",
+      "favorite": "Favorite",
+      "previewCourse": "Preview this course",
+      "whatYouWillLearn": "What you'll learn",
+      "requirements": "Requirements",
+      "courseContent": "Course content",
+      "description": "Description",
+      "section": "Section {{number}}: {{title}}",
+      "classes": "{{count}} classes",
+      "expandAll": "Expand all sections",
+      "sectionsAndClasses": "{{sections}} sections - {{classes}} classes",
+      "contentComingSoon": "Course content will be added soon."
+    },
+    "navigation": {
+      "home": "Home",
+      "courses": "Courses",
+      "allCourses": "All courses",
+      "backToCourses": "Back to courses",
+      "login": "Sign in",
+      "signup": "Sign up"
+    },
+    "courseNotFound": {
+      "title": "Course not found",
+      "description": "The course you're looking for doesn't exist or has been removed.",
+      "viewAllCourses": "View all courses"
+    },
+    "footer": {
+      "defaultText": "Learn new skills with our high-quality online courses.",
+      "terms": "Terms",
+      "privacy": "Privacy",
+      "contact": "Contact",
+      "copyright": "All rights reserved."
     }
   }
 }

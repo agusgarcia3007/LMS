@@ -58,6 +58,7 @@ export const tenantsTable = pgTable("tenants", {
   heroSubtitle: text("hero_subtitle"),
   heroCta: text("hero_cta"),
   footerText: text("footer_text"),
+  showHeaderName: boolean("show_header_name").default(true),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at")
     .notNull()

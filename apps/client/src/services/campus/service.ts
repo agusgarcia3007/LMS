@@ -15,6 +15,7 @@ export type CampusTenant = {
   heroSubtitle: string | null;
   heroCta: string | null;
   footerText: string | null;
+  showHeaderName: boolean;
 };
 
 export type CampusInstructor = {

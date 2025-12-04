@@ -1,4 +1,5 @@
 import { Layers, PlayCircle } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import {
   Accordion,
   AccordionContent,
@@ -12,15 +13,17 @@ type CourseCurriculumProps = {
 };
 
 function ModuleItem({ module, index }: { module: CampusCourseModule; index: number }) {
+  const { t } = useTranslation();
+
   return (
     <AccordionItem value={module.id} className="border-b border-border last:border-b-0">
       <AccordionTrigger className="gap-4 bg-muted/40 px-4 py-3.5 hover:bg-muted/60 hover:no-underline [&[data-state=open]]:bg-muted/60 [&>svg]:size-5">
         <div className="flex flex-1 items-center justify-between text-left">
           <span className="font-semibold">
-            Seccion {index + 1}: {module.title}
+            {t("campus.courseDetail.section", { number: index + 1, title: module.title })}
           </span>
           <span className="text-sm font-normal text-muted-foreground">
-            {module.lessonsCount} clases
+            {t("campus.courseDetail.classes", { count: module.lessonsCount })}
           </span>
         </div>
       </AccordionTrigger>
@@ -37,8 +40,7 @@ function ModuleItem({ module, index }: { module: CampusCourseModule; index: numb
               className="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-muted/30"
             >
               <PlayCircle className="size-4 shrink-0 text-muted-foreground" />
-              <span className="flex-1">Leccion {i + 1}</span>
-              <span className="text-xs text-muted-foreground">Vista previa</span>
+              <span className="flex-1">{t("campus.course.lessons", { count: i + 1 })}</span>
             </div>
           ))}
         </div>
@@ -48,16 +50,17 @@ function ModuleItem({ module, index }: { module: CampusCourseModule; index: numb
 }
 
 export function CourseCurriculum({ course }: CourseCurriculumProps) {
+  const { t } = useTranslation();
   const totalModules = course.modules.length;
 
   if (totalModules === 0) {
     return (
       <div>
-        <h2 className="mb-4 text-xl font-bold">Contenido del curso</h2>
+        <h2 className="mb-4 text-xl font-bold">{t("campus.courseDetail.courseContent")}</h2>
         <div className="rounded-lg border border-border bg-muted/30 p-8 text-center">
           <Layers className="mx-auto mb-3 size-10 text-muted-foreground" />
           <p className="text-muted-foreground">
-            El contenido del curso se agregara proximamente.
+            {t("campus.courseDetail.contentComingSoon")}
           </p>
         </div>
       </div>
@@ -66,13 +69,13 @@ export function CourseCurriculum({ course }: CourseCurriculumProps) {
 
   return (
     <div>
-      <h2 className="mb-4 text-xl font-bold">Contenido del curso</h2>
+      <h2 className="mb-4 text-xl font-bold">{t("campus.courseDetail.courseContent")}</h2>
       <div className="mb-3 flex items-center justify-between text-sm">
         <span className="text-muted-foreground">
-          {totalModules} secciones · {course.lessonsCount} clases
+          {t("campus.courseDetail.sectionsAndClasses", { sections: totalModules, classes: course.lessonsCount })}
         </span>
         <button className="font-medium text-primary hover:text-primary/80">
-          Expandir todas las secciones
+          {t("campus.courseDetail.expandAll")}
         </button>
       </div>
 

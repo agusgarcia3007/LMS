@@ -16,6 +16,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -69,6 +70,7 @@ const configurationSchema = z.object({
   heroSubtitle: z.string().max(200).optional(),
   heroCta: z.string().max(50).optional(),
   footerText: z.string().max(200).optional(),
+  showHeaderName: z.boolean().optional(),
 });
 
 type ConfigurationFormData = z.infer<typeof configurationSchema>;
@@ -109,6 +111,7 @@ function ConfigurationPage() {
       heroSubtitle: "",
       heroCta: "",
       footerText: "",
+      showHeaderName: true,
     },
   });
 
@@ -138,6 +141,7 @@ function ConfigurationPage() {
         heroSubtitle: tenant.heroSubtitle ?? "",
         heroCta: tenant.heroCta ?? "",
         footerText: tenant.footerText ?? "",
+        showHeaderName: tenant.showHeaderName ?? true,
       });
       setLogoUrl(tenant.logo);
     }
@@ -197,6 +201,7 @@ function ConfigurationPage() {
         heroSubtitle: values.heroSubtitle || null,
         heroCta: values.heroCta || null,
         footerText: values.footerText || null,
+        showHeaderName: values.showHeaderName,
       },
       {
         onSuccess: () => {
@@ -373,6 +378,29 @@ function ConfigurationPage() {
                 )}
               />
             </div>
+
+            <FormField
+              control={form.control}
+              name="showHeaderName"
+              render={({ field }) => (
+                <FormItem className="flex items-center justify-between rounded-lg border p-4">
+                  <div className="space-y-0.5">
+                    <FormLabel className="text-base">
+                      {t("dashboard.site.configuration.branding.showHeaderName")}
+                    </FormLabel>
+                    <FormDescription>
+                      {t("dashboard.site.configuration.branding.showHeaderNameHelp")}
+                    </FormDescription>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
 
             <FormField
               control={form.control}

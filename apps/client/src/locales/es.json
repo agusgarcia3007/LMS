@@ -422,7 +422,9 @@
             "coral": "Coral"
           },
           "siteDescription": "Descripcion del sitio",
-          "siteDescriptionPlaceholder": "Una breve descripcion de tu academia"
+          "siteDescriptionPlaceholder": "Una breve descripcion de tu academia",
+          "showHeaderName": "Mostrar nombre en el header",
+          "showHeaderNameHelp": "Muestra el nombre del sitio junto al logo en el header"
         },
         "logo": {
           "uploaded": "Logo subido correctamente",
@@ -887,6 +889,71 @@
     },
     "modules": {
       "updateError": "Error al actualizar los modulos del curso"
+    }
+  },
+  "campus": {
+    "course": {
+      "levels": {
+        "beginner": "Principiante",
+        "intermediate": "Intermedio",
+        "advanced": "Avanzado"
+      },
+      "free": "Gratis",
+      "modules": "{{count}} modulos",
+      "lessons": "{{count}} lecciones",
+      "students": "{{count}} estudiantes",
+      "reviews": "({{count}} resenas)",
+      "instructor": "Instructor",
+      "createdBy": "Creado por",
+      "lastUpdated": "Actualizado recientemente",
+      "bestseller": "Mas vendido"
+    },
+    "courseDetail": {
+      "enrollFree": "Inscribirse gratis",
+      "buyNow": "Comprar ahora",
+      "addToCart": "Agregar al carrito",
+      "moneyBackGuarantee": "Garantia de devolucion de 30 dias",
+      "offerEndsSoon": "Oferta termina pronto",
+      "discount": "{{percent}}% dto.",
+      "includes": "Este curso incluye:",
+      "videoLessons": "{{count}} lecciones en video",
+      "contentModules": "{{count}} modulos de contenido",
+      "downloadableResources": "Recursos descargables",
+      "lifetimeAccess": "Acceso de por vida",
+      "mobileAccess": "Acceso en movil y TV",
+      "certificate": "Certificado de finalizacion",
+      "share": "Compartir",
+      "favorite": "Favorito",
+      "previewCourse": "Vista previa del curso",
+      "whatYouWillLearn": "Lo que aprenderas",
+      "requirements": "Requisitos",
+      "courseContent": "Contenido del curso",
+      "description": "Descripcion",
+      "section": "Seccion {{number}}: {{title}}",
+      "classes": "{{count}} clases",
+      "expandAll": "Expandir todas las secciones",
+      "sectionsAndClasses": "{{sections}} secciones - {{classes}} clases",
+      "contentComingSoon": "El contenido del curso se agregara proximamente."
+    },
+    "navigation": {
+      "home": "Inicio",
+      "courses": "Cursos",
+      "allCourses": "Todos los cursos",
+      "backToCourses": "Volver a cursos",
+      "login": "Iniciar sesion",
+      "signup": "Registrarse"
+    },
+    "courseNotFound": {
+      "title": "Curso no encontrado",
+      "description": "El curso que buscas no existe o ha sido eliminado.",
+      "viewAllCourses": "Ver todos los cursos"
+    },
+    "footer": {
+      "defaultText": "Aprende nuevas habilidades con nuestros cursos online de alta calidad.",
+      "terms": "Terminos",
+      "privacy": "Privacidad",
+      "contact": "Contacto",
+      "copyright": "Todos los derechos reservados."
     }
   }
 }

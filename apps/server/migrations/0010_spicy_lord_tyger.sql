@@ -1,0 +1,1 @@
+ALTER TABLE "tenants" ADD COLUMN "show_header_name" boolean DEFAULT true;

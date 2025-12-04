@@ -28,6 +28,7 @@ export type Tenant = {
   heroSubtitle: string | null;
   heroCta: string | null;
   footerText: string | null;
+  showHeaderName: boolean;
   createdAt: string;
   updatedAt: string;
   usersCount?: number;
@@ -74,6 +75,7 @@ export type UpdateTenantRequest = {
   heroSubtitle?: string | null;
   heroCta?: string | null;
   footerText?: string | null;
+  showHeaderName?: boolean;
 };
 
 export type UploadLogoResponse = {
