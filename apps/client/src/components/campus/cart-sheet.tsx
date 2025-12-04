@@ -2,7 +2,6 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Sheet,
-  SheetClose,
   SheetContent,
   SheetFooter,
   SheetHeader,
@@ -86,15 +85,13 @@ export function CartSheet() {
                     </div>
                     <div className="flex flex-1 flex-col justify-between">
                       <div>
-                        <SheetClose>
-                          <Link
-                            to="/courses/$courseSlug"
-                            params={{ courseSlug: item.course.slug }}
-                            className="line-clamp-2 text-sm font-medium hover:underline"
-                          >
-                            {item.course.title}
-                          </Link>
-                        </SheetClose>
+                        <Link
+                          to="/courses/$courseSlug"
+                          params={{ courseSlug: item.course.slug }}
+                          className="line-clamp-2 text-sm font-medium hover:underline"
+                        >
+                          {item.course.title}
+                        </Link>
                         {item.course.instructor && (
                           <p className="text-xs text-muted-foreground">
                             {item.course.instructor.name}
@@ -135,13 +132,11 @@ export function CartSheet() {
               <Button size="lg" className="w-full" disabled>
                 {t("campus.courseDetail.buyNow")}
               </Button>
-              <SheetClose>
-                <Link to="/courses" className="w-full">
-                  <Button variant="outline" size="lg" className="w-full">
-                    {t("cart.continueShopping")}
-                  </Button>
-                </Link>
-              </SheetClose>
+              <Link to="/courses" className="w-full">
+                <Button variant="outline" size="lg" className="w-full">
+                  {t("cart.continueShopping")}
+                </Button>
+              </Link>
             </SheetFooter>
           </>
         )}
