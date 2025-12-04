@@ -1,5 +1,5 @@
 import { http } from "@/lib/http";
-import type { TenantTheme } from "@/services/tenants/service";
+import type { TenantTheme, BackgroundPattern } from "@/services/tenants/service";
 
 export type CampusSocialLinks = {
   twitter?: string;
@@ -22,6 +22,8 @@ export type CampusTenant = {
   heroSubtitle: string | null;
   heroCta: string | null;
   footerText: string | null;
+  heroPattern: BackgroundPattern | null;
+  coursesPagePattern: BackgroundPattern | null;
   showHeaderName: boolean;
   socialLinks: CampusSocialLinks | null;
   contactEmail: string | null;

@@ -11,6 +11,14 @@ import { Search, X } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useSeo } from "@/hooks/use-seo";
+import type { BackgroundPattern } from "@/services/tenants/service";
+
+const PATTERN_CLASSES: Record<BackgroundPattern, string> = {
+  none: "",
+  grid: "bg-[linear-gradient(to_right,#8882_1px,transparent_1px),linear-gradient(to_bottom,#8882_1px,transparent_1px)] bg-[size:14px_24px] [mask-image:radial-gradient(ellipse_80%_100%_at_50%_0%,#000_70%,transparent_110%)]",
+  dots: "bg-[radial-gradient(#8884_1.5px,transparent_1.5px)] bg-[size:16px_16px] [mask-image:radial-gradient(ellipse_80%_100%_at_50%_0%,#000_70%,transparent_110%)]",
+  waves: "bg-[url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 16'%3E%3Cpath fill='none' stroke='%2388888844' stroke-width='1' d='M0 8c16 0 16-6 32-6s16 6 32 6'/%3E%3C/svg%3E\")] bg-[size:64px_16px] [mask-image:radial-gradient(ellipse_80%_100%_at_50%_0%,#000_70%,transparent_110%)]",
+};
 
 export const Route = createFileRoute("/courses/")({
   component: CoursesPage,
@@ -58,14 +66,16 @@ function CoursesPage() {
   };
 
   const themeClass = tenantData.tenant.theme ? `theme-${tenantData.tenant.theme}` : "";
+  const pattern = tenantData.tenant.coursesPagePattern ?? "grid";
 
   return (
     <div className={cn("flex min-h-screen flex-col", themeClass)}>
       <CampusHeader tenant={tenantData.tenant} />
 
       <main className="flex-1">
-        <div className="border-b border-border/40 bg-muted/30">
-          <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+        <div className="relative border-b border-border/40 bg-muted/30">
+          <div className={cn("absolute inset-0", PATTERN_CLASSES[pattern])} />
+          <div className="relative mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
             <h1 className="mb-2 text-3xl font-bold tracking-tight">
               Todos los cursos
             </h1>

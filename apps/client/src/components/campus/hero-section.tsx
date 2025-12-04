@@ -1,7 +1,9 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowRight, BookOpen, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import type { CampusTenant, CampusStats } from "@/services/campus/service";
+import type { BackgroundPattern } from "@/services/tenants/service";
 
 type HeroSectionProps = {
   tenant: CampusTenant;
@@ -12,14 +14,22 @@ const DEFAULT_TITLE = "Aprende las habilidades del futuro";
 const DEFAULT_SUBTITLE = "Cursos online de alta calidad para impulsar tu carrera. Aprende a tu ritmo.";
 const DEFAULT_CTA = "Explorar cursos";
 
+const PATTERN_CLASSES: Record<BackgroundPattern, string> = {
+  none: "",
+  grid: "bg-[linear-gradient(to_right,#8882_1px,transparent_1px),linear-gradient(to_bottom,#8882_1px,transparent_1px)] bg-[size:14px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_110%)]",
+  dots: "bg-[radial-gradient(#8884_1.5px,transparent_1.5px)] bg-[size:16px_16px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_110%)]",
+  waves: "bg-[url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 16'%3E%3Cpath fill='none' stroke='%2388888844' stroke-width='1' d='M0 8c16 0 16-6 32-6s16 6 32 6'/%3E%3C/svg%3E\")] bg-[size:64px_16px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_110%)]",
+};
+
 export function HeroSection({ tenant, stats }: HeroSectionProps) {
   const title = tenant.heroTitle || DEFAULT_TITLE;
   const subtitle = tenant.heroSubtitle || DEFAULT_SUBTITLE;
   const cta = tenant.heroCta || DEFAULT_CTA;
+  const pattern = tenant.heroPattern ?? "grid";
 
   return (
     <section className="relative overflow-hidden bg-gradient-to-b from-primary/5 via-background to-background">
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#8882_1px,transparent_1px),linear-gradient(to_bottom,#8882_1px,transparent_1px)] bg-[size:14px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_110%)]" />
+      <div className={cn("absolute inset-0", PATTERN_CLASSES[pattern])} />
 
       <div className="relative mx-auto max-w-7xl px-4 py-24 sm:px-6 sm:py-32 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">

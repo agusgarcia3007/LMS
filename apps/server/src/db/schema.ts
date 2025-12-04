@@ -37,6 +37,12 @@ export const tenantThemeEnum = pgEnum("tenant_theme", [
   "tangerine",
   "ocean",
 ]);
+export const backgroundPatternEnum = pgEnum("background_pattern", [
+  "none",
+  "grid",
+  "dots",
+  "waves",
+]);
 
 export const tenantsTable = pgTable(
   "tenants",
@@ -67,6 +73,8 @@ export const tenantsTable = pgTable(
     heroSubtitle: text("hero_subtitle"),
     heroCta: text("hero_cta"),
     footerText: text("footer_text"),
+    heroPattern: backgroundPatternEnum("hero_pattern").default("grid"),
+    coursesPagePattern: backgroundPatternEnum("courses_page_pattern").default("grid"),
     showHeaderName: boolean("show_header_name").default(true),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at")

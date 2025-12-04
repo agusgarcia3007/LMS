@@ -560,7 +560,18 @@
       },
       "customization": {
         "title": "Customization",
-        "description": "Customize your site appearance here."
+        "description": "Customize your site appearance here.",
+        "updateSuccess": "Customization updated successfully",
+        "heroPattern": "Hero Pattern",
+        "heroPatternHelp": "Select the background pattern for the homepage hero section",
+        "coursesPagePattern": "Courses Page Pattern",
+        "coursesPagePatternHelp": "Select the background pattern for the courses page header",
+        "patterns": {
+          "none": "None",
+          "grid": "Grid",
+          "dots": "Dots",
+          "waves": "Waves"
+        }
       }
     },
     "users": {

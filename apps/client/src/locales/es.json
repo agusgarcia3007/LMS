@@ -560,7 +560,18 @@
       },
       "customization": {
         "title": "Personalizacion",
-        "description": "Personaliza la apariencia de tu sitio aqui."
+        "description": "Personaliza la apariencia de tu sitio aqui.",
+        "updateSuccess": "Personalizacion actualizada correctamente",
+        "heroPattern": "Patron del Hero",
+        "heroPatternHelp": "Selecciona el patron de fondo para la seccion hero de la pagina principal",
+        "coursesPagePattern": "Patron de la Pagina de Cursos",
+        "coursesPagePatternHelp": "Selecciona el patron de fondo para el encabezado de la pagina de cursos",
+        "patterns": {
+          "none": "Ninguno",
+          "grid": "Cuadricula",
+          "dots": "Puntos",
+          "waves": "Ondas"
+        }
       }
     },
     "users": {

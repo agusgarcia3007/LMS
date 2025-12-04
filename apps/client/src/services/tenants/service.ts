@@ -1,6 +1,7 @@
 import { http } from "@/lib/http";
 
 export type TenantTheme = "default" | "slate" | "rose" | "emerald" | "tangerine" | "ocean";
+export type BackgroundPattern = "none" | "grid" | "dots" | "waves";
 
 export type TenantSocialLinks = {
   twitter?: string;
@@ -29,6 +30,8 @@ export type Tenant = {
   heroSubtitle: string | null;
   heroCta: string | null;
   footerText: string | null;
+  heroPattern: BackgroundPattern | null;
+  coursesPagePattern: BackgroundPattern | null;
   showHeaderName: boolean;
   createdAt: string;
   updatedAt: string;
@@ -88,6 +91,8 @@ export type UpdateTenantRequest = {
   heroSubtitle?: string | null;
   heroCta?: string | null;
   footerText?: string | null;
+  heroPattern?: BackgroundPattern | null;
+  coursesPagePattern?: BackgroundPattern | null;
   showHeaderName?: boolean;
 };
 
