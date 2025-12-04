@@ -2,6 +2,7 @@ import {
   createFileRoute,
   useNavigate,
   useParams,
+  useSearch,
 } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -32,14 +33,21 @@ import {
   DomainTab,
 } from "@/components/tenant-configuration";
 
+const TABS = ["branding", "contact", "social", "seo", "texts", "domain"] as const;
+type Tab = (typeof TABS)[number];
+
 export const Route = createFileRoute("/$tenantSlug/site/configuration")({
   component: ConfigurationPage,
+  validateSearch: (search: Record<string, unknown>): { tab: Tab } => ({
+    tab: TABS.includes(search.tab as Tab) ? (search.tab as Tab) : "branding",
+  }),
 });
 
 function ConfigurationPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { tenantSlug } = useParams({ from: "/$tenantSlug/site/configuration" });
+  const { tab } = useSearch({ from: "/$tenantSlug/site/configuration" });
 
   const { data, isLoading } = useGetTenant(tenantSlug);
   const tenant = data?.tenant;
@@ -182,6 +190,7 @@ function ConfigurationPage() {
             navigate({
               to: "/$tenantSlug/site/configuration",
               params: { tenantSlug: values.slug },
+              search: { tab },
             });
           }
         },
@@ -222,7 +231,18 @@ function ConfigurationPage() {
   return (
     <FormProvider {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)}>
-        <Tabs defaultValue="branding" className="space-y-6">
+        <Tabs
+          value={tab}
+          onValueChange={(value) =>
+            navigate({
+              to: "/$tenantSlug/site/configuration",
+              params: { tenantSlug },
+              search: { tab: value as Tab },
+              replace: true,
+            })
+          }
+          className="space-y-6"
+        >
           <TabsList variant="line" className="gap-6">
             <TabsTrigger value="branding">
               <Palette className="size-4" />
