@@ -61,7 +61,7 @@ async function getProjectToken(): Promise<ProjectToken["projectToken"]> {
 }
 
 export async function createRailwayCustomDomain(domain: string): Promise<CustomDomain> {
-  const { environmentId } = await getProjectToken();
+  const { projectId, environmentId } = await getProjectToken();
 
   const query = `
     mutation customDomainCreate($input: CustomDomainCreateInput!) {
@@ -75,6 +75,7 @@ export async function createRailwayCustomDomain(domain: string): Promise<CustomD
   const variables = {
     input: {
       domain,
+      projectId,
       environmentId,
       serviceId: env.RAILWAY_CLIENT_SERVICE_ID,
     },
