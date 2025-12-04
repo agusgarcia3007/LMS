@@ -488,6 +488,7 @@
           "currentUrl": "Current URL",
           "customDomain": "Custom Domain",
           "placeholder": "learn.yourcompany.com",
+          "inputHelp": "Domain only, without https:// or www (e.g., learn.yourcompany.com)",
           "instructions": "DNS Configuration",
           "configureInProvider": "Add the following DNS record in your domain provider:",
           "dnsTable": {

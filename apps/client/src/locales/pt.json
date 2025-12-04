@@ -488,6 +488,7 @@
           "currentUrl": "URL atual",
           "customDomain": "Dominio personalizado",
           "placeholder": "cursos.suaempresa.com",
+          "inputHelp": "Apenas o dominio, sem https:// ou www (ex: cursos.suaempresa.com)",
           "instructions": "Configuracao DNS",
           "configureInProvider": "Adicione o seguinte registro DNS no seu provedor de dominio:",
           "dnsTable": {

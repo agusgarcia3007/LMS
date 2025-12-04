@@ -16,6 +16,7 @@ import {
 
 type DomainTabProps = {
   tenantSlug: string | undefined;
+  savedDomain: string | null;
   customDomain: string;
   onCustomDomainChange: (value: string) => void;
   cnameTarget: string;
@@ -29,6 +30,7 @@ type DomainTabProps = {
 
 export function DomainTab({
   tenantSlug,
+  savedDomain,
   customDomain,
   onCustomDomainChange,
   cnameTarget,
@@ -44,9 +46,11 @@ export function DomainTab({
   const [targetCopied, setTargetCopied] = useState(false);
 
   const handleCopyHost = () => {
-    navigator.clipboard.writeText(customDomain);
-    setHostCopied(true);
-    setTimeout(() => setHostCopied(false), 2000);
+    if (savedDomain) {
+      navigator.clipboard.writeText(savedDomain);
+      setHostCopied(true);
+      setTimeout(() => setHostCopied(false), 2000);
+    }
   };
 
   const handleCopyTarget = () => {
@@ -133,10 +137,13 @@ export function DomainTab({
               )}
             </Button>
           </div>
+          <p className="text-xs text-muted-foreground">
+            {t("dashboard.site.configuration.domain.inputHelp")}
+          </p>
         </div>
       </div>
 
-      {customDomain && (
+      {savedDomain && (
         <div className="space-y-4 rounded-lg border p-4">
           <div className="flex items-center justify-between">
             <h4 className="font-medium">
@@ -173,7 +180,7 @@ export function DomainTab({
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <code className="rounded bg-muted px-1.5 py-0.5 text-xs">
-                        {customDomain}
+                        {savedDomain}
                       </code>
                       <Button
                         type="button"

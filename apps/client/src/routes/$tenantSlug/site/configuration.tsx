@@ -223,7 +223,7 @@ function ConfigurationPage() {
     <FormProvider {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)}>
         <Tabs defaultValue="branding" className="space-y-6">
-          <TabsList variant="line">
+          <TabsList variant="line" className="gap-6">
             <TabsTrigger value="branding">
               <Palette className="size-4" />
               {t("dashboard.site.configuration.tabs.branding")}
@@ -271,6 +271,7 @@ function ConfigurationPage() {
 
           <DomainTab
             tenantSlug={tenant?.slug}
+            savedDomain={tenant?.customDomain ?? null}
             customDomain={customDomain}
             onCustomDomainChange={setCustomDomain}
             cnameTarget={cnameTarget}
