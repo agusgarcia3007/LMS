@@ -1,8 +1,12 @@
 import { Outlet, createFileRoute, redirect } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
+import { ExternalLink } from "lucide-react";
 
 import { DashboardHeader } from "@/components/dashboard/header";
 import { DashboardSidebar } from "@/components/dashboard/sidebar";
+import { Button } from "@/components/ui/button";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { getCampusUrl } from "@/lib/tenant";
 import { profileOptions } from "@/services/profile/options";
 import { tenantOptions } from "@/services/tenants/options";
 
@@ -47,13 +51,24 @@ export const Route = createFileRoute("/$tenantSlug")({
 });
 
 function TenantDashboardLayout() {
+  const { t } = useTranslation();
   const { user, tenant } = Route.useRouteContext();
+  const campusUrl = getCampusUrl(tenant.slug, tenant.customDomain);
 
   return (
     <SidebarProvider>
       <DashboardSidebar tenant={tenant} user={user} />
       <SidebarInset>
-        <DashboardHeader />
+        <DashboardHeader
+          actions={
+            <a href={campusUrl} target="_blank" rel="noopener noreferrer">
+              <Button variant="outline" size="sm" className="gap-2">
+                <ExternalLink className="size-4" />
+                {t("dashboard.home.viewCampus")}
+              </Button>
+            </a>
+          }
+        />
         <main className="flex-1 p-4">
           <Outlet />
         </main>

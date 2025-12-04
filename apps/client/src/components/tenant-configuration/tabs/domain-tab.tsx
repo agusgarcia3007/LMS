@@ -110,37 +110,39 @@ export function DomainTab({
             {t("dashboard.site.configuration.domain.currentUrl")}
           </label>
           <p className="mt-1 text-sm text-muted-foreground">
-            {tenantSlug}.{displayBaseDomain}
+            {savedDomain || `${tenantSlug}.${displayBaseDomain}`}
           </p>
         </div>
 
-        <div className="space-y-2">
-          <label className="text-sm font-medium">
-            {t("dashboard.site.configuration.domain.customDomain")}
-          </label>
-          <div className="flex gap-2">
-            <Input
-              value={customDomain}
-              onChange={(e) => onCustomDomainChange(e.target.value)}
-              placeholder={t("dashboard.site.configuration.domain.placeholder")}
-              className="max-w-md"
-            />
-            <Button
-              type="button"
-              onClick={onSaveDomain}
-              disabled={isSavingDomain}
-            >
-              {isSavingDomain ? (
-                <Loader2 className="size-4 animate-spin" />
-              ) : (
-                t("common.save")
-              )}
-            </Button>
+        {!savedDomain && (
+          <div className="space-y-2">
+            <label className="text-sm font-medium">
+              {t("dashboard.site.configuration.domain.customDomain")}
+            </label>
+            <div className="flex gap-2">
+              <Input
+                value={customDomain}
+                onChange={(e) => onCustomDomainChange(e.target.value)}
+                placeholder={t("dashboard.site.configuration.domain.placeholder")}
+                className="max-w-md"
+              />
+              <Button
+                type="button"
+                onClick={onSaveDomain}
+                disabled={isSavingDomain}
+              >
+                {isSavingDomain ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  t("common.save")
+                )}
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {t("dashboard.site.configuration.domain.inputHelp")}
+            </p>
           </div>
-          <p className="text-xs text-muted-foreground">
-            {t("dashboard.site.configuration.domain.inputHelp")}
-          </p>
-        </div>
+        )}
       </div>
 
       {savedDomain && (
