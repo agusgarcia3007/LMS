@@ -88,7 +88,7 @@ export function CartSheet() {
                     </div>
                     <div className="flex flex-1 flex-col justify-between">
                       <div>
-                        <SheetClose asChild>
+                        <SheetClose>
                           <Link
                             to="/courses/$courseSlug"
                             params={{ courseSlug: item.course.slug }}
@@ -137,7 +137,7 @@ export function CartSheet() {
               <Button size="lg" className="w-full" disabled>
                 {t("campus.courseDetail.buyNow")}
               </Button>
-              <SheetClose asChild>
+              <SheetClose>
                 <Link to="/courses" className="w-full">
                   <Button variant="outline" size="lg" className="w-full">
                     {t("cart.continueShopping")}
