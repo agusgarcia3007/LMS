@@ -3,13 +3,23 @@ import { useTranslation } from "react-i18next";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getInitials } from "@/lib/format";
+import { cn } from "@/lib/utils";
 import type { CampusCourseDetail } from "@/services/campus/service";
+import type { BackgroundPattern } from "@/services/tenants/service";
+
+const PATTERN_CLASSES: Record<BackgroundPattern, string> = {
+  none: "",
+  grid: "bg-[linear-gradient(to_right,#8882_1px,transparent_1px),linear-gradient(to_bottom,#8882_1px,transparent_1px)] bg-[size:14px_24px] [mask-image:radial-gradient(ellipse_80%_100%_at_50%_0%,#000_70%,transparent_110%)]",
+  dots: "bg-[radial-gradient(#8884_1.5px,transparent_1.5px)] bg-[size:16px_16px] [mask-image:radial-gradient(ellipse_80%_100%_at_50%_0%,#000_70%,transparent_110%)]",
+  waves: "bg-[url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 16'%3E%3Cpath fill='none' stroke='%2388888844' stroke-width='1' d='M0 8c16 0 16-6 32-6s16 6 32 6'/%3E%3C/svg%3E\")] bg-[size:64px_16px] [mask-image:radial-gradient(ellipse_80%_100%_at_50%_0%,#000_70%,transparent_110%)]",
+};
 
 type CourseHeaderProps = {
   course: CampusCourseDetail;
+  pattern?: BackgroundPattern;
 };
 
-export function CourseHeader({ course }: CourseHeaderProps) {
+export function CourseHeader({ course, pattern = "grid" }: CourseHeaderProps) {
   const { t } = useTranslation();
 
   const languageNames: Record<string, string> = {
@@ -21,7 +31,7 @@ export function CourseHeader({ course }: CourseHeaderProps) {
   return (
     <div className="relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-br from-primary/8 via-primary/4 to-background" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,theme(colors.primary/.06)_1px,transparent_0)] [background-size:20px_20px]" />
+      <div className={cn("absolute inset-0", PATTERN_CLASSES[pattern])} />
 
       <div className="relative mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
         <div className="max-w-3xl">

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   Check,
   FileText,
@@ -14,6 +15,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Image } from "@/components/ui/image";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { formatPrice, getInitials } from "@/lib/format";
 import { useCart } from "@/hooks/use-cart";
 import type { CampusCourseDetail } from "@/services/campus/service";
@@ -25,6 +31,7 @@ type CourseSidebarProps = {
 export function CourseSidebar({ course }: CourseSidebarProps) {
   const { t, i18n } = useTranslation();
   const { addToCart, removeFromCart, isInCart, isPending } = useCart();
+  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
 
   const hasDiscount = course.originalPrice && course.originalPrice > course.price;
   const discountPercent = hasDiscount
@@ -34,6 +41,7 @@ export function CourseSidebar({ course }: CourseSidebarProps) {
   const isFree = course.price === 0;
   const priceText = formatPrice(course.price, course.currency, i18n.language) ?? t("campus.course.free");
   const inCart = isInCart(course.id);
+  const hasPreviewVideo = !!course.previewVideoUrl;
 
   const handleCartClick = () => {
     if (inCart) {
@@ -43,28 +51,40 @@ export function CourseSidebar({ course }: CourseSidebarProps) {
     }
   };
 
+  const handleThumbnailClick = () => {
+    if (hasPreviewVideo) {
+      setIsVideoModalOpen(true);
+    }
+  };
+
   return (
-    <Card className="sticky top-20 overflow-hidden border-border/50 shadow-xl">
-      <div className="relative aspect-video cursor-pointer group">
-        {course.thumbnail ? (
-          <Image
-            src={course.thumbnail}
-            alt={course.title}
-            layout="fullWidth"
-            aspectRatio={16 / 9}
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center bg-muted">
-            <Play className="size-16 text-muted-foreground" />
-          </div>
-        )}
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 transition-opacity group-hover:bg-black/70">
-          <div className="flex size-16 items-center justify-center rounded-full border-2 border-white bg-transparent transition-transform group-hover:scale-110">
-            <Play className="size-7 fill-white text-white" />
-          </div>
-          <span className="mt-3 text-sm font-medium text-white">{t("campus.courseDetail.previewCourse")}</span>
+    <>
+      <Card className="overflow-hidden border-border/50 shadow-xl">
+        <div
+          className={`relative aspect-video ${hasPreviewVideo ? "cursor-pointer" : ""} group`}
+          onClick={handleThumbnailClick}
+        >
+          {course.thumbnail ? (
+            <Image
+              src={course.thumbnail}
+              alt={course.title}
+              layout="fullWidth"
+              aspectRatio={16 / 9}
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center bg-muted">
+              {hasPreviewVideo && <Play className="size-16 text-muted-foreground" />}
+            </div>
+          )}
+          {hasPreviewVideo && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 transition-opacity group-hover:bg-black/70">
+              <div className="flex size-16 items-center justify-center rounded-full border-2 border-white bg-transparent transition-transform group-hover:scale-110">
+                <Play className="size-7 fill-white text-white" />
+              </div>
+              <span className="mt-3 text-sm font-medium text-white">{t("campus.courseDetail.previewCourse")}</span>
+            </div>
+          )}
         </div>
-      </div>
 
       <CardContent className="p-5">
         <div className="mb-3 flex items-baseline gap-2">
@@ -153,6 +173,20 @@ export function CourseSidebar({ course }: CourseSidebarProps) {
         </div>
       </CardContent>
     </Card>
+
+      {/* Video Preview Modal */}
+      <Dialog open={isVideoModalOpen} onOpenChange={setIsVideoModalOpen}>
+        <DialogContent className="max-w-4xl p-0 overflow-hidden">
+          <DialogTitle className="sr-only">{t("campus.courseDetail.previewCourse")}</DialogTitle>
+          <video
+            src={course.previewVideoUrl ?? undefined}
+            controls
+            autoPlay
+            className="w-full aspect-video"
+          />
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 

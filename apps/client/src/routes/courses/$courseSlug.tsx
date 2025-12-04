@@ -79,13 +79,18 @@ function CourseDetailPage() {
 
       <main className="flex-1">
         <div className="relative">
-          <CourseHeader course={course} />
+          <CourseHeader course={course} pattern={tenantData.tenant.coursesPagePattern || "grid"} />
 
           <div className="absolute right-4 top-0 hidden w-[340px] lg:right-8 lg:block xl:right-[max(2rem,calc((100vw-80rem)/2+2rem))]">
-            <div className="pt-6">
+            <div className="sticky top-20 pt-6">
               <CourseSidebar course={course} />
             </div>
           </div>
+        </div>
+
+        {/* Mobile sidebar - appears below header */}
+        <div className="mx-auto max-w-7xl px-4 py-6 lg:hidden">
+          <CourseSidebar course={course} />
         </div>
 
         <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
@@ -119,10 +124,6 @@ function CourseDetailPage() {
 
               <CourseInstructor course={course} />
             </div>
-          </div>
-
-          <div className="mt-10 lg:hidden">
-            <CourseSidebar course={course} />
           </div>
         </div>
       </main>
