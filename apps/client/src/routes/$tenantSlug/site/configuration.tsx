@@ -186,8 +186,8 @@ function ConfigurationPage() {
         heroSubtitle: values.heroSubtitle || null,
         heroCta: values.heroCta || null,
         footerText: values.footerText || null,
-        heroPattern: values.heroPattern || null,
-        coursesPagePattern: values.coursesPagePattern || null,
+        heroPattern: values.heroPattern,
+        coursesPagePattern: values.coursesPagePattern,
         showHeaderName: values.showHeaderName ?? true,
       },
       {
