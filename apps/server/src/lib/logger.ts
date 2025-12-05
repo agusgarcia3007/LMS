@@ -34,6 +34,7 @@ function log(level: LogLevel, message: string, meta?: object): void {
   const formatted = formatMessage(level, message, meta);
   const writer = level === "error" || level === "warn" ? stderr : stdout;
   writer.write(formatted);
+  writer.flush();
 }
 
 export const logger = {

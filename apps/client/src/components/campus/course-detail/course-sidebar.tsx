@@ -136,7 +136,7 @@ export function CourseSidebar({ course }: CourseSidebarProps) {
           <ul className="space-y-2.5 text-sm text-muted-foreground">
             <li className="flex items-center gap-2.5">
               <Play className="size-4 shrink-0" />
-              <span>{t("campus.courseDetail.videoLessons", { count: course.lessonsCount })}</span>
+              <span>{t("campus.courseDetail.videoLessons", { count: course.itemsCount })}</span>
             </li>
             <li className="flex items-center gap-2.5">
               <Layers className="size-4 shrink-0" />

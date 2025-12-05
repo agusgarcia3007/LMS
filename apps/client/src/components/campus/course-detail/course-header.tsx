@@ -117,7 +117,7 @@ export function CourseHeader({ course, pattern = "grid" }: CourseHeaderProps) {
             </div>
             <div className="flex items-center gap-1.5">
               <FileText className="size-4" />
-              <span>{t("campus.course.lessons", { count: course.lessonsCount })}</span>
+              <span>{t("campus.course.lessons", { count: course.itemsCount })}</span>
             </div>
           </div>
         </div>

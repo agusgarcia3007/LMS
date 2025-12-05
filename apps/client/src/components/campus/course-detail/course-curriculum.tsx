@@ -23,7 +23,7 @@ function ModuleItem({ module, index }: { module: CampusCourseModule; index: numb
             {t("campus.courseDetail.section", { number: index + 1, title: module.title })}
           </span>
           <span className="text-sm font-normal text-muted-foreground">
-            {t("campus.courseDetail.classes", { count: module.lessonsCount })}
+            {t("campus.courseDetail.classes", { count: module.itemsCount })}
           </span>
         </div>
       </AccordionTrigger>
@@ -34,7 +34,7 @@ function ModuleItem({ module, index }: { module: CampusCourseModule; index: numb
               {module.description}
             </div>
           )}
-          {Array.from({ length: module.lessonsCount }).map((_, i) => (
+          {Array.from({ length: module.itemsCount }).map((_, i) => (
             <div
               key={i}
               className="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-muted/30"
@@ -72,7 +72,7 @@ export function CourseCurriculum({ course }: CourseCurriculumProps) {
       <h2 className="mb-4 text-xl font-bold">{t("campus.courseDetail.courseContent")}</h2>
       <div className="mb-3 flex items-center justify-between text-sm">
         <span className="text-muted-foreground">
-          {t("campus.courseDetail.sectionsAndClasses", { sections: totalModules, classes: course.lessonsCount })}
+          {t("campus.courseDetail.sectionsAndClasses", { sections: totalModules, classes: course.itemsCount })}
         </span>
         <button className="font-medium text-primary hover:text-primary/80">
           {t("campus.courseDetail.expandAll")}

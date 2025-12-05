@@ -68,12 +68,12 @@ export type CampusCourseModule = {
   id: string;
   title: string;
   description: string | null;
-  lessonsCount: number;
+  itemsCount: number;
   order: number;
 };
 
 export type CampusCourseDetail = CampusCourse & {
-  lessonsCount: number;
+  itemsCount: number;
   modules: CampusCourseModule[];
 };
 
