@@ -12,6 +12,7 @@ import {
   type CreateLessonRequest,
   type UpdateLessonRequest,
   type UploadVideoRequest,
+  type UploadFileRequest,
 } from "./service";
 
 export const lessonsListOptions = (params: LessonListParams = {}) =>
@@ -89,6 +90,31 @@ export const deleteLessonVideoOptions = () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.LESSONS });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.LESSON(data.lesson.id) });
       toast.success(i18n.t("lessons.video.deleteSuccess"));
+    },
+  });
+};
+
+export const uploadLessonFileOptions = () => {
+  const queryClient = useQueryClient();
+  return mutationOptions({
+    mutationFn: ({ id, ...payload }: { id: string } & UploadFileRequest) =>
+      LessonsService.uploadFile(id, payload),
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.LESSONS });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.LESSON(id) });
+      toast.success(i18n.t("lessons.file.uploadSuccess"));
+    },
+  });
+};
+
+export const deleteLessonFileOptions = () => {
+  const queryClient = useQueryClient();
+  return mutationOptions({
+    mutationFn: LessonsService.deleteFile,
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.LESSONS });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.LESSON(data.lesson.id) });
+      toast.success(i18n.t("lessons.file.deleteSuccess"));
     },
   });
 };

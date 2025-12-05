@@ -1,6 +1,6 @@
 import { http } from "@/lib/http";
 
-export type LessonType = "video" | "text" | "quiz";
+export type LessonType = "video" | "file" | "quiz";
 export type LessonStatus = "draft" | "published";
 
 export type Lesson = {
@@ -12,6 +12,11 @@ export type Lesson = {
   videoKey: string | null;
   videoUrl: string | null;
   duration: number;
+  fileKey: string | null;
+  fileName: string | null;
+  fileSize: number | null;
+  mimeType: string | null;
+  fileUrl: string | null;
   order: number;
   isPreview: boolean;
   status: LessonStatus;
@@ -47,6 +52,10 @@ export type CreateLessonRequest = {
   type: LessonType;
   videoKey?: string;
   duration?: number;
+  fileKey?: string;
+  fileName?: string;
+  fileSize?: number;
+  mimeType?: string;
   isPreview?: boolean;
   status?: LessonStatus;
 };
@@ -57,6 +66,10 @@ export type UpdateLessonRequest = {
   type?: LessonType;
   videoKey?: string | null;
   duration?: number;
+  fileKey?: string | null;
+  fileName?: string | null;
+  fileSize?: number | null;
+  mimeType?: string | null;
   order?: number;
   isPreview?: boolean;
   status?: LessonStatus;
@@ -70,6 +83,12 @@ export type UploadVideoRequest = {
 export type UploadVideoResponse = {
   videoKey: string;
   videoUrl: string;
+};
+
+export type UploadFileRequest = {
+  file: string;
+  fileName: string;
+  fileSize: number;
 };
 
 export const QUERY_KEYS = {
@@ -127,6 +146,16 @@ export const LessonsService = {
 
   async deleteVideo(id: string) {
     const { data } = await http.delete<{ lesson: Lesson }>(`/lessons/${id}/video`);
+    return data;
+  },
+
+  async uploadFile(id: string, payload: UploadFileRequest) {
+    const { data } = await http.post<{ lesson: Lesson }>(`/lessons/${id}/file`, payload);
+    return data;
+  },
+
+  async deleteFile(id: string) {
+    const { data } = await http.delete<{ lesson: Lesson }>(`/lessons/${id}/file`);
     return data;
   },
 } as const;

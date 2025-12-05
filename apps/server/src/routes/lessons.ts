@@ -39,10 +39,11 @@ const lessonSearchableFields: SearchableFields<typeof lessonsTable> = [
 
 const lessonDateFields: DateFields = new Set(["createdAt"]);
 
-function withVideoUrl(lesson: SelectLesson): SelectLesson & { videoUrl: string | null } {
+function withUrls(lesson: SelectLesson): SelectLesson & { videoUrl: string | null; fileUrl: string | null } {
   return {
     ...lesson,
     videoUrl: lesson.videoKey ? getPresignedUrl(lesson.videoKey) : null,
+    fileUrl: lesson.fileKey ? getPresignedUrl(lesson.fileKey) : null,
   };
 }
 
@@ -152,6 +153,10 @@ export const lessonsRoutes = new Elysia()
             type: lessonsTable.type,
             videoKey: lessonsTable.videoKey,
             duration: lessonsTable.duration,
+            fileKey: lessonsTable.fileKey,
+            fileName: lessonsTable.fileName,
+            fileSize: lessonsTable.fileSize,
+            mimeType: lessonsTable.mimeType,
             order: lessonsTable.order,
             isPreview: lessonsTable.isPreview,
             status: lessonsTable.status,
@@ -178,7 +183,7 @@ export const lessonsRoutes = new Elysia()
         ]);
 
         return {
-          lessons: lessons.map(withVideoUrl),
+          lessons: lessons.map(withUrls),
           pagination: calculatePagination(total, params.page, params.limit),
         };
       }),
@@ -225,7 +230,7 @@ export const lessonsRoutes = new Elysia()
           throw new AppError(ErrorCode.NOT_FOUND, "Lesson not found", 404);
         }
 
-        return { lesson: withVideoUrl(lesson) };
+        return { lesson: withUrls(lesson) };
       }),
     {
       params: t.Object({
@@ -280,13 +285,17 @@ export const lessonsRoutes = new Elysia()
             type: ctx.body.type,
             videoKey: ctx.body.videoKey,
             duration: ctx.body.duration ?? 0,
+            fileKey: ctx.body.fileKey,
+            fileName: ctx.body.fileName,
+            fileSize: ctx.body.fileSize,
+            mimeType: ctx.body.mimeType,
             order: nextOrder,
             isPreview: ctx.body.isPreview ?? false,
             status: ctx.body.status ?? "draft",
           })
           .returning();
 
-        return { lesson: withVideoUrl(lesson) };
+        return { lesson: withUrls(lesson) };
       }),
     {
       body: t.Object({
@@ -295,6 +304,10 @@ export const lessonsRoutes = new Elysia()
         type: t.Enum(Object.fromEntries(lessonTypeEnum.enumValues.map((v) => [v, v]))),
         videoKey: t.Optional(t.String()),
         duration: t.Optional(t.Number({ minimum: 0 })),
+        fileKey: t.Optional(t.String()),
+        fileName: t.Optional(t.String()),
+        fileSize: t.Optional(t.Number({ minimum: 0 })),
+        mimeType: t.Optional(t.String()),
         isPreview: t.Optional(t.Boolean()),
         status: t.Optional(t.Enum(Object.fromEntries(lessonStatusEnum.enumValues.map((v) => [v, v])))),
       }),
@@ -348,12 +361,20 @@ export const lessonsRoutes = new Elysia()
           await deleteFromS3(existingLesson.videoKey);
         }
 
+        if (ctx.body.fileKey !== undefined && existingLesson.fileKey && ctx.body.fileKey !== existingLesson.fileKey) {
+          await deleteFromS3(existingLesson.fileKey);
+        }
+
         const updateData: Partial<SelectLesson> = {};
         if (ctx.body.title !== undefined) updateData.title = ctx.body.title;
         if (ctx.body.description !== undefined) updateData.description = ctx.body.description;
         if (ctx.body.type !== undefined) updateData.type = ctx.body.type;
         if (ctx.body.videoKey !== undefined) updateData.videoKey = ctx.body.videoKey;
         if (ctx.body.duration !== undefined) updateData.duration = ctx.body.duration;
+        if (ctx.body.fileKey !== undefined) updateData.fileKey = ctx.body.fileKey;
+        if (ctx.body.fileName !== undefined) updateData.fileName = ctx.body.fileName;
+        if (ctx.body.fileSize !== undefined) updateData.fileSize = ctx.body.fileSize;
+        if (ctx.body.mimeType !== undefined) updateData.mimeType = ctx.body.mimeType;
         if (ctx.body.order !== undefined) updateData.order = ctx.body.order;
         if (ctx.body.isPreview !== undefined) updateData.isPreview = ctx.body.isPreview;
         if (ctx.body.status !== undefined) updateData.status = ctx.body.status;
@@ -364,7 +385,7 @@ export const lessonsRoutes = new Elysia()
           .where(eq(lessonsTable.id, ctx.params.id))
           .returning();
 
-        return { lesson: withVideoUrl(updatedLesson) };
+        return { lesson: withUrls(updatedLesson) };
       }),
     {
       params: t.Object({
@@ -376,6 +397,10 @@ export const lessonsRoutes = new Elysia()
         type: t.Optional(t.Enum(Object.fromEntries(lessonTypeEnum.enumValues.map((v) => [v, v])))),
         videoKey: t.Optional(t.Union([t.String(), t.Null()])),
         duration: t.Optional(t.Number({ minimum: 0 })),
+        fileKey: t.Optional(t.Union([t.String(), t.Null()])),
+        fileName: t.Optional(t.Union([t.String(), t.Null()])),
+        fileSize: t.Optional(t.Union([t.Number({ minimum: 0 }), t.Null()])),
+        mimeType: t.Optional(t.Union([t.String(), t.Null()])),
         order: t.Optional(t.Number({ minimum: 0 })),
         isPreview: t.Optional(t.Boolean()),
         status: t.Optional(t.Enum(Object.fromEntries(lessonStatusEnum.enumValues.map((v) => [v, v])))),
@@ -428,6 +453,7 @@ export const lessonsRoutes = new Elysia()
 
         await Promise.all([
           existingLesson.videoKey ? deleteFromS3(existingLesson.videoKey) : Promise.resolve(),
+          existingLesson.fileKey ? deleteFromS3(existingLesson.fileKey) : Promise.resolve(),
           db.delete(lessonsTable).where(eq(lessonsTable.id, ctx.params.id)),
         ]);
 
@@ -507,7 +533,7 @@ export const lessonsRoutes = new Elysia()
           .where(eq(lessonsTable.id, ctx.params.id))
           .returning();
 
-        return { lesson: withVideoUrl(updatedLesson) };
+        return { lesson: withUrls(updatedLesson) };
       }),
     {
       params: t.Object({
@@ -572,7 +598,7 @@ export const lessonsRoutes = new Elysia()
             .returning(),
         ]);
 
-        return { lesson: withVideoUrl(updatedLesson) };
+        return { lesson: withUrls(updatedLesson) };
       }),
     {
       params: t.Object({
@@ -581,6 +607,163 @@ export const lessonsRoutes = new Elysia()
       detail: {
         tags: ["Lessons"],
         summary: "Delete video from a lesson",
+      },
+    }
+  )
+  .post(
+    "/:id/file",
+    (ctx) =>
+      withHandler(ctx, async () => {
+        if (!ctx.user) {
+          throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
+        }
+
+        if (!ctx.user.tenantId) {
+          throw new AppError(ErrorCode.TENANT_NOT_FOUND, "User has no tenant", 404);
+        }
+
+        const canManageLessons =
+          ctx.userRole === "owner" ||
+          ctx.userRole === "admin" ||
+          ctx.userRole === "superadmin";
+
+        if (!canManageLessons) {
+          throw new AppError(
+            ErrorCode.FORBIDDEN,
+            "Only owners and admins can upload files",
+            403
+          );
+        }
+
+        const [existingLesson] = await db
+          .select()
+          .from(lessonsTable)
+          .where(
+            and(
+              eq(lessonsTable.id, ctx.params.id),
+              eq(lessonsTable.tenantId, ctx.user.tenantId)
+            )
+          )
+          .limit(1);
+
+        if (!existingLesson) {
+          throw new AppError(ErrorCode.NOT_FOUND, "Lesson not found", 404);
+        }
+
+        const allowedMimeTypes = [
+          "application/pdf",
+          "application/msword",
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "application/vnd.ms-excel",
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          "application/vnd.ms-powerpoint",
+          "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        ];
+
+        const mimeTypeMatch = ctx.body.file.match(/^data:([^;]+);base64,/);
+        if (!mimeTypeMatch || !allowedMimeTypes.includes(mimeTypeMatch[1])) {
+          throw new AppError(
+            ErrorCode.BAD_REQUEST,
+            "File must be a PDF, Word, Excel, or PowerPoint document",
+            400
+          );
+        }
+
+        const [, fileKey] = await Promise.all([
+          existingLesson.fileKey ? deleteFromS3(existingLesson.fileKey) : Promise.resolve(),
+          uploadBase64ToS3({
+            base64: ctx.body.file,
+            folder: "files",
+            userId: ctx.user.tenantId,
+          }),
+        ]);
+
+        const [updatedLesson] = await db
+          .update(lessonsTable)
+          .set({
+            fileKey,
+            fileName: ctx.body.fileName,
+            fileSize: ctx.body.fileSize,
+            mimeType: mimeTypeMatch[1],
+          })
+          .where(eq(lessonsTable.id, ctx.params.id))
+          .returning();
+
+        return { lesson: withUrls(updatedLesson) };
+      }),
+    {
+      params: t.Object({
+        id: t.String({ format: "uuid" }),
+      }),
+      body: t.Object({
+        file: t.String(),
+        fileName: t.String({ minLength: 1 }),
+        fileSize: t.Number({ minimum: 0 }),
+      }),
+      detail: {
+        tags: ["Lessons"],
+        summary: "Upload file for a lesson",
+      },
+    }
+  )
+  .delete(
+    "/:id/file",
+    (ctx) =>
+      withHandler(ctx, async () => {
+        if (!ctx.user) {
+          throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
+        }
+
+        if (!ctx.user.tenantId) {
+          throw new AppError(ErrorCode.TENANT_NOT_FOUND, "User has no tenant", 404);
+        }
+
+        const canManageLessons =
+          ctx.userRole === "owner" ||
+          ctx.userRole === "admin" ||
+          ctx.userRole === "superadmin";
+
+        if (!canManageLessons) {
+          throw new AppError(
+            ErrorCode.FORBIDDEN,
+            "Only owners and admins can delete files",
+            403
+          );
+        }
+
+        const [existingLesson] = await db
+          .select()
+          .from(lessonsTable)
+          .where(
+            and(
+              eq(lessonsTable.id, ctx.params.id),
+              eq(lessonsTable.tenantId, ctx.user.tenantId)
+            )
+          )
+          .limit(1);
+
+        if (!existingLesson) {
+          throw new AppError(ErrorCode.NOT_FOUND, "Lesson not found", 404);
+        }
+
+        const [, [updatedLesson]] = await Promise.all([
+          existingLesson.fileKey ? deleteFromS3(existingLesson.fileKey) : Promise.resolve(),
+          db
+            .update(lessonsTable)
+            .set({ fileKey: null, fileName: null, fileSize: null, mimeType: null })
+            .where(eq(lessonsTable.id, ctx.params.id))
+            .returning(),
+        ]);
+
+        return { lesson: withUrls(updatedLesson) };
+      }),
+    {
+      params: t.Object({
+        id: t.String({ format: "uuid" }),
+      }),
+      detail: {
+        tags: ["Lessons"],
+        summary: "Delete file from a lesson",
       },
     }
   );

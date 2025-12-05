@@ -32,18 +32,19 @@ import type {
   UpdateLessonRequest,
 } from "@/services/lessons";
 import { VideoUpload } from "./video-upload";
+import { DocumentUpload } from "@/components/file-upload/document-upload";
 
 const schema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().optional(),
-  type: z.enum(["video", "text", "quiz"]),
+  type: z.enum(["video", "file", "quiz"]),
   isPreview: z.boolean(),
   status: z.enum(["draft", "published"]),
 });
 
 type FormData = z.infer<typeof schema>;
 
-const LESSON_TYPES: LessonType[] = ["video", "text", "quiz"];
+const LESSON_TYPES: LessonType[] = ["video", "file", "quiz"];
 
 type LessonDialogProps = {
   lesson?: Lesson | null;
@@ -69,6 +70,15 @@ export function LessonDialog({
   } | null>(null);
   const [hasExistingVideo, setHasExistingVideo] = useState(false);
   const [shouldDeleteVideo, setShouldDeleteVideo] = useState(false);
+
+  const [fileData, setFileData] = useState<{
+    fileKey: string;
+    fileName: string;
+    fileSize: number;
+    mimeType: string;
+  } | null>(null);
+  const [hasExistingFile, setHasExistingFile] = useState(false);
+  const [shouldDeleteFile, setShouldDeleteFile] = useState(false);
 
   const {
     register,
@@ -103,6 +113,7 @@ export function LessonDialog({
           status: lesson.status,
         });
         setHasExistingVideo(!!lesson.videoUrl);
+        setHasExistingFile(!!lesson.fileUrl);
       } else {
         reset({
           title: "",
@@ -112,9 +123,12 @@ export function LessonDialog({
           status: "draft",
         });
         setHasExistingVideo(false);
+        setHasExistingFile(false);
       }
       setVideoData(null);
       setShouldDeleteVideo(false);
+      setFileData(null);
+      setShouldDeleteFile(false);
     }
   }, [lesson, open, reset]);
 
@@ -130,6 +144,19 @@ export function LessonDialog({
         duration: videoData.duration,
       }),
       ...(shouldDeleteVideo && !videoData && { videoKey: null, duration: 0 }),
+      ...(fileData && {
+        fileKey: fileData.fileKey,
+        fileName: fileData.fileName,
+        fileSize: fileData.fileSize,
+        mimeType: fileData.mimeType,
+      }),
+      ...(shouldDeleteFile &&
+        !fileData && {
+          fileKey: null,
+          fileName: null,
+          fileSize: null,
+          mimeType: null,
+        }),
     };
 
     onSubmit(payload);
@@ -147,6 +174,27 @@ export function LessonDialog({
     setVideoData(null);
     setHasExistingVideo(false);
     setShouldDeleteVideo(true);
+  };
+
+  const handleFileUploaded = (data: {
+    fileKey: string;
+    fileUrl: string;
+    fileName: string;
+    fileSize: number;
+    mimeType: string;
+  }) => {
+    setFileData({
+      fileKey: data.fileKey,
+      fileName: data.fileName,
+      fileSize: data.fileSize,
+      mimeType: data.mimeType,
+    });
+  };
+
+  const handleFileRemove = () => {
+    setFileData(null);
+    setHasExistingFile(false);
+    setShouldDeleteFile(true);
   };
 
   return (
@@ -256,6 +304,47 @@ export function LessonDialog({
                 onVideoUploaded={handleVideoUploaded}
                 onVideoRemove={handleVideoRemove}
               />
+            </div>
+          )}
+
+          {currentType === "file" && (
+            <div className="space-y-2">
+              <Label>{t("lessons.fields.file")}</Label>
+              <DocumentUpload
+                value={
+                  fileData
+                    ? fileData.fileKey
+                    : hasExistingFile
+                      ? lesson?.fileUrl
+                      : null
+                }
+                fileName={fileData?.fileName || lesson?.fileName}
+                fileSize={fileData?.fileSize || lesson?.fileSize}
+                mimeType={fileData?.mimeType || lesson?.mimeType}
+                onChange={() => {}}
+                onUpload={async (base64, fileName, fileSize) => {
+                  const mimeTypeMatch = base64.match(/^data:([^;]+);base64,/);
+                  const mimeType = mimeTypeMatch?.[1] || "application/octet-stream";
+                  handleFileUploaded({
+                    fileKey: base64,
+                    fileUrl: base64,
+                    fileName,
+                    fileSize,
+                    mimeType,
+                  });
+                  return base64;
+                }}
+                onDelete={async () => {
+                  handleFileRemove();
+                }}
+                disabled={isPending}
+              />
+            </div>
+          )}
+
+          {currentType === "quiz" && (
+            <div className="rounded-lg border border-dashed p-4 text-center text-muted-foreground">
+              <p className="text-sm">{t("lessons.quiz.createFirst")}</p>
             </div>
           )}
 

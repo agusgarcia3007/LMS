@@ -20,7 +20,12 @@ export const userRoleEnum = pgEnum("user_role", [
   "student",
 ]);
 
-export const lessonTypeEnum = pgEnum("lesson_type", ["video", "text", "quiz"]);
+export const lessonTypeEnum = pgEnum("lesson_type", ["video", "file", "quiz"]);
+export const questionTypeEnum = pgEnum("question_type", [
+  "multiple_choice",
+  "multiple_select",
+  "true_false",
+]);
 export const lessonStatusEnum = pgEnum("lesson_status", ["draft", "published"]);
 export const moduleStatusEnum = pgEnum("module_status", ["draft", "published"]);
 export const courseLevelEnum = pgEnum("course_level", [
@@ -37,6 +42,7 @@ export const tenantThemeEnum = pgEnum("tenant_theme", [
   "tangerine",
   "ocean",
 ]);
+export const tenantModeEnum = pgEnum("tenant_mode", ["light", "dark", "auto"]);
 export const backgroundPatternEnum = pgEnum("background_pattern", [
   "none",
   "grid",
@@ -52,6 +58,7 @@ export const tenantsTable = pgTable(
     name: text("name").notNull(),
     logo: text("logo"),
     theme: tenantThemeEnum("theme").default("default"),
+    mode: tenantModeEnum("mode").default("auto"),
     customDomain: text("custom_domain").unique(),
     customHostnameId: text("custom_hostname_id"),
     railwayDomainId: text("railway_domain_id"),
@@ -135,6 +142,10 @@ export const lessonsTable = pgTable(
     type: lessonTypeEnum("type").notNull().default("video"),
     videoKey: text("video_key"),
     duration: integer("duration").notNull().default(0),
+    fileKey: text("file_key"),
+    fileName: text("file_name"),
+    fileSize: integer("file_size"),
+    mimeType: text("mime_type"),
     order: integer("order").notNull().default(0),
     isPreview: boolean("is_preview").notNull().default(false),
     status: lessonStatusEnum("status").notNull().default("draft"),
@@ -332,6 +343,51 @@ export const cartItemsTable = pgTable(
   ]
 );
 
+export const quizQuestionsTable = pgTable(
+  "quiz_questions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    lessonId: uuid("lesson_id")
+      .notNull()
+      .references(() => lessonsTable.id, { onDelete: "cascade" }),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenantsTable.id, { onDelete: "cascade" }),
+    type: questionTypeEnum("type").notNull(),
+    questionText: text("question_text").notNull(),
+    explanation: text("explanation"),
+    order: integer("order").notNull().default(0),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at")
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (table) => [
+    index("quiz_questions_lesson_id_idx").on(table.lessonId),
+    index("quiz_questions_tenant_id_idx").on(table.tenantId),
+    index("quiz_questions_order_idx").on(table.lessonId, table.order),
+  ]
+);
+
+export const quizOptionsTable = pgTable(
+  "quiz_options",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    questionId: uuid("question_id")
+      .notNull()
+      .references(() => quizQuestionsTable.id, { onDelete: "cascade" }),
+    optionText: text("option_text").notNull(),
+    isCorrect: boolean("is_correct").notNull().default(false),
+    order: integer("order").notNull().default(0),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (table) => [
+    index("quiz_options_question_id_idx").on(table.questionId),
+    index("quiz_options_order_idx").on(table.questionId, table.order),
+  ]
+);
+
 // Type exports
 export type InsertTenant = typeof tenantsTable.$inferInsert;
 export type SelectTenant = typeof tenantsTable.$inferSelect;
@@ -371,3 +427,10 @@ export type SelectCourseModule = typeof courseModulesTable.$inferSelect;
 
 export type InsertCartItem = typeof cartItemsTable.$inferInsert;
 export type SelectCartItem = typeof cartItemsTable.$inferSelect;
+
+export type InsertQuizQuestion = typeof quizQuestionsTable.$inferInsert;
+export type SelectQuizQuestion = typeof quizQuestionsTable.$inferSelect;
+export type QuestionType = (typeof questionTypeEnum.enumValues)[number];
+
+export type InsertQuizOption = typeof quizOptionsTable.$inferInsert;
+export type SelectQuizOption = typeof quizOptionsTable.$inferSelect;

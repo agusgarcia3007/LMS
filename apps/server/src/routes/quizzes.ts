@@ -1,0 +1,633 @@
+import { Elysia, t } from "elysia";
+import { authPlugin } from "@/plugins/auth";
+import { AppError, ErrorCode } from "@/lib/errors";
+import { withHandler } from "@/lib/handler";
+import { db } from "@/db";
+import {
+  lessonsTable,
+  quizQuestionsTable,
+  quizOptionsTable,
+  questionTypeEnum,
+} from "@/db/schema";
+import { eq, and, desc, asc } from "drizzle-orm";
+
+export const quizzesRoutes = new Elysia()
+  .use(authPlugin)
+  .get(
+    "/lessons/:lessonId/questions",
+    (ctx) =>
+      withHandler(ctx, async () => {
+        if (!ctx.user) {
+          throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
+        }
+
+        if (!ctx.user.tenantId) {
+          throw new AppError(ErrorCode.TENANT_NOT_FOUND, "User has no tenant", 404);
+        }
+
+        const [lesson] = await db
+          .select()
+          .from(lessonsTable)
+          .where(
+            and(
+              eq(lessonsTable.id, ctx.params.lessonId),
+              eq(lessonsTable.tenantId, ctx.user.tenantId)
+            )
+          )
+          .limit(1);
+
+        if (!lesson) {
+          throw new AppError(ErrorCode.NOT_FOUND, "Lesson not found", 404);
+        }
+
+        if (lesson.type !== "quiz") {
+          throw new AppError(ErrorCode.BAD_REQUEST, "Lesson is not a quiz", 400);
+        }
+
+        const questions = await db
+          .select()
+          .from(quizQuestionsTable)
+          .where(eq(quizQuestionsTable.lessonId, ctx.params.lessonId))
+          .orderBy(asc(quizQuestionsTable.order));
+
+        const questionIds = questions.map((q) => q.id);
+
+        const options =
+          questionIds.length > 0
+            ? await db
+                .select()
+                .from(quizOptionsTable)
+                .where(
+                  questionIds.length === 1
+                    ? eq(quizOptionsTable.questionId, questionIds[0])
+                    : eq(quizOptionsTable.questionId, questionIds[0])
+                )
+                .orderBy(asc(quizOptionsTable.order))
+            : [];
+
+        const allOptions =
+          questionIds.length > 1
+            ? await db
+                .select()
+                .from(quizOptionsTable)
+                .orderBy(asc(quizOptionsTable.order))
+            : options;
+
+        const optionsByQuestion = allOptions.reduce(
+          (acc, option) => {
+            if (!acc[option.questionId]) {
+              acc[option.questionId] = [];
+            }
+            acc[option.questionId].push(option);
+            return acc;
+          },
+          {} as Record<string, typeof allOptions>
+        );
+
+        const questionsWithOptions = questions.map((question) => ({
+          ...question,
+          options: (optionsByQuestion[question.id] || []).filter(
+            (o) => o.questionId === question.id
+          ),
+        }));
+
+        return { questions: questionsWithOptions };
+      }),
+    {
+      params: t.Object({
+        lessonId: t.String({ format: "uuid" }),
+      }),
+      detail: {
+        tags: ["Quizzes"],
+        summary: "Get all questions for a quiz lesson",
+      },
+    }
+  )
+  .post(
+    "/lessons/:lessonId/questions",
+    (ctx) =>
+      withHandler(ctx, async () => {
+        if (!ctx.user) {
+          throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
+        }
+
+        if (!ctx.user.tenantId) {
+          throw new AppError(ErrorCode.TENANT_NOT_FOUND, "User has no tenant", 404);
+        }
+
+        const canManage =
+          ctx.userRole === "owner" ||
+          ctx.userRole === "admin" ||
+          ctx.userRole === "superadmin";
+
+        if (!canManage) {
+          throw new AppError(
+            ErrorCode.FORBIDDEN,
+            "Only owners and admins can create questions",
+            403
+          );
+        }
+
+        const [lesson] = await db
+          .select()
+          .from(lessonsTable)
+          .where(
+            and(
+              eq(lessonsTable.id, ctx.params.lessonId),
+              eq(lessonsTable.tenantId, ctx.user.tenantId)
+            )
+          )
+          .limit(1);
+
+        if (!lesson) {
+          throw new AppError(ErrorCode.NOT_FOUND, "Lesson not found", 404);
+        }
+
+        if (lesson.type !== "quiz") {
+          throw new AppError(ErrorCode.BAD_REQUEST, "Lesson is not a quiz", 400);
+        }
+
+        const [maxOrder] = await db
+          .select({ maxOrder: quizQuestionsTable.order })
+          .from(quizQuestionsTable)
+          .where(eq(quizQuestionsTable.lessonId, ctx.params.lessonId))
+          .orderBy(desc(quizQuestionsTable.order))
+          .limit(1);
+
+        const nextOrder = (maxOrder?.maxOrder ?? -1) + 1;
+
+        const [question] = await db
+          .insert(quizQuestionsTable)
+          .values({
+            lessonId: ctx.params.lessonId,
+            tenantId: ctx.user.tenantId,
+            type: ctx.body.type,
+            questionText: ctx.body.questionText,
+            explanation: ctx.body.explanation,
+            order: nextOrder,
+          })
+          .returning();
+
+        let options: typeof quizOptionsTable.$inferSelect[] = [];
+
+        if (ctx.body.options && ctx.body.options.length > 0) {
+          options = await db
+            .insert(quizOptionsTable)
+            .values(
+              ctx.body.options.map((opt, index) => ({
+                questionId: question.id,
+                optionText: opt.optionText,
+                isCorrect: opt.isCorrect,
+                order: index,
+              }))
+            )
+            .returning();
+        }
+
+        return { question: { ...question, options } };
+      }),
+    {
+      params: t.Object({
+        lessonId: t.String({ format: "uuid" }),
+      }),
+      body: t.Object({
+        type: t.Enum(
+          Object.fromEntries(questionTypeEnum.enumValues.map((v) => [v, v]))
+        ),
+        questionText: t.String({ minLength: 1 }),
+        explanation: t.Optional(t.String()),
+        options: t.Optional(
+          t.Array(
+            t.Object({
+              optionText: t.String({ minLength: 1 }),
+              isCorrect: t.Boolean(),
+            })
+          )
+        ),
+      }),
+      detail: {
+        tags: ["Quizzes"],
+        summary: "Create a question for a quiz lesson",
+      },
+    }
+  )
+  .put(
+    "/questions/:id",
+    (ctx) =>
+      withHandler(ctx, async () => {
+        if (!ctx.user) {
+          throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
+        }
+
+        if (!ctx.user.tenantId) {
+          throw new AppError(ErrorCode.TENANT_NOT_FOUND, "User has no tenant", 404);
+        }
+
+        const canManage =
+          ctx.userRole === "owner" ||
+          ctx.userRole === "admin" ||
+          ctx.userRole === "superadmin";
+
+        if (!canManage) {
+          throw new AppError(
+            ErrorCode.FORBIDDEN,
+            "Only owners and admins can update questions",
+            403
+          );
+        }
+
+        const [existingQuestion] = await db
+          .select()
+          .from(quizQuestionsTable)
+          .where(
+            and(
+              eq(quizQuestionsTable.id, ctx.params.id),
+              eq(quizQuestionsTable.tenantId, ctx.user.tenantId)
+            )
+          )
+          .limit(1);
+
+        if (!existingQuestion) {
+          throw new AppError(ErrorCode.NOT_FOUND, "Question not found", 404);
+        }
+
+        const updateData: Partial<typeof quizQuestionsTable.$inferInsert> = {};
+        if (ctx.body.type !== undefined) updateData.type = ctx.body.type;
+        if (ctx.body.questionText !== undefined)
+          updateData.questionText = ctx.body.questionText;
+        if (ctx.body.explanation !== undefined)
+          updateData.explanation = ctx.body.explanation;
+        if (ctx.body.order !== undefined) updateData.order = ctx.body.order;
+
+        const [updatedQuestion] = await db
+          .update(quizQuestionsTable)
+          .set(updateData)
+          .where(eq(quizQuestionsTable.id, ctx.params.id))
+          .returning();
+
+        const options = await db
+          .select()
+          .from(quizOptionsTable)
+          .where(eq(quizOptionsTable.questionId, ctx.params.id))
+          .orderBy(asc(quizOptionsTable.order));
+
+        return { question: { ...updatedQuestion, options } };
+      }),
+    {
+      params: t.Object({
+        id: t.String({ format: "uuid" }),
+      }),
+      body: t.Object({
+        type: t.Optional(
+          t.Enum(
+            Object.fromEntries(questionTypeEnum.enumValues.map((v) => [v, v]))
+          )
+        ),
+        questionText: t.Optional(t.String({ minLength: 1 })),
+        explanation: t.Optional(t.Union([t.String(), t.Null()])),
+        order: t.Optional(t.Number({ minimum: 0 })),
+      }),
+      detail: {
+        tags: ["Quizzes"],
+        summary: "Update a question",
+      },
+    }
+  )
+  .delete(
+    "/questions/:id",
+    (ctx) =>
+      withHandler(ctx, async () => {
+        if (!ctx.user) {
+          throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
+        }
+
+        if (!ctx.user.tenantId) {
+          throw new AppError(ErrorCode.TENANT_NOT_FOUND, "User has no tenant", 404);
+        }
+
+        const canManage =
+          ctx.userRole === "owner" ||
+          ctx.userRole === "admin" ||
+          ctx.userRole === "superadmin";
+
+        if (!canManage) {
+          throw new AppError(
+            ErrorCode.FORBIDDEN,
+            "Only owners and admins can delete questions",
+            403
+          );
+        }
+
+        const [existingQuestion] = await db
+          .select()
+          .from(quizQuestionsTable)
+          .where(
+            and(
+              eq(quizQuestionsTable.id, ctx.params.id),
+              eq(quizQuestionsTable.tenantId, ctx.user.tenantId)
+            )
+          )
+          .limit(1);
+
+        if (!existingQuestion) {
+          throw new AppError(ErrorCode.NOT_FOUND, "Question not found", 404);
+        }
+
+        await db
+          .delete(quizQuestionsTable)
+          .where(eq(quizQuestionsTable.id, ctx.params.id));
+
+        return { success: true };
+      }),
+    {
+      params: t.Object({
+        id: t.String({ format: "uuid" }),
+      }),
+      detail: {
+        tags: ["Quizzes"],
+        summary: "Delete a question",
+      },
+    }
+  )
+  .put(
+    "/lessons/:lessonId/questions/reorder",
+    (ctx) =>
+      withHandler(ctx, async () => {
+        if (!ctx.user) {
+          throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
+        }
+
+        if (!ctx.user.tenantId) {
+          throw new AppError(ErrorCode.TENANT_NOT_FOUND, "User has no tenant", 404);
+        }
+
+        const canManage =
+          ctx.userRole === "owner" ||
+          ctx.userRole === "admin" ||
+          ctx.userRole === "superadmin";
+
+        if (!canManage) {
+          throw new AppError(
+            ErrorCode.FORBIDDEN,
+            "Only owners and admins can reorder questions",
+            403
+          );
+        }
+
+        const [lesson] = await db
+          .select()
+          .from(lessonsTable)
+          .where(
+            and(
+              eq(lessonsTable.id, ctx.params.lessonId),
+              eq(lessonsTable.tenantId, ctx.user.tenantId)
+            )
+          )
+          .limit(1);
+
+        if (!lesson) {
+          throw new AppError(ErrorCode.NOT_FOUND, "Lesson not found", 404);
+        }
+
+        await Promise.all(
+          ctx.body.questionIds.map((questionId, index) =>
+            db
+              .update(quizQuestionsTable)
+              .set({ order: index })
+              .where(
+                and(
+                  eq(quizQuestionsTable.id, questionId),
+                  eq(quizQuestionsTable.lessonId, ctx.params.lessonId)
+                )
+              )
+          )
+        );
+
+        return { success: true };
+      }),
+    {
+      params: t.Object({
+        lessonId: t.String({ format: "uuid" }),
+      }),
+      body: t.Object({
+        questionIds: t.Array(t.String({ format: "uuid" })),
+      }),
+      detail: {
+        tags: ["Quizzes"],
+        summary: "Reorder questions in a quiz",
+      },
+    }
+  )
+  .post(
+    "/questions/:questionId/options",
+    (ctx) =>
+      withHandler(ctx, async () => {
+        if (!ctx.user) {
+          throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
+        }
+
+        if (!ctx.user.tenantId) {
+          throw new AppError(ErrorCode.TENANT_NOT_FOUND, "User has no tenant", 404);
+        }
+
+        const canManage =
+          ctx.userRole === "owner" ||
+          ctx.userRole === "admin" ||
+          ctx.userRole === "superadmin";
+
+        if (!canManage) {
+          throw new AppError(
+            ErrorCode.FORBIDDEN,
+            "Only owners and admins can add options",
+            403
+          );
+        }
+
+        const [question] = await db
+          .select()
+          .from(quizQuestionsTable)
+          .where(
+            and(
+              eq(quizQuestionsTable.id, ctx.params.questionId),
+              eq(quizQuestionsTable.tenantId, ctx.user.tenantId)
+            )
+          )
+          .limit(1);
+
+        if (!question) {
+          throw new AppError(ErrorCode.NOT_FOUND, "Question not found", 404);
+        }
+
+        const [maxOrder] = await db
+          .select({ maxOrder: quizOptionsTable.order })
+          .from(quizOptionsTable)
+          .where(eq(quizOptionsTable.questionId, ctx.params.questionId))
+          .orderBy(desc(quizOptionsTable.order))
+          .limit(1);
+
+        const nextOrder = (maxOrder?.maxOrder ?? -1) + 1;
+
+        const [option] = await db
+          .insert(quizOptionsTable)
+          .values({
+            questionId: ctx.params.questionId,
+            optionText: ctx.body.optionText,
+            isCorrect: ctx.body.isCorrect,
+            order: nextOrder,
+          })
+          .returning();
+
+        return { option };
+      }),
+    {
+      params: t.Object({
+        questionId: t.String({ format: "uuid" }),
+      }),
+      body: t.Object({
+        optionText: t.String({ minLength: 1 }),
+        isCorrect: t.Boolean(),
+      }),
+      detail: {
+        tags: ["Quizzes"],
+        summary: "Add option to a question",
+      },
+    }
+  )
+  .put(
+    "/options/:id",
+    (ctx) =>
+      withHandler(ctx, async () => {
+        if (!ctx.user) {
+          throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
+        }
+
+        if (!ctx.user.tenantId) {
+          throw new AppError(ErrorCode.TENANT_NOT_FOUND, "User has no tenant", 404);
+        }
+
+        const canManage =
+          ctx.userRole === "owner" ||
+          ctx.userRole === "admin" ||
+          ctx.userRole === "superadmin";
+
+        if (!canManage) {
+          throw new AppError(
+            ErrorCode.FORBIDDEN,
+            "Only owners and admins can update options",
+            403
+          );
+        }
+
+        const [existingOption] = await db
+          .select({
+            option: quizOptionsTable,
+            question: quizQuestionsTable,
+          })
+          .from(quizOptionsTable)
+          .innerJoin(
+            quizQuestionsTable,
+            eq(quizOptionsTable.questionId, quizQuestionsTable.id)
+          )
+          .where(eq(quizOptionsTable.id, ctx.params.id))
+          .limit(1);
+
+        if (!existingOption) {
+          throw new AppError(ErrorCode.NOT_FOUND, "Option not found", 404);
+        }
+
+        if (existingOption.question.tenantId !== ctx.user.tenantId) {
+          throw new AppError(ErrorCode.FORBIDDEN, "Access denied", 403);
+        }
+
+        const updateData: Partial<typeof quizOptionsTable.$inferInsert> = {};
+        if (ctx.body.optionText !== undefined)
+          updateData.optionText = ctx.body.optionText;
+        if (ctx.body.isCorrect !== undefined)
+          updateData.isCorrect = ctx.body.isCorrect;
+        if (ctx.body.order !== undefined) updateData.order = ctx.body.order;
+
+        const [updatedOption] = await db
+          .update(quizOptionsTable)
+          .set(updateData)
+          .where(eq(quizOptionsTable.id, ctx.params.id))
+          .returning();
+
+        return { option: updatedOption };
+      }),
+    {
+      params: t.Object({
+        id: t.String({ format: "uuid" }),
+      }),
+      body: t.Object({
+        optionText: t.Optional(t.String({ minLength: 1 })),
+        isCorrect: t.Optional(t.Boolean()),
+        order: t.Optional(t.Number({ minimum: 0 })),
+      }),
+      detail: {
+        tags: ["Quizzes"],
+        summary: "Update an option",
+      },
+    }
+  )
+  .delete(
+    "/options/:id",
+    (ctx) =>
+      withHandler(ctx, async () => {
+        if (!ctx.user) {
+          throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
+        }
+
+        if (!ctx.user.tenantId) {
+          throw new AppError(ErrorCode.TENANT_NOT_FOUND, "User has no tenant", 404);
+        }
+
+        const canManage =
+          ctx.userRole === "owner" ||
+          ctx.userRole === "admin" ||
+          ctx.userRole === "superadmin";
+
+        if (!canManage) {
+          throw new AppError(
+            ErrorCode.FORBIDDEN,
+            "Only owners and admins can delete options",
+            403
+          );
+        }
+
+        const [existingOption] = await db
+          .select({
+            option: quizOptionsTable,
+            question: quizQuestionsTable,
+          })
+          .from(quizOptionsTable)
+          .innerJoin(
+            quizQuestionsTable,
+            eq(quizOptionsTable.questionId, quizQuestionsTable.id)
+          )
+          .where(eq(quizOptionsTable.id, ctx.params.id))
+          .limit(1);
+
+        if (!existingOption) {
+          throw new AppError(ErrorCode.NOT_FOUND, "Option not found", 404);
+        }
+
+        if (existingOption.question.tenantId !== ctx.user.tenantId) {
+          throw new AppError(ErrorCode.FORBIDDEN, "Access denied", 403);
+        }
+
+        await db
+          .delete(quizOptionsTable)
+          .where(eq(quizOptionsTable.id, ctx.params.id));
+
+        return { success: true };
+      }),
+    {
+      params: t.Object({
+        id: t.String({ format: "uuid" }),
+      }),
+      detail: {
+        tags: ["Quizzes"],
+        summary: "Delete an option",
+      },
+    }
+  );

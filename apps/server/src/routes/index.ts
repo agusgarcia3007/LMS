@@ -8,6 +8,7 @@ import { instructorsRoutes } from "./instructors";
 import { lessonsRoutes } from "./lessons";
 import { modulesRoutes } from "./modules";
 import { profileRoutes } from "./profile";
+import { quizzesRoutes } from "./quizzes";
 import { tenantsRoutes } from "./tenants";
 import { usersRoutes } from "./users";
 
@@ -22,6 +23,7 @@ export const ROUTES = [
   { path: "/lessons", name: "lessons-routes", route: lessonsRoutes },
   { path: "/modules", name: "modules-routes", route: modulesRoutes },
   { path: "/profile", name: "profile-routes", route: profileRoutes },
+  { path: "/quizzes", name: "quizzes-routes", route: quizzesRoutes },
   { path: "/tenants", name: "tenants-routes", route: tenantsRoutes },
   { path: "/users", name: "users-routes", route: usersRoutes },
 ];

@@ -6,6 +6,8 @@ import {
   uploadVideoOptions,
   uploadLessonVideoOptions,
   deleteLessonVideoOptions,
+  uploadLessonFileOptions,
+  deleteLessonFileOptions,
 } from "./options";
 
 export const useCreateLesson = () => useMutation(createLessonOptions());
@@ -19,3 +21,7 @@ export const useUploadVideo = () => useMutation(uploadVideoOptions());
 export const useUploadLessonVideo = () => useMutation(uploadLessonVideoOptions());
 
 export const useDeleteLessonVideo = () => useMutation(deleteLessonVideoOptions());
+
+export const useUploadLessonFile = () => useMutation(uploadLessonFileOptions());
+
+export const useDeleteLessonFile = () => useMutation(deleteLessonFileOptions());

@@ -24,7 +24,11 @@
     "dragOrClick": "Arrastra o haz clic para seleccionar",
     "maxFileSize": "Max {{size}}",
     "videoFormats": "MP4, WebM, MOV (max {{size}})",
-    "add": "Agregar"
+    "add": "Agregar",
+    "view": "Ver",
+    "loading": "Cargando...",
+    "true": "Verdadero",
+    "false": "Falso"
   },
   "dataTable": {
     "search": "Buscar...",
@@ -674,7 +678,7 @@
     "preview": "Vista previa",
     "types": {
       "video": "Video",
-      "text": "Texto",
+      "file": "Archivo",
       "quiz": "Quiz"
     },
     "statuses": {
@@ -704,6 +708,7 @@
       "status": "Estado",
       "isPreview": "Clase de vista previa",
       "video": "Video",
+      "file": "Archivo",
       "publish": "Publicar",
       "publishDescription": "La clase estara disponible para los estudiantes"
     },
@@ -739,6 +744,15 @@
       "uploadingToServer": "Subiendo al servidor",
       "uploadSuccess": "Video subido correctamente",
       "deleteSuccess": "Video eliminado correctamente"
+    },
+    "file": {
+      "formats": "PDF, Word, Excel, PowerPoint (max {{size}})",
+      "uploadSuccess": "Archivo subido correctamente",
+      "deleteSuccess": "Archivo eliminado correctamente",
+      "unknown": "Archivo"
+    },
+    "quiz": {
+      "createFirst": "Guarda la clase primero, luego podras configurar el quiz desde la lista de clases."
     }
   },
   "modules": {
@@ -1060,5 +1074,84 @@
     "total": "Total",
     "items": "{{count}} curso",
     "items_other": "{{count}} cursos"
+  },
+  "quizzes": {
+    "title": "Quiz",
+    "description": "Configura las preguntas del quiz",
+    "empty": {
+      "title": "Sin preguntas",
+      "description": "Agrega preguntas para crear tu quiz"
+    },
+    "types": {
+      "multiple_choice": "Opcion multiple",
+      "multiple_select": "Seleccion multiple",
+      "true_false": "Verdadero/Falso"
+    },
+    "question": {
+      "title": "Pregunta",
+      "titlePlaceholder": "Escribe tu pregunta aqui...",
+      "type": "Tipo de pregunta",
+      "points": "Puntos",
+      "options": "Opciones",
+      "correctAnswer": "Respuesta correcta",
+      "addOption": "Agregar opcion",
+      "optionPlaceholder": "Opcion {{number}}",
+      "markCorrect": "Marcar como correcta",
+      "delete": "Eliminar pregunta",
+      "edit": "Editar pregunta",
+      "moveUp": "Mover arriba",
+      "moveDown": "Mover abajo"
+    },
+    "option": {
+      "placeholder": "Escribe una opcion...",
+      "isCorrect": "Correcta",
+      "delete": "Eliminar opcion"
+    },
+    "create": {
+      "title": "Nueva pregunta",
+      "description": "Agrega una nueva pregunta al quiz",
+      "button": "Nueva pregunta",
+      "success": "Pregunta creada correctamente"
+    },
+    "edit": {
+      "title": "Editar pregunta",
+      "description": "Modifica la pregunta",
+      "success": "Pregunta actualizada correctamente"
+    },
+    "delete": {
+      "title": "Eliminar pregunta",
+      "description": "¿Estas seguro de que deseas eliminar esta pregunta?",
+      "success": "Pregunta eliminada correctamente"
+    },
+    "player": {
+      "title": "Quiz",
+      "question": "Pregunta {{current}} de {{total}}",
+      "selectAnswer": "Selecciona una respuesta",
+      "selectAnswers": "Selecciona una o mas respuestas",
+      "submit": "Enviar respuestas",
+      "next": "Siguiente",
+      "previous": "Anterior",
+      "finish": "Finalizar",
+      "results": {
+        "title": "Resultados",
+        "score": "Tu puntuacion",
+        "correct": "{{count}} correctas",
+        "incorrect": "{{count}} incorrectas",
+        "retry": "Reintentar",
+        "continue": "Continuar"
+      },
+      "review": {
+        "title": "Revision",
+        "yourAnswer": "Tu respuesta",
+        "correctAnswer": "Respuesta correcta",
+        "correct": "Correcto",
+        "incorrect": "Incorrecto"
+      }
+    },
+    "validation": {
+      "questionRequired": "La pregunta es requerida",
+      "optionsRequired": "Se requieren al menos 2 opciones",
+      "correctAnswerRequired": "Debes marcar al menos una respuesta correcta"
+    }
   }
 }
