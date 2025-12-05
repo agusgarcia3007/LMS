@@ -59,6 +59,7 @@ import {
   useGetCourse,
   useCreateCourse,
   useUpdateCourse,
+  useUpdateCourseModules,
   useUploadThumbnail,
   useDeleteThumbnail,
   useUploadVideo,
@@ -116,7 +117,7 @@ function ModuleCardContent({ module }: { module: Module }) {
       <div className="flex items-center gap-2">
         <Badge variant="secondary" size="sm" className="gap-1">
           <Layers className="size-3" />
-          {module.lessonsCount} {t("modules.lessonsLabel")}
+          {module.itemsCount} {t("modules.itemsLabel")}
         </Badge>
       </div>
     </div>
@@ -214,6 +215,7 @@ export function CourseEditor({
   const [pendingModules, setPendingModules] = useState<
     { moduleId: string; order: number }[]
   >([]);
+  const [modulesLoaded, setModulesLoaded] = useState(false);
 
   const { data: courseData } = useGetCourse(course?.id ?? "", {
     enabled: open && isEditing,
@@ -225,6 +227,7 @@ export function CourseEditor({
 
   const createMutation = useCreateCourse();
   const updateMutation = useUpdateCourse();
+  const updateModulesMutation = useUpdateCourseModules();
   const uploadThumbnailMutation = useUploadThumbnail();
   const deleteThumbnailMutation = useDeleteThumbnail();
   const uploadVideoMutation = useUploadVideo();
@@ -257,6 +260,7 @@ export function CourseEditor({
     if (open) {
       setCurrentStep(1);
       setPendingModules([]);
+      setModulesLoaded(false);
       if (course) {
         form.reset({
           title: course.title,
@@ -330,6 +334,12 @@ export function CourseEditor({
       ];
 
       setKanbanData(items);
+      setPendingModules(
+        courseData.course.modules
+          .sort((a, b) => a.order - b.order)
+          .map((cm, index) => ({ moduleId: cm.moduleId, order: index }))
+      );
+      setModulesLoaded(true);
     } else if (!isEditing) {
       const items: KanbanItem[] = modulesData.modules.map((m) => ({
         id: m.id,
@@ -338,6 +348,7 @@ export function CourseEditor({
         module: m,
       }));
       setKanbanData(items);
+      setModulesLoaded(true);
     }
   }, [courseData, modulesData, open, isEditing]);
 
@@ -373,17 +384,36 @@ export function CourseEditor({
       features: data.features?.length ? data.features : undefined,
       requirements: data.requirements?.length ? data.requirements : undefined,
       objectives: data.objectives?.length ? data.objectives : undefined,
-      modules: pendingModules,
     };
 
     if (isEditing && course) {
       updateMutation.mutate(
         { id: course.id, ...payload },
-        { onSuccess: () => onOpenChange(false) }
+        {
+          onSuccess: () => {
+            if (modulesLoaded) {
+              updateModulesMutation.mutate(
+                { id: course.id, modules: pendingModules },
+                { onSuccess: () => onOpenChange(false) }
+              );
+            } else {
+              onOpenChange(false);
+            }
+          },
+        }
       );
     } else {
       createMutation.mutate(payload, {
-        onSuccess: () => onOpenChange(false),
+        onSuccess: (result) => {
+          if (modulesLoaded && pendingModules.length > 0) {
+            updateModulesMutation.mutate(
+              { id: result.course.id, modules: pendingModules },
+              { onSuccess: () => onOpenChange(false) }
+            );
+          } else {
+            onOpenChange(false);
+          }
+        },
       });
     }
   };
@@ -451,7 +481,7 @@ export function CourseEditor({
   ).length;
   const courseCount = kanbanData.filter((i) => i.column === "course").length;
 
-  const isPending = createMutation.isPending || updateMutation.isPending;
+  const isPending = createMutation.isPending || updateMutation.isPending || updateModulesMutation.isPending;
 
   const canGoNext = () => {
     if (currentStep === 1) {
