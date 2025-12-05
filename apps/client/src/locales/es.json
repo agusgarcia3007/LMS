@@ -809,10 +809,17 @@
       "createFirst": "Guarda la clase primero, luego podras configurar el quiz desde la lista de clases."
     }
   },
+  "content": {
+    "types": {
+      "video": "Video",
+      "document": "Documento",
+      "quiz": "Quiz"
+    }
+  },
   "modules": {
     "title": "Modulos",
     "description": "Gestiona tus modulos de contenido reutilizables",
-    "lessonsLabel": "clases",
+    "itemsLabel": "items",
     "manageLessons": "Gestionar clases",
     "statuses": {
       "draft": "Borrador",
@@ -820,7 +827,7 @@
     },
     "columns": {
       "title": "Titulo",
-      "lessons": "Clases",
+      "items": "Items",
       "status": "Estado",
       "createdAt": "Fecha de creacion"
     },
@@ -860,7 +867,9 @@
       "title": "Editor de Modulo",
       "description": "Arrastra clases para agregar o quitar de \"{{name}}\"",
       "availableLessons": "Clases Disponibles",
-      "moduleLessons": "Clases del Modulo"
+      "moduleLessons": "Clases del Modulo",
+      "availableContent": "Contenido Disponible",
+      "moduleContent": "Contenido del Modulo"
     },
     "lessons": {
       "updateError": "Error al actualizar las clases del modulo"

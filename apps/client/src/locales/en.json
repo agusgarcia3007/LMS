@@ -726,6 +726,13 @@
       }
     }
   },
+  "content": {
+    "types": {
+      "video": "Video",
+      "document": "Document",
+      "quiz": "Quiz"
+    }
+  },
   "lessons": {
     "title": "Classes",
     "description": "Manage your platform classes",
@@ -812,7 +819,7 @@
   "modules": {
     "title": "Modules",
     "description": "Manage your reusable content modules",
-    "lessonsLabel": "lessons",
+    "itemsLabel": "items",
     "manageLessons": "Manage lessons",
     "statuses": {
       "draft": "Draft",
@@ -820,7 +827,7 @@
     },
     "columns": {
       "title": "Title",
-      "lessons": "Lessons",
+      "items": "Items",
       "status": "Status",
       "createdAt": "Created at"
     },
@@ -860,7 +867,9 @@
       "title": "Module Editor",
       "description": "Drag classes to add or remove them from \"{{name}}\"",
       "availableLessons": "Available Classes",
-      "moduleLessons": "Module Classes"
+      "moduleLessons": "Module Classes",
+      "availableContent": "Available Content",
+      "moduleContent": "Module Content"
     },
     "lessons": {
       "updateError": "Failed to update module lessons"

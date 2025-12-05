@@ -122,24 +122,24 @@ function ModulesPage() {
         },
       },
       {
-        accessorKey: "lessonsCount",
-        id: "lessonsCount",
+        accessorKey: "itemsCount",
+        id: "itemsCount",
         header: ({ column }) => (
           <DataGridColumnHeader
-            title={t("modules.columns.lessons")}
+            title={t("modules.columns.items")}
             column={column}
           />
         ),
         cell: ({ row }) => (
           <Badge variant="secondary" size="sm" className="gap-1">
             <Layers className="size-3" />
-            {row.original.lessonsCount} {t("modules.lessonsLabel")}
+            {row.original.itemsCount} {t("modules.itemsLabel")}
           </Badge>
         ),
         size: 120,
         enableSorting: false,
         meta: {
-          headerTitle: t("modules.columns.lessons"),
+          headerTitle: t("modules.columns.items"),
           skeleton: <Skeleton className="h-5 w-20" />,
         },
       },

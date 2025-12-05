@@ -726,6 +726,13 @@
       }
     }
   },
+  "content": {
+    "types": {
+      "video": "Video",
+      "document": "Documento",
+      "quiz": "Quiz"
+    }
+  },
   "lessons": {
     "title": "Aulas",
     "description": "Gerencie as aulas da sua plataforma",
@@ -812,7 +819,7 @@
   "modules": {
     "title": "Modulos",
     "description": "Gerencie seus modulos de conteudo reutilizaveis",
-    "lessonsLabel": "aulas",
+    "itemsLabel": "itens",
     "manageLessons": "Gerenciar aulas",
     "statuses": {
       "draft": "Rascunho",
@@ -820,7 +827,7 @@
     },
     "columns": {
       "title": "Titulo",
-      "lessons": "Aulas",
+      "items": "Itens",
       "status": "Status",
       "createdAt": "Data de criacao"
     },
@@ -860,7 +867,9 @@
       "title": "Editor de Modulo",
       "description": "Arraste aulas para adicionar ou remover de \"{{name}}\"",
       "availableLessons": "Aulas Disponiveis",
-      "moduleLessons": "Aulas do Modulo"
+      "moduleLessons": "Aulas do Modulo",
+      "availableContent": "Conteudo Disponivel",
+      "moduleContent": "Conteudo do Modulo"
     },
     "lessons": {
       "updateError": "Erro ao atualizar as aulas do modulo"
