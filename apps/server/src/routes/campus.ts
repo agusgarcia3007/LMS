@@ -8,7 +8,7 @@ import {
   coursesTable,
   courseModulesTable,
   modulesTable,
-  moduleLessonsTable,
+  moduleItemsTable,
   categoriesTable,
   instructorsTable,
   tenantsTable,
@@ -291,30 +291,30 @@ export const campusRoutes = new Elysia({ name: "campus" })
 
       const moduleIds = courseModules.map((cm) => cm.moduleId);
 
-      const lessonsCounts =
+      const itemsCounts =
         moduleIds.length > 0
           ? await db
               .select({
-                moduleId: moduleLessonsTable.moduleId,
+                moduleId: moduleItemsTable.moduleId,
                 count: count(),
               })
-              .from(moduleLessonsTable)
-              .groupBy(moduleLessonsTable.moduleId)
+              .from(moduleItemsTable)
+              .groupBy(moduleItemsTable.moduleId)
           : [];
 
-      const lessonsCountMap = new Map(
-        lessonsCounts.map((lc) => [lc.moduleId, lc.count])
+      const itemsCountMap = new Map(
+        itemsCounts.map((ic) => [ic.moduleId, ic.count])
       );
 
       const modules = courseModules.map((cm) => ({
         id: cm.module.id,
         title: cm.module.title,
         description: cm.module.description,
-        lessonsCount: lessonsCountMap.get(cm.moduleId) ?? 0,
+        itemsCount: itemsCountMap.get(cm.moduleId) ?? 0,
         order: cm.order,
       }));
 
-      const totalLessons = modules.reduce((acc, m) => acc + m.lessonsCount, 0);
+      const totalItems = modules.reduce((acc, m) => acc + m.itemsCount, 0);
 
       return {
         course: {
@@ -335,7 +335,7 @@ export const campusRoutes = new Elysia({ name: "campus" })
           requirements: course.requirements || [],
           objectives: course.objectives || [],
           modulesCount: modules.length,
-          lessonsCount: totalLessons,
+          itemsCount: totalItems,
           studentsCount: 0,
           rating: 0,
           reviewsCount: 0,

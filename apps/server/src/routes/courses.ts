@@ -7,8 +7,7 @@ import {
   coursesTable,
   courseModulesTable,
   modulesTable,
-  moduleLessonsTable,
-  lessonsTable,
+  moduleItemsTable,
   instructorsTable,
   categoriesTable,
   courseLevelEnum,
@@ -228,27 +227,27 @@ export const coursesRoutes = new Elysia()
 
         const moduleIds = courseModules.map((cm) => cm.moduleId);
 
-        const lessonsCounts =
+        const itemsCounts =
           moduleIds.length > 0
             ? await db
                 .select({
-                  moduleId: moduleLessonsTable.moduleId,
+                  moduleId: moduleItemsTable.moduleId,
                   count: count(),
                 })
-                .from(moduleLessonsTable)
-                .where(inArray(moduleLessonsTable.moduleId, moduleIds))
-                .groupBy(moduleLessonsTable.moduleId)
+                .from(moduleItemsTable)
+                .where(inArray(moduleItemsTable.moduleId, moduleIds))
+                .groupBy(moduleItemsTable.moduleId)
             : [];
 
-        const lessonsCountMap = new Map(
-          lessonsCounts.map((lc) => [lc.moduleId, lc.count])
+        const itemsCountMap = new Map(
+          itemsCounts.map((ic) => [ic.moduleId, ic.count])
         );
 
-        const modulesWithLessonsCount = courseModules.map((cm) => ({
+        const modulesWithItemsCount = courseModules.map((cm) => ({
           ...cm,
           module: {
             ...cm.module,
-            lessonsCount: lessonsCountMap.get(cm.moduleId) ?? 0,
+            itemsCount: itemsCountMap.get(cm.moduleId) ?? 0,
           },
         }));
 
@@ -257,7 +256,7 @@ export const coursesRoutes = new Elysia()
             ...result.course,
             instructor: result.instructor,
             category: result.category,
-            modules: modulesWithLessonsCount,
+            modules: modulesWithItemsCount,
             modulesCount: courseModules.length,
           },
         };

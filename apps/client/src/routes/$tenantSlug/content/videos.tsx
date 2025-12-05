@@ -106,6 +106,7 @@ function VideosPage() {
   const [deleteVideo, setDeleteVideo] = useState<VideoType | null>(null);
   const [pendingVideoKey, setPendingVideoKey] = useState<string | null>(null);
   const [pendingVideoUrl, setPendingVideoUrl] = useState<string | null>(null);
+  const [pendingDuration, setPendingDuration] = useState<number>(0);
 
   const createMutation = useCreateVideo();
   const updateMutation = useUpdateVideo();
@@ -155,6 +156,7 @@ function VideosPage() {
       setEditVideo(null);
       setPendingVideoKey(null);
       setPendingVideoUrl(null);
+      setPendingDuration(0);
       form.reset();
     }
   }, [form]);
@@ -171,6 +173,7 @@ function VideosPage() {
           {
             ...values,
             videoKey: pendingVideoKey ?? undefined,
+            duration: pendingDuration,
           },
           {
             onSuccess: () => handleCloseEditor(false),
@@ -178,7 +181,7 @@ function VideosPage() {
         );
       }
     },
-    [editVideo, createMutation, updateMutation, handleCloseEditor, pendingVideoKey]
+    [editVideo, createMutation, updateMutation, handleCloseEditor, pendingVideoKey, pendingDuration]
   );
 
   const handleDelete = useCallback(() => {
@@ -189,11 +192,12 @@ function VideosPage() {
   }, [deleteVideo, deleteMutation]);
 
   const handleUploadVideo = useCallback(
-    async (base64: string) => {
+    async ({ base64, duration }: { base64: string; duration: number }) => {
       if (!editVideo) return "";
       const result = await uploadMutation.mutateAsync({
         id: editVideo.id,
         video: base64,
+        duration,
       });
       return result.video.videoUrl ?? "";
     },
@@ -206,10 +210,11 @@ function VideosPage() {
   }, [editVideo, deleteFileMutation]);
 
   const handleUploadVideoStandalone = useCallback(
-    async (base64: string) => {
+    async ({ base64, duration }: { base64: string; duration: number }) => {
       const result = await uploadStandaloneMutation.mutateAsync(base64);
       setPendingVideoKey(result.videoKey);
       setPendingVideoUrl(result.videoUrl);
+      setPendingDuration(duration);
       return result.videoUrl;
     },
     [uploadStandaloneMutation]
@@ -218,6 +223,7 @@ function VideosPage() {
   const handleDeletePendingVideo = useCallback(async () => {
     setPendingVideoKey(null);
     setPendingVideoUrl(null);
+    setPendingDuration(0);
   }, []);
 
   const isPending = createMutation.isPending || updateMutation.isPending;

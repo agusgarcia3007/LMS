@@ -6,7 +6,6 @@ import { categoriesRoutes } from "./categories";
 import { coursesRoutes } from "./courses";
 import { documentsRoutes } from "./documents";
 import { instructorsRoutes } from "./instructors";
-import { lessonsRoutes } from "./lessons";
 import { modulesRoutes } from "./modules";
 import { profileRoutes } from "./profile";
 import { quizzesRoutes } from "./quizzes";
@@ -23,7 +22,6 @@ export const ROUTES = [
   { path: "/courses", name: "courses-routes", route: coursesRoutes },
   { path: "/documents", name: "documents-routes", route: documentsRoutes },
   { path: "/instructors", name: "instructors-routes", route: instructorsRoutes },
-  { path: "/lessons", name: "lessons-routes", route: lessonsRoutes },
   { path: "/modules", name: "modules-routes", route: modulesRoutes },
   { path: "/profile", name: "profile-routes", route: profileRoutes },
   { path: "/quizzes", name: "quizzes-routes", route: quizzesRoutes },
