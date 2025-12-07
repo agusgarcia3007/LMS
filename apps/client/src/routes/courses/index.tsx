@@ -19,10 +19,9 @@ import {
 } from "@/components/ui/empty";
 import { Search, X, BookOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useSeo } from "@/hooks/use-seo";
 import { useTheme } from "@/components/ui/theme-provider";
 import type { BackgroundPattern } from "@/services/tenants/service";
-import { getServerTenantData } from "@/lib/server-data";
-import { seo } from "@/lib/seo";
 
 const PATTERN_CLASSES: Record<BackgroundPattern, string> = {
   none: "",
@@ -32,24 +31,6 @@ const PATTERN_CLASSES: Record<BackgroundPattern, string> = {
 };
 
 export const Route = createFileRoute("/courses/")({
-  loader: () => getServerTenantData(),
-  head: ({ loaderData }) => {
-    const tenant = loaderData?.tenant;
-    const title = tenant?.seoTitle
-      ? `Cursos | ${tenant.seoTitle}`
-      : tenant?.name
-        ? `Cursos | ${tenant.name}`
-        : "Cursos";
-
-    return {
-      meta: seo({
-        title,
-        description: tenant?.seoDescription,
-        image: tenant?.logo,
-        keywords: tenant?.seoKeywords,
-      }),
-    };
-  },
   component: CoursesPage,
 });
 
@@ -66,6 +47,16 @@ function CoursesPage() {
     search: search || undefined,
     category: selectedCategory || undefined,
     level: selectedLevel || undefined,
+  });
+
+  useSeo({
+    title: tenantData?.tenant?.seoTitle
+      ? `Cursos | ${tenantData.tenant.seoTitle}`
+      : tenantData?.tenant?.name
+        ? `Cursos | ${tenantData.tenant.name}`
+        : null,
+    description: tenantData?.tenant?.seoDescription,
+    keywords: tenantData?.tenant?.seoKeywords,
   });
 
   useEffect(() => {
