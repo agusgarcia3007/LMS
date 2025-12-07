@@ -12,8 +12,11 @@ import {
   categoriesTable,
   instructorsTable,
   tenantsTable,
+  videosTable,
+  documentsTable,
+  quizzesTable,
 } from "@/db/schema";
-import { eq, and, ilike, count, sql } from "drizzle-orm";
+import { eq, and, ilike, count, inArray } from "drizzle-orm";
 
 export const campusRoutes = new Elysia({ name: "campus" })
   .get(
@@ -291,28 +294,96 @@ export const campusRoutes = new Elysia({ name: "campus" })
 
       const moduleIds = courseModules.map((cm) => cm.moduleId);
 
-      const itemsCounts =
+      const moduleItems =
         moduleIds.length > 0
           ? await db
               .select({
+                id: moduleItemsTable.id,
                 moduleId: moduleItemsTable.moduleId,
-                count: count(),
+                contentType: moduleItemsTable.contentType,
+                contentId: moduleItemsTable.contentId,
+                order: moduleItemsTable.order,
+                isPreview: moduleItemsTable.isPreview,
               })
               .from(moduleItemsTable)
-              .groupBy(moduleItemsTable.moduleId)
+              .where(inArray(moduleItemsTable.moduleId, moduleIds))
+              .orderBy(moduleItemsTable.moduleId, moduleItemsTable.order)
           : [];
 
-      const itemsCountMap = new Map(
-        itemsCounts.map((ic) => [ic.moduleId, ic.count])
-      );
+      const videoIds = moduleItems
+        .filter((item) => item.contentType === "video")
+        .map((item) => item.contentId);
+      const documentIds = moduleItems
+        .filter((item) => item.contentType === "document")
+        .map((item) => item.contentId);
+      const quizIds = moduleItems
+        .filter((item) => item.contentType === "quiz")
+        .map((item) => item.contentId);
 
-      const modules = courseModules.map((cm) => ({
-        id: cm.module.id,
-        title: cm.module.title,
-        description: cm.module.description,
-        itemsCount: itemsCountMap.get(cm.moduleId) ?? 0,
-        order: cm.order,
-      }));
+      const [videos, documents, quizzes] = await Promise.all([
+        videoIds.length > 0
+          ? db
+              .select({ id: videosTable.id, title: videosTable.title, duration: videosTable.duration })
+              .from(videosTable)
+              .where(inArray(videosTable.id, videoIds))
+          : [],
+        documentIds.length > 0
+          ? db
+              .select({ id: documentsTable.id, title: documentsTable.title, mimeType: documentsTable.mimeType })
+              .from(documentsTable)
+              .where(inArray(documentsTable.id, documentIds))
+          : [],
+        quizIds.length > 0
+          ? db
+              .select({ id: quizzesTable.id, title: quizzesTable.title })
+              .from(quizzesTable)
+              .where(inArray(quizzesTable.id, quizIds))
+          : [],
+      ]);
+
+      const contentMap = new Map<string, { title: string; duration?: number; mimeType?: string | null }>();
+      for (const v of videos) contentMap.set(v.id, { title: v.title, duration: v.duration });
+      for (const d of documents) contentMap.set(d.id, { title: d.title, mimeType: d.mimeType });
+      for (const q of quizzes) contentMap.set(q.id, { title: q.title });
+
+      const itemsByModule = new Map<string, Array<{
+        id: string;
+        title: string;
+        contentType: string;
+        isPreview: boolean;
+        order: number;
+        duration?: number;
+        mimeType?: string | null;
+      }>>();
+
+      for (const item of moduleItems) {
+        const content = contentMap.get(item.contentId);
+        if (!content) continue;
+
+        const moduleItemsList = itemsByModule.get(item.moduleId) ?? [];
+        moduleItemsList.push({
+          id: item.id,
+          title: content.title,
+          contentType: item.contentType,
+          isPreview: item.isPreview,
+          order: item.order,
+          duration: content.duration,
+          mimeType: content.mimeType,
+        });
+        itemsByModule.set(item.moduleId, moduleItemsList);
+      }
+
+      const modules = courseModules.map((cm) => {
+        const items = itemsByModule.get(cm.moduleId) ?? [];
+        return {
+          id: cm.module.id,
+          title: cm.module.title,
+          description: cm.module.description,
+          itemsCount: items.length,
+          order: cm.order,
+          items,
+        };
+      });
 
       const totalItems = modules.reduce((acc, m) => acc + m.itemsCount, 0);
 

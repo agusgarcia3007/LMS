@@ -1,4 +1,4 @@
-import { Layers, PlayCircle } from "lucide-react";
+import { FileText, HelpCircle, Layers, PlayCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import {
   Accordion,
@@ -6,13 +6,32 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import type { CampusCourseDetail, CampusCourseModule } from "@/services/campus/service";
+import type { CampusCourseDetail, CampusCourseModule, CampusModuleItem } from "@/services/campus/service";
 
 type CourseCurriculumProps = {
   course: CampusCourseDetail;
 };
 
-function ModuleItem({ module, index }: { module: CampusCourseModule; index: number }) {
+function getContentIcon(contentType: CampusModuleItem["contentType"]) {
+  switch (contentType) {
+    case "video":
+      return PlayCircle;
+    case "document":
+      return FileText;
+    case "quiz":
+      return HelpCircle;
+    default:
+      return PlayCircle;
+  }
+}
+
+function formatDuration(seconds: number): string {
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${mins}:${secs.toString().padStart(2, "0")}`;
+}
+
+function ModuleSection({ module, index }: { module: CampusCourseModule; index: number }) {
   const { t } = useTranslation();
 
   return (
@@ -34,15 +53,28 @@ function ModuleItem({ module, index }: { module: CampusCourseModule; index: numb
               {module.description}
             </div>
           )}
-          {Array.from({ length: module.itemsCount }).map((_, i) => (
-            <div
-              key={i}
-              className="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-muted/30"
-            >
-              <PlayCircle className="size-4 shrink-0 text-muted-foreground" />
-              <span className="flex-1">{t("campus.course.lessons", { count: i + 1 })}</span>
-            </div>
-          ))}
+          {module.items.map((item) => {
+            const Icon = getContentIcon(item.contentType);
+            return (
+              <div
+                key={item.id}
+                className="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-muted/30"
+              >
+                <Icon className="size-4 shrink-0 text-muted-foreground" />
+                <span className="flex-1">{item.title}</span>
+                {item.duration !== undefined && item.duration > 0 && (
+                  <span className="text-xs text-muted-foreground">
+                    {formatDuration(item.duration)}
+                  </span>
+                )}
+                {item.isPreview && (
+                  <span className="text-xs font-medium text-primary">
+                    {t("campus.courseDetail.preview")}
+                  </span>
+                )}
+              </div>
+            );
+          })}
         </div>
       </AccordionContent>
     </AccordionItem>
@@ -82,7 +114,7 @@ export function CourseCurriculum({ course }: CourseCurriculumProps) {
       <div className="overflow-hidden rounded-lg border border-border">
         <Accordion type="multiple" defaultValue={course.modules[0] ? [course.modules[0].id] : []}>
           {course.modules.map((module, index) => (
-            <ModuleItem key={module.id} module={module} index={index} />
+            <ModuleSection key={module.id} module={module} index={index} />
           ))}
         </Accordion>
       </div>

@@ -1230,7 +1230,8 @@
       "classes": "{{count}} classes",
       "expandAll": "Expand all sections",
       "sectionsAndClasses": "{{sections}} sections - {{classes}} classes",
-      "contentComingSoon": "Course content will be added soon."
+      "contentComingSoon": "Course content will be added soon.",
+      "preview": "Preview"
     },
     "navigation": {
       "home": "Home",

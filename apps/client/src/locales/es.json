@@ -1099,7 +1099,8 @@
       "classes": "{{count}} clases",
       "expandAll": "Expandir todas las secciones",
       "sectionsAndClasses": "{{sections}} secciones - {{classes}} clases",
-      "contentComingSoon": "El contenido del curso se agregara proximamente."
+      "contentComingSoon": "El contenido del curso se agregara proximamente.",
+      "preview": "Vista previa"
     },
     "navigation": {
       "home": "Inicio",

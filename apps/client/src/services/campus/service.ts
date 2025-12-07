@@ -64,12 +64,23 @@ export type CampusCourse = {
   instructor: CampusInstructor | null;
 };
 
+export type CampusModuleItem = {
+  id: string;
+  title: string;
+  contentType: "video" | "document" | "quiz";
+  isPreview: boolean;
+  order: number;
+  duration?: number;
+  mimeType?: string | null;
+};
+
 export type CampusCourseModule = {
   id: string;
   title: string;
   description: string | null;
   itemsCount: number;
   order: number;
+  items: CampusModuleItem[];
 };
 
 export type CampusCourseDetail = CampusCourse & {

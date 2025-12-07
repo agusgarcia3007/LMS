@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { coursesListOptions } from "@/services/courses/options";
 import type { ColumnDef } from "@tanstack/react-table";
 import {
   BookOpen,
@@ -42,11 +41,6 @@ import {
 } from "@/services/courses";
 
 export const Route = createFileRoute("/$tenantSlug/content/courses")({
-  beforeLoad: async ({ context }) => {
-    await context.queryClient.ensureQueryData(
-      coursesListOptions({ page: 1, limit: 10, sort: "createdAt:desc" })
-    );
-  },
   component: CoursesPage,
   validateSearch: (search: Record<string, unknown>) => ({
     page: Number(search.page) || 1,
