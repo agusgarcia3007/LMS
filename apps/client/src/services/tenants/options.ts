@@ -6,6 +6,7 @@ import {
 import { toast } from "sonner";
 import { i18n } from "@/i18n";
 import { useUploadMutation } from "@/lib/upload-mutation";
+import { QUERY_KEYS as CAMPUS_QUERY_KEYS } from "@/services/campus/service";
 import { QUERY_KEYS as PROFILE_QUERY_KEYS } from "@/services/profile/service";
 import {
   TenantsService,
@@ -70,6 +71,9 @@ export const updateTenantOptions = (
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({
         queryKey: QUERY_KEYS.TENANT(currentSlug),
+      });
+      queryClient.invalidateQueries({
+        queryKey: CAMPUS_QUERY_KEYS.TENANT,
       });
       if (variables.slug && variables.slug !== currentSlug) {
         queryClient.invalidateQueries({
