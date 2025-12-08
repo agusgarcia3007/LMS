@@ -1,10 +1,10 @@
 {
   "ai": {
-    "analyzeVideo": "Analyze video with AI",
-    "analyzing": "Analyzing video with AI...",
-    "analyzeSuccess": "Video analyzed successfully",
+    "analyzeVideo": "Generate text with AI",
+    "analyzing": "Generating text with AI...",
+    "analyzeSuccess": "Text generated successfully",
     "errors": {
-      "noVideo": "Upload a video first to analyze content"
+      "noVideo": "Upload a video first to generate text"
     }
   },
   "common": {

@@ -1,10 +1,10 @@
 {
   "ai": {
-    "analyzeVideo": "Analizar video con IA",
-    "analyzing": "Analizando video con IA...",
-    "analyzeSuccess": "Video analizado correctamente",
+    "analyzeVideo": "Generar textos con IA",
+    "analyzing": "Generando textos con IA...",
+    "analyzeSuccess": "Textos generados correctamente",
     "errors": {
-      "noVideo": "Sube un video primero para analizar contenido"
+      "noVideo": "Sube un video primero para generar textos"
     }
   },
   "common": {

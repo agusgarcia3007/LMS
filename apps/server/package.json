@@ -10,7 +10,6 @@
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
-    "@deepgram/sdk": "^4.11.2",
     "@elysiajs/cors": "^1.4.0",
     "@elysiajs/jwt": "^1.4.0",
     "@elysiajs/openapi": "^1.4.11",
