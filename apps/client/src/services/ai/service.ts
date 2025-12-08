@@ -1,7 +1,8 @@
 import { http } from "@/lib/http";
 
-export type GenerateContentResponse = {
-  content: string;
+export type AnalyzeVideoResponse = {
+  title: string;
+  description: string;
 };
 
 export const QUERY_KEYS = {
@@ -9,16 +10,9 @@ export const QUERY_KEYS = {
 } as const;
 
 export const AIService = {
-  async generateVideoTitle(videoId: string) {
-    const { data } = await http.post<GenerateContentResponse>(
-      `/ai/videos/${videoId}/generate-title`
-    );
-    return data;
-  },
-
-  async generateVideoDescription(videoId: string) {
-    const { data } = await http.post<GenerateContentResponse>(
-      `/ai/videos/${videoId}/generate-description`
+  async analyzeVideo(videoId: string) {
+    const { data } = await http.post<AnalyzeVideoResponse>(
+      `/ai/videos/${videoId}/analyze`
     );
     return data;
   },

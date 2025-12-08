@@ -1,3 +1,4 @@
+import { aiRoutes } from "./ai";
 import { authRoutes } from "./auth";
 import { backofficeRoutes } from "./backoffice";
 import { campusRoutes } from "./campus";
@@ -17,6 +18,7 @@ import { videosRoutes } from "./videos";
 
 export const ROUTES = [
   { path: "", name: "seo-routes", route: seoRoutes },
+  { path: "/ai", name: "ai-routes", route: aiRoutes },
   { path: "/auth", name: "auth-routes", route: authRoutes },
   { path: "/backoffice", name: "backoffice-routes", route: backofficeRoutes },
   { path: "/campus", name: "campus-routes", route: campusRoutes },

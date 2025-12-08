@@ -32,5 +32,5 @@ export const env = {
     Bun.env.CLOUDFLARE_CNAME_TARGET || "domains.learnbase.lat",
   RAILWAY_TOKEN: required("RAILWAY_TOKEN"),
   RAILWAY_CLIENT_SERVICE_ID: required("RAILWAY_CLIENT_SERVICE_ID"),
-  OPENAI_API_KEY: required("OPENAI_API_KEY"),
+  GROQ_API_KEY: required("GROQ_API_KEY"),
 };

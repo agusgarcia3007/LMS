@@ -183,6 +183,20 @@
       "when": 1765156903281,
       "tag": "0025_sour_hiroim",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1765167885435,
+      "tag": "0026_graceful_revanche",
+      "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1765169596241,
+      "tag": "0027_classy_songbird",
+      "breakpoints": true
     }
   ]
 }

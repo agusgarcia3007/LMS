@@ -32,7 +32,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input, InputGroup } from "@/components/ui/input";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
@@ -58,10 +58,7 @@ import {
   type Video as VideoType,
 } from "@/services/videos";
 import { videosListOptions } from "@/services/videos/options";
-import {
-  useGenerateVideoTitle,
-  useGenerateVideoDescription,
-} from "@/services/ai";
+import { useAnalyzeVideo } from "@/services/ai";
 
 export const Route = createFileRoute("/$tenantSlug/content/videos")({
   beforeLoad: async ({ context }) => {
@@ -121,8 +118,7 @@ function VideosPage() {
   const uploadMutation = useUploadVideoFile();
   const deleteFileMutation = useDeleteVideoFile();
   const uploadStandaloneMutation = useUploadVideoStandalone();
-  const generateTitleMutation = useGenerateVideoTitle();
-  const generateDescriptionMutation = useGenerateVideoDescription();
+  const analyzeVideoMutation = useAnalyzeVideo();
 
   const form = useForm<VideoFormData>({
     resolver: zodResolver(videoSchema),
@@ -237,29 +233,19 @@ function VideosPage() {
 
   const hasVideo = editVideo?.videoKey || pendingVideoKey;
 
-  const handleGenerateTitle = useCallback(() => {
+  const handleAnalyzeVideo = useCallback(() => {
     if (!editVideo?.id) {
       toast.error(t("ai.errors.noVideo"));
       return;
     }
-    generateTitleMutation.mutate(editVideo.id, {
+    analyzeVideoMutation.mutate(editVideo.id, {
       onSuccess: (data) => {
-        form.setValue("title", data.content);
+        form.setValue("title", data.title);
+        form.setValue("description", data.description);
+        toast.success(t("ai.analyzeSuccess"));
       },
     });
-  }, [editVideo, generateTitleMutation, form, t]);
-
-  const handleGenerateDescription = useCallback(() => {
-    if (!editVideo?.id) {
-      toast.error(t("ai.errors.noVideo"));
-      return;
-    }
-    generateDescriptionMutation.mutate(editVideo.id, {
-      onSuccess: (data) => {
-        form.setValue("description", data.content);
-      },
-    });
-  }, [editVideo, generateDescriptionMutation, form, t]);
+  }, [editVideo, analyzeVideoMutation, form, t]);
 
   const isPending = createMutation.isPending || updateMutation.isPending;
 
@@ -453,6 +439,16 @@ function VideosPage() {
 
       <Dialog open={editorOpen} onOpenChange={handleCloseEditor}>
         <DialogContent className="max-w-2xl">
+          {analyzeVideoMutation.isPending && (
+            <div className="absolute inset-0 z-50 flex flex-col items-center justify-center gap-4 rounded-lg bg-background/90 backdrop-blur-sm">
+              <div className="h-2 w-48 overflow-hidden rounded-full bg-primary/20">
+                <div className="h-full w-1/2 animate-[shimmer-slide_1.5s_ease-in-out_infinite] rounded-full bg-primary" />
+              </div>
+              <p className="text-sm font-medium text-primary">
+                {t("ai.analyzing")}
+              </p>
+            </div>
+          )}
           <DialogHeader>
             <DialogTitle>
               {editVideo
@@ -469,20 +465,7 @@ function VideosPage() {
                   <FormItem>
                     <FormLabel>{t("videos.form.title")}</FormLabel>
                     <FormControl>
-                      <InputGroup>
-                        <Input {...field} />
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          mode="icon"
-                          disabled={!hasVideo || generateTitleMutation.isPending}
-                          isLoading={generateTitleMutation.isPending}
-                          onClick={handleGenerateTitle}
-                          title={t("ai.generateTitle")}
-                        >
-                          <Sparkles className="size-4" />
-                        </Button>
-                      </InputGroup>
+                      <Input {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -495,25 +478,25 @@ function VideosPage() {
                   <FormItem>
                     <FormLabel>{t("videos.form.description")}</FormLabel>
                     <FormControl>
-                      <InputGroup>
-                        <Textarea {...field} rows={3} />
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          mode="icon"
-                          disabled={!hasVideo || generateDescriptionMutation.isPending}
-                          isLoading={generateDescriptionMutation.isPending}
-                          onClick={handleGenerateDescription}
-                          title={t("ai.generateDescription")}
-                        >
-                          <Sparkles className="size-4" />
-                        </Button>
-                      </InputGroup>
+                      <Textarea {...field} rows={3} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+              {editVideo && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={!hasVideo || analyzeVideoMutation.isPending}
+                  isLoading={analyzeVideoMutation.isPending}
+                  onClick={handleAnalyzeVideo}
+                  className="w-full"
+                >
+                  <Sparkles className="size-4" />
+                  {t("ai.analyzeVideo")}
+                </Button>
+              )}
               <FormField
                 control={form.control}
                 name="status"

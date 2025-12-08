@@ -1,9 +1,10 @@
 {
   "ai": {
-    "generateTitle": "Generar título con IA",
-    "generateDescription": "Generar descripción con IA",
+    "analyzeVideo": "Analizar video con IA",
+    "analyzing": "Analizando video con IA...",
+    "analyzeSuccess": "Video analizado correctamente",
     "errors": {
-      "noVideo": "Sube un video primero para generar contenido"
+      "noVideo": "Sube un video primero para analizar contenido"
     }
   },
   "common": {

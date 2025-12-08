@@ -18,6 +18,8 @@
     "drizzle-orm": "^0.44.7",
     "elysia": "latest",
     "elysia-rate-limit": "^4.4.2",
+    "groq-sdk": "^0.37.0",
+    "openai": "^6.10.0",
     "postgres": "^3.4.7",
     "resend": "^6.5.2"
   },
