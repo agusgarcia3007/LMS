@@ -12,7 +12,7 @@ import {
   moduleItemsTable,
   type SelectQuiz,
 } from "@/db/schema";
-import { count, eq, and, desc, asc, inArray } from "drizzle-orm";
+import { count, eq, and, asc, inArray, sql, max } from "drizzle-orm";
 import {
   parseListParams,
   buildWhereClause,
@@ -238,7 +238,7 @@ export const quizzesRoutes = new Elysia()
         }
 
         const [existingQuiz] = await db
-          .select()
+          .select({ id: quizzesTable.id })
           .from(quizzesTable)
           .where(
             and(
@@ -306,7 +306,7 @@ export const quizzesRoutes = new Elysia()
         }
 
         const [existingQuiz] = await db
-          .select()
+          .select({ id: quizzesTable.id })
           .from(quizzesTable)
           .where(
             and(
@@ -355,37 +355,39 @@ export const quizzesRoutes = new Elysia()
           throw new AppError(ErrorCode.TENANT_NOT_FOUND, "User has no tenant", 404);
         }
 
-        const [quiz] = await db
-          .select()
-          .from(quizzesTable)
-          .where(
-            and(
-              eq(quizzesTable.id, ctx.params.id),
-              eq(quizzesTable.tenantId, ctx.user.tenantId)
+        const [[quiz], questions] = await Promise.all([
+          db
+            .select({ id: quizzesTable.id })
+            .from(quizzesTable)
+            .where(
+              and(
+                eq(quizzesTable.id, ctx.params.id),
+                eq(quizzesTable.tenantId, ctx.user.tenantId)
+              )
             )
-          )
-          .limit(1);
+            .limit(1),
+          db
+            .select()
+            .from(quizQuestionsTable)
+            .where(eq(quizQuestionsTable.quizId, ctx.params.id))
+            .orderBy(asc(quizQuestionsTable.order)),
+        ]);
 
         if (!quiz) {
           throw new AppError(ErrorCode.NOT_FOUND, "Quiz not found", 404);
         }
 
-        const questions = await db
-          .select()
-          .from(quizQuestionsTable)
-          .where(eq(quizQuestionsTable.quizId, ctx.params.id))
-          .orderBy(asc(quizQuestionsTable.order));
+        if (questions.length === 0) {
+          return { questions: [] };
+        }
 
         const questionIds = questions.map((q) => q.id);
 
-        const allOptions =
-          questionIds.length > 0
-            ? await db
-                .select()
-                .from(quizOptionsTable)
-                .where(inArray(quizOptionsTable.questionId, questionIds))
-                .orderBy(asc(quizOptionsTable.order))
-            : [];
+        const allOptions = await db
+          .select()
+          .from(quizOptionsTable)
+          .where(inArray(quizOptionsTable.questionId, questionIds))
+          .orderBy(asc(quizOptionsTable.order));
 
         const optionsByQuestion = allOptions.reduce(
           (acc, option) => {
@@ -440,29 +442,28 @@ export const quizzesRoutes = new Elysia()
           );
         }
 
-        const [quiz] = await db
-          .select()
-          .from(quizzesTable)
-          .where(
-            and(
-              eq(quizzesTable.id, ctx.params.id),
-              eq(quizzesTable.tenantId, ctx.user.tenantId)
+        const [[quiz], [{ maxOrder }]] = await Promise.all([
+          db
+            .select({ id: quizzesTable.id })
+            .from(quizzesTable)
+            .where(
+              and(
+                eq(quizzesTable.id, ctx.params.id),
+                eq(quizzesTable.tenantId, ctx.user.tenantId)
+              )
             )
-          )
-          .limit(1);
+            .limit(1),
+          db
+            .select({ maxOrder: max(quizQuestionsTable.order) })
+            .from(quizQuestionsTable)
+            .where(eq(quizQuestionsTable.quizId, ctx.params.id)),
+        ]);
 
         if (!quiz) {
           throw new AppError(ErrorCode.NOT_FOUND, "Quiz not found", 404);
         }
 
-        const [maxOrder] = await db
-          .select({ maxOrder: quizQuestionsTable.order })
-          .from(quizQuestionsTable)
-          .where(eq(quizQuestionsTable.quizId, ctx.params.id))
-          .orderBy(desc(quizQuestionsTable.order))
-          .limit(1);
-
-        const nextOrder = (maxOrder?.maxOrder ?? -1) + 1;
+        const nextOrder = (maxOrder ?? -1) + 1;
 
         const [question] = await db
           .insert(quizQuestionsTable)
@@ -545,7 +546,7 @@ export const quizzesRoutes = new Elysia()
         }
 
         const [existingQuestion] = await db
-          .select()
+          .select({ id: quizQuestionsTable.id })
           .from(quizQuestionsTable)
           .where(
             and(
@@ -627,7 +628,7 @@ export const quizzesRoutes = new Elysia()
         }
 
         const [existingQuestion] = await db
-          .select()
+          .select({ id: quizQuestionsTable.id })
           .from(quizQuestionsTable)
           .where(
             and(
@@ -683,7 +684,7 @@ export const quizzesRoutes = new Elysia()
         }
 
         const [quiz] = await db
-          .select()
+          .select({ id: quizzesTable.id })
           .from(quizzesTable)
           .where(
             and(
@@ -697,19 +698,18 @@ export const quizzesRoutes = new Elysia()
           throw new AppError(ErrorCode.NOT_FOUND, "Quiz not found", 404);
         }
 
-        await Promise.all(
-          ctx.body.questionIds.map((questionId, index) =>
-            db
-              .update(quizQuestionsTable)
-              .set({ order: index })
-              .where(
-                and(
-                  eq(quizQuestionsTable.id, questionId),
-                  eq(quizQuestionsTable.quizId, ctx.params.id)
-                )
-              )
-          )
-        );
+        if (ctx.body.questionIds.length > 0) {
+          const caseStatements = ctx.body.questionIds
+            .map((id, index) => sql`WHEN ${id} THEN ${index}`)
+            .reduce((acc, curr) => sql`${acc} ${curr}`);
+
+          await db.execute(sql`
+            UPDATE quiz_questions
+            SET "order" = CASE id ${caseStatements} END
+            WHERE id IN ${ctx.body.questionIds}
+            AND quiz_id = ${ctx.params.id}
+          `);
+        }
 
         return { success: true };
       }),
@@ -751,29 +751,28 @@ export const quizzesRoutes = new Elysia()
           );
         }
 
-        const [question] = await db
-          .select()
-          .from(quizQuestionsTable)
-          .where(
-            and(
-              eq(quizQuestionsTable.id, ctx.params.id),
-              eq(quizQuestionsTable.tenantId, ctx.user.tenantId)
+        const [[question], [{ maxOrder }]] = await Promise.all([
+          db
+            .select({ id: quizQuestionsTable.id })
+            .from(quizQuestionsTable)
+            .where(
+              and(
+                eq(quizQuestionsTable.id, ctx.params.id),
+                eq(quizQuestionsTable.tenantId, ctx.user.tenantId)
+              )
             )
-          )
-          .limit(1);
+            .limit(1),
+          db
+            .select({ maxOrder: max(quizOptionsTable.order) })
+            .from(quizOptionsTable)
+            .where(eq(quizOptionsTable.questionId, ctx.params.id)),
+        ]);
 
         if (!question) {
           throw new AppError(ErrorCode.NOT_FOUND, "Question not found", 404);
         }
 
-        const [maxOrder] = await db
-          .select({ maxOrder: quizOptionsTable.order })
-          .from(quizOptionsTable)
-          .where(eq(quizOptionsTable.questionId, ctx.params.id))
-          .orderBy(desc(quizOptionsTable.order))
-          .limit(1);
-
-        const nextOrder = (maxOrder?.maxOrder ?? -1) + 1;
+        const nextOrder = (maxOrder ?? -1) + 1;
 
         const [option] = await db
           .insert(quizOptionsTable)
@@ -828,8 +827,8 @@ export const quizzesRoutes = new Elysia()
 
         const [existingOption] = await db
           .select({
-            option: quizOptionsTable,
-            question: quizQuestionsTable,
+            optionId: quizOptionsTable.id,
+            tenantId: quizQuestionsTable.tenantId,
           })
           .from(quizOptionsTable)
           .innerJoin(
@@ -843,7 +842,7 @@ export const quizzesRoutes = new Elysia()
           throw new AppError(ErrorCode.NOT_FOUND, "Option not found", 404);
         }
 
-        if (existingOption.question.tenantId !== ctx.user.tenantId) {
+        if (existingOption.tenantId !== ctx.user.tenantId) {
           throw new AppError(ErrorCode.FORBIDDEN, "Access denied", 403);
         }
 
@@ -904,8 +903,8 @@ export const quizzesRoutes = new Elysia()
 
         const [existingOption] = await db
           .select({
-            option: quizOptionsTable,
-            question: quizQuestionsTable,
+            optionId: quizOptionsTable.id,
+            tenantId: quizQuestionsTable.tenantId,
           })
           .from(quizOptionsTable)
           .innerJoin(
@@ -919,7 +918,7 @@ export const quizzesRoutes = new Elysia()
           throw new AppError(ErrorCode.NOT_FOUND, "Option not found", 404);
         }
 
-        if (existingOption.question.tenantId !== ctx.user.tenantId) {
+        if (existingOption.tenantId !== ctx.user.tenantId) {
           throw new AppError(ErrorCode.FORBIDDEN, "Access denied", 403);
         }
 

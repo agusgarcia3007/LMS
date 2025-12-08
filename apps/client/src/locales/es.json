@@ -1356,8 +1356,8 @@
       "addPlaceholder": "Escribe y presiona Enter para agregar"
     },
     "types": {
-      "multiple_choice": "Opcion multiple",
-      "multiple_select": "Seleccion multiple",
+      "multiple_choice": "Respuesta unica",
+      "multiple_select": "Respuestas multiples",
       "true_false": "Verdadero / Falso"
     }
   }

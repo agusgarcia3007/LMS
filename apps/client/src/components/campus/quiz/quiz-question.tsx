@@ -86,8 +86,9 @@ export function QuizQuestion({
               >
                 <div
                   className={cn(
-                    "flex size-5 shrink-0 items-center justify-center rounded-full border",
-                    question.type === "multiple_select" && "rounded",
+                    "flex size-5 shrink-0 items-center justify-center border-2",
+                    question.type === "multiple_select" ? "rounded-sm" : "rounded-full",
+                    !submitted && !isSelected && "border-muted-foreground/40",
                     !submitted && isSelected && "border-primary bg-primary text-primary-foreground",
                     showAsCorrect && "border-green-500 bg-green-500 text-white",
                     showAsWrong && "border-red-500 bg-red-500 text-white"

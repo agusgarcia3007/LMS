@@ -1129,8 +1129,8 @@
       "addPlaceholder": "Type and press Enter to add"
     },
     "types": {
-      "multiple_choice": "Multiple choice",
-      "multiple_select": "Multiple select",
+      "multiple_choice": "Single answer",
+      "multiple_select": "Multiple answers",
       "true_false": "True / False"
     }
   },

@@ -50,9 +50,9 @@ type QuestionCardProps = {
 };
 
 const TYPE_LABELS: Record<string, string> = {
-  multiple_choice: "quizzes.types.multipleChoice",
-  multiple_select: "quizzes.types.multipleSelect",
-  true_false: "quizzes.types.trueFalse",
+  multiple_choice: "quizzes.types.multiple_choice",
+  multiple_select: "quizzes.types.multiple_select",
+  true_false: "quizzes.types.true_false",
 };
 
 export function QuestionCard({

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   useQuizQuestions,
   useCreateQuestion,
@@ -76,9 +77,27 @@ export function QuizBuilder({ quizId }: QuizBuilderProps) {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-8">
-        <div className="animate-pulse text-muted-foreground">
-          {t("common.loading")}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="space-y-2">
+            <Skeleton className="h-6 w-32" />
+            <Skeleton className="h-4 w-48" />
+          </div>
+          <Skeleton className="h-9 w-36" />
+        </div>
+        <div className="space-y-3">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="rounded-lg border p-4 space-y-2">
+              <div className="flex items-center justify-between">
+                <Skeleton className="h-5 w-3/4" />
+                <Skeleton className="h-8 w-20" />
+              </div>
+              <div className="flex gap-2">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-4 w-20" />
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     );

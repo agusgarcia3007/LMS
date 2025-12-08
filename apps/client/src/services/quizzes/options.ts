@@ -15,6 +15,7 @@ import {
   type UpdateQuestionRequest,
   type CreateOptionRequest,
   type UpdateOptionRequest,
+  type Question,
 } from "./service";
 
 export const quizzesListOptions = (params?: QuizListParams) =>
@@ -80,10 +81,15 @@ export const createQuestionOptions = () => {
       ...payload
     }: { quizId: string } & CreateQuestionRequest) =>
       QuizzesService.createQuestion(quizId, payload),
-    onSuccess: (_, { quizId }) => {
-      queryClient.invalidateQueries({
-        queryKey: QUERY_KEYS.QUIZ_QUESTIONS(quizId),
-      });
+    onSuccess: (data, { quizId }) => {
+      queryClient.setQueryData(
+        QUERY_KEYS.QUIZ_QUESTIONS(quizId),
+        (old: { questions: Question[] } | undefined) => ({
+          questions: old?.questions
+            ? [...old.questions, data.question]
+            : [data.question],
+        })
+      );
       toast.success(i18n.t("quizzes.question.createSuccess"));
     },
   });
@@ -98,10 +104,16 @@ export const updateQuestionOptions = () => {
       ...payload
     }: { questionId: string; quizId: string } & UpdateQuestionRequest) =>
       QuizzesService.updateQuestion(questionId, payload),
-    onSuccess: (_, { quizId }) => {
-      queryClient.invalidateQueries({
-        queryKey: QUERY_KEYS.QUIZ_QUESTIONS(quizId),
-      });
+    onSuccess: (data, { quizId }) => {
+      queryClient.setQueryData(
+        QUERY_KEYS.QUIZ_QUESTIONS(quizId),
+        (old: { questions: Question[] } | undefined) => ({
+          questions:
+            old?.questions.map((q) =>
+              q.id === data.question.id ? data.question : q
+            ) ?? [],
+        })
+      );
       toast.success(i18n.t("quizzes.question.updateSuccess"));
     },
   });
@@ -117,10 +129,13 @@ export const deleteQuestionOptions = () => {
       questionId: string;
       quizId: string;
     }) => QuizzesService.deleteQuestion(questionId),
-    onSuccess: (_, { quizId }) => {
-      queryClient.invalidateQueries({
-        queryKey: QUERY_KEYS.QUIZ_QUESTIONS(quizId),
-      });
+    onSuccess: (_, { questionId, quizId }) => {
+      queryClient.setQueryData(
+        QUERY_KEYS.QUIZ_QUESTIONS(quizId),
+        (old: { questions: Question[] } | undefined) => ({
+          questions: old?.questions.filter((q) => q.id !== questionId) ?? [],
+        })
+      );
       toast.success(i18n.t("quizzes.question.deleteSuccess"));
     },
   });

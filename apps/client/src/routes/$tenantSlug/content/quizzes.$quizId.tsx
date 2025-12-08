@@ -6,12 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { QuizBuilder } from "@/components/quizzes";
 import { useQuiz } from "@/services/quizzes";
-import { quizOptions } from "@/services/quizzes/options";
 
 export const Route = createFileRoute("/$tenantSlug/content/quizzes/$quizId")({
-  beforeLoad: async ({ context, params }) => {
-    await context.queryClient.ensureQueryData(quizOptions(params.quizId));
-  },
   component: QuizEditorPage,
 });
 

@@ -37,9 +37,8 @@ type QuestionFormDialogProps = {
 };
 
 const QUESTION_TYPES: { value: QuestionType; label: string }[] = [
-  { value: "multiple_choice", label: "quizzes.types.multipleChoice" },
-  { value: "multiple_select", label: "quizzes.types.multipleSelect" },
-  { value: "true_false", label: "quizzes.types.trueFalse" },
+  { value: "multiple_choice", label: "quizzes.types.multiple_choice" },
+  { value: "multiple_select", label: "quizzes.types.multiple_select" },
 ];
 
 type OptionInput = {
@@ -82,14 +81,6 @@ export function QuestionFormDialog({
     }
   }, [open, question]);
 
-  useEffect(() => {
-    if (type === "true_false" && !isEditing) {
-      setOptions([
-        { id: crypto.randomUUID(), optionText: t("common.true"), isCorrect: true },
-        { id: crypto.randomUUID(), optionText: t("common.false"), isCorrect: false },
-      ]);
-    }
-  }, [type, isEditing, t]);
 
   const handleAddOption = () => {
     setOptions([
@@ -218,7 +209,7 @@ export function QuestionFormDialog({
                       onCheckedChange={(checked) =>
                         handleOptionChange(option.id, "isCorrect", !!checked)
                       }
-                      disabled={isPending || type === "true_false"}
+                      disabled={isPending}
                     />
                     <Input
                       value={option.optionText}
@@ -232,10 +223,10 @@ export function QuestionFormDialog({
                       placeholder={t("quizzes.fields.optionPlaceholder", {
                         index: index + 1,
                       })}
-                      disabled={isPending || type === "true_false"}
+                      disabled={isPending}
                       className="flex-1"
                     />
-                    {options.length > 2 && type !== "true_false" && (
+                    {options.length > 2 && (
                       <Button
                         type="button"
                         size="icon"
@@ -250,8 +241,7 @@ export function QuestionFormDialog({
                   </div>
                 ))}
               </div>
-              {type !== "true_false" && (
-                <Button
+              <Button
                   type="button"
                   variant="outline"
                   size="sm"
@@ -261,7 +251,6 @@ export function QuestionFormDialog({
                   <Plus className="mr-1 size-4" />
                   {t("quizzes.options.add")}
                 </Button>
-              )}
             </div>
           )}
 
