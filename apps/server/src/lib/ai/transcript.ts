@@ -9,7 +9,7 @@ export async function transcribeVideo(videoUrl: string): Promise<string> {
   logger.info("Starting FFmpeg audio extraction");
 
   const result =
-    await $`ffmpeg -i ${videoUrl} -vn -ac 1 -ar 16000 -filter:a atempo=2.0 -f mp3 -b:a 32k -`.quiet();
+    await $`ffmpeg -threads 0 -analyzeduration 0 -probesize 32768 -i ${videoUrl} -vn -ac 1 -ar 16000 -af "silenceremove=1:0:-50dB:1:1:-50dB,atempo=2.0" -f mp3 -b:a 32k -`.quiet();
 
   const ffmpegTime = Date.now() - start;
   logger.info("FFmpeg extraction completed", { ffmpegTime: `${ffmpegTime}ms` });

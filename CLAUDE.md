@@ -140,14 +140,18 @@ Video (S3) → FFmpeg (2x speed audio) → Groq Whisper → Groq Llama 70b → {
 ### FFmpeg Audio Extraction
 
 ```bash
-ffmpeg -i <video_url> -vn -ac 1 -ar 16000 -filter:a atempo=2.0 -f mp3 -b:a 32k -
+ffmpeg -threads 0 -analyzeduration 0 -probesize 32768 -i <video_url> -vn -ac 1 -ar 16000 -af "silenceremove=1:0:-50dB:1:1:-50dB,atempo=2.0" -f mp3 -b:a 32k -
 ```
 
 | Flag | Effect |
 |------|--------|
+| `-threads 0` | Auto-detect CPU cores |
+| `-analyzeduration 0` | Skip duration analysis |
+| `-probesize 32768` | Smaller probe size |
 | `-vn` | No video |
 | `-ac 1` | Mono |
 | `-ar 16000` | 16kHz sample rate |
+| `silenceremove` | Remove silence |
 | `atempo=2.0` | 2x speed |
 | `-b:a 32k` | 32kbps bitrate |
 
