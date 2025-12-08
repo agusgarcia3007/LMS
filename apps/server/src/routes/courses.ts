@@ -14,7 +14,7 @@ import {
   courseStatusEnum,
   type SelectCourse,
 } from "@/db/schema";
-import { count, eq, and, desc, sql, inArray } from "drizzle-orm";
+import { count, eq, and, desc, inArray } from "drizzle-orm";
 import {
   parseListParams,
   buildWhereClause,
@@ -97,11 +97,28 @@ export const coursesRoutes = new Elysia()
         });
         const { limit, offset } = getPaginationParams(params.page, params.limit);
 
+        const modulesCountSq = db
+          .select({
+            courseId: courseModulesTable.courseId,
+            modulesCount: count().as("modules_count"),
+          })
+          .from(courseModulesTable)
+          .groupBy(courseModulesTable.courseId)
+          .as("modules_count_sq");
+
         const coursesQuery = db
           .select({
             course: coursesTable,
-            instructor: instructorsTable,
-            category: categoriesTable,
+            instructor: {
+              id: instructorsTable.id,
+              name: instructorsTable.name,
+              avatar: instructorsTable.avatar,
+            },
+            category: {
+              id: categoriesTable.id,
+              name: categoriesTable.name,
+            },
+            modulesCount: modulesCountSq.modulesCount,
           })
           .from(coursesTable)
           .leftJoin(
@@ -112,6 +129,7 @@ export const coursesRoutes = new Elysia()
             categoriesTable,
             eq(coursesTable.categoryId, categoriesTable.id)
           )
+          .leftJoin(modulesCountSq, eq(coursesTable.id, modulesCountSq.courseId))
           .where(whereClause)
           .orderBy(sortColumn ?? desc(coursesTable.createdAt))
           .limit(limit)
@@ -127,29 +145,13 @@ export const coursesRoutes = new Elysia()
           countQuery,
         ]);
 
-        const courseIds = coursesData.map((c) => c.course.id);
-
-        const modulesCounts =
-          courseIds.length > 0
-            ? await db
-                .select({
-                  courseId: courseModulesTable.courseId,
-                  count: count(),
-                })
-                .from(courseModulesTable)
-                .where(inArray(courseModulesTable.courseId, courseIds))
-                .groupBy(courseModulesTable.courseId)
-            : [];
-
-        const modulesCountMap = new Map(
-          modulesCounts.map((mc) => [mc.courseId, mc.count])
-        );
-
-        const courses = coursesData.map(({ course, instructor, category }) => ({
+        const courses = coursesData.map(({ course, instructor, category, modulesCount }) => ({
           ...course,
-          instructor,
-          category,
-          modulesCount: modulesCountMap.get(course.id) ?? 0,
+          thumbnail: course.thumbnail ? getPresignedUrl(course.thumbnail) : null,
+          previewVideoUrl: course.previewVideoUrl ? getPresignedUrl(course.previewVideoUrl) : null,
+          instructor: instructor?.id ? instructor : null,
+          category: category?.id ? category : null,
+          modulesCount: modulesCount ?? 0,
         }));
 
         return {
@@ -254,8 +256,10 @@ export const coursesRoutes = new Elysia()
         return {
           course: {
             ...result.course,
-            instructor: result.instructor,
-            category: result.category,
+            thumbnail: result.course.thumbnail ? getPresignedUrl(result.course.thumbnail) : null,
+            previewVideoUrl: result.course.previewVideoUrl ? getPresignedUrl(result.course.previewVideoUrl) : null,
+            instructor: result.instructor?.id ? result.instructor : null,
+            category: result.category?.id ? result.category : null,
             modules: modulesWithItemsCount,
             modulesCount: courseModules.length,
           },
@@ -324,8 +328,6 @@ export const coursesRoutes = new Elysia()
             title: ctx.body.title,
             description: ctx.body.description,
             shortDescription: ctx.body.shortDescription,
-            thumbnail: ctx.body.thumbnail,
-            previewVideoUrl: ctx.body.previewVideoUrl,
             price: ctx.body.price ?? 0,
             originalPrice: ctx.body.originalPrice,
             currency: ctx.body.currency ?? "USD",
@@ -348,8 +350,6 @@ export const coursesRoutes = new Elysia()
         slug: t.Optional(t.String()),
         description: t.Optional(t.String()),
         shortDescription: t.Optional(t.String()),
-        thumbnail: t.Optional(t.String()),
-        previewVideoUrl: t.Optional(t.String()),
         instructorId: t.Optional(t.String({ format: "uuid" })),
         categoryId: t.Optional(t.String({ format: "uuid" })),
         price: t.Optional(t.Number({ minimum: 0 })),
@@ -424,10 +424,6 @@ export const coursesRoutes = new Elysia()
           updateData.description = ctx.body.description;
         if (ctx.body.shortDescription !== undefined)
           updateData.shortDescription = ctx.body.shortDescription;
-        if (ctx.body.thumbnail !== undefined)
-          updateData.thumbnail = ctx.body.thumbnail;
-        if (ctx.body.previewVideoUrl !== undefined)
-          updateData.previewVideoUrl = ctx.body.previewVideoUrl;
         if (ctx.body.instructorId !== undefined)
           updateData.instructorId = ctx.body.instructorId;
         if (ctx.body.categoryId !== undefined)
@@ -474,8 +470,6 @@ export const coursesRoutes = new Elysia()
         slug: t.Optional(t.String()),
         description: t.Optional(t.Union([t.String(), t.Null()])),
         shortDescription: t.Optional(t.Union([t.String(), t.Null()])),
-        thumbnail: t.Optional(t.Union([t.String(), t.Null()])),
-        previewVideoUrl: t.Optional(t.Union([t.String(), t.Null()])),
         instructorId: t.Optional(
           t.Union([t.String({ format: "uuid" }), t.Null()])
         ),

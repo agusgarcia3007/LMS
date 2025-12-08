@@ -176,6 +176,13 @@
       "when": 1765148637475,
       "tag": "0024_parallel_lady_mastermind",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1765156903281,
+      "tag": "0025_sour_hiroim",
+      "breakpoints": true
     }
   ]
 }

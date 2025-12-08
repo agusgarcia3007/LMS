@@ -43,10 +43,10 @@ export function InstructorCombobox({
   const [isCreating, setIsCreating] = useState(false);
   const [newName, setNewName] = useState("");
 
-  const { data, isLoading } = useGetInstructors(
-    { limit: 100, search: search || undefined },
-    { enabled: open }
-  );
+  const { data, isLoading } = useGetInstructors({
+    limit: 100,
+    search: search || undefined,
+  });
   const createMutation = useCreateInstructor();
 
   const instructors = data?.instructors ?? [];

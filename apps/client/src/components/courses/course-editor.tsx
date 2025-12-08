@@ -442,7 +442,7 @@ export function CourseEditor({
   }, [course?.id, form, deleteThumbnailMutation]);
 
   const handleVideoUpload = useCallback(
-    async (base64: string) => {
+    async ({ base64 }: { base64: string; duration: number }) => {
       if (!course?.id) {
         form.setValue("previewVideoUrl", base64);
         return base64;

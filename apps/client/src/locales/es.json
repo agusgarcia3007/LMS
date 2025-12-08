@@ -223,26 +223,32 @@
       "title": "Todo lo que necesitas para ensenar online",
       "subtitle": "Herramientas poderosas y faciles de usar para crear, gestionar y escalar tu academia online.",
       "courses": {
+        "label": "Contenido",
         "title": "Crea cursos facilmente",
         "description": "Editor intuitivo para crear modulos, lecciones y evaluaciones. Sube videos, documentos y contenido interactivo sin complicaciones."
       },
       "enterprise": {
+        "label": "Empresas",
         "title": "Para empresas",
         "description": "Capacitacion interna escalable. Gestiona equipos, asigna cursos y mide el progreso de tus colaboradores."
       },
       "ai": {
+        "label": "IA",
         "title": "Agente IA integrado",
         "description": "Un asistente inteligente que conoce tu contenido y a tus alumnos. Responde preguntas y guia el aprendizaje 24/7."
       },
       "whatsapp": {
+        "label": "Mensajeria",
         "title": "Conecta con WhatsApp",
         "description": "Tu agente IA puede comunicarse con tus alumnos directamente por WhatsApp. Notificaciones, recordatorios y soporte automatizado."
       },
       "customization": {
+        "label": "Marca",
         "title": "Personaliza tu marca",
         "description": "Tu academia, tu estilo. Personaliza colores, logos, dominio propio y cada detalle de la experiencia de tus alumnos."
       },
       "community": {
+        "label": "Social",
         "title": "Comunidad integrada",
         "description": "Foros de discusion, grupos de estudio y networking entre alumnos. Crea una comunidad activa alrededor de tu contenido."
       }
@@ -1164,8 +1170,13 @@
     "addSuccess": "Curso agregado al carrito",
     "removeSuccess": "Curso eliminado del carrito",
     "clearSuccess": "Carrito vaciado",
+    "checkoutSuccess": "Inscripcion completada exitosamente",
     "addToCart": "Agregar al carrito",
     "removeFromCart": "Eliminar del carrito",
+    "loginToAdd": "Inicia sesion para agregar",
+    "loginRequired": "Inicio de sesion requerido",
+    "loginRequiredDescription": "Inicia sesion para ver tu carrito y agregar cursos",
+    "checkout": "Finalizar compra",
     "goToCart": "Ir al carrito",
     "continueShopping": "Seguir comprando",
     "summary": "Resumen del pedido",

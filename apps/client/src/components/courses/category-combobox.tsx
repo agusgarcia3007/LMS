@@ -34,10 +34,10 @@ export function CategoryCombobox({
   const [isCreating, setIsCreating] = useState(false);
   const [newName, setNewName] = useState("");
 
-  const { data, isLoading } = useGetCategories(
-    { limit: 100, search: search || undefined },
-    { enabled: open }
-  );
+  const { data, isLoading } = useGetCategories({
+    limit: 100,
+    search: search || undefined,
+  });
   const createMutation = useCreateCategory();
 
   const categories = data?.categories ?? [];

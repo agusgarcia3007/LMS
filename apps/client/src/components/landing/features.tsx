@@ -7,40 +7,47 @@ import {
   Users,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import MagicBento, { type BentoCardProps } from "@/components/MagicBento";
 
 export function LandingFeatures() {
   const { t } = useTranslation();
 
-  const features = [
+  const cards: BentoCardProps[] = [
     {
       icon: BookOpen,
       title: t("landing.features.courses.title"),
       description: t("landing.features.courses.description"),
+      label: t("landing.features.courses.label"),
     },
     {
       icon: Building2,
       title: t("landing.features.enterprise.title"),
       description: t("landing.features.enterprise.description"),
+      label: t("landing.features.enterprise.label"),
     },
     {
       icon: Bot,
       title: t("landing.features.ai.title"),
       description: t("landing.features.ai.description"),
+      label: t("landing.features.ai.label"),
     },
     {
       icon: MessageCircle,
       title: t("landing.features.whatsapp.title"),
       description: t("landing.features.whatsapp.description"),
+      label: t("landing.features.whatsapp.label"),
     },
     {
       icon: Palette,
       title: t("landing.features.customization.title"),
       description: t("landing.features.customization.description"),
+      label: t("landing.features.customization.label"),
     },
     {
       icon: Users,
       title: t("landing.features.community.title"),
       description: t("landing.features.community.description"),
+      label: t("landing.features.community.label"),
     },
   ];
 
@@ -56,19 +63,16 @@ export function LandingFeatures() {
           </p>
         </div>
 
-        <div className="relative mx-auto grid max-w-4xl divide-x divide-y divide-border border border-border sm:grid-cols-2 lg:grid-cols-3">
-          {features.map((feature) => (
-            <div key={feature.title} className="space-y-3 p-8 md:p-10">
-              <div className="flex items-center gap-3">
-                <feature.icon className="size-5 text-primary" />
-                <h3 className="text-sm font-medium">{feature.title}</h3>
-              </div>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                {feature.description}
-              </p>
-            </div>
-          ))}
-        </div>
+        <MagicBento
+          cards={cards}
+          enableStars={true}
+          enableSpotlight={true}
+          enableBorderGlow={true}
+          clickEffect={true}
+          enableMagnetism={true}
+          enableTilt={false}
+          glowColor="132, 0, 255"
+        />
       </div>
     </section>
   );

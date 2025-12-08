@@ -60,7 +60,9 @@ import { videosListOptions } from "@/services/videos/options";
 
 export const Route = createFileRoute("/$tenantSlug/content/videos")({
   beforeLoad: async ({ context }) => {
-    await context.queryClient.ensureQueryData(videosListOptions({ page: 1, limit: 10 }));
+    await context.queryClient.ensureQueryData(
+      videosListOptions({ page: 1, limit: 10, sort: "createdAt:desc" })
+    );
   },
   component: VideosPage,
   validateSearch: (search: Record<string, unknown>) => ({
@@ -75,7 +77,7 @@ export const Route = createFileRoute("/$tenantSlug/content/videos")({
 const videoSchema = z.object({
   title: z.string().min(1),
   description: z.string().optional(),
-  status: z.enum(["draft", "published"]).default("draft"),
+  status: z.enum(["draft", "published"]),
 });
 
 type VideoFormData = z.infer<typeof videoSchema>;

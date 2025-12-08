@@ -41,10 +41,6 @@ export type CartResponse = {
   summary: CartSummary;
 };
 
-export type MergeCartResponse = {
-  merged: number;
-};
-
 export const QUERY_KEYS = {
   CART: ["cart"] as const,
 } as const;
@@ -70,16 +66,6 @@ export const CartService = {
 
   async clearCart() {
     const { data } = await http.delete<{ success: boolean }>("/cart");
-    return data;
-  },
-
-  async mergeCart(courseIds: string[]) {
-    const { data } = await http.post<MergeCartResponse>("/cart/merge", { courseIds });
-    return data;
-  },
-
-  async getGuestCart(courseIds: string[]) {
-    const { data } = await http.post<CartResponse>("/cart/preview", { courseIds });
     return data;
   },
 } as const;

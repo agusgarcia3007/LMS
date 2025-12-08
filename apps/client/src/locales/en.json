@@ -223,26 +223,32 @@
       "title": "Everything you need to teach online",
       "subtitle": "Powerful and easy-to-use tools to create, manage, and scale your online academy.",
       "courses": {
+        "label": "Content",
         "title": "Create courses easily",
         "description": "Intuitive editor to create modules, lessons, and assessments. Upload videos, documents, and interactive content without hassle."
       },
       "enterprise": {
+        "label": "Business",
         "title": "For businesses",
         "description": "Scalable internal training. Manage teams, assign courses, and measure your collaborators' progress."
       },
       "ai": {
+        "label": "AI",
         "title": "Integrated AI agent",
         "description": "An intelligent assistant that knows your content and your students. Answers questions and guides learning 24/7."
       },
       "whatsapp": {
+        "label": "Messaging",
         "title": "Connect with WhatsApp",
         "description": "Your AI agent can communicate with your students directly via WhatsApp. Automated notifications, reminders, and support."
       },
       "customization": {
+        "label": "Branding",
         "title": "Customize your brand",
         "description": "Your academy, your style. Customize colors, logos, custom domain, and every detail of your students' experience."
       },
       "community": {
+        "label": "Social",
         "title": "Integrated community",
         "description": "Discussion forums, study groups, and networking among students. Build an active community around your content."
       }
@@ -1332,8 +1338,13 @@
     "addSuccess": "Course added to cart",
     "removeSuccess": "Course removed from cart",
     "clearSuccess": "Cart cleared",
+    "checkoutSuccess": "Enrollment completed successfully",
     "addToCart": "Add to cart",
     "removeFromCart": "Remove from cart",
+    "loginToAdd": "Login to add to cart",
+    "loginRequired": "Login required",
+    "loginRequiredDescription": "Please login to view your cart and add courses",
+    "checkout": "Checkout",
     "goToCart": "Go to cart",
     "continueShopping": "Continue shopping",
     "summary": "Order summary",

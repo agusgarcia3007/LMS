@@ -2,12 +2,12 @@ import { z } from "zod";
 import type { TenantTheme } from "@/services/tenants/service";
 
 export const THEMES: { id: TenantTheme; color: string }[] = [
-  { id: "default", color: "#7c3aed" },
-  { id: "slate", color: "#1e293b" },
-  { id: "rose", color: "#f43f5e" },
-  { id: "emerald", color: "#10b981" },
-  { id: "tangerine", color: "#f97316" },
-  { id: "ocean", color: "#0ea5e9" },
+  { id: "default", color: "oklch(0.488 0.243 264.376)" },
+  { id: "slate", color: "oklch(0.205 0 0)" },
+  { id: "rose", color: "oklch(0.6 0.24 350)" },
+  { id: "emerald", color: "oklch(0.7 0.17 162)" },
+  { id: "tangerine", color: "oklch(0.64 0.17 36)" },
+  { id: "ocean", color: "oklch(0.55 0.18 250)" },
 ];
 
 export const configurationSchema = z.object({

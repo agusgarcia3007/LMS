@@ -1,26 +1,16 @@
 import { setTokens } from "@/lib/http";
 import { QUERY_KEYS } from "@/services/profile/service";
-import { QUERY_KEYS as CART_QUERY_KEYS, CartService } from "@/services/cart/service";
-import { getGuestCartCourseIds, clearGuestCartStorage } from "@/hooks/use-guest-cart";
+import { QUERY_KEYS as CART_QUERY_KEYS } from "@/services/cart/service";
 import { mutationOptions, useQueryClient } from "@tanstack/react-query";
 import { AuthService } from "./service";
-
-const mergeGuestCart = async () => {
-  const courseIds = getGuestCartCourseIds();
-  if (courseIds.length > 0) {
-    await CartService.mergeCart(courseIds);
-    clearGuestCartStorage();
-  }
-};
 
 export const loginOptions = () => {
   const queryClient = useQueryClient();
   return mutationOptions({
     mutationFn: AuthService.login,
-    onSuccess: async (data) => {
+    onSuccess: (data) => {
       setTokens(data.accessToken, data.refreshToken);
-      await mergeGuestCart();
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.PROFILE });
+      queryClient.refetchQueries({ queryKey: QUERY_KEYS.PROFILE });
       queryClient.invalidateQueries({ queryKey: CART_QUERY_KEYS.CART });
     },
   });
@@ -30,10 +20,9 @@ export const signupOptions = () => {
   const queryClient = useQueryClient();
   return mutationOptions({
     mutationFn: AuthService.signup,
-    onSuccess: async (data) => {
+    onSuccess: (data) => {
       setTokens(data.accessToken, data.refreshToken);
-      await mergeGuestCart();
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.PROFILE });
+      queryClient.refetchQueries({ queryKey: QUERY_KEYS.PROFILE });
       queryClient.invalidateQueries({ queryKey: CART_QUERY_KEYS.CART });
     },
   });

@@ -223,26 +223,32 @@
       "title": "Tudo o que voce precisa para ensinar online",
       "subtitle": "Ferramentas poderosas e faceis de usar para criar, gerenciar e escalar sua academia online.",
       "courses": {
+        "label": "Conteudo",
         "title": "Crie cursos facilmente",
         "description": "Editor intuitivo para criar modulos, aulas e avaliacoes. Envie videos, documentos e conteudo interativo sem complicacoes."
       },
       "enterprise": {
+        "label": "Empresas",
         "title": "Para empresas",
         "description": "Treinamento interno escalavel. Gerencie equipes, atribua cursos e acompanhe o progresso dos seus colaboradores."
       },
       "ai": {
+        "label": "IA",
         "title": "Agente IA integrado",
         "description": "Um assistente inteligente que conhece seu conteudo e seus alunos. Responde perguntas e guia o aprendizado 24/7."
       },
       "whatsapp": {
+        "label": "Mensagens",
         "title": "Conecte com WhatsApp",
         "description": "Seu agente IA pode se comunicar com seus alunos diretamente pelo WhatsApp. Notificacoes, lembretes e suporte automatizado."
       },
       "customization": {
+        "label": "Marca",
         "title": "Personalize sua marca",
         "description": "Sua academia, seu estilo. Personalize cores, logos, dominio proprio e cada detalhe da experiencia dos seus alunos."
       },
       "community": {
+        "label": "Social",
         "title": "Comunidade integrada",
         "description": "Forums de discussao, grupos de estudo e networking entre alunos. Crie uma comunidade ativa ao redor do seu conteudo."
       }
@@ -1164,8 +1170,13 @@
     "addSuccess": "Curso adicionado ao carrinho",
     "removeSuccess": "Curso removido do carrinho",
     "clearSuccess": "Carrinho esvaziado",
+    "checkoutSuccess": "Inscricao concluida com sucesso",
     "addToCart": "Adicionar ao carrinho",
     "removeFromCart": "Remover do carrinho",
+    "loginToAdd": "Entre para adicionar",
+    "loginRequired": "Login necessario",
+    "loginRequiredDescription": "Entre para ver seu carrinho e adicionar cursos",
+    "checkout": "Finalizar compra",
     "goToCart": "Ir ao carrinho",
     "continueShopping": "Continuar comprando",
     "summary": "Resumo do pedido",

@@ -79,7 +79,7 @@ export function CampusHeader({ tenant }: CampusHeaderProps) {
 
         <div className="hidden items-center gap-3 md:flex">
           <ModeToggle />
-          <CartSheet />
+          <CartSheet theme={tenant.theme} />
           {isAuthenticated ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -140,7 +140,7 @@ export function CampusHeader({ tenant }: CampusHeaderProps) {
         </div>
 
         <div className="flex items-center gap-2 md:hidden">
-          <CartSheet />
+          <CartSheet theme={tenant.theme} />
           <Button
             variant="ghost"
             mode="icon"

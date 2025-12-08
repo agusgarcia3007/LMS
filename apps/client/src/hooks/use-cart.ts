@@ -1,5 +1,4 @@
-import { useGetCart, useAddToCart, useRemoveFromCart, useClearCart, useGetGuestCart } from "@/services/cart";
-import { useGuestCart } from "./use-guest-cart";
+import { useGetCart, useAddToCart, useRemoveFromCart, useClearCart } from "@/services/cart";
 
 export const useCart = () => {
   const isAuthenticated = !!localStorage.getItem("accessToken");
@@ -9,71 +8,39 @@ export const useCart = () => {
   const { mutate: removeFromCartMutation, isPending: isRemoving } = useRemoveFromCart();
   const { mutate: clearCartMutation, isPending: isClearing } = useClearCart();
 
-  const {
-    courseIds: guestCourseIds,
-    itemCount: guestItemCount,
-    addToGuestCart,
-    removeFromGuestCart,
-    clearGuestCart,
-    isInGuestCart,
-  } = useGuestCart();
-
-  const { data: guestCartData, isLoading: isLoadingGuestCart } = useGetGuestCart(guestCourseIds);
-
   const addToCart = (courseId: string) => {
-    if (isAuthenticated) {
-      addToCartMutation(courseId);
-    } else {
-      addToGuestCart(courseId);
-    }
+    addToCartMutation(courseId);
   };
 
   const removeFromCart = (courseId: string) => {
-    if (isAuthenticated) {
-      removeFromCartMutation(courseId);
-    } else {
-      removeFromGuestCart(courseId);
-    }
+    removeFromCartMutation(courseId);
   };
 
   const clearCart = () => {
-    if (isAuthenticated) {
-      clearCartMutation();
-    } else {
-      clearGuestCart();
-    }
+    clearCartMutation();
   };
 
   const isInCart = (courseId: string): boolean => {
-    if (isAuthenticated) {
-      return cartData?.items.some((item) => item.courseId === courseId) ?? false;
-    }
-    return isInGuestCart(courseId);
+    return cartData?.items.some((item) => item.courseId === courseId) ?? false;
   };
 
   const defaultSummary = {
-    itemCount: guestItemCount,
+    itemCount: 0,
     total: 0,
     originalTotal: 0,
     currency: "USD",
   };
 
   return {
-    items: isAuthenticated
-      ? cartData?.items ?? []
-      : guestCartData?.items ?? [],
-    summary: isAuthenticated
-      ? cartData?.summary ?? defaultSummary
-      : guestCartData?.summary ?? defaultSummary,
-    itemCount: isAuthenticated
-      ? cartData?.summary?.itemCount ?? 0
-      : guestCartData?.summary?.itemCount ?? guestItemCount,
-    isLoading: isAuthenticated ? isLoading : isLoadingGuestCart,
+    items: cartData?.items ?? [],
+    summary: cartData?.summary ?? defaultSummary,
+    itemCount: cartData?.summary?.itemCount ?? 0,
+    isLoading,
     isPending: isAdding || isRemoving || isClearing,
+    isAuthenticated,
     addToCart,
     removeFromCart,
     clearCart,
     isInCart,
-    guestCourseIds: isAuthenticated ? [] : guestCourseIds,
   };
 };

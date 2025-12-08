@@ -13,13 +13,6 @@ export const cartOptions = () =>
     queryFn: () => CartService.getCart(),
   });
 
-export const guestCartOptions = (courseIds: string[]) =>
-  queryOptions({
-    queryKey: [...QUERY_KEYS.CART, "guest", courseIds],
-    queryFn: () => CartService.getGuestCart(courseIds),
-    enabled: courseIds.length > 0,
-  });
-
 export const addToCartOptions = () => {
   const queryClient = useQueryClient();
   return mutationOptions({
@@ -49,16 +42,6 @@ export const clearCartOptions = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.CART });
       toast.success(i18n.t("cart.clearSuccess"));
-    },
-  });
-};
-
-export const mergeCartOptions = () => {
-  const queryClient = useQueryClient();
-  return mutationOptions({
-    mutationFn: CartService.mergeCart,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.CART });
     },
   });
 };

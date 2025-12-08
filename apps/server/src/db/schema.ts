@@ -358,6 +358,8 @@ export const coursesTable = pgTable(
     index("courses_category_id_idx").on(table.categoryId),
     index("courses_status_idx").on(table.status),
     index("courses_slug_tenant_idx").on(table.slug, table.tenantId),
+    index("courses_tenant_created_idx").on(table.tenantId, table.createdAt),
+    index("courses_tenant_status_idx").on(table.tenantId, table.status),
   ]
 );
 

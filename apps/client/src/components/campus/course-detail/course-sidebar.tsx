@@ -7,6 +7,7 @@ import {
   Layers,
   Play,
   Share2,
+  ShoppingCart,
   Smartphone,
   Trophy,
 } from "lucide-react";
@@ -20,6 +21,7 @@ import {
   DialogContent,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Link } from "@tanstack/react-router";
 import { formatPrice, getInitials } from "@/lib/format";
 import { useCart } from "@/hooks/use-cart";
 import { EnrollButton } from "@/components/campus/enroll-button";
@@ -31,7 +33,7 @@ type CourseSidebarProps = {
 
 export function CourseSidebar({ course }: CourseSidebarProps) {
   const { t, i18n } = useTranslation();
-  const { addToCart, removeFromCart, isInCart, isPending } = useCart();
+  const { addToCart, removeFromCart, isInCart, isPending, isAuthenticated } = useCart();
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
 
   const hasDiscount = course.originalPrice && course.originalPrice > course.price;
@@ -111,22 +113,30 @@ export function CourseSidebar({ course }: CourseSidebarProps) {
         )}
 
         <div className="space-y-2.5">
-          <EnrollButton
-            courseId={course.id}
-            courseSlug={course.slug}
-            isFree={isFree}
-          />
-
-          {!isFree && (
+          {isFree ? (
+            <EnrollButton
+              courseId={course.id}
+              courseSlug={course.slug}
+              isFree={isFree}
+            />
+          ) : isAuthenticated ? (
             <Button
               size="lg"
-              variant={inCart ? "secondary" : "outline"}
+              variant={inCart ? "secondary" : "default"}
               className="w-full font-semibold"
               onClick={handleCartClick}
               isLoading={isPending}
             >
+              <ShoppingCart className="mr-2 size-4" />
               {inCart ? t("cart.removeFromCart") : t("cart.addToCart")}
             </Button>
+          ) : (
+            <Link to="/login" className="w-full">
+              <Button size="lg" className="w-full font-semibold">
+                <ShoppingCart className="mr-2 size-4" />
+                {t("cart.loginToAdd")}
+              </Button>
+            </Link>
           )}
         </div>
 
