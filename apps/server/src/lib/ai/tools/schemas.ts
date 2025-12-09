@@ -15,6 +15,11 @@ export const searchQuizzesSchema = z.object({
   limit: z.number().optional().default(10).describe("Maximum number of results"),
 });
 
+export const searchModulesSchema = z.object({
+  query: z.string().describe("Search query to find modules by title or description"),
+  limit: z.number().optional().default(10).describe("Maximum number of results"),
+});
+
 export const createQuizSchema = z.object({
   title: z.string().describe("Quiz title"),
   description: z.string().optional().describe("Quiz description"),
@@ -75,6 +80,7 @@ export const createCourseSchema = z.object({
 export type SearchVideosParams = z.infer<typeof searchVideosSchema>;
 export type SearchDocumentsParams = z.infer<typeof searchDocumentsSchema>;
 export type SearchQuizzesParams = z.infer<typeof searchQuizzesSchema>;
+export type SearchModulesParams = z.infer<typeof searchModulesSchema>;
 export type CreateQuizParams = z.infer<typeof createQuizSchema>;
 export type CreateModuleParams = z.infer<typeof createModuleSchema>;
 export type GenerateCoursePreviewParams = z.infer<typeof generateCoursePreviewSchema>;

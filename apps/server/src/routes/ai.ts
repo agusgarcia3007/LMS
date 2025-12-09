@@ -828,13 +828,19 @@ export const aiRoutes = new Elysia()
         })),
         tools,
         stopWhen: (event) => {
-          if (event.steps.length >= 15) return true;
-          const toolNames = event.steps
-            .flatMap((s) => s.toolCalls?.map((tc) => tc.toolName) ?? []);
-          return (
-            toolNames.includes("generateCoursePreview") ||
-            toolNames.includes("createCourse")
-          );
+          if (event.steps.length >= 20) return true;
+
+          const stepsWithTargetTools = event.steps.filter((s) => {
+            const names = s.toolCalls?.map((tc) => tc.toolName) ?? [];
+            return names.includes("generateCoursePreview") || names.includes("createCourse");
+          });
+
+          if (stepsWithTargetTools.length === 0) return false;
+
+          const lastTargetStep = stepsWithTargetTools[stepsWithTargetTools.length - 1];
+          const lastTargetStepIndex = event.steps.indexOf(lastTargetStep);
+
+          return event.steps.length > lastTargetStepIndex + 1;
         },
         onStepFinish: (step) => {
           logger.info("AI chat step finished", {

@@ -18,6 +18,7 @@ import {
   searchVideosSchema,
   searchDocumentsSchema,
   searchQuizzesSchema,
+  searchModulesSchema,
   createQuizSchema,
   createModuleSchema,
   generateCoursePreviewSchema,
@@ -198,6 +199,35 @@ export function createCourseCreatorTools(tenantId: string) {
 
         logger.info("searchQuizzes executed", { query, found: quizzes.length });
         return { quizzes, count: quizzes.length };
+      },
+    }),
+
+    searchModules: tool({
+      description: "Search for existing modules by title/description. Use these modules directly in courses instead of creating new ones.",
+      inputSchema: searchModulesSchema,
+      execute: async ({ query, limit }) => {
+        const modules = await db
+          .select({
+            id: modulesTable.id,
+            title: modulesTable.title,
+            description: modulesTable.description,
+          })
+          .from(modulesTable)
+          .where(
+            and(
+              eq(modulesTable.tenantId, tenantId),
+              eq(modulesTable.status, "published"),
+              or(
+                ilike(modulesTable.title, `%${query}%`),
+                ilike(modulesTable.description, `%${query}%`)
+              )
+            )
+          )
+          .orderBy(desc(modulesTable.createdAt))
+          .limit(limit ?? 10);
+
+        logger.info("searchModules executed", { query, found: modules.length });
+        return { modules, count: modules.length };
       },
     }),
 
