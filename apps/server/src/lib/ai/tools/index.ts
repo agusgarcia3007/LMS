@@ -1,4 +1,4 @@
-import { tool } from "ai";
+import { tool, generateText } from "ai";
 import { db } from "@/db";
 import {
   videosTable,
@@ -24,6 +24,10 @@ import {
   createCourseSchema,
 } from "./schemas";
 import { generateEmbedding } from "../embeddings";
+import { aiGateway } from "../gateway";
+import { AI_MODELS } from "../models";
+import { THUMBNAIL_GENERATION_PROMPT } from "../prompts";
+import { uploadBase64ToS3 } from "@/lib/upload";
 
 export * from "./schemas";
 
@@ -316,6 +320,7 @@ export function createCourseCreatorTools(tenantId: string) {
         requirements,
         features,
         moduleIds,
+        categoryId,
       }) => {
         const slug = title
           .toLowerCase()
@@ -350,6 +355,7 @@ export function createCourseCreatorTools(tenantId: string) {
             price: 0,
             currency: "USD",
             language: "es",
+            categoryId: categoryId ?? null,
           })
           .returning();
 
@@ -363,10 +369,62 @@ export function createCourseCreatorTools(tenantId: string) {
           await db.insert(courseModulesTable).values(moduleInserts);
         }
 
+        let thumbnailKey: string | null = null;
+        try {
+          const modules = await db
+            .select({ title: modulesTable.title })
+            .from(modulesTable)
+            .where(
+              sql`${modulesTable.id} IN (${sql.join(moduleIds.map(id => sql`${id}`), sql`, `)})`
+            );
+
+          const topics = modules.slice(0, 5).map((m) => m.title);
+          const imagePrompt = THUMBNAIL_GENERATION_PROMPT
+            .replace("{{title}}", title)
+            .replace("{{description}}", shortDescription)
+            .replace("{{topics}}", topics.join(", "));
+
+          logger.info("Generating course thumbnail with AI Gateway");
+          const imageStart = Date.now();
+
+          const imageResult = await generateText({
+            model: aiGateway(AI_MODELS.IMAGE_GENERATION),
+            prompt: imagePrompt,
+          });
+
+          const imageTime = Date.now() - imageStart;
+          logger.info("Thumbnail generation completed", {
+            imageTime: `${imageTime}ms`,
+          });
+
+          const imageFile = imageResult.files?.find((f) =>
+            f.mediaType.startsWith("image/")
+          );
+
+          if (imageFile?.base64) {
+            const base64Data = `data:${imageFile.mediaType};base64,${imageFile.base64}`;
+            thumbnailKey = await uploadBase64ToS3({
+              base64: base64Data,
+              folder: `courses/${course.id}`,
+              userId: tenantId,
+            });
+
+            await db
+              .update(coursesTable)
+              .set({ thumbnail: thumbnailKey })
+              .where(eq(coursesTable.id, course.id));
+          }
+        } catch (error) {
+          logger.warn("Thumbnail generation failed, continuing without thumbnail", {
+            error: error instanceof Error ? error.message : "Unknown error",
+          });
+        }
+
         logger.info("createCourse executed", {
           courseId: course.id,
           title: course.title,
           moduleCount: moduleIds.length,
+          hasThumbnail: !!thumbnailKey,
         });
 
         return {
@@ -375,6 +433,7 @@ export function createCourseCreatorTools(tenantId: string) {
           title: course.title,
           slug: course.slug,
           modulesCount: moduleIds.length,
+          hasThumbnail: !!thumbnailKey,
         };
       },
     }),

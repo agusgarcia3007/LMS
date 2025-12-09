@@ -69,6 +69,7 @@ export const createCourseSchema = z.object({
   requirements: z.array(z.string()).describe("Course requirements/prerequisites"),
   features: z.array(z.string()).describe("Course features/highlights"),
   moduleIds: z.array(z.string()).describe("IDs of modules to include (from createModule results)"),
+  categoryId: z.string().optional().describe("Category ID for the course if known"),
 });
 
 export type SearchVideosParams = z.infer<typeof searchVideosSchema>;

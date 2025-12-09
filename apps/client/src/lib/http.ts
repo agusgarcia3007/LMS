@@ -8,7 +8,7 @@ const REFRESH_TOKEN_KEY = "refreshToken";
 const REDIRECT_PATH_KEY = "redirectPath";
 
 let isRefreshing = false;
-let refreshPromise: Promise<string> | null = null;
+let refreshPromise: Promise<string | null> | null = null;
 
 export const http = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
@@ -88,3 +88,41 @@ export const getRefreshToken = () => localStorage.getItem(REFRESH_TOKEN_KEY);
 export const getRedirectPath = () => sessionStorage.getItem(REDIRECT_PATH_KEY);
 
 export const clearRedirectPath = () => sessionStorage.removeItem(REDIRECT_PATH_KEY);
+
+export async function ensureValidToken(): Promise<string | null> {
+  const token = localStorage.getItem(TOKEN_KEY);
+  if (!token) return null;
+
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    const expiresAt = payload.exp * 1000;
+    const now = Date.now();
+    const bufferMs = 60 * 1000;
+
+    if (expiresAt - now > bufferMs) {
+      return token;
+    }
+
+    if (isRefreshing && refreshPromise) {
+      return refreshPromise;
+    }
+
+    isRefreshing = true;
+    refreshPromise = AuthService.refresh()
+      .then((data) => {
+        localStorage.setItem(TOKEN_KEY, data.accessToken);
+        isRefreshing = false;
+        refreshPromise = null;
+        return data.accessToken;
+      })
+      .catch(() => {
+        isRefreshing = false;
+        refreshPromise = null;
+        return null;
+      });
+
+    return refreshPromise;
+  } catch {
+    return token;
+  }
+}

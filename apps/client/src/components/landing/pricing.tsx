@@ -88,10 +88,7 @@ export function Pricing() {
 
               <div className="mt-10 flex flex-col items-center gap-4">
                 <Link to="/signup" className="w-full sm:w-auto">
-                  <Button
-                    size="lg"
-                    className="h-14 w-full rounded-full bg-primary px-12 text-base font-semibold text-primary-foreground shadow-lg shadow-primary/30 transition-all hover:scale-105 hover:bg-primary/90 sm:w-auto"
-                  >
+                  <Button size="lg" className="w-full sm:w-auto">
                     {t("landing.pricing.cta")}
                   </Button>
                 </Link>

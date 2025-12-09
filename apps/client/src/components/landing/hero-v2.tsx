@@ -60,20 +60,13 @@ export function LandingHeroV2() {
 
             <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
               <Link to="/signup">
-                <Button
-                  size="lg"
-                  className="h-14 gap-2 rounded-full bg-primary px-8 text-base font-semibold text-primary-foreground shadow-2xl shadow-primary/20 transition-all hover:scale-105 hover:bg-primary/90"
-                >
+                <Button size="lg">
                   {t("landing.hero.cta")}
                   <ArrowRight className="h-5 w-5" />
                 </Button>
               </Link>
               <a href="#demo">
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="h-14 gap-2 rounded-full border-border bg-muted/50 px-8 text-base font-semibold text-foreground backdrop-blur-sm transition-all hover:bg-muted"
-                >
+                <Button size="lg" variant="outline">
                   <Play className="h-4 w-4" />
                   {t("landing.hero.ctaSecondary")}
                 </Button>

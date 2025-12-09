@@ -42,10 +42,7 @@ export function FinalCTA() {
 
         <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
           <Link to="/signup">
-            <Button
-              size="lg"
-              className="h-14 gap-2 rounded-full bg-primary px-10 text-base font-semibold text-primary-foreground shadow-2xl shadow-primary/20 transition-all hover:scale-105 hover:bg-primary/90"
-            >
+            <Button size="lg">
               {t("landing.finalCta.cta")}
               <ArrowRight className="h-5 w-5" />
             </Button>

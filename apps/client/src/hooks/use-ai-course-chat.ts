@@ -1,7 +1,8 @@
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { getTenantFromHost, getResolvedSlug } from "@/lib/tenant";
+import { ensureValidToken } from "@/lib/http";
 import { QUERY_KEYS as COURSES_QUERY_KEYS } from "@/services/courses/service";
 import { i18n } from "@/i18n";
 
@@ -48,11 +49,14 @@ type ChatStatus = "idle" | "streaming" | "error";
 export function useAICourseChat() {
   const queryClient = useQueryClient();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const messagesRef = useRef<ChatMessage[]>([]);
   const [status, setStatus] = useState<ChatStatus>("idle");
   const [coursePreview, setCoursePreview] = useState<CoursePreview | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [toolInvocations, setToolInvocations] = useState<ToolInvocation[]>([]);
   const [courseCreated, setCourseCreated] = useState<{ courseId: string; title: string } | null>(null);
+
+  messagesRef.current = messages;
 
   const sendMessage = useCallback(async (content: string) => {
     const userMessage: ChatMessage = {
@@ -67,22 +71,26 @@ export function useAICourseChat() {
     setError(null);
     setToolInvocations([]);
 
-    const allMessages = [...messages, userMessage].map((m) => ({
+    const allMessages = [...messagesRef.current, userMessage].map((m) => ({
       role: m.role,
       content: m.content,
     }));
 
-    const token = localStorage.getItem("accessToken");
+    const token = await ensureValidToken();
     const { slug } = getTenantFromHost();
     const tenantSlug = slug || getResolvedSlug();
 
+    if (!token) {
+      setStatus("error");
+      setError("No authentication token found");
+      toast.error(i18n.t("common.errors.unauthorized"));
+      return;
+    }
+
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`,
     };
-
-    if (token) {
-      headers.Authorization = `Bearer ${token}`;
-    }
 
     if (tenantSlug) {
       headers["X-Tenant-Slug"] = tenantSlug;
@@ -98,6 +106,13 @@ export function useAICourseChat() {
         }
       );
 
+      if (response.status === 401) {
+        setStatus("error");
+        setError("Session expired");
+        toast.error(i18n.t("common.errors.sessionExpired"));
+        return;
+      }
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -108,22 +123,29 @@ export function useAICourseChat() {
       }
 
       const decoder = new TextDecoder();
-      let assistantContent = "";
       let buffer = "";
+      let currentMessageId: string | null = null;
+      let currentMessageContent = "";
+      let hasSeenToolCalls = false;
 
-      const assistantMessage: ChatMessage = {
-        id: crypto.randomUUID(),
-        role: "assistant",
-        content: "",
-        timestamp: Date.now(),
+      const createNewAssistantMessage = () => {
+        const newMessage: ChatMessage = {
+          id: crypto.randomUUID(),
+          role: "assistant",
+          content: "",
+          timestamp: Date.now(),
+        };
+        currentMessageId = newMessage.id;
+        currentMessageContent = "";
+        setMessages((prev) => [...prev, newMessage]);
+        return newMessage.id;
       };
 
-      setMessages((prev) => [...prev, assistantMessage]);
-
-      const updateAssistantMessage = (newContent: string) => {
+      const updateCurrentMessage = (content: string) => {
+        if (!currentMessageId) return;
         setMessages((prev) =>
           prev.map((m) =>
-            m.id === assistantMessage.id ? { ...m, content: newContent } : m
+            m.id === currentMessageId ? { ...m, content } : m
           )
         );
       };
@@ -139,11 +161,19 @@ export function useAICourseChat() {
 
           switch (event.type) {
             case "text-delta":
-              assistantContent += event.delta;
-              updateAssistantMessage(assistantContent);
+              if (hasSeenToolCalls && !currentMessageId) {
+                createNewAssistantMessage();
+              } else if (!currentMessageId) {
+                createNewAssistantMessage();
+              }
+              currentMessageContent += event.delta;
+              updateCurrentMessage(currentMessageContent);
               break;
 
             case "tool-input-available":
+              hasSeenToolCalls = true;
+              currentMessageId = null;
+              currentMessageContent = "";
               setToolInvocations((prev) => [
                 ...prev,
                 {
@@ -219,14 +249,10 @@ export function useAICourseChat() {
       setError(err instanceof Error ? err.message : "Unknown error");
 
       setMessages((prev) => {
-        const lastMessage = prev[prev.length - 1];
-        if (lastMessage?.role === "assistant" && !lastMessage.content) {
-          return prev.slice(0, -1);
-        }
-        return prev;
+        return prev.filter((m) => m.role !== "assistant" || m.content.trim() !== "");
       });
     }
-  }, [messages]);
+  }, [queryClient]);
 
   const reset = useCallback(() => {
     setMessages([]);
