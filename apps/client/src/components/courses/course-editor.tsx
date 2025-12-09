@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Layers, Plus, Sparkles, X } from "lucide-react";
+import { ImageIcon, Layers, Plus, Sparkles, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
@@ -36,6 +36,11 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
   Stepper,
   StepperContent,
   StepperIndicator,
@@ -68,7 +73,7 @@ import {
 } from "@/services/courses";
 import type { Course, CourseLevel, CourseStatus } from "@/services/courses";
 import { useGetModules, type Module } from "@/services/modules";
-import { useGenerateCourse } from "@/services/ai";
+import { useGenerateCourse, useGenerateThumbnail } from "@/services/ai";
 import type { CoursePreview } from "@/hooks/use-ai-course-chat";
 
 const schema = z.object({
@@ -238,6 +243,7 @@ export function CourseEditor({
   const uploadVideoMutation = useUploadVideo();
   const deleteVideoMutation = useDeleteVideo();
   const generateCourseMutation = useGenerateCourse();
+  const generateThumbnailMutation = useGenerateThumbnail();
 
   const form = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -527,6 +533,24 @@ export function CourseEditor({
       }
     );
   }, [pendingModules, generateCourseMutation, form, t]);
+
+  const handleGenerateThumbnail = useCallback(() => {
+    const title = form.getValues("title");
+    const description = form.getValues("shortDescription");
+    if (!title) {
+      toast.error(t("courses.form.titleRequired"));
+      return;
+    }
+
+    generateThumbnailMutation.mutate(
+      { title, description },
+      {
+        onSuccess: (data) => {
+          form.setValue("thumbnail", data.thumbnail);
+        },
+      }
+    );
+  }, [form, generateThumbnailMutation, t]);
 
   const columnsWithLabels = useMemo(
     () =>
@@ -820,18 +844,45 @@ export function CourseEditor({
                       name="thumbnail"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t("courses.form.thumbnail")}</FormLabel>
+                          <FormLabel className="flex items-center gap-2">
+                            {t("courses.form.thumbnail")}
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="icon"
+                                  className="size-5"
+                                  onClick={handleGenerateThumbnail}
+                                  disabled={!form.getValues("title") || isPending || isGenerating || generateThumbnailMutation.isPending}
+                                >
+                                  <Sparkles className="size-3.5" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                {t("courses.form.generateThumbnailTooltip")}
+                              </TooltipContent>
+                            </Tooltip>
+                          </FormLabel>
                           <FormControl>
-                            <ImageUpload
-                              value={field.value || null}
-                              onChange={(url) => field.onChange(url || "")}
-                              onUpload={handleThumbnailUpload}
-                              onDelete={handleThumbnailDelete}
-                              isUploading={uploadThumbnailMutation.isPending}
-                              isDeleting={deleteThumbnailMutation.isPending}
-                              disabled={isPending || isGenerating}
-                              aspectRatio="16/9"
-                            />
+                            <div className="relative">
+                              <ImageUpload
+                                value={field.value || null}
+                                onChange={(url) => field.onChange(url || "")}
+                                onUpload={handleThumbnailUpload}
+                                onDelete={handleThumbnailDelete}
+                                isUploading={uploadThumbnailMutation.isPending}
+                                isDeleting={deleteThumbnailMutation.isPending}
+                                disabled={isPending || isGenerating || generateThumbnailMutation.isPending}
+                                aspectRatio="16/9"
+                              />
+                              {generateThumbnailMutation.isPending && (
+                                <div className="absolute inset-0 rounded-lg bg-muted overflow-hidden flex items-center justify-center">
+                                  <ImageIcon className="size-8 text-muted-foreground" />
+                                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-muted-foreground/10 to-transparent animate-shimmer" />
+                                </div>
+                              )}
+                            </div>
                           </FormControl>
                           <FormMessage />
                         </FormItem>

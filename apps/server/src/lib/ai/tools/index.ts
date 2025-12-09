@@ -419,6 +419,54 @@ export function createCourseCreatorTools(tenantId: string, cache?: Map<string, u
       description: "Create a new module with content items. Module is created as published. Returns existing module if similar one already exists.",
       inputSchema: createModuleSchema,
       execute: async ({ title, description, items }) => {
+        const videoIds = items.filter((i) => i.type === "video").map((i) => i.id);
+        const documentIds = items.filter((i) => i.type === "document").map((i) => i.id);
+        const quizIds = items.filter((i) => i.type === "quiz").map((i) => i.id);
+
+        const [validVideos, validDocuments, validQuizzes] = await Promise.all([
+          videoIds.length > 0
+            ? db.select({ id: videosTable.id }).from(videosTable)
+                .where(and(eq(videosTable.tenantId, tenantId), inArray(videosTable.id, videoIds)))
+            : [],
+          documentIds.length > 0
+            ? db.select({ id: documentsTable.id }).from(documentsTable)
+                .where(and(eq(documentsTable.tenantId, tenantId), inArray(documentsTable.id, documentIds)))
+            : [],
+          quizIds.length > 0
+            ? db.select({ id: quizzesTable.id }).from(quizzesTable)
+                .where(and(eq(quizzesTable.tenantId, tenantId), inArray(quizzesTable.id, quizIds)))
+            : [],
+        ]);
+
+        const validVideoIds = new Set(validVideos.map((v) => v.id));
+        const validDocumentIds = new Set(validDocuments.map((d) => d.id));
+        const validQuizIds = new Set(validQuizzes.map((q) => q.id));
+
+        const validItems = items.filter((item) => {
+          if (item.type === "video") return validVideoIds.has(item.id);
+          if (item.type === "document") return validDocumentIds.has(item.id);
+          if (item.type === "quiz") return validQuizIds.has(item.id);
+          return false;
+        });
+
+        const invalidCount = items.length - validItems.length;
+        if (invalidCount > 0) {
+          logger.warn("createModule: filtered invalid item IDs", {
+            title,
+            totalItems: items.length,
+            validItems: validItems.length,
+            invalidCount,
+          });
+        }
+
+        if (validItems.length === 0) {
+          logger.error("createModule: no valid items provided", { title, items });
+          return {
+            type: "error" as const,
+            error: "No valid content IDs provided. Use ACTUAL UUIDs from searchVideos/searchDocuments/searchQuizzes results.",
+          };
+        }
+
         const text = `${title} ${description || ""}`.trim();
         const queryEmbedding = await generateEmbedding(text);
         const similarity = sql<number>`1 - (${cosineDistance(modulesTable.embedding, queryEmbedding)})`;
@@ -472,7 +520,7 @@ export function createCourseCreatorTools(tenantId: string, cache?: Map<string, u
           .set({ embedding: queryEmbedding })
           .where(eq(modulesTable.id, module.id));
 
-        for (const item of items) {
+        for (const item of validItems) {
           await db.insert(moduleItemsTable).values({
             moduleId: module.id,
             contentType: item.type,
@@ -484,13 +532,13 @@ export function createCourseCreatorTools(tenantId: string, cache?: Map<string, u
 
         logger.info("createModule executed", {
           moduleId: module.id,
-          itemCount: items.length,
+          itemCount: validItems.length,
         });
 
         return {
           id: module.id,
           title: module.title,
-          itemsCount: items.length,
+          itemsCount: validItems.length,
         };
       },
     }),

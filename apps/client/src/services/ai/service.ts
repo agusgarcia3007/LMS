@@ -47,6 +47,15 @@ export type GenerateCourseThumbnailResponse = {
   error?: string;
 };
 
+export type GenerateThumbnailRequest = {
+  title: string;
+  description?: string;
+};
+
+export type GenerateThumbnailResponse = {
+  thumbnail: string;
+};
+
 export type GenerateThemeRequest = {
   primaryColor?: string;
   style?: string;
@@ -116,6 +125,14 @@ export const AIService = {
   async generateTheme(payload: GenerateThemeRequest) {
     const { data } = await http.post<GenerateThemeResponse>(
       "/ai/themes/generate",
+      payload
+    );
+    return data;
+  },
+
+  async generateThumbnail(payload: GenerateThumbnailRequest) {
+    const { data } = await http.post<GenerateThumbnailResponse>(
+      "/ai/thumbnail/generate",
       payload
     );
     return data;

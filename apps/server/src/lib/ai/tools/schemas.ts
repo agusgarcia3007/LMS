@@ -39,10 +39,10 @@ export const createModuleSchema = z.object({
   description: z.string().optional().describe("Module description"),
   items: z.array(z.object({
     type: z.enum(["video", "document", "quiz"]).describe("Content type"),
-    id: z.string().describe("ID of existing or newly created content"),
+    id: z.string().describe("ACTUAL UUID from searchVideos/searchDocuments/searchQuizzes results. NEVER use placeholder strings like 'video-id-1'."),
     order: z.number().describe("Order within the module"),
     isPreview: z.boolean().optional().default(false).describe("Whether this item is free preview"),
-  })).describe("Content items in the module"),
+  })).describe("Content items in the module - use REAL IDs from search results"),
 });
 
 export const generateCoursePreviewSchema = z.object({

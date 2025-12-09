@@ -4,6 +4,7 @@ import {
   generateQuizQuestionsOptions,
   generateCourseOptions,
   generateThemeOptions,
+  generateThumbnailOptions,
 } from "./options";
 
 export const useAnalyzeVideo = () => useMutation(analyzeVideoOptions());
@@ -14,3 +15,6 @@ export const useGenerateQuizQuestions = () =>
 export const useGenerateCourse = () => useMutation(generateCourseOptions());
 
 export const useGenerateTheme = () => useMutation(generateThemeOptions());
+
+export const useGenerateThumbnail = () =>
+  useMutation(generateThumbnailOptions());

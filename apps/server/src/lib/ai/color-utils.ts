@@ -1,10 +1,10 @@
-import Color from "color";
+import Color from "colorjs.io";
 
 export function hexToOklch(hex: string): string {
-  const color = Color(hex);
-  const [l, c, h] = color.oklch().array();
-  const lightness = (l / 100).toFixed(2);
-  const chroma = (c / 100).toFixed(3);
-  const hue = Number.isNaN(h) ? 0 : Math.round(h);
+  const color = new Color(hex);
+  const oklch = color.oklch;
+  const lightness = oklch.l.toFixed(2);
+  const chroma = oklch.c.toFixed(3);
+  const hue = Number.isNaN(oklch.h) ? 0 : Math.round(oklch.h);
   return `oklch(${lightness} ${chroma} ${hue})`;
 }

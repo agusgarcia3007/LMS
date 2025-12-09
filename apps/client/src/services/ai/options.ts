@@ -4,6 +4,7 @@ import {
   type GenerateQuestionsRequest,
   type GenerateCourseRequest,
   type GenerateThemeRequest,
+  type GenerateThumbnailRequest,
 } from "./service";
 
 export const analyzeVideoOptions = () =>
@@ -30,4 +31,10 @@ export const generateThemeOptions = () =>
   mutationOptions({
     mutationFn: (payload: GenerateThemeRequest) =>
       AIService.generateTheme(payload),
+  });
+
+export const generateThumbnailOptions = () =>
+  mutationOptions({
+    mutationFn: (payload: GenerateThumbnailRequest) =>
+      AIService.generateThumbnail(payload),
   });

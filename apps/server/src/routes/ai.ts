@@ -1235,4 +1235,70 @@ export const aiRoutes = new Elysia()
         summary: "Generate and upload thumbnail for an existing course",
       },
     }
+  )
+  .post(
+    "/thumbnail/generate",
+    (ctx) =>
+      withHandler(ctx, async () => {
+        if (!ctx.user) {
+          throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
+        }
+
+        const canManage =
+          ctx.userRole === "owner" ||
+          ctx.userRole === "admin" ||
+          ctx.userRole === "superadmin";
+
+        if (!canManage) {
+          throw new AppError(
+            ErrorCode.FORBIDDEN,
+            "Only owners and admins can generate thumbnails",
+            403
+          );
+        }
+
+        const { title, description } = ctx.body;
+
+        logger.info("Generating standalone thumbnail", { title });
+
+        const imagePrompt = buildThumbnailPrompt(title, description || "", [title]);
+
+        const imageStart = Date.now();
+        const imageResult = await generateText({
+          model: aiGateway(AI_MODELS.IMAGE_GENERATION),
+          prompt: imagePrompt,
+        });
+
+        const imageTime = Date.now() - imageStart;
+        logger.info("Standalone thumbnail generation completed", {
+          imageTime: `${imageTime}ms`,
+        });
+
+        const imageFile = imageResult.files?.find((f) =>
+          f.mediaType.startsWith("image/")
+        );
+
+        if (!imageFile?.base64) {
+          logger.warn("No image returned from AI Gateway");
+          throw new AppError(
+            ErrorCode.INTERNAL_SERVER_ERROR,
+            "Failed to generate thumbnail",
+            500
+          );
+        }
+
+        return {
+          thumbnail: `data:${imageFile.mediaType};base64,${imageFile.base64}`,
+        };
+      }),
+    {
+      body: t.Object({
+        title: t.String({ minLength: 1 }),
+        description: t.Optional(t.String()),
+      }),
+      detail: {
+        tags: ["AI"],
+        summary: "Generate a thumbnail image from title and description",
+      },
+    }
   );

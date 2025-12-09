@@ -5,7 +5,9 @@ let embeddingPipeline: FeatureExtractionPipeline | null = null;
 
 async function getEmbeddingPipeline(): Promise<FeatureExtractionPipeline> {
   if (!embeddingPipeline) {
-    embeddingPipeline = await pipeline("feature-extraction", AI_MODELS.EMBEDDING);
+    const task = "feature-extraction" as const;
+    // @ts-expect-error pipeline overload produces overly complex union type
+    embeddingPipeline = await pipeline(task, AI_MODELS.EMBEDDING);
   }
   return embeddingPipeline;
 }

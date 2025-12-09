@@ -1051,6 +1051,8 @@
       "level": "Nivel",
       "language": "Idioma",
       "thumbnail": "Imagem de capa",
+      "generateThumbnailTooltip": "Gerar com IA",
+      "titleRequired": "E necessario um titulo para gerar a capa",
       "previewVideo": "Video de preview",
       "price": "Preco (em centavos)",
       "priceHelp": "0 = gratis, 1999 = $19.99",

@@ -1370,6 +1370,8 @@
       "level": "Level",
       "language": "Language",
       "thumbnail": "Cover image",
+      "generateThumbnailTooltip": "Generate with AI",
+      "titleRequired": "Title is required to generate thumbnail",
       "previewVideo": "Preview video",
       "price": "Price (in cents)",
       "priceHelp": "0 = free, 1999 = $19.99",

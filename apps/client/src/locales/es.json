@@ -1133,6 +1133,8 @@
       "level": "Nivel",
       "language": "Idioma",
       "thumbnail": "Imagen de portada",
+      "generateThumbnailTooltip": "Generar con IA",
+      "titleRequired": "Se requiere un titulo para generar la portada",
       "previewVideo": "Video de vista previa",
       "price": "Precio (en centavos)",
       "priceHelp": "0 = gratis, 1999 = $19.99",
