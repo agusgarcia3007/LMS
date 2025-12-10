@@ -4,6 +4,7 @@ import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { ModuleAccordion } from "./module-accordion";
+import { useLearnLayout } from "./learn-layout-provider";
 import { cn } from "@/lib/utils";
 import type { LearnModule } from "@/services/learn";
 
@@ -12,9 +13,6 @@ type LearnSidebarProps = {
   progress: number;
   currentItemId: string | null;
   onItemSelect: (itemId: string) => void;
-  collapsed?: boolean;
-  onToggleCollapsed?: () => void;
-  onOpenDrawer?: () => void;
 };
 
 export function LearnSidebar({
@@ -22,31 +20,27 @@ export function LearnSidebar({
   progress,
   currentItemId,
   onItemSelect,
-  collapsed = false,
-  onToggleCollapsed,
-  onOpenDrawer,
 }: LearnSidebarProps) {
   const { t } = useTranslation();
+  const { leftOpen, toggleLeft, setLeftOpenMobile } = useLearnLayout();
 
   return (
     <>
-      {onOpenDrawer && (
-        <div className="fixed bottom-4 right-4 z-40 lg:hidden">
-          <Button
-            size="icon"
-            onClick={onOpenDrawer}
-            className="size-12 rounded-full shadow-lg"
-            aria-label={t("learn.openMenu")}
-          >
-            <Menu className="size-5" />
-          </Button>
-        </div>
-      )}
+      <div className="fixed bottom-4 right-4 z-40 lg:hidden">
+        <Button
+          size="icon"
+          onClick={() => setLeftOpenMobile(true)}
+          className="size-12 rounded-full shadow-lg"
+          aria-label={t("learn.openMenu")}
+        >
+          <Menu className="size-5" />
+        </Button>
+      </div>
 
       <aside
         className={cn(
           "bg-muted/30 hidden flex-col border-r transition-all duration-300 lg:flex",
-          collapsed ? "w-0 overflow-hidden opacity-0" : "w-96 opacity-100"
+          leftOpen ? "w-(--sidebar-width) opacity-100" : "w-0 overflow-hidden opacity-0"
         )}
       >
         <div className="border-b p-4">
@@ -58,17 +52,15 @@ export function LearnSidebar({
               <span className="text-foreground text-sm font-semibold tabular-nums">
                 {progress}%
               </span>
-              {onToggleCollapsed && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="size-7"
-                  onClick={onToggleCollapsed}
-                  aria-label={t("learn.toggleSidebar")}
-                >
-                  <PanelLeftClose className="size-4" />
-                </Button>
-              )}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-7"
+                onClick={toggleLeft}
+                aria-label={t("learn.toggleSidebar")}
+              >
+                <PanelLeftClose className="size-4" />
+              </Button>
             </div>
           </div>
           <Progress value={progress} className="h-2" />
@@ -85,12 +77,12 @@ export function LearnSidebar({
         </ScrollArea>
       </aside>
 
-      {collapsed && onToggleCollapsed && (
+      {!leftOpen && (
         <div className="hidden border-r p-2 lg:block">
           <Button
             variant="ghost"
             size="icon"
-            onClick={onToggleCollapsed}
+            onClick={toggleLeft}
             aria-label={t("learn.toggleSidebar")}
           >
             <PanelLeft className="size-5" />

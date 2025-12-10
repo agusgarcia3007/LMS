@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useState, useMemo } from "react";
+import { useEffect, useCallback, useMemo } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { BookOpen } from "lucide-react";
@@ -13,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CampusHeader } from "@/components/campus/header";
+import { LearnLayoutProvider, useLearnLayout } from "@/components/learn/learn-layout-provider";
 import { LearnSidebar } from "@/components/learn/learn-sidebar";
 import { LearnDrawer } from "@/components/learn/learn-drawer";
 import { AIChatSidebar } from "@/components/learn/ai-chat-sidebar";
@@ -62,21 +63,45 @@ export const Route = createFileRoute("/my-courses/$courseSlug")({
       description: course.description,
     });
   },
-  component: LearnPage,
+  component: LearnPageWrapper,
 });
 
-function LearnPage() {
+function LearnPageWrapper() {
+  const { data: tenantData, isLoading: tenantLoading } = useCampusTenant();
+  const tenant = tenantData?.tenant;
+  const { customStyles } = useCustomTheme(tenant?.customTheme);
+
+  const themeClass =
+    !tenant?.customTheme && tenant?.theme ? `theme-${tenant.theme}` : "";
+
+  if (tenantLoading || !tenant) {
+    return <PageSkeleton />;
+  }
+
+  return (
+    <LearnLayoutProvider
+      defaultLeftOpen={true}
+      defaultRightOpen={false}
+      className={themeClass}
+      style={customStyles}
+    >
+      <LearnPage tenant={tenant} />
+    </LearnLayoutProvider>
+  );
+}
+
+type LearnPageProps = {
+  tenant: NonNullable<ReturnType<typeof useCampusTenant>["data"]>["tenant"];
+};
+
+function LearnPage({ tenant }: LearnPageProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { setTheme } = useTheme();
   const { courseSlug } = Route.useParams();
   const { item: currentItemId } = Route.useSearch();
+  const { leftOpenMobile, setLeftOpenMobile } = useLearnLayout();
 
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [aiSidebarCollapsed, setAiSidebarCollapsed] = useState(true);
-
-  const { data: tenantData, isLoading: tenantLoading } = useCampusTenant();
   const { data: structureData, isLoading: structureLoading } =
     useCourseStructure(courseSlug);
 
@@ -88,9 +113,6 @@ function LearnPage() {
 
   const { handleTimeUpdate, handlePause, reset: resetVideoProgress } =
     useVideoProgress(currentItemId ?? "");
-
-  const tenant = tenantData?.tenant;
-  const { customStyles } = useCustomTheme(tenant?.customTheme);
 
   const currentItemStatus = useMemo(() => {
     if (!currentItemId || !structureData) return null;
@@ -142,35 +164,22 @@ function LearnPage() {
     }
   }, [currentItemId, completeItem]);
 
-  if (tenantLoading || !tenant) {
-    return <PageSkeleton />;
-  }
-
-  const themeClass =
-    !tenant.customTheme && tenant.theme ? `theme-${tenant.theme}` : "";
-
   if (structureLoading) {
     return (
-      <div
-        className={cn("flex min-h-screen flex-col", themeClass)}
-        style={customStyles}
-      >
+      <>
         <CampusHeader tenant={tenant} />
-        <main className="flex-1">
+        <main className="min-h-0 flex-1 overflow-y-auto">
           <LearnPageSkeleton />
         </main>
-      </div>
+      </>
     );
   }
 
   if (!structureData) {
     return (
-      <div
-        className={cn("flex min-h-screen flex-col", themeClass)}
-        style={customStyles}
-      >
+      <>
         <CampusHeader tenant={tenant} />
-        <main className="flex flex-1 items-center justify-center">
+        <main className="flex min-h-0 flex-1 items-center justify-center">
           <Empty className="border">
             <EmptyHeader>
               <EmptyMedia variant="icon">
@@ -188,28 +197,22 @@ function LearnPage() {
             </EmptyContent>
           </Empty>
         </main>
-      </div>
+      </>
     );
   }
 
   const { enrollment, modules } = structureData;
 
   return (
-    <div
-      className={cn("flex min-h-screen flex-col", themeClass)}
-      style={customStyles}
-    >
+    <>
       <CampusHeader tenant={tenant} />
 
-      <div className="flex flex-1">
+      <div className="flex min-h-0 flex-1">
         <LearnSidebar
           modules={modules}
           progress={enrollment.progress}
           currentItemId={currentItemId ?? null}
           onItemSelect={handleItemSelect}
-          collapsed={sidebarCollapsed}
-          onToggleCollapsed={() => setSidebarCollapsed(!sidebarCollapsed)}
-          onOpenDrawer={() => setDrawerOpen(true)}
         />
 
         <main className="flex-1 overflow-y-auto">
@@ -298,30 +301,27 @@ function LearnPage() {
           </div>
         </main>
 
-        <AIChatSidebar
-          collapsed={aiSidebarCollapsed}
-          onToggleCollapsed={() => setAiSidebarCollapsed(!aiSidebarCollapsed)}
-        />
+        <AIChatSidebar />
       </div>
 
       <LearnDrawer
-        open={drawerOpen}
-        onOpenChange={setDrawerOpen}
+        open={leftOpenMobile}
+        onOpenChange={setLeftOpenMobile}
         modules={modules}
         progress={enrollment.progress}
         currentItemId={currentItemId ?? null}
         onItemSelect={(itemId) => {
           handleItemSelect(itemId);
-          setDrawerOpen(false);
+          setLeftOpenMobile(false);
         }}
       />
-    </div>
+    </>
   );
 }
 
 function PageSkeleton() {
   return (
-    <div className="min-h-screen">
+    <div className="flex h-screen flex-col">
       <div className="h-16 border-b border-border/40" />
       <LearnPageSkeleton />
     </div>
@@ -330,16 +330,16 @@ function PageSkeleton() {
 
 function LearnPageSkeleton() {
   return (
-    <div className="flex">
-      <div className="hidden w-96 shrink-0 border-r lg:block">
-        <div className="p-4 space-y-4">
+    <div className="flex flex-1">
+      <div className="hidden w-(--sidebar-width) shrink-0 border-r lg:block">
+        <div className="space-y-4 p-4">
           <Skeleton className="h-6 w-48" />
           <Skeleton className="h-2 w-full" />
           <div className="space-y-2 pt-4">
             {Array.from({ length: 4 }).map((_, i) => (
               <div key={i} className="space-y-2">
                 <Skeleton className="h-10 w-full" />
-                <div className="pl-4 space-y-1">
+                <div className="space-y-1 pl-4">
                   {Array.from({ length: 3 }).map((_, j) => (
                     <Skeleton key={j} className="h-8 w-full" />
                   ))}
