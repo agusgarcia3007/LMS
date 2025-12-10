@@ -30,8 +30,36 @@ import { generateEmbedding } from "../embeddings";
 
 export * from "./schemas";
 
+const SIMILARITY_THRESHOLDS = {
+  SEARCH: 0.4,
+  DEDUP_CREATE: 0.75,
+};
+
+const MAX_CACHE_SIZE = 100;
+
+function setCacheWithLimit(cache: Map<string, unknown>, key: string, value: unknown) {
+  if (cache.size >= MAX_CACHE_SIZE) {
+    const firstKey = cache.keys().next().value;
+    if (firstKey) cache.delete(firstKey);
+  }
+  cache.set(key, value);
+}
+
 export function createCourseCreatorTools(tenantId: string, cache?: Map<string, unknown>) {
   const searchCache = cache ?? new Map<string, unknown>();
+  const embeddingCache = new Map<string, number[]>();
+
+  async function getCachedEmbedding(query: string): Promise<number[]> {
+    const key = query.toLowerCase().trim();
+    const cached = embeddingCache.get(key);
+    if (cached) {
+      logger.info("Embedding cache hit", { query: key });
+      return cached;
+    }
+    const embedding = await generateEmbedding(query);
+    setCacheWithLimit(embeddingCache, key, embedding);
+    return embedding;
+  }
 
   return {
     searchVideos: tool({
@@ -45,7 +73,7 @@ export function createCourseCreatorTools(tenantId: string, cache?: Map<string, u
           return cached;
         }
 
-        const queryEmbedding = await generateEmbedding(query);
+        const queryEmbedding = await getCachedEmbedding(query);
         const similarity = sql<number>`1 - (${cosineDistance(videosTable.embedding, queryEmbedding)})`;
 
         let videos = await db
@@ -62,7 +90,7 @@ export function createCourseCreatorTools(tenantId: string, cache?: Map<string, u
               eq(videosTable.tenantId, tenantId),
               eq(videosTable.status, "published"),
               isNotNull(videosTable.embedding),
-              gt(similarity, 0.3)
+              gt(similarity, SIMILARITY_THRESHOLDS.SEARCH)
             )
           )
           .orderBy(desc(similarity))
@@ -93,7 +121,7 @@ export function createCourseCreatorTools(tenantId: string, cache?: Map<string, u
         }
 
         const result = { videos, count: videos.length };
-        searchCache.set(cacheKey, result);
+        setCacheWithLimit(searchCache, cacheKey, result);
         logger.info("searchVideos executed", { query, found: videos.length });
         return result;
       },
@@ -110,7 +138,7 @@ export function createCourseCreatorTools(tenantId: string, cache?: Map<string, u
           return cached;
         }
 
-        const queryEmbedding = await generateEmbedding(query);
+        const queryEmbedding = await getCachedEmbedding(query);
         const similarity = sql<number>`1 - (${cosineDistance(documentsTable.embedding, queryEmbedding)})`;
 
         let documents = await db
@@ -128,7 +156,7 @@ export function createCourseCreatorTools(tenantId: string, cache?: Map<string, u
               eq(documentsTable.tenantId, tenantId),
               eq(documentsTable.status, "published"),
               isNotNull(documentsTable.embedding),
-              gt(similarity, 0.3)
+              gt(similarity, SIMILARITY_THRESHOLDS.SEARCH)
             )
           )
           .orderBy(desc(similarity))
@@ -160,7 +188,7 @@ export function createCourseCreatorTools(tenantId: string, cache?: Map<string, u
         }
 
         const result = { documents, count: documents.length };
-        searchCache.set(cacheKey, result);
+        setCacheWithLimit(searchCache, cacheKey, result);
         logger.info("searchDocuments executed", { query, found: documents.length });
         return result;
       },
@@ -177,7 +205,7 @@ export function createCourseCreatorTools(tenantId: string, cache?: Map<string, u
           return cached;
         }
 
-        const queryEmbedding = await generateEmbedding(query);
+        const queryEmbedding = await getCachedEmbedding(query);
         const similarity = sql<number>`1 - (${cosineDistance(quizzesTable.embedding, queryEmbedding)})`;
 
         let quizzes = await db
@@ -193,7 +221,7 @@ export function createCourseCreatorTools(tenantId: string, cache?: Map<string, u
               eq(quizzesTable.tenantId, tenantId),
               eq(quizzesTable.status, "published"),
               isNotNull(quizzesTable.embedding),
-              gt(similarity, 0.3)
+              gt(similarity, SIMILARITY_THRESHOLDS.SEARCH)
             )
           )
           .orderBy(desc(similarity))
@@ -223,7 +251,7 @@ export function createCourseCreatorTools(tenantId: string, cache?: Map<string, u
         }
 
         const result = { quizzes, count: quizzes.length };
-        searchCache.set(cacheKey, result);
+        setCacheWithLimit(searchCache, cacheKey, result);
         logger.info("searchQuizzes executed", { query, found: quizzes.length });
         return result;
       },
@@ -240,7 +268,7 @@ export function createCourseCreatorTools(tenantId: string, cache?: Map<string, u
           return cached;
         }
 
-        const queryEmbedding = await generateEmbedding(query);
+        const queryEmbedding = await getCachedEmbedding(query);
         const similarity = sql<number>`1 - (${cosineDistance(modulesTable.embedding, queryEmbedding)})`;
 
         let modules = await db
@@ -256,7 +284,7 @@ export function createCourseCreatorTools(tenantId: string, cache?: Map<string, u
               eq(modulesTable.tenantId, tenantId),
               eq(modulesTable.status, "published"),
               isNotNull(modulesTable.embedding),
-              gt(similarity, 0.3)
+              gt(similarity, SIMILARITY_THRESHOLDS.SEARCH)
             )
           )
           .orderBy(desc(similarity))
@@ -286,7 +314,7 @@ export function createCourseCreatorTools(tenantId: string, cache?: Map<string, u
         }
 
         const result = { modules, count: modules.length };
-        searchCache.set(cacheKey, result);
+        setCacheWithLimit(searchCache, cacheKey, result);
         logger.info("searchModules executed", { query, found: modules.length });
         return result;
       },
@@ -313,7 +341,7 @@ export function createCourseCreatorTools(tenantId: string, cache?: Map<string, u
           .where(eq(categoriesTable.tenantId, tenantId));
 
         const result = { categories, count: categories.length };
-        searchCache.set(cacheKey, result);
+        setCacheWithLimit(searchCache, cacheKey, result);
         logger.info("listCategories executed", { found: categories.length });
         return result;
       },
@@ -339,7 +367,7 @@ export function createCourseCreatorTools(tenantId: string, cache?: Map<string, u
               eq(quizzesTable.tenantId, tenantId),
               eq(quizzesTable.status, "published"),
               isNotNull(quizzesTable.embedding),
-              gt(similarity, 0.8)
+              gt(similarity, SIMILARITY_THRESHOLDS.DEDUP_CREATE)
             )
           )
           .orderBy(desc(similarity))
@@ -483,7 +511,7 @@ export function createCourseCreatorTools(tenantId: string, cache?: Map<string, u
               eq(modulesTable.tenantId, tenantId),
               eq(modulesTable.status, "published"),
               isNotNull(modulesTable.embedding),
-              gt(similarity, 0.8)
+              gt(similarity, SIMILARITY_THRESHOLDS.DEDUP_CREATE)
             )
           )
           .orderBy(desc(similarity))

@@ -1196,7 +1196,11 @@
       "createAnother": "Crear otro",
       "viewCourse": "Ver curso",
       "createError": "Error al crear el curso",
-      "generatingThumbnail": "Generando imagen de portada..."
+      "generatingThumbnail": "Generando imagen de portada...",
+      "errors": {
+        "network": "Error de conexion. Verifica tu internet e intenta de nuevo.",
+        "unknown": "Algo salio mal. Por favor intenta de nuevo."
+      }
     },
     "preview": {
       "modules": "modulos",

@@ -230,7 +230,6 @@ export function useAICourseChat() {
                 const { courseId, title } = event.output;
                 setCourseCreated({ courseId, title });
                 setCoursePreview(null);
-                queryClient.invalidateQueries({ queryKey: COURSES_QUERY_KEYS.COURSES });
                 toast.success(i18n.t("courses.aiCreator.created"));
 
                 setIsGeneratingThumbnail(true);
@@ -242,8 +241,8 @@ export function useAICourseChat() {
               break;
             }
           }
-        } catch {
-          // Ignore parse errors
+        } catch (err) {
+          console.warn("SSE parse error:", { line, error: err });
         }
       };
 
@@ -275,8 +274,16 @@ export function useAICourseChat() {
         return;
       }
 
+      const isNetworkError = err instanceof Error &&
+        (err.message.includes("fetch") || err.message.includes("network") || err.message.includes("Failed to fetch"));
+
       setStatus("error");
-      setError(err instanceof Error ? err.message : "Unknown error");
+      const errorMsg = isNetworkError
+        ? i18n.t("courses.aiCreator.errors.network")
+        : i18n.t("courses.aiCreator.errors.unknown");
+
+      toast.error(errorMsg);
+      setError(errorMsg);
 
       setMessages((prev) => {
         return prev.filter((m) => m.role !== "assistant" || m.content.trim() !== "");
@@ -340,7 +347,6 @@ export function useAICourseChat() {
     const courseId = data.course.id;
     setCourseCreated({ courseId, title: data.course.title });
     setCoursePreview(null);
-    queryClient.invalidateQueries({ queryKey: COURSES_QUERY_KEYS.COURSES });
     toast.success(i18n.t("courses.aiCreator.created"));
 
     setIsGeneratingThumbnail(true);

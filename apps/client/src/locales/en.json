@@ -1433,7 +1433,11 @@
       "createAnother": "Create another",
       "viewCourse": "View course",
       "createError": "Error creating course",
-      "generatingThumbnail": "Generating cover image..."
+      "generatingThumbnail": "Generating cover image...",
+      "errors": {
+        "network": "Connection error. Please check your internet and try again.",
+        "unknown": "Something went wrong. Please try again."
+      }
     },
     "preview": {
       "modules": "modules",

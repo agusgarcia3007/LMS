@@ -300,7 +300,7 @@ export function AICourseCreator({
                     />
                   )
                 )}
-                {isStreaming && messages[messages.length - 1]?.role !== "assistant" && toolInvocations.length === 0 && (
+                {isStreaming && !coursePreview && (
                   <LoadingBubble />
                 )}
                 {coursePreview && (
