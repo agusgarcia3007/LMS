@@ -224,6 +224,7 @@ export function QuizPlayer({ quizId, onComplete, isCompleted }: QuizPlayerProps)
             }
             submitted={submitted}
             isCorrect={isQuestionCorrect(question)}
+            reviewMode={isCompleted && !submitted}
           />
         ))}
       </div>

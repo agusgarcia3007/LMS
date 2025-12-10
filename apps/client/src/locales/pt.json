@@ -1519,6 +1519,7 @@
       "progress": "{{answered}} de {{total}} respondidas",
       "correct": "Correto",
       "incorrect": "Incorreto",
+      "reviewed": "Concluido",
       "correctAnswer": "Resposta correta",
       "explanation": "Explicacao",
       "results": {
