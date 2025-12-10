@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next";
 import {
   BookOpen,
   CheckCircle,
+  DollarSign,
   FileText,
   FolderOpen,
   GraduationCap,
@@ -36,6 +37,16 @@ const ITEM_ICONS = {
   quiz: BookOpen,
 } as const;
 
+function formatPrice(cents: number): string {
+  const dollars = cents / 100;
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: dollars % 1 === 0 ? 0 : 2,
+    maximumFractionDigits: 2,
+  }).format(dollars);
+}
+
 export function CoursePreviewCard({
   preview,
   onConfirm,
@@ -67,13 +78,21 @@ export function CoursePreviewCard({
               {preview.shortDescription}
             </p>
           </div>
-          <Badge
-            variant={LEVEL_COLORS[preview.level]}
-            appearance="light"
-            size="sm"
-          >
-            {t(`courses.levels.${preview.level}`)}
-          </Badge>
+          <div className="flex flex-col items-end gap-2">
+            <Badge
+              variant={LEVEL_COLORS[preview.level]}
+              appearance="light"
+              size="sm"
+            >
+              {t(`courses.levels.${preview.level}`)}
+            </Badge>
+            {preview.price !== undefined && preview.price > 0 && (
+              <div className="flex items-center gap-1 text-sm font-semibold text-green-600 dark:text-green-400">
+                <DollarSign className="size-3.5" />
+                <span>{formatPrice(preview.price)}</span>
+              </div>
+            )}
+          </div>
         </div>
       </CardHeader>
 

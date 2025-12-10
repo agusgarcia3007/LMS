@@ -55,6 +55,9 @@ export const generateCoursePreviewSchema = z.object({
   features: z.array(z.string()).describe("What's included in the course"),
   categoryId: z.string().optional().describe("Category ID from listCategories"),
   categoryName: z.string().optional().describe("Category name for display"),
+  price: z.number().optional().describe("Course price in USD cents (0 = free). Example: $50 = 5000"),
+  customThumbnailKey: z.string().optional().describe("S3 key for custom thumbnail if user provided one"),
+  thumbnailStyle: z.string().optional().describe("Style description for AI thumbnail generation if user specified"),
   modules: z.array(z.object({
     id: z.string().optional().describe("Module ID if existing"),
     title: z.string().describe("Module title"),
@@ -77,6 +80,8 @@ export const createCourseSchema = z.object({
   features: z.array(z.string()).describe("Course features/highlights"),
   moduleIds: z.array(z.string()).describe("IDs of modules to include (from createModule results)"),
   categoryId: z.string().optional().describe("Category ID for the course if known"),
+  price: z.number().optional().describe("Course price in USD cents (0 = free). Example: $50 = 5000"),
+  customThumbnailKey: z.string().optional().describe("S3 key for custom thumbnail if user provided one"),
 });
 
 export type SearchVideosParams = z.infer<typeof searchVideosSchema>;
@@ -98,6 +103,9 @@ export type CoursePreview = {
   features: string[];
   categoryId?: string;
   categoryName?: string;
+  price?: number;
+  customThumbnailKey?: string;
+  thumbnailStyle?: string;
   modules: Array<{
     id?: string;
     title: string;

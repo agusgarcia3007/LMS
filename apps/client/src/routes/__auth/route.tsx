@@ -3,7 +3,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
 
 import { campusTenantOptions } from "@/services/campus/options";
-import { Logo } from "@/components/logo";
+import { LogoIcon } from "@/components/logo";
 import { cn } from "@/lib/utils";
 import { useCustomTheme } from "@/hooks/use-custom-theme";
 
@@ -32,7 +32,7 @@ function AuthLayout() {
     <div className="flex min-h-screen items-center justify-center">
       <div className="flex flex-1 flex-col justify-center px-4 py-10 lg:px-6">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
-          <Logo className="mx-auto h-7" />
+          <LogoIcon className="mx-auto size-12" />
         </div>
         <Outlet />
       </div>
@@ -57,7 +57,7 @@ function TenantAuthLayout() {
               className="mx-auto h-10 w-auto object-contain"
             />
           ) : (
-            <Logo className="mx-auto h-7" />
+            <LogoIcon className="mx-auto size-12" />
           )}
         </div>
         <Outlet />

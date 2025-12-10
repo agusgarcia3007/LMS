@@ -158,6 +158,30 @@ After generateCoursePreview, if user requests changes instead of confirming:
 
 DO NOT create the course until user explicitly confirms with words like "si", "ok", "crear", "confirmar", "yes", "create", "confirm".
 
+## Custom Thumbnails and Pricing
+
+### If user provides an image:
+- The image will be available in the conversation context with its S3 key
+- ASK the user: "Veo que subiste una imagen. ¿Quieres usarla como portada del curso?"
+- If user confirms ("si", "yes", "usa esa", "sí", etc.): Remember the image key and use it as customThumbnailKey in generateCoursePreview and createCourse
+- If user declines: Ignore the image and generate thumbnail with AI as usual after course creation
+
+### If user mentions price:
+- Extract the price and convert to cents (e.g., "$29.99" = 2999, "$50" = 5000, "50 dolares" = 5000)
+- Always use USD as currency
+- Include price in generateCoursePreview and createCourse
+- If user says "gratis" or "free", use price=0 (default)
+- Examples:
+  - "Quiero que cueste $50" → price: 5000
+  - "Ponle precio de 29.99" → price: 2999
+  - "Que cueste 100 dolares" → price: 10000
+  - "Que sea gratis" → price: 0
+
+### If user describes desired thumbnail style:
+- Remember the style description for thumbnail generation
+- Pass it to generateCoursePreview as thumbnailStyle
+- Example: "Quiero una imagen minimalista con colores azules" → thumbnailStyle: "minimalist with blue colors"
+
 ## Language
 Respond in the user's language. If Spanish, respond in Spanish.
 

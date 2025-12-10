@@ -7,11 +7,18 @@ import { QUERY_KEYS as COURSES_QUERY_KEYS } from "@/services/courses/service";
 import { AIService } from "@/services/ai/service";
 import { i18n } from "@/i18n";
 
+export type ChatAttachment = {
+  type: "image";
+  data: string;
+  mimeType: string;
+};
+
 export type ChatMessage = {
   id: string;
   role: "user" | "assistant";
   content: string;
   timestamp: number;
+  attachments?: ChatAttachment[];
 };
 
 export type CoursePreviewModule = {
@@ -35,6 +42,9 @@ export type CoursePreview = {
   features: string[];
   categoryId?: string;
   categoryName?: string;
+  price?: number;
+  customThumbnailKey?: string;
+  thumbnailStyle?: string;
   modules: CoursePreviewModule[];
 };
 
@@ -57,6 +67,15 @@ async function generateAndUploadThumbnail(courseId: string) {
   }
 }
 
+function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
 export function useAICourseChat() {
   const queryClient = useQueryClient();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -71,12 +90,23 @@ export function useAICourseChat() {
 
   messagesRef.current = messages;
 
-  const sendMessage = useCallback(async (content: string) => {
+  const sendMessage = useCallback(async (content: string, files?: File[]) => {
+    const processedAttachments: ChatAttachment[] | undefined = files?.length
+      ? await Promise.all(
+          files.map(async (file) => ({
+            type: "image" as const,
+            data: await fileToBase64(file),
+            mimeType: file.type,
+          }))
+        )
+      : undefined;
+
     const userMessage: ChatMessage = {
       id: crypto.randomUUID(),
       role: "user",
       content,
       timestamp: Date.now(),
+      attachments: processedAttachments,
     };
 
     setMessages((prev) => [...prev, userMessage]);
@@ -87,6 +117,7 @@ export function useAICourseChat() {
     const allMessages = [...messagesRef.current, userMessage].map((m) => ({
       role: m.role,
       content: m.content,
+      attachments: m.attachments,
     }));
 
     const token = await ensureValidToken();

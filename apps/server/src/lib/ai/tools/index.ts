@@ -602,6 +602,8 @@ export function createCourseCreatorTools(tenantId: string, cache?: Map<string, u
         features,
         moduleIds,
         categoryId,
+        price,
+        customThumbnailKey,
       }) => {
         try {
           let slug = title
@@ -688,10 +690,11 @@ export function createCourseCreatorTools(tenantId: string, cache?: Map<string, u
             features,
             status: "draft",
             order: nextOrder,
-            price: 0,
+            price: price ?? 0,
             currency: "USD",
             language: "es",
             categoryId: validCategoryId,
+            thumbnail: customThumbnailKey ?? null,
           })
           .returning();
 
@@ -718,6 +721,7 @@ export function createCourseCreatorTools(tenantId: string, cache?: Map<string, u
             slug: course.slug,
             modulesCount: validModuleIds.length,
             moduleIds: validModuleIds,
+            hasCustomThumbnail: !!customThumbnailKey,
           };
         } catch (error) {
           logger.error("createCourse failed", {

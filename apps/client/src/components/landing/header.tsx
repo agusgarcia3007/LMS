@@ -16,6 +16,7 @@ import { ModeToggle } from "@/components/ui/theme-toggle";
 import { useGetProfile } from "@/services/profile/queries";
 import { useLogout } from "@/services/auth/mutations";
 import { cn } from "@/lib/utils";
+import { siteData } from "@/lib/constants";
 import { LearnbaseLogo } from "./logo";
 
 export function LandingHeader() {
@@ -47,7 +48,7 @@ export function LandingHeader() {
         <Link to="/" className="flex items-center gap-2.5">
           <LearnbaseLogo className="h-7 w-7" />
           <span className="text-[15px] font-semibold tracking-tight text-foreground">
-            Learnbase
+            {siteData.name}
           </span>
         </Link>
 

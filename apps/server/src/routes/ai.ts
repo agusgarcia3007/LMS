@@ -810,6 +810,7 @@ export const aiRoutes = new Elysia()
       }
 
       const tenantId = ctx.user.tenantId;
+      const userId = ctx.user.id;
       const { messages } = ctx.body;
 
       logger.info("Starting AI course chat", {
@@ -817,16 +818,62 @@ export const aiRoutes = new Elysia()
         messageCount: messages.length,
       });
 
+      const processedMessages: Array<{
+        role: "user" | "assistant";
+        content: string;
+        imageKeys?: string[];
+      }> = [];
+
+      for (const m of messages) {
+        if (m.attachments?.length) {
+          const imageKeys = await Promise.all(
+            m.attachments.map((att) =>
+              uploadBase64ToS3({
+                base64: att.data,
+                folder: "chat-images",
+                userId,
+              })
+            )
+          );
+          processedMessages.push({
+            role: m.role as "user" | "assistant",
+            content: m.content,
+            imageKeys,
+          });
+        } else {
+          processedMessages.push({
+            role: m.role as "user" | "assistant",
+            content: m.content,
+          });
+        }
+      }
+
       const searchCache = new Map<string, unknown>();
       const tools = createCourseCreatorTools(tenantId, searchCache);
+
+      const formattedMessages = processedMessages.map((m) => {
+        if (m.role === "user" && m.imageKeys?.length) {
+          return {
+            role: "user" as const,
+            content: [
+              { type: "text" as const, text: m.content || " " },
+              ...m.imageKeys.map((key) => ({
+                type: "image" as const,
+                image: getPresignedUrl(key),
+              })),
+            ],
+          };
+        }
+        return {
+          role: m.role as "user" | "assistant",
+          content: m.content,
+        };
+      });
 
       const result = streamText({
         model: aiGateway(AI_MODELS.COURSE_CHAT),
         system: COURSE_CHAT_SYSTEM_PROMPT,
-        messages: messages.map((m) => ({
-          role: m.role as "user" | "assistant",
-          content: m.content,
-        })),
+        messages: formattedMessages,
         tools,
         stopWhen: (event) => {
           if (event.steps.length >= 20) return true;
@@ -860,6 +907,15 @@ export const aiRoutes = new Elysia()
           t.Object({
             role: t.Union([t.Literal("user"), t.Literal("assistant")]),
             content: t.String(),
+            attachments: t.Optional(
+              t.Array(
+                t.Object({
+                  type: t.Literal("image"),
+                  data: t.String(),
+                  mimeType: t.String(),
+                })
+              )
+            ),
           })
         ),
       }),

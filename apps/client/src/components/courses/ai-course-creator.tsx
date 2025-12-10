@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useParams } from "@tanstack/react-router";
-import { Check, ChevronDown, ImageIcon, RotateCcw, Sparkles, User } from "lucide-react";
+import { Check, ChevronDown, ImageIcon, Paperclip, RotateCcw, Sparkles, User } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -19,6 +19,9 @@ import {
   PromptInputTextarea,
   PromptInputFooter,
   PromptInputSubmit,
+  PromptInputAttachments,
+  PromptInputAttachment,
+  usePromptInputAttachments,
 } from "@/components/ai-elements/prompt-input";
 import { Suggestions, Suggestion } from "@/components/ai-elements/suggestion";
 import { Loader } from "@/components/ai-elements/loader";
@@ -132,6 +135,23 @@ function LoadingBubble() {
   );
 }
 
+function AttachmentButton({ disabled }: { disabled?: boolean }) {
+  const attachments = usePromptInputAttachments();
+  return (
+    <Button
+      type="button"
+      variant="ghost"
+      size="icon"
+      className="size-8"
+      disabled={disabled}
+      onClick={() => attachments.openFileDialog()}
+      title="Adjuntar imagen"
+    >
+      <Paperclip className="size-4" />
+    </Button>
+  );
+}
+
 type AICourseCreatorProps = {
   generatingThumbnailCourseId?: string | null;
   onGeneratingThumbnailChange?: (courseId: string | null) => void;
@@ -177,9 +197,21 @@ export function AICourseCreator({
     return items.sort((a, b) => a.data.timestamp - b.data.timestamp);
   }, [messages, toolInvocations]);
 
-  const handleSendMessage = async (message: { text: string }) => {
-    if (!message.text.trim()) return;
-    await sendMessage(message.text);
+  const handleSendMessage = async (message: { text: string; files?: { url?: string; mediaType?: string }[] }) => {
+    if (!message.text.trim() && (!message.files || message.files.length === 0)) return;
+
+    const imageFiles: File[] = [];
+    if (message.files?.length) {
+      for (const file of message.files) {
+        if (file.url?.startsWith("data:") && file.mediaType?.startsWith("image/")) {
+          const response = await fetch(file.url);
+          const blob = await response.blob();
+          imageFiles.push(new File([blob], "image", { type: file.mediaType }));
+        }
+      }
+    }
+
+    await sendMessage(message.text, imageFiles.length > 0 ? imageFiles : undefined);
   };
 
   const handleSuggestionClick = (suggestion: string) => {
@@ -392,15 +424,21 @@ export function AICourseCreator({
               )}
               <PromptInput
                 onSubmit={handleSendMessage}
+                accept="image/*"
+                maxFiles={1}
+                maxFileSize={5 * 1024 * 1024}
                 className="flex-1 rounded-xl border-border bg-background focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/20"
               >
+                <PromptInputAttachments>
+                  {(file) => <PromptInputAttachment data={file} />}
+                </PromptInputAttachments>
                 <PromptInputTextarea
                   placeholder={t("courses.aiCreator.placeholder")}
                   disabled={isStreaming}
                   className="min-h-10 resize-none bg-transparent"
                 />
                 <PromptInputFooter>
-                  <div />
+                  <AttachmentButton disabled={isStreaming} />
                   <PromptInputSubmit
                     status={isStreaming ? "streaming" : undefined}
                     onClick={isStreaming ? cancel : undefined}
