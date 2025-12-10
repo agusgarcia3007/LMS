@@ -9,8 +9,10 @@ import {
   courseModulesTable,
   instructorsTable,
   categoriesTable,
+  cartItemsTable,
 } from "@/db/schema";
-import { eq, and, count, desc, sql } from "drizzle-orm";
+import { eq, and, count, desc, sql, inArray } from "drizzle-orm";
+import { getPresignedUrl } from "@/lib/upload";
 
 export const enrollmentsRoutes = new Elysia({ name: "enrollments" })
   .use(authPlugin)
@@ -77,7 +79,7 @@ export const enrollmentsRoutes = new Elysia({ name: "enrollments" })
                 id: course.id,
                 slug: course.slug,
                 title: course.title,
-                thumbnail: course.thumbnail,
+                thumbnail: course.thumbnail ? getPresignedUrl(course.thumbnail) : null,
                 level: course.level,
                 modulesCount: course.modulesCount ?? 0,
                 instructor: instructor?.name ? instructor : null,
@@ -187,6 +189,73 @@ export const enrollmentsRoutes = new Elysia({ name: "enrollments" })
         tags: ["Enrollments"],
         summary: "Get enrollment status for a course",
       },
+    }
+  )
+  .post(
+    "/batch",
+    (ctx) =>
+      withHandler(ctx, async () => {
+        if (!ctx.user) {
+          throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
+        }
+        if (!ctx.user.tenantId) {
+          throw new AppError(ErrorCode.TENANT_NOT_FOUND, "User has no tenant", 404);
+        }
+
+        const { courseIds } = ctx.body;
+
+        if (courseIds.length === 0) {
+          return { enrollments: [] };
+        }
+
+        const validCoursesSubquery = db
+          .select({ id: coursesTable.id })
+          .from(coursesTable)
+          .where(
+            and(
+              sql`${coursesTable.id} IN ${courseIds}`,
+              eq(coursesTable.tenantId, ctx.user.tenantId),
+              eq(coursesTable.status, "published")
+            )
+          );
+
+        const validCourses = await validCoursesSubquery;
+        const validCourseIds = validCourses.map((c) => c.id);
+
+        if (validCourseIds.length === 0) {
+          return { enrollments: [] };
+        }
+
+        const enrollments = await db
+          .insert(enrollmentsTable)
+          .values(
+            validCourseIds.map((courseId) => ({
+              userId: ctx.user!.id,
+              courseId,
+              tenantId: ctx.user!.tenantId!,
+            }))
+          )
+          .onConflictDoNothing({
+            target: [enrollmentsTable.userId, enrollmentsTable.courseId],
+          })
+          .returning();
+
+        await db
+          .delete(cartItemsTable)
+          .where(
+            and(
+              eq(cartItemsTable.userId, ctx.user!.id),
+              inArray(cartItemsTable.courseId, validCourseIds)
+            )
+          );
+
+        return { enrollments };
+      }),
+    {
+      body: t.Object({
+        courseIds: t.Array(t.String({ format: "uuid" })),
+      }),
+      detail: { tags: ["Enrollments"], summary: "Enroll in multiple courses" },
     }
   )
   .delete(

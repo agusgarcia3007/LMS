@@ -1,4 +1,4 @@
-import { useGetCart, useAddToCart, useRemoveFromCart, useClearCart } from "@/services/cart";
+import { useGetCart, useAddToCart, useRemoveFromCart, useClearCart, useCheckout } from "@/services/cart";
 
 export const useCart = () => {
   const isAuthenticated = !!localStorage.getItem("accessToken");
@@ -7,6 +7,7 @@ export const useCart = () => {
   const { mutate: addToCartMutation, isPending: isAdding } = useAddToCart();
   const { mutate: removeFromCartMutation, isPending: isRemoving } = useRemoveFromCart();
   const { mutate: clearCartMutation, isPending: isClearing } = useClearCart();
+  const { mutate: checkoutMutation, isPending: isCheckingOut } = useCheckout();
 
   const addToCart = (courseId: string) => {
     addToCartMutation(courseId);
@@ -18,6 +19,13 @@ export const useCart = () => {
 
   const clearCart = () => {
     clearCartMutation();
+  };
+
+  const checkout = () => {
+    const courseIds = cartData?.items.map((item) => item.courseId) ?? [];
+    if (courseIds.length > 0) {
+      checkoutMutation(courseIds);
+    }
   };
 
   const isInCart = (courseId: string): boolean => {
@@ -37,10 +45,12 @@ export const useCart = () => {
     itemCount: cartData?.summary?.itemCount ?? 0,
     isLoading,
     isPending: isAdding || isRemoving || isClearing,
+    isCheckingOut,
     isAuthenticated,
     addToCart,
     removeFromCart,
     clearCart,
+    checkout,
     isInCart,
   };
 };

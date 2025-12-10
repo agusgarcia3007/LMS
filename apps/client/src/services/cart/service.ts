@@ -68,4 +68,12 @@ export const CartService = {
     const { data } = await http.delete<{ success: boolean }>("/cart");
     return data;
   },
+
+  async checkout(courseIds: string[]) {
+    const { data } = await http.post<{ enrollments: { id: string }[] }>(
+      "/enrollments/batch",
+      { courseIds }
+    );
+    return data;
+  },
 } as const;

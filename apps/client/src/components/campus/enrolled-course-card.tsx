@@ -21,7 +21,7 @@ export function EnrolledCourseCard({ enrollment }: EnrolledCourseCardProps) {
 
   return (
     <Link
-      to="/courses/$courseSlug"
+      to="/courses/$courseSlug/learn"
       params={{ courseSlug: course.slug }}
       className="group block"
     >

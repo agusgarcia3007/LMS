@@ -1,3 +1,5 @@
+import "./instrumentation";
+
 import { cors } from "@elysiajs/cors";
 import { openapi } from "@elysiajs/openapi";
 import { Elysia } from "elysia";
@@ -54,3 +56,22 @@ app.listen(env.PORT);
 logger.info(
   `📚 Learnbase API running at ${app.server?.hostname}:${app.server?.port}`
 );
+
+const gracefulShutdown = async (signal: string) => {
+  logger.info(`Received ${signal}, shutting down...`);
+  app.server?.stop();
+
+  try {
+    const { langfuseSpanProcessor, sdk } = await import("./instrumentation");
+    await langfuseSpanProcessor.forceFlush();
+    await sdk.shutdown();
+    logger.info("Langfuse spans flushed");
+  } catch (error) {
+    logger.error("Shutdown error", { error });
+  }
+
+  process.exit(0);
+};
+
+process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
+process.on("SIGINT", () => gracefulShutdown("SIGINT"));

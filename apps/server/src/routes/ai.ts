@@ -4,6 +4,10 @@ import { AppError, ErrorCode } from "@/lib/errors";
 import { withHandler } from "@/lib/handler";
 import { db } from "@/db";
 import {
+  withUserContext,
+  createTelemetryConfig,
+} from "@/lib/ai/telemetry";
+import {
   videosTable,
   documentsTable,
   quizzesTable,
@@ -101,21 +105,34 @@ export const aiRoutes = new Elysia()
 
         logger.info("Starting video analysis", { videoId: video.id });
 
-        const transcript = await transcribeVideo(videoUrl);
+        const { transcript, contentText } = await withUserContext(
+          {
+            userId: ctx.user.id,
+            tenantId: ctx.user.tenantId,
+            operationName: "video-analysis",
+            metadata: { videoId: video.id },
+          },
+          async () => {
+            const transcript = await transcribeVideo(videoUrl);
 
-        const contentStart = Date.now();
-        const { text: contentText } = await generateText({
-          model: groq(AI_MODELS.CONTENT_GENERATION),
-          system: VIDEO_ANALYSIS_PROMPT,
-          prompt: transcript,
-          maxOutputTokens: 500,
-        });
-        const contentTime = Date.now() - contentStart;
+            const contentStart = Date.now();
+            const { text: contentText } = await generateText({
+              model: groq(AI_MODELS.CONTENT_GENERATION),
+              system: VIDEO_ANALYSIS_PROMPT,
+              prompt: transcript,
+              maxOutputTokens: 500,
+              ...createTelemetryConfig("video-content-generation"),
+            });
+            const contentTime = Date.now() - contentStart;
 
-        logger.info("Groq content generation completed", {
-          videoId: video.id,
-          contentTime: `${contentTime}ms`,
-        });
+            logger.info("Groq content generation completed", {
+              videoId: video.id,
+              contentTime: `${contentTime}ms`,
+            });
+
+            return { transcript, contentText };
+          }
+        );
         if (!contentText) {
           throw new AppError(
             ErrorCode.INTERNAL_SERVER_ERROR,
@@ -294,32 +311,43 @@ export const aiRoutes = new Elysia()
           count,
         });
 
-        const prompt = buildQuizPrompt(content, count, existingTexts);
-        const generationStart = Date.now();
+        const questions = await withUserContext(
+          {
+            userId: ctx.user.id,
+            tenantId: ctx.user.tenantId,
+            operationName: "quiz-generation",
+            metadata: { quizId: quiz.id, sourceType },
+          },
+          async () => {
+            const prompt = buildQuizPrompt(content, count, existingTexts);
+            const generationStart = Date.now();
 
-        const { text: responseText } = await generateText({
-          model: groq(AI_MODELS.QUIZ_GENERATION),
-          prompt: prompt,
-          maxOutputTokens: 4000,
-          temperature: 0.7,
-        });
+            const { text: responseText } = await generateText({
+              model: groq(AI_MODELS.QUIZ_GENERATION),
+              prompt: prompt,
+              maxOutputTokens: 4000,
+              temperature: 0.7,
+              ...createTelemetryConfig("quiz-question-generation"),
+            });
 
-        const generationTime = Date.now() - generationStart;
+            const generationTime = Date.now() - generationStart;
 
-        logger.info("Quiz generation completed", {
-          quizId: quiz.id,
-          generationTime: `${generationTime}ms`,
-        });
+            logger.info("Quiz generation completed", {
+              quizId: quiz.id,
+              generationTime: `${generationTime}ms`,
+            });
 
-        if (!responseText) {
-          throw new AppError(
-            ErrorCode.INTERNAL_SERVER_ERROR,
-            "Failed to generate questions",
-            500
-          );
-        }
+            if (!responseText) {
+              throw new AppError(
+                ErrorCode.INTERNAL_SERVER_ERROR,
+                "Failed to generate questions",
+                500
+              );
+            }
 
-        const questions = parseGeneratedQuestions(responseText).slice(0, count);
+            return parseGeneratedQuestions(responseText).slice(0, count);
+          }
+        );
 
         return { questions };
       }),
@@ -457,73 +485,84 @@ export const aiRoutes = new Elysia()
           itemCount: contentItems.length,
         });
 
-        const coursePrompt = buildCoursePrompt(contentItems);
-        const contentStart = Date.now();
+        const result = await withUserContext(
+          {
+            userId: ctx.user.id,
+            tenantId: ctx.user.tenantId,
+            operationName: "course-generation",
+            metadata: { moduleCount: moduleIds.length.toString() },
+          },
+          async () => {
+            const coursePrompt = buildCoursePrompt(contentItems);
+            const contentStart = Date.now();
 
-        const { text: contentText } = await generateText({
-          model: groq(AI_MODELS.COURSE_GENERATION),
-          prompt: coursePrompt,
-          maxOutputTokens: 2000,
-        });
+            const { text: contentText } = await generateText({
+              model: groq(AI_MODELS.COURSE_GENERATION),
+              prompt: coursePrompt,
+              maxOutputTokens: 2000,
+              ...createTelemetryConfig("course-content-generation"),
+            });
 
-        const contentTime = Date.now() - contentStart;
+            const contentTime = Date.now() - contentStart;
 
-        logger.info("Course content generation completed", {
-          contentTime: `${contentTime}ms`,
-        });
+            logger.info("Course content generation completed", {
+              contentTime: `${contentTime}ms`,
+            });
 
-        if (!contentText) {
-          throw new AppError(
-            ErrorCode.INTERNAL_SERVER_ERROR,
-            "Failed to generate course content",
-            500
-          );
-        }
-
-        const courseContent = parseGeneratedCourse(contentText);
-
-        let thumbnail: string | null = null;
-        try {
-          const topics = contentItems.slice(0, 5).map((i) => i.title);
-          const imagePrompt = buildThumbnailPrompt(
-            courseContent.title,
-            courseContent.shortDescription,
-            topics
-          );
-
-          logger.info("Generating course thumbnail with AI Gateway");
-          const imageStart = Date.now();
-
-          const imageResult = await generateText({
-            model: aiGateway(AI_MODELS.IMAGE_GENERATION),
-            prompt: imagePrompt,
-          });
-
-          const imageTime = Date.now() - imageStart;
-          logger.info("Thumbnail generation completed", {
-            imageTime: `${imageTime}ms`,
-          });
-
-          const imageFile = imageResult.files?.find((f) =>
-            f.mediaType.startsWith("image/")
-          );
-
-          if (imageFile?.base64) {
-            thumbnail = `data:${imageFile.mediaType};base64,${imageFile.base64}`;
-          }
-        } catch (error) {
-          logger.warn(
-            "Thumbnail generation failed, continuing without thumbnail",
-            {
-              error: error instanceof Error ? error.message : "Unknown error",
+            if (!contentText) {
+              throw new AppError(
+                ErrorCode.INTERNAL_SERVER_ERROR,
+                "Failed to generate course content",
+                500
+              );
             }
-          );
-        }
 
-        return {
-          ...courseContent,
-          thumbnail,
-        };
+            const courseContent = parseGeneratedCourse(contentText);
+
+            let thumbnail: string | null = null;
+            try {
+              const topics = contentItems.slice(0, 5).map((i) => i.title);
+              const imagePrompt = buildThumbnailPrompt(
+                courseContent.title,
+                courseContent.shortDescription,
+                topics
+              );
+
+              logger.info("Generating course thumbnail with AI Gateway");
+              const imageStart = Date.now();
+
+              const imageResult = await generateText({
+                model: aiGateway(AI_MODELS.IMAGE_GENERATION),
+                prompt: imagePrompt,
+                ...createTelemetryConfig("thumbnail-generation"),
+              });
+
+              const imageTime = Date.now() - imageStart;
+              logger.info("Thumbnail generation completed", {
+                imageTime: `${imageTime}ms`,
+              });
+
+              const imageFile = imageResult.files?.find((f) =>
+                f.mediaType.startsWith("image/")
+              );
+
+              if (imageFile?.base64) {
+                thumbnail = `data:${imageFile.mediaType};base64,${imageFile.base64}`;
+              }
+            } catch (error) {
+              logger.warn(
+                "Thumbnail generation failed, continuing without thumbnail",
+                {
+                  error: error instanceof Error ? error.message : "Unknown error",
+                }
+              );
+            }
+
+            return { ...courseContent, thumbnail };
+          }
+        );
+
+        return result;
       }),
     {
       body: t.Object({
@@ -755,18 +794,31 @@ export const aiRoutes = new Elysia()
           ),
         });
 
-        const { object: theme } = await generateObject({
-          model: aiGateway(AI_MODELS.THEME_GENERATION),
-          prompt: THEME_GENERATION_PROMPT,
-          schema: themeSchema,
-          temperature: 0.7,
-        });
+        const theme = await withUserContext(
+          {
+            userId: ctx.user.id,
+            tenantId: ctx.user.tenantId,
+            operationName: "theme-generation",
+            metadata: { style: style || "default" },
+          },
+          async () => {
+            const { object } = await generateObject({
+              model: aiGateway(AI_MODELS.THEME_GENERATION),
+              prompt: THEME_GENERATION_PROMPT,
+              schema: themeSchema,
+              temperature: 0.7,
+              ...createTelemetryConfig("theme-color-generation"),
+            });
 
-        const generationTime = Date.now() - generationStart;
+            const generationTime = Date.now() - generationStart;
 
-        logger.info("Theme generation completed", {
-          generationTime: `${generationTime}ms`,
-        });
+            logger.info("Theme generation completed", {
+              generationTime: `${generationTime}ms`,
+            });
+
+            return object;
+          }
+        );
 
         return { theme };
       }),
@@ -899,6 +951,14 @@ export const aiRoutes = new Elysia()
             toolCalls: step.toolCalls?.length ?? 0,
             toolNames: step.toolCalls?.map((tc) => tc.toolName) ?? [],
           });
+        },
+        experimental_telemetry: {
+          isEnabled: true,
+          functionId: "course-chat-stream",
+          metadata: {
+            userId,
+            tenantId,
+          },
         },
       });
 
@@ -1129,42 +1189,56 @@ export const aiRoutes = new Elysia()
 
         let thumbnailKey: string | null = null;
         try {
-          const topics = modules.slice(0, 5).map((m) => m.title);
-          const imagePrompt = THUMBNAIL_GENERATION_PROMPT
-            .replace("{{title}}", title)
-            .replace("{{description}}", shortDescription)
-            .replace("{{topics}}", topics.join(", "));
-
-          logger.info("Generating course thumbnail with AI Gateway");
-          const imageStart = Date.now();
-
-          const imageResult = await generateText({
-            model: aiGateway(AI_MODELS.IMAGE_GENERATION),
-            prompt: imagePrompt,
-          });
-
-          const imageTime = Date.now() - imageStart;
-          logger.info("Thumbnail generation completed", {
-            imageTime: `${imageTime}ms`,
-          });
-
-          const imageFile = imageResult.files?.find((f) =>
-            f.mediaType.startsWith("image/")
-          );
-
-          if (imageFile?.base64) {
-            const base64Data = `data:${imageFile.mediaType};base64,${imageFile.base64}`;
-            thumbnailKey = await uploadBase64ToS3({
-              base64: base64Data,
-              folder: `courses/${course.id}`,
+          thumbnailKey = await withUserContext(
+            {
               userId: ctx.user!.id,
-            });
+              tenantId: tenantId,
+              operationName: "course-thumbnail-from-preview",
+              metadata: { courseId: course.id },
+            },
+            async () => {
+              const topics = modules.slice(0, 5).map((m) => m.title);
+              const imagePrompt = THUMBNAIL_GENERATION_PROMPT
+                .replace("{{title}}", title)
+                .replace("{{description}}", shortDescription)
+                .replace("{{topics}}", topics.join(", "));
 
-            await db
-              .update(coursesTable)
-              .set({ thumbnail: thumbnailKey })
-              .where(eq(coursesTable.id, course.id));
-          }
+              logger.info("Generating course thumbnail with AI Gateway");
+              const imageStart = Date.now();
+
+              const imageResult = await generateText({
+                model: aiGateway(AI_MODELS.IMAGE_GENERATION),
+                prompt: imagePrompt,
+                ...createTelemetryConfig("thumbnail-from-preview"),
+              });
+
+              const imageTime = Date.now() - imageStart;
+              logger.info("Thumbnail generation completed", {
+                imageTime: `${imageTime}ms`,
+              });
+
+              const imageFile = imageResult.files?.find((f) =>
+                f.mediaType.startsWith("image/")
+              );
+
+              if (imageFile?.base64) {
+                const base64Data = `data:${imageFile.mediaType};base64,${imageFile.base64}`;
+                const key = await uploadBase64ToS3({
+                  base64: base64Data,
+                  folder: `courses/${course.id}`,
+                  userId: ctx.user!.id,
+                });
+
+                await db
+                  .update(coursesTable)
+                  .set({ thumbnail: key })
+                  .where(eq(coursesTable.id, course.id));
+
+                return key;
+              }
+              return null;
+            }
+          );
         } catch (error) {
           logger.warn("Thumbnail generation failed, continuing without thumbnail", {
             error: error instanceof Error ? error.message : "Unknown error",
@@ -1299,51 +1373,62 @@ export const aiRoutes = new Elysia()
           topics = [course.title];
         }
 
-        const imagePrompt = THUMBNAIL_GENERATION_PROMPT
-          .replace("{{title}}", course.title)
-          .replace("{{description}}", course.shortDescription || "")
-          .replace("{{topics}}", topics.join(", "));
+        return withUserContext(
+          {
+            userId: ctx.user!.id,
+            tenantId: tenantId,
+            operationName: "course-thumbnail-regeneration",
+            metadata: { courseId },
+          },
+          async () => {
+            const imagePrompt = THUMBNAIL_GENERATION_PROMPT
+              .replace("{{title}}", course.title)
+              .replace("{{description}}", course.shortDescription || "")
+              .replace("{{topics}}", topics.join(", "));
 
-        const imageStart = Date.now();
-        const imageResult = await generateText({
-          model: aiGateway(AI_MODELS.IMAGE_GENERATION),
-          prompt: imagePrompt,
-        });
+            const imageStart = Date.now();
+            const imageResult = await generateText({
+              model: aiGateway(AI_MODELS.IMAGE_GENERATION),
+              prompt: imagePrompt,
+              ...createTelemetryConfig("thumbnail-regeneration"),
+            });
 
-        const imageTime = Date.now() - imageStart;
-        logger.info("Thumbnail generation completed", { courseId, imageTime: `${imageTime}ms` });
+            const imageTime = Date.now() - imageStart;
+            logger.info("Thumbnail generation completed", { courseId, imageTime: `${imageTime}ms` });
 
-        const imageFile = imageResult.files?.find((f) =>
-          f.mediaType.startsWith("image/")
+            const imageFile = imageResult.files?.find((f) =>
+              f.mediaType.startsWith("image/")
+            );
+
+            if (!imageFile?.base64) {
+              logger.warn("No image returned from AI Gateway", {
+                courseId,
+                hasFiles: !!imageResult.files,
+                fileCount: imageResult.files?.length ?? 0,
+              });
+              return { success: false, error: "No image generated" };
+            }
+
+            const base64Data = `data:${imageFile.mediaType};base64,${imageFile.base64}`;
+            const thumbnailKey = await uploadBase64ToS3({
+              base64: base64Data,
+              folder: `courses/${courseId}`,
+              userId: ctx.user!.id,
+            });
+
+            await db
+              .update(coursesTable)
+              .set({ thumbnail: thumbnailKey })
+              .where(eq(coursesTable.id, courseId));
+
+            logger.info("Thumbnail uploaded for course", { courseId, thumbnailKey });
+
+            return {
+              success: true,
+              thumbnailUrl: getPresignedUrl(thumbnailKey),
+            };
+          }
         );
-
-        if (!imageFile?.base64) {
-          logger.warn("No image returned from AI Gateway", {
-            courseId,
-            hasFiles: !!imageResult.files,
-            fileCount: imageResult.files?.length ?? 0,
-          });
-          return { success: false, error: "No image generated" };
-        }
-
-        const base64Data = `data:${imageFile.mediaType};base64,${imageFile.base64}`;
-        const thumbnailKey = await uploadBase64ToS3({
-          base64: base64Data,
-          folder: `courses/${courseId}`,
-          userId: ctx.user!.id,
-        });
-
-        await db
-          .update(coursesTable)
-          .set({ thumbnail: thumbnailKey })
-          .where(eq(coursesTable.id, courseId));
-
-        logger.info("Thumbnail uploaded for course", { courseId, thumbnailKey });
-
-        return {
-          success: true,
-          thumbnailUrl: getPresignedUrl(thumbnailKey),
-        };
       }),
     {
       params: t.Object({
@@ -1380,35 +1465,46 @@ export const aiRoutes = new Elysia()
 
         logger.info("Generating standalone thumbnail", { title });
 
-        const imagePrompt = buildThumbnailPrompt(title, description || "", [title]);
+        return withUserContext(
+          {
+            userId: ctx.user.id,
+            tenantId: ctx.user.tenantId || "no-tenant",
+            operationName: "standalone-thumbnail",
+            metadata: { title },
+          },
+          async () => {
+            const imagePrompt = buildThumbnailPrompt(title, description || "", [title]);
 
-        const imageStart = Date.now();
-        const imageResult = await generateText({
-          model: aiGateway(AI_MODELS.IMAGE_GENERATION),
-          prompt: imagePrompt,
-        });
+            const imageStart = Date.now();
+            const imageResult = await generateText({
+              model: aiGateway(AI_MODELS.IMAGE_GENERATION),
+              prompt: imagePrompt,
+              ...createTelemetryConfig("standalone-thumbnail"),
+            });
 
-        const imageTime = Date.now() - imageStart;
-        logger.info("Standalone thumbnail generation completed", {
-          imageTime: `${imageTime}ms`,
-        });
+            const imageTime = Date.now() - imageStart;
+            logger.info("Standalone thumbnail generation completed", {
+              imageTime: `${imageTime}ms`,
+            });
 
-        const imageFile = imageResult.files?.find((f) =>
-          f.mediaType.startsWith("image/")
+            const imageFile = imageResult.files?.find((f) =>
+              f.mediaType.startsWith("image/")
+            );
+
+            if (!imageFile?.base64) {
+              logger.warn("No image returned from AI Gateway");
+              throw new AppError(
+                ErrorCode.INTERNAL_SERVER_ERROR,
+                "Failed to generate thumbnail",
+                500
+              );
+            }
+
+            return {
+              thumbnail: `data:${imageFile.mediaType};base64,${imageFile.base64}`,
+            };
+          }
         );
-
-        if (!imageFile?.base64) {
-          logger.warn("No image returned from AI Gateway");
-          throw new AppError(
-            ErrorCode.INTERNAL_SERVER_ERROR,
-            "Failed to generate thumbnail",
-            500
-          );
-        }
-
-        return {
-          thumbnail: `data:${imageFile.mediaType};base64,${imageFile.base64}`,
-        };
       }),
     {
       body: t.Object({

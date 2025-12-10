@@ -6,6 +6,7 @@ import {
 import { toast } from "sonner";
 import { i18n } from "@/i18n";
 import { CartService, QUERY_KEYS } from "./service";
+import { QUERY_KEYS as ENROLLMENT_QUERY_KEYS } from "@/services/enrollments/service";
 
 export const cartOptions = () =>
   queryOptions({
@@ -42,6 +43,18 @@ export const clearCartOptions = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.CART });
       toast.success(i18n.t("cart.clearSuccess"));
+    },
+  });
+};
+
+export const checkoutOptions = () => {
+  const queryClient = useQueryClient();
+  return mutationOptions({
+    mutationFn: CartService.checkout,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.CART });
+      queryClient.invalidateQueries({ queryKey: ENROLLMENT_QUERY_KEYS.ENROLLMENTS });
+      toast.success(i18n.t("cart.checkoutSuccess"));
     },
   });
 };

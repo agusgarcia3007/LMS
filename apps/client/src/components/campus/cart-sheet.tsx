@@ -9,14 +9,24 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { useCart } from "@/hooks/use-cart";
+import { useCustomTheme } from "@/hooks/use-custom-theme";
+import { cn } from "@/lib/utils";
 import { formatPrice } from "@/lib/format";
 import { Link } from "@tanstack/react-router";
 import { BookOpen, ShoppingCart, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import type { CustomTheme, TenantTheme } from "@/services/tenants/service";
 
-export function CartSheet() {
+type CartSheetProps = {
+  customTheme?: CustomTheme | null;
+  theme?: TenantTheme | null;
+};
+
+export function CartSheet({ customTheme, theme }: CartSheetProps) {
   const { t, i18n } = useTranslation();
-  const { items, summary, itemCount, removeFromCart, isPending } = useCart();
+  const { items, summary, itemCount, removeFromCart, isPending, checkout, isCheckingOut } = useCart();
+  const { customStyles } = useCustomTheme(customTheme);
+  const themeClass = !customTheme && theme ? `theme-${theme}` : "";
 
   return (
     <Sheet>
@@ -30,7 +40,7 @@ export function CartSheet() {
           )}
         </Button>
       </SheetTrigger>
-      <SheetContent className="flex w-full flex-col sm:max-w-md">
+      <SheetContent className={cn("flex w-full flex-col sm:max-w-md", themeClass)} style={customStyles}>
         <SheetHeader className="border-b pb-4">
           <SheetTitle className="flex items-center gap-2">
             <ShoppingCart className="size-5" />
@@ -129,7 +139,7 @@ export function CartSheet() {
                   {formatPrice(summary.total, summary.currency, i18n.language)}
                 </span>
               </div>
-              <Button size="lg" className="w-full" disabled>
+              <Button size="lg" className="w-full" onClick={checkout} isLoading={isCheckingOut}>
                 {t("campus.courseDetail.buyNow")}
               </Button>
               <Link to="/courses" className="w-full">
