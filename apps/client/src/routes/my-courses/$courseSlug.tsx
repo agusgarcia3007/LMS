@@ -13,7 +13,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CampusHeader } from "@/components/campus/header";
-import { CampusFooter } from "@/components/campus/footer";
 import { LearnSidebar } from "@/components/learn/learn-sidebar";
 import { LearnDrawer } from "@/components/learn/learn-drawer";
 import { ItemNavigation } from "@/components/learn";
@@ -158,7 +157,6 @@ function LearnPage() {
         <main className="flex-1">
           <LearnPageSkeleton />
         </main>
-        <CampusFooter tenant={tenant} />
       </div>
     );
   }
@@ -188,7 +186,6 @@ function LearnPage() {
             </EmptyContent>
           </Empty>
         </main>
-        <CampusFooter tenant={tenant} />
       </div>
     );
   }
@@ -311,8 +308,6 @@ function LearnPage() {
           setDrawerOpen(false);
         }}
       />
-
-      <CampusFooter tenant={tenant} />
     </div>
   );
 }
