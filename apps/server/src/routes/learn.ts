@@ -482,11 +482,22 @@ export const learnRoutes = new Elysia({ name: "learn" })
 
         const { videoProgress, status } = ctx.body;
 
+        const [currentProgress] = await db
+          .select({ status: itemProgressTable.status })
+          .from(itemProgressTable)
+          .where(
+            and(
+              eq(itemProgressTable.enrollmentId, item.enrollmentId),
+              eq(itemProgressTable.moduleItemId, item.moduleItemId)
+            )
+          )
+          .limit(1);
+
         const updateData: { videoProgress?: number; status?: ItemProgressStatus } = {};
         if (typeof videoProgress === "number") {
           updateData.videoProgress = videoProgress;
         }
-        if (status === "in_progress") {
+        if (status === "in_progress" && currentProgress?.status !== "completed") {
           updateData.status = "in_progress";
         }
 
