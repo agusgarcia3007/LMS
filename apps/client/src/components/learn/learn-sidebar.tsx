@@ -39,46 +39,56 @@ export function LearnSidebar({
 
       <aside
         className={cn(
-          "bg-muted/30 hidden flex-col border-r transition-all duration-300 lg:flex",
-          leftOpen ? "w-(--sidebar-width) opacity-100" : "w-0 overflow-hidden opacity-0"
+          "bg-muted/30 hidden flex-col border-r transition-all duration-300 ease-in-out lg:flex",
+          leftOpen ? "w-(--sidebar-width)" : "w-12"
         )}
       >
-        <div className="border-b p-4">
-          <div className="mb-2 flex items-center justify-between">
-            <span className="text-muted-foreground text-xs font-medium uppercase tracking-wider">
-              {t("learn.progress")}
-            </span>
-            <div className="flex items-center gap-2">
-              <span className="text-foreground text-sm font-semibold tabular-nums">
-                {progress}%
+        <div
+          className={cn(
+            "flex flex-col transition-opacity duration-300 ease-in-out",
+            leftOpen ? "opacity-100" : "pointer-events-none opacity-0"
+          )}
+        >
+          <div className="border-b p-4">
+            <div className="mb-2 flex items-center justify-between">
+              <span className="text-muted-foreground whitespace-nowrap text-xs font-medium uppercase tracking-wider">
+                {t("learn.progress")}
               </span>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="size-7"
-                onClick={toggleLeft}
-                aria-label={t("learn.toggleSidebar")}
-              >
-                <PanelLeftClose className="size-4" />
-              </Button>
+              <div className="flex items-center gap-2">
+                <span className="text-foreground text-sm font-semibold tabular-nums">
+                  {progress}%
+                </span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="size-7"
+                  onClick={toggleLeft}
+                  aria-label={t("learn.toggleSidebar")}
+                >
+                  <PanelLeftClose className="size-4" />
+                </Button>
+              </div>
             </div>
+            <Progress value={progress} className="h-2" />
           </div>
-          <Progress value={progress} className="h-2" />
+
+          <ScrollArea className="flex-1">
+            <div className="p-2">
+              <ModuleAccordion
+                modules={modules}
+                currentItemId={currentItemId}
+                onItemSelect={onItemSelect}
+              />
+            </div>
+          </ScrollArea>
         </div>
 
-        <ScrollArea className="flex-1">
-          <div className="p-2">
-            <ModuleAccordion
-              modules={modules}
-              currentItemId={currentItemId}
-              onItemSelect={onItemSelect}
-            />
-          </div>
-        </ScrollArea>
-      </aside>
-
-      {!leftOpen && (
-        <div className="hidden border-r p-2 lg:block">
+        <div
+          className={cn(
+            "absolute inset-0 flex items-start justify-center p-2 transition-opacity duration-300 ease-in-out",
+            leftOpen ? "pointer-events-none opacity-0" : "opacity-100"
+          )}
+        >
           <Button
             variant="ghost"
             size="icon"
@@ -88,7 +98,7 @@ export function LearnSidebar({
             <PanelLeft className="size-5" />
           </Button>
         </div>
-      )}
+      </aside>
     </>
   );
 }
