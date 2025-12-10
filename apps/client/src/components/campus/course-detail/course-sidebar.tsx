@@ -25,6 +25,7 @@ import { Link } from "@tanstack/react-router";
 import { formatPrice, getInitials } from "@/lib/format";
 import { useCart } from "@/hooks/use-cart";
 import { EnrollButton } from "@/components/campus/enroll-button";
+import { useEnrollmentCheck } from "@/services/enrollments";
 import type { CampusCourseDetail } from "@/services/campus/service";
 
 type CourseSidebarProps = {
@@ -35,6 +36,11 @@ export function CourseSidebar({ course }: CourseSidebarProps) {
   const { t, i18n } = useTranslation();
   const { addToCart, removeFromCart, isInCart, isPending, isAuthenticated } = useCart();
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
+
+  const { data: enrollmentData } = useEnrollmentCheck(
+    isAuthenticated ? course.id : ""
+  );
+  const isEnrolled = enrollmentData?.isEnrolled ?? false;
 
   const hasDiscount = course.originalPrice && course.originalPrice > course.price;
   const discountPercent = hasDiscount
@@ -113,7 +119,7 @@ export function CourseSidebar({ course }: CourseSidebarProps) {
         )}
 
         <div className="space-y-2.5">
-          {isFree ? (
+          {isFree || isEnrolled ? (
             <EnrollButton
               courseId={course.id}
               courseSlug={course.slug}
@@ -123,7 +129,7 @@ export function CourseSidebar({ course }: CourseSidebarProps) {
             <Button
               size="lg"
               variant={inCart ? "secondary" : "default"}
-              className="w-full font-semibold"
+              className={inCart ? "w-full font-semibold" : "w-full bg-primary font-semibold text-primary-foreground hover:bg-primary/90"}
               onClick={handleCartClick}
               isLoading={isPending}
             >
@@ -132,7 +138,7 @@ export function CourseSidebar({ course }: CourseSidebarProps) {
             </Button>
           ) : (
             <Link to="/login" className="w-full">
-              <Button size="lg" className="w-full font-semibold">
+              <Button size="lg" className="w-full bg-primary font-semibold text-primary-foreground hover:bg-primary/90">
                 <ShoppingCart className="mr-2 size-4" />
                 {t("cart.loginToAdd")}
               </Button>

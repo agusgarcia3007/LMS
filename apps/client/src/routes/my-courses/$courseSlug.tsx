@@ -1,5 +1,5 @@
 import { useEffect, useCallback } from "react";
-import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { BookOpen } from "lucide-react";
 import {
@@ -30,13 +30,6 @@ export const Route = createFileRoute("/my-courses/$courseSlug")({
   validateSearch: (search: Record<string, unknown>): CourseSearch => ({
     item: (search.item as string) || undefined,
   }),
-  beforeLoad: () => {
-    const isAuthenticated =
-      typeof window !== "undefined" && !!localStorage.getItem("accessToken");
-    if (!isAuthenticated) {
-      throw redirect({ to: "/login" });
-    }
-  },
   component: LearnPage,
 });
 

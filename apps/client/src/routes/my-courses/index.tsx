@@ -1,4 +1,4 @@
-import { createFileRoute, Link, redirect } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { BookOpen } from "lucide-react";
@@ -21,14 +21,7 @@ import { cn } from "@/lib/utils";
 import { useTheme } from "@/components/ui/theme-provider";
 import { useCustomTheme } from "@/hooks/use-custom-theme";
 
-export const Route = createFileRoute("/my-courses")({
-  beforeLoad: () => {
-    const isAuthenticated =
-      typeof window !== "undefined" && !!localStorage.getItem("accessToken");
-    if (!isAuthenticated) {
-      throw redirect({ to: "/login" });
-    }
-  },
+export const Route = createFileRoute("/my-courses/")({
   component: MyCoursesPage,
 });
 
