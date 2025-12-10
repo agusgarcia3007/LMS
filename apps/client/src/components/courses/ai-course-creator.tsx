@@ -111,9 +111,9 @@ function ToolCard({ invocation, index }: { invocation: ToolInvocation; index: nu
         />
         <ToolContent>
           <ToolInput input={invocation.args} />
-          {invocation.state === "completed" && invocation.result && (
+          {invocation.state === "completed" && invocation.result !== undefined ? (
             <ToolOutput output={invocation.result} errorText={undefined} />
-          )}
+          ) : null}
         </ToolContent>
       </Tool>
     </div>
@@ -203,10 +203,14 @@ export function AICourseCreator({
     const imageFiles: File[] = [];
     if (message.files?.length) {
       for (const file of message.files) {
-        if (file.url?.startsWith("data:") && file.mediaType?.startsWith("image/")) {
-          const response = await fetch(file.url);
-          const blob = await response.blob();
-          imageFiles.push(new File([blob], "image", { type: file.mediaType }));
+        if (file.mediaType?.startsWith("image/") && file.url) {
+          try {
+            const response = await fetch(file.url);
+            const blob = await response.blob();
+            imageFiles.push(new File([blob], "image", { type: file.mediaType }));
+          } catch (err) {
+            console.warn("Failed to process attachment:", err);
+          }
         }
       }
     }
