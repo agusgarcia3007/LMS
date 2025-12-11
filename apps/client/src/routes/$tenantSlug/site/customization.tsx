@@ -83,6 +83,7 @@ function CustomizationPage() {
         heroSubtitle: tenant.heroSubtitle ?? "",
         heroCta: tenant.heroCta ?? "",
         footerText: tenant.footerText ?? "",
+        customTheme: tenant.customTheme ?? null,
       });
       setLogoUrl(tenant.logo);
     }
@@ -120,6 +121,7 @@ function CustomizationPage() {
       heroSubtitle: values.heroSubtitle || null,
       heroCta: values.heroCta || null,
       footerText: values.footerText || null,
+      customTheme: values.customTheme || null,
     });
   };
 
