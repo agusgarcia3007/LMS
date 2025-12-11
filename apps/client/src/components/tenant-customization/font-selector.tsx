@@ -28,8 +28,6 @@ export function FontSelector({
 }: FontSelectorProps) {
   const { t } = useTranslation();
 
-  console.log("FontSelector value:", value);
-
   const isCustomFont = useMemo(() => {
     if (!value) return false;
     return !ALL_FONTS.some((font) => font.name === value);
@@ -44,7 +42,9 @@ export function FontSelector({
   useEffect(() => {
     GOOGLE_FONTS.sans.slice(0, 5).forEach((font) => loadGoogleFont(font.name));
     GOOGLE_FONTS.serif.slice(0, 3).forEach((font) => loadGoogleFont(font.name));
-    GOOGLE_FONTS.display.slice(0, 3).forEach((font) => loadGoogleFont(font.name));
+    GOOGLE_FONTS.display
+      .slice(0, 3)
+      .forEach((font) => loadGoogleFont(font.name));
   }, []);
 
   return (
@@ -52,12 +52,20 @@ export function FontSelector({
       <Label>{label}</Label>
       <Select value={value || ""} onValueChange={onChange}>
         <SelectTrigger>
-          <SelectValue placeholder={t("dashboard.site.customization.appearance.selectFont")} />
+          <SelectValue
+            placeholder={t(
+              "dashboard.site.customization.appearance.selectFont"
+            )}
+          />
         </SelectTrigger>
         <SelectContent>
           {isCustomFont && value && (
             <SelectGroup>
-              <SelectLabel>{t("dashboard.site.customization.appearance.fontCategories.current")}</SelectLabel>
+              <SelectLabel>
+                {t(
+                  "dashboard.site.customization.appearance.fontCategories.current"
+                )}
+              </SelectLabel>
               <SelectItem value={value}>
                 <span style={{ fontFamily: `"${value}", sans-serif` }}>
                   {value}
@@ -66,7 +74,9 @@ export function FontSelector({
             </SelectGroup>
           )}
           <SelectGroup>
-            <SelectLabel>{t("dashboard.site.customization.appearance.fontCategories.sans")}</SelectLabel>
+            <SelectLabel>
+              {t("dashboard.site.customization.appearance.fontCategories.sans")}
+            </SelectLabel>
             {GOOGLE_FONTS.sans.map((font) => (
               <SelectItem key={font.name} value={font.name}>
                 <span style={{ fontFamily: `"${font.name}", sans-serif` }}>
@@ -76,7 +86,11 @@ export function FontSelector({
             ))}
           </SelectGroup>
           <SelectGroup>
-            <SelectLabel>{t("dashboard.site.customization.appearance.fontCategories.serif")}</SelectLabel>
+            <SelectLabel>
+              {t(
+                "dashboard.site.customization.appearance.fontCategories.serif"
+              )}
+            </SelectLabel>
             {GOOGLE_FONTS.serif.map((font) => (
               <SelectItem key={font.name} value={font.name}>
                 <span style={{ fontFamily: `"${font.name}", serif` }}>
@@ -86,7 +100,11 @@ export function FontSelector({
             ))}
           </SelectGroup>
           <SelectGroup>
-            <SelectLabel>{t("dashboard.site.customization.appearance.fontCategories.display")}</SelectLabel>
+            <SelectLabel>
+              {t(
+                "dashboard.site.customization.appearance.fontCategories.display"
+              )}
+            </SelectLabel>
             {GOOGLE_FONTS.display.map((font) => (
               <SelectItem key={font.name} value={font.name}>
                 <span style={{ fontFamily: `"${font.name}", sans-serif` }}>
