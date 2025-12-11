@@ -1,10 +1,6 @@
 import { StartClient } from "@tanstack/react-start/client";
-import { StrictMode } from "react";
 import { hydrateRoot } from "react-dom/client";
+import "./i18n";
+import "./index.css";
 
-hydrateRoot(
-  document,
-  <StrictMode>
-    <StartClient />
-  </StrictMode>
-);
+hydrateRoot(document, <StartClient />);

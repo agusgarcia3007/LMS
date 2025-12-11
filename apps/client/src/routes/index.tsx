@@ -34,7 +34,6 @@ import {
 } from "@/components/landing";
 import { getTenantFromHost, getMainDomainUrl } from "@/lib/tenant";
 import { cn } from "@/lib/utils";
-import { useSeo } from "@/hooks/use-seo";
 import { useTheme } from "@/components/ui/theme-provider";
 import { useCustomTheme } from "@/hooks/use-custom-theme";
 import { BookOpen } from "lucide-react";
@@ -108,12 +107,6 @@ function CampusHome() {
   const tenant = tenantData?.tenant;
   const usePresetTheme = tenant?.theme !== null && tenant?.theme !== undefined;
   const { customStyles } = useCustomTheme(usePresetTheme ? null : tenant?.customTheme);
-
-  useSeo({
-    title: tenant?.seoTitle || tenant?.name,
-    description: tenant?.seoDescription,
-    keywords: tenant?.seoKeywords,
-  });
 
   useEffect(() => {
     const tenantMode = tenant?.mode;

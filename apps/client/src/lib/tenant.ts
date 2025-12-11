@@ -22,6 +22,10 @@ function isOurDomain(hostname: string): boolean {
 }
 
 export function getTenantFromHost(): TenantInfo {
+  if (typeof window === "undefined") {
+    return { slug: null, isCampus: false, isCustomDomain: false };
+  }
+
   if (import.meta.env.DEV) {
     const url = new URL(window.location.href);
     const campusSlug = url.searchParams.get("campus");

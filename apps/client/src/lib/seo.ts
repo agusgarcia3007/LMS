@@ -110,6 +110,39 @@ function getAlternateUrls(url: string, currentLocale: string): LinkTag[] {
   return links;
 }
 
+export function createTenantSeoMeta(tenant: {
+  name: string;
+  seoTitle: string | null;
+  seoDescription: string | null;
+  seoKeywords: string | null;
+  logo: string | null;
+}): HeadConfig {
+  const title = tenant.seoTitle || tenant.name;
+  const description = tenant.seoDescription || "";
+
+  const meta: MetaTag[] = [
+    { title },
+    { name: "description", content: description },
+    { property: "og:title", content: title },
+    { property: "og:description", content: description },
+    { property: "og:site_name", content: tenant.name },
+    { name: "twitter:card", content: "summary_large_image" },
+    { name: "twitter:title", content: title },
+    { name: "twitter:description", content: description },
+  ];
+
+  if (tenant.seoKeywords) {
+    meta.push({ name: "keywords", content: tenant.seoKeywords });
+  }
+
+  if (tenant.logo) {
+    meta.push({ property: "og:image", content: tenant.logo });
+    meta.push({ name: "twitter:image", content: tenant.logo });
+  }
+
+  return { meta, links: [] };
+}
+
 export function createCourseSeoMeta({
   title,
   description,

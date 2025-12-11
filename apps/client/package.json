@@ -4,8 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "bunx --bun vite",
+    "dev": "bunx --bun vite dev",
     "build": "bunx --bun vite build",
+    "start": "node .output/server/index.mjs",
     "lint": "eslint .",
     "preview": "vite preview"
   },
@@ -49,6 +50,7 @@
     "@tailwindcss/vite": "^4.1.17",
     "@tanstack/react-query": "^5.90.11",
     "@tanstack/react-router": "^1.139.7",
+    "@tanstack/react-start": "^1.141.0",
     "@tanstack/react-table": "^8.21.3",
     "@unpic/react": "^1.0.1",
     "@xyflow/react": "^12.10.0",
