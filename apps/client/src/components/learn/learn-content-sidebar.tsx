@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { ChevronLeft, ChevronRight, Menu } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
@@ -12,23 +13,43 @@ import {
 } from "@/components/ui/dual-sidebar";
 import { ModuleAccordion } from "./module-accordion";
 import { cn } from "@/lib/utils";
-import type { LearnModule } from "@/services/learn";
+import { useCourseProgress } from "@/services/learn";
+import type { LearnModuleLite, ModuleProgressData } from "@/services/learn";
 
 type LearnContentSidebarProps = {
-  modules: LearnModule[];
-  progress: number;
+  courseSlug: string;
+  modules: LearnModuleLite[];
+  enrollmentProgress: number;
   currentItemId: string | null;
+  currentModuleId: string | null;
   onItemSelect: (itemId: string) => void;
 };
 
 export function LearnContentSidebar({
+  courseSlug,
   modules,
-  progress,
+  enrollmentProgress,
   currentItemId,
+  currentModuleId,
   onItemSelect,
 }: LearnContentSidebarProps) {
   const { t } = useTranslation();
   const { left, isMobile } = useDualSidebar();
+  const { data: progressData } = useCourseProgress(courseSlug);
+
+  const moduleProgress = useMemo(() => {
+    const map = new Map<string, ModuleProgressData>();
+    if (progressData?.moduleProgress) {
+      for (const p of progressData.moduleProgress) {
+        map.set(p.moduleId, p);
+      }
+    }
+    return map;
+  }, [progressData]);
+
+  const displayProgress = progressData
+    ? Math.round((progressData.completedItems / progressData.totalItems) * 100) || 0
+    : enrollmentProgress;
 
   return (
     <>
@@ -53,9 +74,9 @@ export function LearnContentSidebar({
                 {t("learn.progress")}
               </span>
               <div className="mt-1 flex items-center gap-2">
-                <Progress value={progress} className="h-2 flex-1" />
+                <Progress value={displayProgress} className="h-2 flex-1" />
                 <span className="text-primary text-sm font-bold tabular-nums">
-                  {progress}%
+                  {displayProgress}%
                 </span>
               </div>
             </div>
@@ -75,7 +96,9 @@ export function LearnContentSidebar({
           <ScrollArea className="flex-1">
             <ModuleAccordion
               modules={modules}
+              moduleProgress={moduleProgress}
               currentItemId={currentItemId}
+              currentModuleId={currentModuleId}
               onItemSelect={onItemSelect}
             />
           </ScrollArea>

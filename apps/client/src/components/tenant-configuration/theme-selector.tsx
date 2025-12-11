@@ -25,6 +25,7 @@ export function ThemeSelector({ value, onChange }: ThemeSelectorProps) {
               onClick={() => onChange(theme.id)}
               className={cn(
                 "relative size-9 rounded-full transition-all duration-200",
+                "ring-1 ring-border",
                 "hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                 isSelected && "ring-2 ring-primary ring-offset-2 ring-offset-background"
               )}

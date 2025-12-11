@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { loadGoogleFont } from "@/hooks/use-custom-theme";
 import {
@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { GOOGLE_FONTS } from "./fonts-data";
+import { GOOGLE_FONTS, ALL_FONTS } from "./fonts-data";
 
 type FontSelectorProps = {
   label: string;
@@ -27,6 +27,13 @@ export function FontSelector({
   previewText,
 }: FontSelectorProps) {
   const { t } = useTranslation();
+
+  console.log("FontSelector value:", value);
+
+  const isCustomFont = useMemo(() => {
+    if (!value) return false;
+    return !ALL_FONTS.some((font) => font.name === value);
+  }, [value]);
 
   useEffect(() => {
     if (value) {
@@ -48,6 +55,16 @@ export function FontSelector({
           <SelectValue placeholder={t("dashboard.site.customization.appearance.selectFont")} />
         </SelectTrigger>
         <SelectContent>
+          {isCustomFont && value && (
+            <SelectGroup>
+              <SelectLabel>{t("dashboard.site.customization.appearance.fontCategories.current")}</SelectLabel>
+              <SelectItem value={value}>
+                <span style={{ fontFamily: `"${value}", sans-serif` }}>
+                  {value}
+                </span>
+              </SelectItem>
+            </SelectGroup>
+          )}
           <SelectGroup>
             <SelectLabel>{t("dashboard.site.customization.appearance.fontCategories.sans")}</SelectLabel>
             {GOOGLE_FONTS.sans.map((font) => (

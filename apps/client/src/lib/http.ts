@@ -14,6 +14,10 @@ export const http = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
 });
 
+export const publicHttp = axios.create({
+  baseURL: import.meta.env.VITE_API_URL,
+});
+
 http.interceptors.request.use((config) => {
   if (!isClient()) {
     return config;

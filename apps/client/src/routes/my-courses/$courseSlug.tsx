@@ -26,6 +26,7 @@ import { DocumentContent } from "@/components/campus/content-viewer/document-con
 import { QuizPlayer } from "@/components/campus/quiz/quiz-player";
 import {
   useCourseStructure,
+  useCourseProgress,
   useItemContent,
   useCompleteItem,
 } from "@/services/learn";
@@ -107,6 +108,8 @@ function LearnPage({ tenant }: LearnPageProps) {
   const { data: structureData, isLoading: structureLoading } =
     useCourseStructure(courseSlug);
 
+  const { data: progressData } = useCourseProgress(courseSlug);
+
   const { data: contentData, isLoading: contentLoading } = useItemContent(
     currentItemId ?? ""
   );
@@ -127,14 +130,11 @@ function LearnPage({ tenant }: LearnPageProps) {
     null
   );
 
-  const currentItemStatus = useMemo(() => {
-    if (!currentItemId || !structureData) return null;
-    for (const module of structureData.modules) {
-      const item = module.items.find((i) => i.id === currentItemId);
-      if (item) return item.status;
-    }
-    return null;
-  }, [currentItemId, structureData]);
+  const currentModuleId = useMemo(() => {
+    if (!currentItemId || !progressData?.itemIds) return null;
+    const item = progressData.itemIds.find((i) => i.id === currentItemId);
+    return item?.moduleId ?? null;
+  }, [currentItemId, progressData?.itemIds]);
 
   useEffect(() => {
     const tenantMode = tenant?.mode;
@@ -234,9 +234,11 @@ function LearnPage({ tenant }: LearnPageProps) {
 
       <div className="flex min-h-0 flex-1">
         <LearnContentSidebar
+          courseSlug={courseSlug}
           modules={modules}
-          progress={enrollment.progress}
+          enrollmentProgress={enrollment.progress}
           currentItemId={currentItemId ?? null}
+          currentModuleId={currentModuleId}
           onItemSelect={handleItemSelect}
         />
 
@@ -244,6 +246,7 @@ function LearnPage({ tenant }: LearnPageProps) {
           {showCompletedView ? (
             <CourseCompletedView
               course={course}
+              enrollmentId={enrollment.id}
               onReviewCourse={() => setIsReviewing(true)}
             />
           ) : (
@@ -304,13 +307,13 @@ function LearnPage({ tenant }: LearnPageProps) {
                       <QuizPlayer
                         quizId={contentData.id}
                         onComplete={handleComplete}
-                        isCompleted={currentItemStatus === "completed"}
+                        isCompleted={isCourseCompleted}
                       />
                     </div>
                   ) : null}
 
                   <ItemNavigation
-                    modules={modules}
+                    itemIds={progressData?.itemIds ?? []}
                     currentItemId={currentItemId}
                     onNavigate={handleItemSelect}
                   />
@@ -343,6 +346,15 @@ function LearnPage({ tenant }: LearnPageProps) {
             itemType={contentData.type}
             currentTime={currentVideoTimeRef.current}
             videoElement={videoElement}
+            documentUrl={
+              contentData.type === "document" ? contentData.url : undefined
+            }
+            documentFileName={
+              contentData.type === "document" ? contentData.fileName : undefined
+            }
+            documentMimeType={
+              contentData.type === "document" ? contentData.mimeType : undefined
+            }
           />
         )}
       </div>

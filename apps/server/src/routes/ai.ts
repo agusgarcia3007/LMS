@@ -12,6 +12,7 @@ import {
   documentsTable,
   quizzesTable,
   quizQuestionsTable,
+  quizOptionsTable,
   modulesTable,
   moduleItemsTable,
   coursesTable,
@@ -1807,40 +1808,69 @@ export const aiRoutes = new Elysia()
         .filter((i) => i.contentType === "quiz")
         .map((i) => i.contentId);
 
-      const [videosData, documentsData, quizzesData] = await Promise.all([
-        videoIds.length > 0
-          ? db
+      const [videosData, documentsData, quizzesData, quizQuestionsData] =
+        await Promise.all([
+          videoIds.length > 0
+            ? db
+                .select({
+                  id: videosTable.id,
+                  title: videosTable.title,
+                  description: videosTable.description,
+                  duration: videosTable.duration,
+                  transcript: videosTable.transcript,
+                })
+                .from(videosTable)
+                .where(inArray(videosTable.id, videoIds))
+            : [],
+          documentIds.length > 0
+            ? db
+                .select({
+                  id: documentsTable.id,
+                  title: documentsTable.title,
+                  description: documentsTable.description,
+                })
+                .from(documentsTable)
+                .where(inArray(documentsTable.id, documentIds))
+            : [],
+          quizIds.length > 0
+            ? db
+                .select({
+                  id: quizzesTable.id,
+                  title: quizzesTable.title,
+                  description: quizzesTable.description,
+                })
+                .from(quizzesTable)
+                .where(inArray(quizzesTable.id, quizIds))
+            : [],
+          quizIds.length > 0
+            ? db
+                .select({
+                  id: quizQuestionsTable.id,
+                  quizId: quizQuestionsTable.quizId,
+                  questionText: quizQuestionsTable.questionText,
+                  type: quizQuestionsTable.type,
+                  explanation: quizQuestionsTable.explanation,
+                  order: quizQuestionsTable.order,
+                })
+                .from(quizQuestionsTable)
+                .where(inArray(quizQuestionsTable.quizId, quizIds))
+            : [],
+        ]);
+
+      const questionIds = quizQuestionsData.map((q) => q.id);
+      const quizOptionsData =
+        questionIds.length > 0
+          ? await db
               .select({
-                id: videosTable.id,
-                title: videosTable.title,
-                description: videosTable.description,
-                duration: videosTable.duration,
-                transcript: videosTable.transcript,
+                id: quizOptionsTable.id,
+                questionId: quizOptionsTable.questionId,
+                optionText: quizOptionsTable.optionText,
+                isCorrect: quizOptionsTable.isCorrect,
+                order: quizOptionsTable.order,
               })
-              .from(videosTable)
-              .where(inArray(videosTable.id, videoIds))
-          : [],
-        documentIds.length > 0
-          ? db
-              .select({
-                id: documentsTable.id,
-                title: documentsTable.title,
-                description: documentsTable.description,
-              })
-              .from(documentsTable)
-              .where(inArray(documentsTable.id, documentIds))
-          : [],
-        quizIds.length > 0
-          ? db
-              .select({
-                id: quizzesTable.id,
-                title: quizzesTable.title,
-                description: quizzesTable.description,
-              })
-              .from(quizzesTable)
-              .where(inArray(quizzesTable.id, quizIds))
-          : [],
-      ]);
+              .from(quizOptionsTable)
+              .where(inArray(quizOptionsTable.questionId, questionIds))
+          : [];
 
       const contentMap = new Map<
         string,
@@ -1863,7 +1893,36 @@ export const aiRoutes = new Elysia()
         contentMap.set(d.id, { title: d.title, description: d.description });
       }
       for (const q of quizzesData) {
-        contentMap.set(q.id, { title: q.title, description: q.description });
+        const questions = quizQuestionsData
+          .filter((qq) => qq.quizId === q.id)
+          .sort((a, b) => a.order - b.order);
+
+        const quizContent = questions
+          .map((question, i) => {
+            const options = quizOptionsData
+              .filter((o) => o.questionId === question.id)
+              .sort((a, b) => a.order - b.order);
+
+            const optionsText = options
+              .map(
+                (o) =>
+                  `  ${o.isCorrect ? "[CORRECT]" : "[ ]"} ${o.optionText}`
+              )
+              .join("\n");
+
+            return `Question ${i + 1}: ${question.questionText}\n${optionsText}${
+              question.explanation
+                ? `\nExplanation: ${question.explanation}`
+                : ""
+            }`;
+          })
+          .join("\n\n");
+
+        contentMap.set(q.id, {
+          title: q.title,
+          description: q.description,
+          transcript: quizContent || null,
+        });
       }
 
       const currentModuleItem = moduleItems.find(
@@ -1926,27 +1985,39 @@ export const aiRoutes = new Elysia()
         })),
       });
 
+      type ProcessedAttachment =
+        | { type: "image"; key: string }
+        | { type: "file"; data: string; mediaType: string };
+
       const processedMessages: Array<{
         role: "user" | "assistant";
         content: string;
-        imageKeys?: string[];
+        attachments?: ProcessedAttachment[];
       }> = [];
 
       for (const m of messages) {
         if (m.attachments?.length) {
-          const imageKeys = await Promise.all(
-            m.attachments.map((att) =>
-              uploadBase64ToS3({
-                base64: att.data,
-                folder: "learn-chat-images",
-                userId,
-              })
-            )
+          const attachments: ProcessedAttachment[] = await Promise.all(
+            m.attachments.map(async (att) => {
+              if (att.type === "image") {
+                const key = await uploadBase64ToS3({
+                  base64: att.data,
+                  folder: "learn-chat-images",
+                  userId,
+                });
+                return { type: "image" as const, key };
+              }
+              return {
+                type: "file" as const,
+                data: att.data,
+                mediaType: att.mimeType,
+              };
+            })
           );
           processedMessages.push({
             role: m.role as "user" | "assistant",
             content: m.content,
-            imageKeys,
+            attachments,
           });
         } else {
           processedMessages.push({
@@ -1957,16 +2028,31 @@ export const aiRoutes = new Elysia()
       }
 
       const formattedMessages = processedMessages.map((m) => {
-        if (m.role === "user" && m.imageKeys?.length) {
+        if (m.role === "user" && m.attachments?.length) {
+          const contentParts: Array<
+            | { type: "text"; text: string }
+            | { type: "image"; image: string }
+            | { type: "file"; data: string; mediaType: string }
+          > = [{ type: "text" as const, text: m.content || " " }];
+
+          for (const att of m.attachments) {
+            if (att.type === "image") {
+              contentParts.push({
+                type: "image" as const,
+                image: getPresignedUrl(att.key),
+              });
+            } else {
+              contentParts.push({
+                type: "file" as const,
+                data: att.data,
+                mediaType: att.mediaType,
+              });
+            }
+          }
+
           return {
             role: "user" as const,
-            content: [
-              { type: "text" as const, text: m.content || " " },
-              ...m.imageKeys.map((key) => ({
-                type: "image" as const,
-                image: getPresignedUrl(key),
-              })),
-            ],
+            content: contentParts,
           };
         }
         return {
@@ -2013,9 +2099,10 @@ export const aiRoutes = new Elysia()
             attachments: t.Optional(
               t.Array(
                 t.Object({
-                  type: t.Literal("image"),
+                  type: t.Union([t.Literal("image"), t.Literal("file")]),
                   data: t.String(),
                   mimeType: t.String(),
+                  fileName: t.Optional(t.String()),
                 })
               )
             ),

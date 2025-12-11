@@ -154,3 +154,18 @@ export const useRemoveDomainOptions = (tenantSlug: string) => {
     },
   });
 };
+
+export const useUploadSignatureOptions = (tenantSlug: string) =>
+  useUploadMutation({
+    mutationFn: ({ id, signature }: { id: string; signature: string }) =>
+      TenantsService.uploadSignature(id, signature),
+    invalidateKeys: () => [QUERY_KEYS.TENANTS, QUERY_KEYS.TENANT(tenantSlug)],
+    successMessage: "dashboard.site.configuration.certificates.signatureUploaded",
+  });
+
+export const useDeleteSignatureOptions = (tenantSlug: string) =>
+  useUploadMutation({
+    mutationFn: TenantsService.deleteSignature,
+    invalidateKeys: () => [QUERY_KEYS.TENANTS, QUERY_KEYS.TENANT(tenantSlug)],
+    successMessage: "dashboard.site.configuration.certificates.signatureDeleted",
+  });

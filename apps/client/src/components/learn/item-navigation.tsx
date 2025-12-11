@@ -2,34 +2,34 @@ import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import type { LearnModule } from "@/services/learn";
+import type { ItemIdWithModule } from "@/services/learn";
 
 type ItemNavigationProps = {
-  modules: LearnModule[];
+  itemIds: ItemIdWithModule[];
   currentItemId: string | null;
   onNavigate: (itemId: string) => void;
 };
 
 export function ItemNavigation({
-  modules,
+  itemIds,
   currentItemId,
   onNavigate,
 }: ItemNavigationProps) {
   const { t } = useTranslation();
 
-  const { prevItem, nextItem, currentIndex, totalItems } = useMemo(() => {
-    const allItems = modules.flatMap((m) => m.items);
-    const currentIdx = allItems.findIndex((item) => item.id === currentItemId);
+  const { prevItemId, nextItemId, currentIndex, totalItems } = useMemo(() => {
+    const currentIdx = itemIds.findIndex((item) => item.id === currentItemId);
 
     return {
-      prevItem: currentIdx > 0 ? allItems[currentIdx - 1] : null,
-      nextItem: currentIdx < allItems.length - 1 ? allItems[currentIdx + 1] : null,
+      prevItemId: currentIdx > 0 ? itemIds[currentIdx - 1]?.id : null,
+      nextItemId:
+        currentIdx < itemIds.length - 1 ? itemIds[currentIdx + 1]?.id : null,
       currentIndex: currentIdx + 1,
-      totalItems: allItems.length,
+      totalItems: itemIds.length,
     };
-  }, [modules, currentItemId]);
+  }, [itemIds, currentItemId]);
 
-  if (!currentItemId) return null;
+  if (!currentItemId || itemIds.length === 0) return null;
 
   return (
     <div className="border-t bg-background/50 backdrop-blur-sm">
@@ -37,8 +37,8 @@ export function ItemNavigation({
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => prevItem && onNavigate(prevItem.id)}
-          disabled={!prevItem}
+          onClick={() => prevItemId && onNavigate(prevItemId)}
+          disabled={!prevItemId}
           className="gap-1.5"
         >
           <ChevronLeft className="size-4" />
@@ -52,8 +52,8 @@ export function ItemNavigation({
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => nextItem && onNavigate(nextItem.id)}
-          disabled={!nextItem}
+          onClick={() => nextItemId && onNavigate(nextItemId)}
+          disabled={!nextItemId}
           className="gap-1.5"
         >
           <span className="hidden sm:inline">{t("learn.next")}</span>

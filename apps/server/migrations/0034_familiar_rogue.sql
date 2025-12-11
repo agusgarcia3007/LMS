@@ -1,0 +1,1 @@
+ALTER TABLE "courses" ADD COLUMN "include_certificate" boolean DEFAULT false NOT NULL;

@@ -6,77 +6,77 @@ export type TenantMode = "light" | "dark" | "auto";
 export type BackgroundPattern = "none" | "grid" | "dots" | "waves";
 
 export type CustomTheme = {
-  background: string;
-  foreground: string;
-  card: string;
-  cardForeground: string;
-  popover: string;
-  popoverForeground: string;
-  primary: string;
-  primaryForeground: string;
-  secondary: string;
-  secondaryForeground: string;
-  muted: string;
-  mutedForeground: string;
-  accent: string;
-  accentForeground: string;
-  destructive: string;
-  destructiveForeground: string;
-  border: string;
-  input: string;
-  ring: string;
-  chart1: string;
-  chart2: string;
-  chart3: string;
-  chart4: string;
-  chart5: string;
-  sidebar: string;
-  sidebarForeground: string;
-  sidebarPrimary: string;
-  sidebarPrimaryForeground: string;
-  sidebarAccent: string;
-  sidebarAccentForeground: string;
-  sidebarBorder: string;
-  sidebarRing: string;
-  shadow: string;
-  shadowLg: string;
-  radius: string;
-  backgroundDark: string;
-  foregroundDark: string;
-  cardDark: string;
-  cardForegroundDark: string;
-  popoverDark: string;
-  popoverForegroundDark: string;
-  primaryDark: string;
-  primaryForegroundDark: string;
-  secondaryDark: string;
-  secondaryForegroundDark: string;
-  mutedDark: string;
-  mutedForegroundDark: string;
-  accentDark: string;
-  accentForegroundDark: string;
-  destructiveDark: string;
-  destructiveForegroundDark: string;
-  borderDark: string;
-  inputDark: string;
-  ringDark: string;
-  chart1Dark: string;
-  chart2Dark: string;
-  chart3Dark: string;
-  chart4Dark: string;
-  chart5Dark: string;
-  sidebarDark: string;
-  sidebarForegroundDark: string;
-  sidebarPrimaryDark: string;
-  sidebarPrimaryForegroundDark: string;
-  sidebarAccentDark: string;
-  sidebarAccentForegroundDark: string;
-  sidebarBorderDark: string;
-  sidebarRingDark: string;
-  shadowDark: string;
-  shadowLgDark: string;
-  fontHeading: string;
-  fontBody: string;
+  background?: string;
+  foreground?: string;
+  card?: string;
+  cardForeground?: string;
+  popover?: string;
+  popoverForeground?: string;
+  primary?: string;
+  primaryForeground?: string;
+  secondary?: string;
+  secondaryForeground?: string;
+  muted?: string;
+  mutedForeground?: string;
+  accent?: string;
+  accentForeground?: string;
+  destructive?: string;
+  destructiveForeground?: string;
+  border?: string;
+  input?: string;
+  ring?: string;
+  chart1?: string;
+  chart2?: string;
+  chart3?: string;
+  chart4?: string;
+  chart5?: string;
+  sidebar?: string;
+  sidebarForeground?: string;
+  sidebarPrimary?: string;
+  sidebarPrimaryForeground?: string;
+  sidebarAccent?: string;
+  sidebarAccentForeground?: string;
+  sidebarBorder?: string;
+  sidebarRing?: string;
+  shadow?: string;
+  shadowLg?: string;
+  radius?: string;
+  backgroundDark?: string;
+  foregroundDark?: string;
+  cardDark?: string;
+  cardForegroundDark?: string;
+  popoverDark?: string;
+  popoverForegroundDark?: string;
+  primaryDark?: string;
+  primaryForegroundDark?: string;
+  secondaryDark?: string;
+  secondaryForegroundDark?: string;
+  mutedDark?: string;
+  mutedForegroundDark?: string;
+  accentDark?: string;
+  accentForegroundDark?: string;
+  destructiveDark?: string;
+  destructiveForegroundDark?: string;
+  borderDark?: string;
+  inputDark?: string;
+  ringDark?: string;
+  chart1Dark?: string;
+  chart2Dark?: string;
+  chart3Dark?: string;
+  chart4Dark?: string;
+  chart5Dark?: string;
+  sidebarDark?: string;
+  sidebarForegroundDark?: string;
+  sidebarPrimaryDark?: string;
+  sidebarPrimaryForegroundDark?: string;
+  sidebarAccentDark?: string;
+  sidebarAccentForegroundDark?: string;
+  sidebarBorderDark?: string;
+  sidebarRingDark?: string;
+  shadowDark?: string;
+  shadowLgDark?: string;
+  fontHeading?: string;
+  fontBody?: string;
 };
 
 export type TenantSocialLinks = {
@@ -85,6 +85,13 @@ export type TenantSocialLinks = {
   instagram?: string;
   linkedin?: string;
   youtube?: string;
+};
+
+export type TenantCertificateSettings = {
+  signatureImageKey?: string;
+  signatureImageUrl?: string | null;
+  signatureTitle?: string;
+  customMessage?: string;
 };
 
 export type Tenant = {
@@ -111,6 +118,7 @@ export type Tenant = {
   coursesPagePattern: BackgroundPattern | null;
   showHeaderName: boolean;
   customTheme: CustomTheme | null;
+  certificateSettings: TenantCertificateSettings | null;
   createdAt: string;
   updatedAt: string;
   usersCount?: number;
@@ -167,11 +175,18 @@ export type UpdateTenantRequest = {
   coursesPagePattern?: BackgroundPattern | null;
   showHeaderName?: boolean;
   customTheme?: CustomTheme | null;
+  certificateSettings?: TenantCertificateSettings | null;
 };
 
 export type UploadLogoResponse = {
   logoKey: string;
   logoUrl: string;
+  tenant: Tenant;
+};
+
+export type UploadSignatureResponse = {
+  signatureKey: string;
+  signatureUrl: string;
   tenant: Tenant;
 };
 
@@ -285,6 +300,21 @@ export const TenantsService = {
   async removeDomain(id: string) {
     const { data } = await http.delete<{ tenant: Tenant }>(
       `/tenants/${id}/domain`
+    );
+    return data;
+  },
+
+  async uploadSignature(id: string, signature: string) {
+    const { data } = await http.post<UploadSignatureResponse>(
+      `/tenants/${id}/certificate-signature`,
+      { signature }
+    );
+    return data;
+  },
+
+  async deleteSignature(id: string) {
+    const { data } = await http.delete<{ tenant: Tenant }>(
+      `/tenants/${id}/certificate-signature`
     );
     return data;
   },

@@ -44,6 +44,9 @@ type AIChatSidebarProps = {
   itemType: "video" | "document" | "quiz";
   currentTime: number;
   videoElement?: HTMLVideoElement | null;
+  documentUrl?: string | null;
+  documentFileName?: string | null;
+  documentMimeType?: string | null;
 };
 
 
@@ -73,6 +76,17 @@ function captureVideoFrame(videoElement: HTMLVideoElement): File | null {
   return new File([blob], `frame-${Date.now()}.jpg`, { type: "image/jpeg" });
 }
 
+async function fetchDocumentAsFile(
+  url: string,
+  fileName: string,
+  mimeType: string
+): Promise<File | null> {
+  const response = await fetch(url);
+  if (!response.ok) return null;
+  const blob = await response.blob();
+  return new File([blob], fileName, { type: mimeType || blob.type });
+}
+
 export function AIChatSidebar({
   courseId,
   courseTitle,
@@ -81,6 +95,9 @@ export function AIChatSidebar({
   itemType,
   currentTime,
   videoElement,
+  documentUrl,
+  documentFileName,
+  documentMimeType,
 }: AIChatSidebarProps) {
   const { t } = useTranslation();
   const { right, isMobile } = useDualSidebar();
@@ -122,10 +139,25 @@ export function AIChatSidebar({
       if (!text.trim() && !files?.length) return;
 
       let contextFiles: File[] | undefined;
+
       if (itemType === "video" && videoElement) {
         const frame = captureVideoFrame(videoElement);
         if (frame) {
           contextFiles = [frame];
+        }
+      } else if (
+        itemType === "document" &&
+        documentUrl &&
+        documentFileName &&
+        documentMimeType
+      ) {
+        const docFile = await fetchDocumentAsFile(
+          documentUrl,
+          documentFileName,
+          documentMimeType
+        );
+        if (docFile) {
+          contextFiles = [docFile];
         }
       }
 
@@ -135,7 +167,14 @@ export function AIChatSidebar({
         contextFiles
       );
     },
-    [sendMessage, itemType, videoElement]
+    [
+      sendMessage,
+      itemType,
+      videoElement,
+      documentUrl,
+      documentFileName,
+      documentMimeType,
+    ]
   );
 
   const handleOpenFileDialog = useCallback(() => {

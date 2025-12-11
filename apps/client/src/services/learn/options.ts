@@ -10,6 +10,22 @@ export const courseStructureOptions = (courseSlug: string) =>
     staleTime: 5 * 60 * 1000,
   });
 
+export const courseProgressOptions = (courseSlug: string) =>
+  queryOptions({
+    queryKey: QUERY_KEYS.COURSE_PROGRESS(courseSlug),
+    queryFn: () => LearnService.getCourseProgress(courseSlug),
+    enabled: !!courseSlug,
+    staleTime: 30 * 1000,
+  });
+
+export const moduleItemsOptions = (moduleId: string) =>
+  queryOptions({
+    queryKey: QUERY_KEYS.MODULE_ITEMS(moduleId),
+    queryFn: () => LearnService.getModuleItems(moduleId),
+    enabled: !!moduleId,
+    staleTime: 30 * 1000,
+  });
+
 export const itemContentOptions = (moduleItemId: string) =>
   queryOptions({
     queryKey: QUERY_KEYS.ITEM_CONTENT(moduleItemId),

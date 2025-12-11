@@ -94,6 +94,7 @@ const schema = z.object({
   features: z.array(z.string()).optional(),
   requirements: z.array(z.string()).optional(),
   objectives: z.array(z.string()).optional(),
+  includeCertificate: z.boolean().optional(),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -265,6 +266,7 @@ export function CourseEditor({
       features: [],
       requirements: [],
       objectives: [],
+      includeCertificate: false,
     },
   });
 
@@ -292,6 +294,7 @@ export function CourseEditor({
           features: course.features || [],
           requirements: course.requirements || [],
           objectives: course.objectives || [],
+          includeCertificate: course.includeCertificate || false,
         });
       } else if (aiPreview) {
         form.reset({
@@ -312,6 +315,7 @@ export function CourseEditor({
           features: aiPreview.features,
           requirements: aiPreview.requirements,
           objectives: aiPreview.objectives,
+          includeCertificate: false,
         });
         setCurrentStep(3);
         setKanbanData([]);
@@ -420,6 +424,7 @@ export function CourseEditor({
       features: data.features?.length ? data.features : undefined,
       requirements: data.requirements?.length ? data.requirements : undefined,
       objectives: data.objectives?.length ? data.objectives : undefined,
+      includeCertificate: data.includeCertificate,
     };
 
     const uploadThumbnailIfNeeded = async (courseId: string) => {
@@ -753,6 +758,22 @@ export function CourseEditor({
                       checked={form.watch("status") === "published"}
                       onCheckedChange={(checked) =>
                         form.setValue("status", checked ? "published" : "draft")
+                      }
+                      disabled={isPending}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-0.5">
+                      <Label>{t("courses.form.includeCertificate")}</Label>
+                      <p className="text-xs text-muted-foreground">
+                        {t("courses.form.includeCertificateDescription")}
+                      </p>
+                    </div>
+                    <Switch
+                      checked={form.watch("includeCertificate") || false}
+                      onCheckedChange={(checked) =>
+                        form.setValue("includeCertificate", checked)
                       }
                       disabled={isPending}
                     />

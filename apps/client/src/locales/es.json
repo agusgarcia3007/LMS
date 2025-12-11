@@ -562,7 +562,8 @@
           "social": "Redes sociales",
           "seo": "SEO",
           "texts": "Textos",
-          "domain": "Dominio"
+          "domain": "Dominio",
+          "certificates": "Certificados"
         },
         "general": {
           "title": "Configuracion general",
@@ -681,6 +682,20 @@
           "remove": "Eliminar",
           "saved": "Dominio configurado",
           "removed": "Dominio eliminado"
+        },
+        "certificates": {
+          "title": "Configuracion de certificados",
+          "description": "Personaliza los certificados de tus cursos",
+          "signatureImage": "Imagen de firma",
+          "signatureImageHelp": "Imagen de la firma para mostrar en los certificados (max 1MB)",
+          "signatureTitle": "Titulo del firmante",
+          "signatureTitlePlaceholder": "Ej: Director Academico",
+          "signatureTitleHelp": "Titulo mostrado debajo de la firma",
+          "customMessage": "Mensaje personalizado",
+          "customMessagePlaceholder": "Felicitaciones por completar este curso!",
+          "customMessageHelp": "Mensaje opcional para mostrar en el certificado",
+          "signatureUploaded": "Firma subida correctamente",
+          "signatureDeleted": "Firma eliminada correctamente"
         }
       },
       "customization": {
@@ -702,7 +717,8 @@
           "showHeaderName": "Mostrar nombre en el header",
           "showHeaderNameHelp": "Muestra el nombre del sitio junto al logo en el header",
           "generateWithAI": "Generar con IA",
-          "customThemeActive": "Tema personalizado activo",
+          "customThemeActive": "Tema IA",
+          "restoreCustomTheme": "Restaurar IA",
           "aiModal": {
             "title": "Generar Tema con IA",
             "description": "Crea una paleta de colores unica para tu campus usando IA",
@@ -714,13 +730,24 @@
             "generate": "Generar Tema",
             "preview": "Vista Previa",
             "apply": "Aplicar Tema",
-            "previewHeader": "Encabezado",
-            "previewBadge": "Etiqueta",
-            "previewCardText": "Asi se vera el contenido de las tarjetas con tu tema.",
-            "previewButton": "Boton",
-            "previewOutline": "Contorno",
-            "previewFocus": "Ejemplo de anillo de foco",
-            "previewText": "Color de acento primario",
+            "lightMode": "Claro",
+            "darkMode": "Oscuro",
+            "previewEmpty": "Genera un tema para ver la vista previa",
+            "previewLanding": "Tu Academia",
+            "previewBadge": "Nuevo",
+            "previewHero": "Aprende con los mejores cursos",
+            "previewMuted": "Explora nuestro catalogo de cursos y empieza a aprender hoy",
+            "previewInput": "Buscar cursos...",
+            "previewCard1": "Destacado",
+            "previewCard2": "Popular",
+            "previewCard3": "Nuevo",
+            "previewButton": "Primario",
+            "previewOutline": "Secundario",
+            "previewDestructive": "Eliminar",
+            "previewGhost": "Fantasma",
+            "previewCharts": "Colores de graficos",
+            "previewSidebar": "Vista previa del sidebar",
+            "previewSidebarSub": "Area de navegacion",
             "generating": "Generando tema..."
           },
           "typography": "Tipografia",
@@ -731,6 +758,7 @@
           "bodyPreview": "Vista previa del texto: El veloz murcielago hindu comia feliz cardillo y kiwi.",
           "selectFont": "Selecciona una fuente...",
           "fontCategories": {
+            "current": "Actual",
             "sans": "Sans Serif",
             "serif": "Serif",
             "display": "Display"
@@ -1161,7 +1189,9 @@
       "features": "Caracteristicas incluidas",
       "featuresPlaceholder": "Agregar caracteristica...",
       "publish": "Publicar",
-      "publishDescription": "El curso estara disponible para los estudiantes"
+      "publishDescription": "El curso estara disponible para los estudiantes",
+      "includeCertificate": "Incluir certificado",
+      "includeCertificateDescription": "Los estudiantes recibiran un certificado al completar el curso"
     },
     "editor": {
       "tabs": {
@@ -1502,6 +1532,25 @@
     "empty": {
       "title": "No hay documentos",
       "description": "Sube tu primer documento para comenzar a crear contenido"
+    }
+  },
+  "certificates": {
+    "title": "Certificado de Finalizacion",
+    "downloadCertificate": "Descargar",
+    "emailCertificate": "Enviar por email",
+    "copyLink": "Copiar enlace",
+    "linkCopied": "Enlace copiado",
+    "emailSent": "Certificado enviado a tu email",
+    "verification": {
+      "title": "Verificacion de Certificado",
+      "valid": "Este certificado es valido",
+      "invalid": "Certificado no encontrado",
+      "invalidDescription": "Este codigo de verificacion de certificado es invalido o no existe.",
+      "issuedTo": "Emitido a",
+      "course": "Curso",
+      "issuedOn": "Emitido el",
+      "verificationCode": "Codigo de verificacion",
+      "issuedBy": "Emitido por"
     }
   },
   "quizzes": {

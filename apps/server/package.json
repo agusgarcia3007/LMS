@@ -21,6 +21,7 @@
     "@langfuse/client": "^4.4.9",
     "@langfuse/otel": "^4.4.9",
     "@langfuse/tracing": "^4.4.9",
+    "@napi-rs/canvas": "^0.1.84",
     "@opentelemetry/sdk-node": "^0.208.0",
     "ai": "^5.0.108",
     "color": "^5.0.3",
@@ -32,12 +33,14 @@
     "mammoth": "^1.11.0",
     "pdf-parse": "^2.4.5",
     "postgres": "^3.4.7",
+    "qrcode": "^1.5.4",
     "resend": "^6.5.2",
     "zod": "^4.1.13"
   },
   "devDependencies": {
     "@types/color": "^4.2.0",
     "@types/pdf-parse": "^1.1.5",
+    "@types/qrcode": "^1.5.6",
     "bun-types": "latest",
     "drizzle-kit": "^0.31.7",
     "typescript": "^5.9.3"

@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Settings, Mail, Share2, Search, Globe } from "lucide-react";
+import { Settings, Mail, Share2, Search, Globe, Award } from "lucide-react";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -19,6 +19,8 @@ import {
   useConfigureDomain,
   useVerifyDomain,
   useRemoveDomain,
+  useUploadSignature,
+  useDeleteSignature,
 } from "@/services/tenants";
 import {
   configurationSchema,
@@ -28,9 +30,10 @@ import {
   SocialTab,
   SeoTab,
   DomainTab,
+  CertificateTab,
 } from "@/components/tenant-configuration";
 
-const TABS = ["general", "contact", "social", "seo", "domain"] as const;
+const TABS = ["general", "contact", "social", "seo", "domain", "certificates"] as const;
 type Tab = (typeof TABS)[number];
 
 export const Route = createFileRoute("/$tenantSlug/site/configuration")({
@@ -56,8 +59,11 @@ function ConfigurationPage() {
 
   const [customDomain, setCustomDomain] = useState("");
   const [cnameTarget, setCnameTarget] = useState("");
+  const [signatureUrl, setSignatureUrl] = useState<string | null>(null);
 
   const configureDomainMutation = useConfigureDomain(tenantSlug);
+  const uploadSignatureMutation = useUploadSignature(tenantSlug);
+  const deleteSignatureMutation = useDeleteSignature(tenantSlug);
   const removeDomainMutation = useRemoveDomain(tenantSlug);
   const domainVerification = useVerifyDomain(
     tenant?.id ?? "",
@@ -81,6 +87,8 @@ function ConfigurationPage() {
       seoTitle: "",
       seoDescription: "",
       seoKeywords: "",
+      signatureTitle: "",
+      customMessage: "",
     },
   });
 
@@ -105,8 +113,11 @@ function ConfigurationPage() {
         seoTitle: tenant.seoTitle ?? "",
         seoDescription: tenant.seoDescription ?? "",
         seoKeywords: tenant.seoKeywords ?? "",
+        signatureTitle: tenant.certificateSettings?.signatureTitle ?? "",
+        customMessage: tenant.certificateSettings?.customMessage ?? "",
       });
       setCustomDomain(tenant.customDomain ?? "");
+      setSignatureUrl(tenant.certificateSettings?.signatureImageUrl ?? null);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tenant?.id]);
@@ -129,6 +140,15 @@ function ConfigurationPage() {
           }
         : null;
 
+    const certificateSettings =
+      values.signatureTitle || values.customMessage || tenant.certificateSettings?.signatureImageKey
+        ? {
+            signatureImageKey: tenant.certificateSettings?.signatureImageKey,
+            signatureTitle: values.signatureTitle || undefined,
+            customMessage: values.customMessage || undefined,
+          }
+        : null;
+
     const slugChanged = values.slug !== tenant.slug;
 
     updateMutation.mutate(
@@ -144,6 +164,7 @@ function ConfigurationPage() {
         seoTitle: values.seoTitle || null,
         seoDescription: values.seoDescription || null,
         seoKeywords: values.seoKeywords || null,
+        certificateSettings,
       },
       {
         onSuccess: () => {
@@ -178,6 +199,22 @@ function ConfigurationPage() {
         setCustomDomain("");
       },
     });
+  };
+
+  const handleSignatureUpload = async (base64: string) => {
+    if (!tenant) return "";
+    const result = await uploadSignatureMutation.mutateAsync({
+      id: tenant.id,
+      signature: base64,
+    });
+    setSignatureUrl(result.signatureUrl);
+    return result.signatureUrl;
+  };
+
+  const handleSignatureDelete = async () => {
+    if (!tenant) return;
+    await deleteSignatureMutation.mutateAsync(tenant.id);
+    setSignatureUrl(null);
   };
 
   if (isLoading) {
@@ -225,6 +262,10 @@ function ConfigurationPage() {
               <Globe className="size-4" />
               {t("dashboard.site.configuration.tabs.domain")}
             </TabsTrigger>
+            <TabsTrigger value="certificates">
+              <Award className="size-4" />
+              {t("dashboard.site.configuration.tabs.certificates")}
+            </TabsTrigger>
           </TabsList>
 
           <GeneralTab
@@ -250,6 +291,16 @@ function ConfigurationPage() {
             onRemoveDomain={handleRemoveDomain}
             isSavingDomain={configureDomainMutation.isPending}
             isRemovingDomain={removeDomainMutation.isPending}
+          />
+
+          <CertificateTab
+            signatureUrl={signatureUrl}
+            onSignatureChange={setSignatureUrl}
+            onSignatureUpload={handleSignatureUpload}
+            onSignatureDelete={handleSignatureDelete}
+            isUploadingSignature={uploadSignatureMutation.isPending}
+            isDeletingSignature={deleteSignatureMutation.isPending}
+            isSaving={updateMutation.isPending}
           />
         </Tabs>
       </form>

@@ -1,13 +1,14 @@
-import { useCallback, useRef, useState, useEffect } from "react";
-import { toast } from "sonner";
-import { getTenantFromHost, getResolvedSlug } from "@/lib/tenant";
-import { ensureValidToken } from "@/lib/http";
 import { i18n } from "@/i18n";
+import { ensureValidToken } from "@/lib/http";
+import { getResolvedSlug, getTenantFromHost } from "@/lib/tenant";
+import { useCallback, useRef, useState } from "react";
+import { toast } from "sonner";
 
 export type ChatAttachment = {
-  type: "image";
+  type: "image" | "file";
   data: string;
   mimeType: string;
+  fileName?: string;
 };
 
 export type ChatMessage = {
@@ -82,9 +83,12 @@ export function useLearnChat() {
       const processedAttachments: ChatAttachment[] | undefined = files?.length
         ? await Promise.all(
             files.map(async (file) => ({
-              type: "image" as const,
+              type: file.type.startsWith("image/")
+                ? ("image" as const)
+                : ("file" as const),
               data: await fileToBase64(file),
               mimeType: file.type,
+              fileName: file.name,
             }))
           )
         : undefined;
@@ -93,9 +97,12 @@ export function useLearnChat() {
         contextFiles?.length
           ? await Promise.all(
               contextFiles.map(async (file) => ({
-                type: "image" as const,
+                type: file.type.startsWith("image/")
+                  ? ("image" as const)
+                  : ("file" as const),
                 data: await fileToBase64(file),
                 mimeType: file.type,
+                fileName: file.name,
               }))
             )
           : undefined;
@@ -210,9 +217,7 @@ export function useLearnChat() {
         const updateCurrentMessage = (content: string) => {
           if (!currentMessageId) return;
           setMessages((prev) =>
-            prev.map((m) =>
-              m.id === currentMessageId ? { ...m, content } : m
-            )
+            prev.map((m) => (m.id === currentMessageId ? { ...m, content } : m))
           );
         };
 

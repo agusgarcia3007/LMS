@@ -4,6 +4,8 @@ import { AppError, ErrorCode } from "@/lib/errors";
 import { withHandler } from "@/lib/handler";
 import { db } from "@/db";
 import { getPresignedUrl } from "@/lib/upload";
+import { generateAndStoreCertificate } from "@/lib/certificate";
+import { logger } from "@/lib/logger";
 import {
   coursesTable,
   courseModulesTable,
@@ -32,29 +34,66 @@ type ModuleItemWithProgress = {
   videoProgress?: number;
 };
 
-type ModuleWithItems = {
+type ModuleLite = {
   id: string;
   title: string;
   order: number;
-  items: ModuleItemWithProgress[];
+  itemsCount: number;
 };
 
-function findResumeItemId(modules: ModuleWithItems[]): string | null {
-  for (const module of modules) {
-    for (const item of module.items) {
-      if (item.status === "in_progress" && item.contentType === "video") {
-        return item.id;
-      }
-    }
-  }
-  for (const module of modules) {
-    for (const item of module.items) {
-      if (item.status === "not_started") {
-        return item.id;
-      }
-    }
-  }
-  return modules[0]?.items[0]?.id ?? null;
+async function findResumeItemId(
+  enrollmentId: string,
+  moduleIds: string[]
+): Promise<string | null> {
+  if (moduleIds.length === 0) return null;
+
+  const [inProgressVideo] = await db
+    .select({ id: moduleItemsTable.id })
+    .from(moduleItemsTable)
+    .innerJoin(
+      itemProgressTable,
+      eq(itemProgressTable.moduleItemId, moduleItemsTable.id)
+    )
+    .where(
+      and(
+        inArray(moduleItemsTable.moduleId, moduleIds),
+        eq(itemProgressTable.enrollmentId, enrollmentId),
+        eq(itemProgressTable.status, "in_progress"),
+        eq(moduleItemsTable.contentType, "video")
+      )
+    )
+    .orderBy(asc(moduleItemsTable.order))
+    .limit(1);
+
+  if (inProgressVideo) return inProgressVideo.id;
+
+  const [notStarted] = await db
+    .select({ id: moduleItemsTable.id })
+    .from(moduleItemsTable)
+    .innerJoin(
+      itemProgressTable,
+      eq(itemProgressTable.moduleItemId, moduleItemsTable.id)
+    )
+    .where(
+      and(
+        inArray(moduleItemsTable.moduleId, moduleIds),
+        eq(itemProgressTable.enrollmentId, enrollmentId),
+        eq(itemProgressTable.status, "not_started")
+      )
+    )
+    .orderBy(asc(moduleItemsTable.order))
+    .limit(1);
+
+  if (notStarted) return notStarted.id;
+
+  const [firstItem] = await db
+    .select({ id: moduleItemsTable.id })
+    .from(moduleItemsTable)
+    .where(inArray(moduleItemsTable.moduleId, moduleIds))
+    .orderBy(asc(moduleItemsTable.order))
+    .limit(1);
+
+  return firstItem?.id ?? null;
 }
 
 async function recalculateEnrollmentProgress(enrollmentId: string): Promise<number> {
@@ -84,10 +123,13 @@ async function getEnrollmentForItem(
       contentId: moduleItemsTable.contentId,
       enrollmentId: enrollmentsTable.id,
       enrollmentStatus: enrollmentsTable.status,
+      courseId: courseModulesTable.courseId,
+      courseIncludeCertificate: coursesTable.includeCertificate,
     })
     .from(moduleItemsTable)
     .innerJoin(modulesTable, eq(moduleItemsTable.moduleId, modulesTable.id))
     .innerJoin(courseModulesTable, eq(modulesTable.id, courseModulesTable.moduleId))
+    .innerJoin(coursesTable, eq(coursesTable.id, courseModulesTable.courseId))
     .innerJoin(
       enrollmentsTable,
       and(
@@ -158,52 +200,247 @@ export const learnRoutes = new Elysia({ name: "learn" })
           throw new AppError(ErrorCode.FORBIDDEN, "Not enrolled in this course", 403);
         }
 
-        const courseModules = await db
+        const courseModulesRaw = await db
           .select({
             id: modulesTable.id,
             title: modulesTable.title,
             order: courseModulesTable.order,
+            itemsCount: sql<number>`cast(count(${moduleItemsTable.id}) as int)`,
           })
           .from(courseModulesTable)
           .innerJoin(modulesTable, eq(courseModulesTable.moduleId, modulesTable.id))
+          .leftJoin(moduleItemsTable, eq(moduleItemsTable.moduleId, modulesTable.id))
           .where(eq(courseModulesTable.courseId, courseResult.id))
+          .groupBy(modulesTable.id, courseModulesTable.order)
           .orderBy(asc(courseModulesTable.order));
 
-        const moduleIds = courseModules.map((m) => m.id);
+        const modules: ModuleLite[] = courseModulesRaw.map((m) => ({
+          id: m.id,
+          title: m.title,
+          order: m.order,
+          itemsCount: m.itemsCount,
+        }));
 
-        const allModuleItems =
-          moduleIds.length > 0
-            ? await db
-                .select({
-                  id: moduleItemsTable.id,
-                  moduleId: moduleItemsTable.moduleId,
-                  contentType: moduleItemsTable.contentType,
-                  contentId: moduleItemsTable.contentId,
-                  order: moduleItemsTable.order,
-                })
-                .from(moduleItemsTable)
-                .where(inArray(moduleItemsTable.moduleId, moduleIds))
-                .orderBy(asc(moduleItemsTable.order))
-            : [];
+        const moduleIds = modules.map((m) => m.id);
+        const resumeItemId = await findResumeItemId(enrollment.id, moduleIds);
 
-        const moduleItemIds = allModuleItems.map((mi) => mi.id);
+        return {
+          course: {
+            id: courseResult.id,
+            title: courseResult.title,
+            slug: courseResult.slug,
+            thumbnail: courseResult.thumbnail
+              ? getPresignedUrl(courseResult.thumbnail)
+              : null,
+          },
+          enrollment: {
+            id: enrollment.id,
+            progress: enrollment.progress,
+            status: enrollment.status,
+          },
+          modules,
+          resumeItemId,
+        };
+      }),
+    {
+      params: t.Object({
+        courseSlug: t.String(),
+      }),
+      detail: {
+        tags: ["Learn"],
+        summary: "Get course structure with progress",
+      },
+    }
+  )
+  .get(
+    "/courses/:courseSlug/progress",
+    (ctx) =>
+      withHandler(ctx, async () => {
+        if (!ctx.user) {
+          throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
+        }
+        if (!ctx.user.tenantId) {
+          throw new AppError(ErrorCode.TENANT_NOT_FOUND, "User has no tenant", 404);
+        }
 
-        const existingProgress =
-          moduleItemIds.length > 0
-            ? await db
-                .select({
-                  moduleItemId: itemProgressTable.moduleItemId,
-                  status: itemProgressTable.status,
-                  videoProgress: itemProgressTable.videoProgress,
-                })
-                .from(itemProgressTable)
-                .where(
-                  and(
-                    eq(itemProgressTable.enrollmentId, enrollment.id),
-                    inArray(itemProgressTable.moduleItemId, moduleItemIds)
-                  )
-                )
-            : [];
+        const [courseResult] = await db
+          .select({ id: coursesTable.id })
+          .from(coursesTable)
+          .where(
+            and(
+              eq(coursesTable.tenantId, ctx.user.tenantId),
+              eq(coursesTable.slug, ctx.params.courseSlug),
+              eq(coursesTable.status, "published")
+            )
+          )
+          .limit(1);
+
+        if (!courseResult) {
+          throw new AppError(ErrorCode.NOT_FOUND, "Course not found", 404);
+        }
+
+        const [enrollment] = await db
+          .select({ id: enrollmentsTable.id })
+          .from(enrollmentsTable)
+          .where(
+            and(
+              eq(enrollmentsTable.userId, ctx.user.id),
+              eq(enrollmentsTable.courseId, courseResult.id)
+            )
+          )
+          .limit(1);
+
+        if (!enrollment) {
+          throw new AppError(ErrorCode.FORBIDDEN, "Not enrolled in this course", 403);
+        }
+
+        const moduleIds = await db
+          .select({ id: modulesTable.id })
+          .from(courseModulesTable)
+          .innerJoin(modulesTable, eq(courseModulesTable.moduleId, modulesTable.id))
+          .where(eq(courseModulesTable.courseId, courseResult.id));
+
+        if (moduleIds.length === 0) {
+          return {
+            totalItems: 0,
+            completedItems: 0,
+            moduleProgress: [],
+          };
+        }
+
+        const ids = moduleIds.map((m) => m.id);
+
+        const progressData = await db
+          .select({
+            moduleId: moduleItemsTable.moduleId,
+            total: sql<number>`cast(count(*) as int)`,
+            completed: sql<number>`cast(count(*) filter (where ${itemProgressTable.status} = 'completed') as int)`,
+          })
+          .from(moduleItemsTable)
+          .leftJoin(
+            itemProgressTable,
+            and(
+              eq(itemProgressTable.moduleItemId, moduleItemsTable.id),
+              eq(itemProgressTable.enrollmentId, enrollment.id)
+            )
+          )
+          .where(inArray(moduleItemsTable.moduleId, ids))
+          .groupBy(moduleItemsTable.moduleId);
+
+        const moduleProgress = progressData.map((p) => ({
+          moduleId: p.moduleId,
+          completed: p.completed,
+          total: p.total,
+        }));
+
+        const totalItems = moduleProgress.reduce((sum, p) => sum + p.total, 0);
+        const completedItems = moduleProgress.reduce((sum, p) => sum + p.completed, 0);
+
+        const allItemIds = await db
+          .select({
+            id: moduleItemsTable.id,
+            moduleId: moduleItemsTable.moduleId,
+          })
+          .from(moduleItemsTable)
+          .innerJoin(
+            courseModulesTable,
+            eq(moduleItemsTable.moduleId, courseModulesTable.moduleId)
+          )
+          .where(eq(courseModulesTable.courseId, courseResult.id))
+          .orderBy(asc(courseModulesTable.order), asc(moduleItemsTable.order));
+
+        return {
+          totalItems,
+          completedItems,
+          moduleProgress,
+          itemIds: allItemIds.map((i) => ({ id: i.id, moduleId: i.moduleId })),
+        };
+      }),
+    {
+      params: t.Object({
+        courseSlug: t.String(),
+      }),
+      detail: {
+        tags: ["Learn"],
+        summary: "Get aggregated progress per module",
+      },
+    }
+  )
+  .get(
+    "/modules/:moduleId/items",
+    (ctx) =>
+      withHandler(ctx, async () => {
+        if (!ctx.user) {
+          throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
+        }
+        if (!ctx.user.tenantId) {
+          throw new AppError(ErrorCode.TENANT_NOT_FOUND, "User has no tenant", 404);
+        }
+
+        const [moduleCheck] = await db
+          .select({
+            moduleId: modulesTable.id,
+            courseId: courseModulesTable.courseId,
+          })
+          .from(modulesTable)
+          .innerJoin(courseModulesTable, eq(courseModulesTable.moduleId, modulesTable.id))
+          .where(
+            and(
+              eq(modulesTable.id, ctx.params.moduleId),
+              eq(modulesTable.tenantId, ctx.user.tenantId)
+            )
+          )
+          .limit(1);
+
+        if (!moduleCheck) {
+          throw new AppError(ErrorCode.NOT_FOUND, "Module not found", 404);
+        }
+
+        const [enrollment] = await db
+          .select({ id: enrollmentsTable.id })
+          .from(enrollmentsTable)
+          .where(
+            and(
+              eq(enrollmentsTable.userId, ctx.user.id),
+              eq(enrollmentsTable.courseId, moduleCheck.courseId)
+            )
+          )
+          .limit(1);
+
+        if (!enrollment) {
+          throw new AppError(ErrorCode.FORBIDDEN, "Not enrolled in this course", 403);
+        }
+
+        const moduleItems = await db
+          .select({
+            id: moduleItemsTable.id,
+            contentType: moduleItemsTable.contentType,
+            contentId: moduleItemsTable.contentId,
+            order: moduleItemsTable.order,
+          })
+          .from(moduleItemsTable)
+          .where(eq(moduleItemsTable.moduleId, ctx.params.moduleId))
+          .orderBy(asc(moduleItemsTable.order));
+
+        if (moduleItems.length === 0) {
+          return { items: [] };
+        }
+
+        const moduleItemIds = moduleItems.map((mi) => mi.id);
+
+        const existingProgress = await db
+          .select({
+            moduleItemId: itemProgressTable.moduleItemId,
+            status: itemProgressTable.status,
+            videoProgress: itemProgressTable.videoProgress,
+          })
+          .from(itemProgressTable)
+          .where(
+            and(
+              eq(itemProgressTable.enrollmentId, enrollment.id),
+              inArray(itemProgressTable.moduleItemId, moduleItemIds)
+            )
+          );
 
         const progressMap = new Map(
           existingProgress.map((p) => [
@@ -226,13 +463,13 @@ export const learnRoutes = new Elysia({ name: "learn" })
           }
         }
 
-        const videoIds = allModuleItems
+        const videoIds = moduleItems
           .filter((item) => item.contentType === "video")
           .map((item) => item.contentId);
-        const documentIds = allModuleItems
+        const documentIds = moduleItems
           .filter((item) => item.contentType === "document")
           .map((item) => item.contentId);
-        const quizIds = allModuleItems
+        const quizIds = moduleItems
           .filter((item) => item.contentType === "quiz")
           .map((item) => item.contentId);
 
@@ -272,58 +509,29 @@ export const learnRoutes = new Elysia({ name: "learn" })
         for (const d of documents) contentMap.set(d.id, { title: d.title });
         for (const q of quizzes) contentMap.set(q.id, { title: q.title });
 
-        const modules: ModuleWithItems[] = courseModules.map((module) => {
-          const items = allModuleItems
-            .filter((item) => item.moduleId === module.id)
-            .map((item) => {
-              const content = contentMap.get(item.contentId);
-              const progress = progressMap.get(item.id);
-              return {
-                id: item.id,
-                title: content?.title ?? "Untitled",
-                contentType: item.contentType as "video" | "document" | "quiz",
-                order: item.order,
-                duration: content?.duration,
-                status: (progress?.status ?? "not_started") as ItemProgressStatus,
-                videoProgress: progress?.videoProgress ?? undefined,
-              };
-            });
-
+        const items: ModuleItemWithProgress[] = moduleItems.map((item) => {
+          const content = contentMap.get(item.contentId);
+          const progress = progressMap.get(item.id);
           return {
-            id: module.id,
-            title: module.title,
-            order: module.order,
-            items,
+            id: item.id,
+            title: content?.title ?? "Untitled",
+            contentType: item.contentType as "video" | "document" | "quiz",
+            order: item.order,
+            duration: content?.duration,
+            status: (progress?.status ?? "not_started") as ItemProgressStatus,
+            videoProgress: progress?.videoProgress ?? undefined,
           };
         });
 
-        const resumeItemId = findResumeItemId(modules);
-
-        return {
-          course: {
-            id: courseResult.id,
-            title: courseResult.title,
-            slug: courseResult.slug,
-            thumbnail: courseResult.thumbnail
-              ? getPresignedUrl(courseResult.thumbnail)
-              : null,
-          },
-          enrollment: {
-            id: enrollment.id,
-            progress: enrollment.progress,
-            status: enrollment.status,
-          },
-          modules,
-          resumeItemId,
-        };
+        return { items };
       }),
     {
       params: t.Object({
-        courseSlug: t.String(),
+        moduleId: t.String({ format: "uuid" }),
       }),
       detail: {
         tags: ["Learn"],
-        summary: "Get course structure with progress",
+        summary: "Get module items with progress (lazy load)",
       },
     }
   )
@@ -584,6 +792,16 @@ export const learnRoutes = new Elysia({ name: "learn" })
           .update(enrollmentsTable)
           .set(enrollmentUpdate)
           .where(eq(enrollmentsTable.id, item.enrollmentId));
+
+        if (newProgress === 100 && item.courseIncludeCertificate) {
+          generateAndStoreCertificate({
+            enrollmentId: item.enrollmentId,
+            userId: ctx.user.id,
+            tenantId: ctx.user.tenantId,
+          }).catch((err) =>
+            logger.error("Certificate generation failed", { error: err })
+          );
+        }
 
         return {
           success: true,

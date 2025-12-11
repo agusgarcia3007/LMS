@@ -21,6 +21,7 @@ import { Route as MyCoursesIndexRouteImport } from './routes/my-courses/index'
 import { Route as CoursesIndexRouteImport } from './routes/courses/index'
 import { Route as BackofficeIndexRouteImport } from './routes/backoffice/index'
 import { Route as TenantSlugIndexRouteImport } from './routes/$tenantSlug/index'
+import { Route as VerifyCodeRouteImport } from './routes/verify.$code'
 import { Route as MyCoursesCourseSlugRouteImport } from './routes/my-courses/$courseSlug'
 import { Route as CoursesCourseSlugRouteImport } from './routes/courses/$courseSlug'
 import { Route as BackofficeUsersRouteImport } from './routes/backoffice/users'
@@ -100,6 +101,11 @@ const TenantSlugIndexRoute = TenantSlugIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => TenantSlugRouteRoute,
+} as any)
+const VerifyCodeRoute = VerifyCodeRouteImport.update({
+  id: '/verify/$code',
+  path: '/verify/$code',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const MyCoursesCourseSlugRoute = MyCoursesCourseSlugRouteImport.update({
   id: '/$courseSlug',
@@ -229,6 +235,7 @@ export interface FileRoutesByFullPath {
   '/backoffice/users': typeof BackofficeUsersRoute
   '/courses/$courseSlug': typeof CoursesCourseSlugRoute
   '/my-courses/$courseSlug': typeof MyCoursesCourseSlugRoute
+  '/verify/$code': typeof VerifyCodeRoute
   '/$tenantSlug/': typeof TenantSlugIndexRoute
   '/backoffice/': typeof BackofficeIndexRoute
   '/courses/': typeof CoursesIndexRoute
@@ -258,6 +265,7 @@ export interface FileRoutesByTo {
   '/backoffice/users': typeof BackofficeUsersRoute
   '/courses/$courseSlug': typeof CoursesCourseSlugRoute
   '/my-courses/$courseSlug': typeof MyCoursesCourseSlugRoute
+  '/verify/$code': typeof VerifyCodeRoute
   '/$tenantSlug': typeof TenantSlugIndexRoute
   '/backoffice': typeof BackofficeIndexRoute
   '/courses': typeof CoursesIndexRoute
@@ -292,6 +300,7 @@ export interface FileRoutesById {
   '/backoffice/users': typeof BackofficeUsersRoute
   '/courses/$courseSlug': typeof CoursesCourseSlugRoute
   '/my-courses/$courseSlug': typeof MyCoursesCourseSlugRoute
+  '/verify/$code': typeof VerifyCodeRoute
   '/$tenantSlug/': typeof TenantSlugIndexRoute
   '/backoffice/': typeof BackofficeIndexRoute
   '/courses/': typeof CoursesIndexRoute
@@ -327,6 +336,7 @@ export interface FileRouteTypes {
     | '/backoffice/users'
     | '/courses/$courseSlug'
     | '/my-courses/$courseSlug'
+    | '/verify/$code'
     | '/$tenantSlug/'
     | '/backoffice/'
     | '/courses/'
@@ -356,6 +366,7 @@ export interface FileRouteTypes {
     | '/backoffice/users'
     | '/courses/$courseSlug'
     | '/my-courses/$courseSlug'
+    | '/verify/$code'
     | '/$tenantSlug'
     | '/backoffice'
     | '/courses'
@@ -389,6 +400,7 @@ export interface FileRouteTypes {
     | '/backoffice/users'
     | '/courses/$courseSlug'
     | '/my-courses/$courseSlug'
+    | '/verify/$code'
     | '/$tenantSlug/'
     | '/backoffice/'
     | '/courses/'
@@ -416,6 +428,7 @@ export interface RootRouteChildren {
   CoursesRoute: typeof CoursesRouteWithChildren
   CreateTenantRoute: typeof CreateTenantRoute
   ProfileRoute: typeof ProfileRoute
+  VerifyCodeRoute: typeof VerifyCodeRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -503,6 +516,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/$tenantSlug/'
       preLoaderRoute: typeof TenantSlugIndexRouteImport
       parentRoute: typeof TenantSlugRouteRoute
+    }
+    '/verify/$code': {
+      id: '/verify/$code'
+      path: '/verify/$code'
+      fullPath: '/verify/$code'
+      preLoaderRoute: typeof VerifyCodeRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/my-courses/$courseSlug': {
       id: '/my-courses/$courseSlug'
@@ -765,6 +785,7 @@ const rootRouteChildren: RootRouteChildren = {
   CoursesRoute: CoursesRouteWithChildren,
   CreateTenantRoute: CreateTenantRoute,
   ProfileRoute: ProfileRoute,
+  VerifyCodeRoute: VerifyCodeRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

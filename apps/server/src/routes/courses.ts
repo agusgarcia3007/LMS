@@ -339,6 +339,7 @@ export const coursesRoutes = new Elysia()
             features: ctx.body.features,
             requirements: ctx.body.requirements,
             objectives: ctx.body.objectives,
+            includeCertificate: ctx.body.includeCertificate ?? false,
           })
           .returning();
 
@@ -370,6 +371,7 @@ export const coursesRoutes = new Elysia()
         features: t.Optional(t.Array(t.String())),
         requirements: t.Optional(t.Array(t.String())),
         objectives: t.Optional(t.Array(t.String())),
+        includeCertificate: t.Optional(t.Boolean()),
       }),
       detail: {
         tags: ["Courses"],
@@ -445,6 +447,8 @@ export const coursesRoutes = new Elysia()
           updateData.requirements = ctx.body.requirements;
         if (ctx.body.objectives !== undefined)
           updateData.objectives = ctx.body.objectives;
+        if (ctx.body.includeCertificate !== undefined)
+          updateData.includeCertificate = ctx.body.includeCertificate;
 
         const [updatedCourse] = await db
           .update(coursesTable)
@@ -495,6 +499,7 @@ export const coursesRoutes = new Elysia()
         features: t.Optional(t.Union([t.Array(t.String()), t.Null()])),
         requirements: t.Optional(t.Union([t.Array(t.String()), t.Null()])),
         objectives: t.Optional(t.Union([t.Array(t.String()), t.Null()])),
+        includeCertificate: t.Optional(t.Boolean()),
       }),
       detail: {
         tags: ["Courses"],

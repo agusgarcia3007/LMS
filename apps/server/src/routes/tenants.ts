@@ -56,6 +56,14 @@ function transformTenant(tenant: typeof tenantsTable.$inferSelect) {
   return {
     ...tenant,
     logo: tenant.logo ? getPresignedUrl(tenant.logo) : null,
+    certificateSettings: tenant.certificateSettings
+      ? {
+          ...tenant.certificateSettings,
+          signatureImageUrl: tenant.certificateSettings.signatureImageKey
+            ? getPresignedUrl(tenant.certificateSettings.signatureImageKey)
+            : null,
+        }
+      : null,
   };
 }
 
@@ -485,6 +493,7 @@ export const tenantsRoutes = new Elysia()
             coursesPagePattern: ctx.body.coursesPagePattern,
             showHeaderName: ctx.body.showHeaderName,
             customTheme: ctx.body.customTheme,
+            certificateSettings: ctx.body.certificateSettings,
           })
           .where(eq(tenantsTable.id, ctx.params.id))
           .returning();
@@ -555,25 +564,82 @@ export const tenantsRoutes = new Elysia()
         ]))),
         showHeaderName: t.Optional(t.Boolean()),
         customTheme: t.Optional(t.Nullable(t.Object({
-          primary: t.String(),
-          primaryForeground: t.String(),
-          secondary: t.String(),
-          secondaryForeground: t.String(),
-          accent: t.String(),
-          accentForeground: t.String(),
-          ring: t.String(),
-          radius: t.String(),
-          primaryDark: t.String(),
-          primaryForegroundDark: t.String(),
-          secondaryDark: t.String(),
-          secondaryForegroundDark: t.String(),
-          accentDark: t.String(),
-          accentForegroundDark: t.String(),
-          ringDark: t.String(),
-          fontHeading: t.Optional(t.String()),
-          fontBody: t.Optional(t.String()),
+          background: t.Optional(t.String()),
+          foreground: t.Optional(t.String()),
+          card: t.Optional(t.String()),
+          cardForeground: t.Optional(t.String()),
+          popover: t.Optional(t.String()),
+          popoverForeground: t.Optional(t.String()),
+          primary: t.Optional(t.String()),
+          primaryForeground: t.Optional(t.String()),
+          secondary: t.Optional(t.String()),
+          secondaryForeground: t.Optional(t.String()),
+          muted: t.Optional(t.String()),
+          mutedForeground: t.Optional(t.String()),
+          accent: t.Optional(t.String()),
+          accentForeground: t.Optional(t.String()),
+          destructive: t.Optional(t.String()),
+          destructiveForeground: t.Optional(t.String()),
+          border: t.Optional(t.String()),
+          input: t.Optional(t.String()),
+          ring: t.Optional(t.String()),
+          chart1: t.Optional(t.String()),
+          chart2: t.Optional(t.String()),
+          chart3: t.Optional(t.String()),
+          chart4: t.Optional(t.String()),
+          chart5: t.Optional(t.String()),
+          sidebar: t.Optional(t.String()),
+          sidebarForeground: t.Optional(t.String()),
+          sidebarPrimary: t.Optional(t.String()),
+          sidebarPrimaryForeground: t.Optional(t.String()),
+          sidebarAccent: t.Optional(t.String()),
+          sidebarAccentForeground: t.Optional(t.String()),
+          sidebarBorder: t.Optional(t.String()),
+          sidebarRing: t.Optional(t.String()),
           shadow: t.Optional(t.String()),
           shadowLg: t.Optional(t.String()),
+          radius: t.Optional(t.String()),
+          backgroundDark: t.Optional(t.String()),
+          foregroundDark: t.Optional(t.String()),
+          cardDark: t.Optional(t.String()),
+          cardForegroundDark: t.Optional(t.String()),
+          popoverDark: t.Optional(t.String()),
+          popoverForegroundDark: t.Optional(t.String()),
+          primaryDark: t.Optional(t.String()),
+          primaryForegroundDark: t.Optional(t.String()),
+          secondaryDark: t.Optional(t.String()),
+          secondaryForegroundDark: t.Optional(t.String()),
+          mutedDark: t.Optional(t.String()),
+          mutedForegroundDark: t.Optional(t.String()),
+          accentDark: t.Optional(t.String()),
+          accentForegroundDark: t.Optional(t.String()),
+          destructiveDark: t.Optional(t.String()),
+          destructiveForegroundDark: t.Optional(t.String()),
+          borderDark: t.Optional(t.String()),
+          inputDark: t.Optional(t.String()),
+          ringDark: t.Optional(t.String()),
+          chart1Dark: t.Optional(t.String()),
+          chart2Dark: t.Optional(t.String()),
+          chart3Dark: t.Optional(t.String()),
+          chart4Dark: t.Optional(t.String()),
+          chart5Dark: t.Optional(t.String()),
+          sidebarDark: t.Optional(t.String()),
+          sidebarForegroundDark: t.Optional(t.String()),
+          sidebarPrimaryDark: t.Optional(t.String()),
+          sidebarPrimaryForegroundDark: t.Optional(t.String()),
+          sidebarAccentDark: t.Optional(t.String()),
+          sidebarAccentForegroundDark: t.Optional(t.String()),
+          sidebarBorderDark: t.Optional(t.String()),
+          sidebarRingDark: t.Optional(t.String()),
+          shadowDark: t.Optional(t.String()),
+          shadowLgDark: t.Optional(t.String()),
+          fontHeading: t.Optional(t.String()),
+          fontBody: t.Optional(t.String()),
+        }))),
+        certificateSettings: t.Optional(t.Nullable(t.Object({
+          signatureImageKey: t.Optional(t.String()),
+          signatureTitle: t.Optional(t.String()),
+          customMessage: t.Optional(t.String()),
         }))),
       }),
       detail: {
@@ -737,6 +803,132 @@ export const tenantsRoutes = new Elysia()
       detail: {
         tags: ["Tenants"],
         summary: "Delete tenant logo",
+      },
+    }
+  )
+  .post(
+    "/:id/certificate-signature",
+    (ctx) =>
+      withHandler(ctx, async () => {
+        if (!ctx.user) {
+          throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
+        }
+
+        const isOwnerUpdatingOwnTenant =
+          ctx.userRole === "owner" && ctx.user.tenantId === ctx.params.id;
+
+        if (ctx.userRole !== "superadmin" && !isOwnerUpdatingOwnTenant) {
+          throw new AppError(ErrorCode.FORBIDDEN, "Access denied", 403);
+        }
+
+        const [existingTenant] = await db
+          .select()
+          .from(tenantsTable)
+          .where(eq(tenantsTable.id, ctx.params.id))
+          .limit(1);
+
+        if (!existingTenant) {
+          throw new AppError(ErrorCode.TENANT_NOT_FOUND, "Tenant not found", 404);
+        }
+
+        if (!ctx.body.signature.startsWith("data:image/")) {
+          throw new AppError(ErrorCode.BAD_REQUEST, "Signature must be an image", 400);
+        }
+
+        const oldKey = existingTenant.certificateSettings?.signatureImageKey;
+
+        const [, signatureKey] = await Promise.all([
+          oldKey ? deleteFromS3(oldKey) : Promise.resolve(),
+          uploadBase64ToS3({
+            base64: ctx.body.signature,
+            folder: "signatures",
+            userId: ctx.params.id,
+          }),
+        ]);
+
+        const newSettings = {
+          ...existingTenant.certificateSettings,
+          signatureImageKey: signatureKey,
+        };
+
+        const [updatedTenant] = await db
+          .update(tenantsTable)
+          .set({ certificateSettings: newSettings })
+          .where(eq(tenantsTable.id, ctx.params.id))
+          .returning();
+
+        invalidateTenantCache(existingTenant.slug);
+
+        return {
+          signatureKey,
+          signatureUrl: getPresignedUrl(signatureKey),
+          tenant: transformTenant(updatedTenant),
+        };
+      }),
+    {
+      params: t.Object({
+        id: t.String({ format: "uuid" }),
+      }),
+      body: t.Object({
+        signature: t.String(),
+      }),
+      detail: {
+        tags: ["Tenants"],
+        summary: "Upload certificate signature image",
+      },
+    }
+  )
+  .delete(
+    "/:id/certificate-signature",
+    (ctx) =>
+      withHandler(ctx, async () => {
+        if (!ctx.user) {
+          throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
+        }
+
+        const isOwnerUpdatingOwnTenant =
+          ctx.userRole === "owner" && ctx.user.tenantId === ctx.params.id;
+
+        if (ctx.userRole !== "superadmin" && !isOwnerUpdatingOwnTenant) {
+          throw new AppError(ErrorCode.FORBIDDEN, "Access denied", 403);
+        }
+
+        const [existingTenant] = await db
+          .select()
+          .from(tenantsTable)
+          .where(eq(tenantsTable.id, ctx.params.id))
+          .limit(1);
+
+        if (!existingTenant) {
+          throw new AppError(ErrorCode.TENANT_NOT_FOUND, "Tenant not found", 404);
+        }
+
+        const oldKey = existingTenant.certificateSettings?.signatureImageKey;
+        if (oldKey) {
+          await deleteFromS3(oldKey);
+        }
+
+        const newSettings = existingTenant.certificateSettings
+          ? { ...existingTenant.certificateSettings, signatureImageKey: undefined }
+          : null;
+
+        const [updatedTenant] = await db
+          .update(tenantsTable)
+          .set({ certificateSettings: newSettings })
+          .where(eq(tenantsTable.id, ctx.params.id))
+          .returning();
+
+        invalidateTenantCache(existingTenant.slug);
+
+        return { tenant: transformTenant(updatedTenant) };
+      }),
+    {
+      params: t.Object({
+        id: t.String({ format: "uuid" }),
+      }),
+      detail: {
+        tags: ["Tenants"],
+        summary: "Delete certificate signature image",
       },
     }
   )

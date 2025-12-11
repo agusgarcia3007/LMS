@@ -104,25 +104,82 @@ export const tenantsTable = pgTable(
     coursesPagePattern: backgroundPatternEnum("courses_page_pattern").default("grid"),
     showHeaderName: boolean("show_header_name").default(true),
     customTheme: jsonb("custom_theme").$type<{
-      primary: string;
-      primaryForeground: string;
-      secondary: string;
-      secondaryForeground: string;
-      accent: string;
-      accentForeground: string;
-      ring: string;
-      radius: string;
-      primaryDark: string;
-      primaryForegroundDark: string;
-      secondaryDark: string;
-      secondaryForegroundDark: string;
-      accentDark: string;
-      accentForegroundDark: string;
-      ringDark: string;
-      fontHeading?: string;
-      fontBody?: string;
+      background?: string;
+      foreground?: string;
+      card?: string;
+      cardForeground?: string;
+      popover?: string;
+      popoverForeground?: string;
+      primary?: string;
+      primaryForeground?: string;
+      secondary?: string;
+      secondaryForeground?: string;
+      muted?: string;
+      mutedForeground?: string;
+      accent?: string;
+      accentForeground?: string;
+      destructive?: string;
+      destructiveForeground?: string;
+      border?: string;
+      input?: string;
+      ring?: string;
+      chart1?: string;
+      chart2?: string;
+      chart3?: string;
+      chart4?: string;
+      chart5?: string;
+      sidebar?: string;
+      sidebarForeground?: string;
+      sidebarPrimary?: string;
+      sidebarPrimaryForeground?: string;
+      sidebarAccent?: string;
+      sidebarAccentForeground?: string;
+      sidebarBorder?: string;
+      sidebarRing?: string;
       shadow?: string;
       shadowLg?: string;
+      radius?: string;
+      backgroundDark?: string;
+      foregroundDark?: string;
+      cardDark?: string;
+      cardForegroundDark?: string;
+      popoverDark?: string;
+      popoverForegroundDark?: string;
+      primaryDark?: string;
+      primaryForegroundDark?: string;
+      secondaryDark?: string;
+      secondaryForegroundDark?: string;
+      mutedDark?: string;
+      mutedForegroundDark?: string;
+      accentDark?: string;
+      accentForegroundDark?: string;
+      destructiveDark?: string;
+      destructiveForegroundDark?: string;
+      borderDark?: string;
+      inputDark?: string;
+      ringDark?: string;
+      chart1Dark?: string;
+      chart2Dark?: string;
+      chart3Dark?: string;
+      chart4Dark?: string;
+      chart5Dark?: string;
+      sidebarDark?: string;
+      sidebarForegroundDark?: string;
+      sidebarPrimaryDark?: string;
+      sidebarPrimaryForegroundDark?: string;
+      sidebarAccentDark?: string;
+      sidebarAccentForegroundDark?: string;
+      sidebarBorderDark?: string;
+      sidebarRingDark?: string;
+      shadowDark?: string;
+      shadowLgDark?: string;
+      fontHeading?: string;
+      fontBody?: string;
+    }>(),
+    certificateSettings: jsonb("certificate_settings").$type<{
+      signatureImageKey?: string;
+      signatureTitle?: string;
+      customMessage?: string;
     }>(),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at")
@@ -389,6 +446,7 @@ export const coursesTable = pgTable(
     features: text("features").array(),
     requirements: text("requirements").array(),
     objectives: text("objectives").array(),
+    includeCertificate: boolean("include_certificate").notNull().default(false),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at")
       .notNull()
@@ -555,6 +613,37 @@ export const itemProgressTable = pgTable(
   ]
 );
 
+export const certificatesTable = pgTable(
+  "certificates",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    enrollmentId: uuid("enrollment_id")
+      .notNull()
+      .references(() => enrollmentsTable.id, { onDelete: "cascade" }),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenantsTable.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => usersTable.id, { onDelete: "cascade" }),
+    courseId: uuid("course_id")
+      .notNull()
+      .references(() => coursesTable.id, { onDelete: "cascade" }),
+    verificationCode: text("verification_code").notNull().unique(),
+    imageKey: text("image_key"),
+    userName: text("user_name").notNull(),
+    courseName: text("course_name").notNull(),
+    issuedAt: timestamp("issued_at").notNull().defaultNow(),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (table) => [
+    index("certificates_enrollment_id_idx").on(table.enrollmentId),
+    index("certificates_tenant_id_idx").on(table.tenantId),
+    index("certificates_verification_code_idx").on(table.verificationCode),
+    uniqueIndex("certificates_enrollment_unique_idx").on(table.enrollmentId),
+  ]
+);
+
 // Type exports
 export type InsertTenant = typeof tenantsTable.$inferInsert;
 export type SelectTenant = typeof tenantsTable.$inferSelect;
@@ -618,3 +707,9 @@ export type InsertItemProgress = typeof itemProgressTable.$inferInsert;
 export type SelectItemProgress = typeof itemProgressTable.$inferSelect;
 export type ItemProgressStatus =
   (typeof itemProgressStatusEnum.enumValues)[number];
+
+export type InsertCertificate = typeof certificatesTable.$inferInsert;
+export type SelectCertificate = typeof certificatesTable.$inferSelect;
+export type CertificateSettings = NonNullable<
+  SelectTenant["certificateSettings"]
+>;

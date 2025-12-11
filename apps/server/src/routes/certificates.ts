@@ -1,0 +1,267 @@
+import { Elysia, t } from "elysia";
+import { authPlugin } from "@/plugins/auth";
+import { AppError, ErrorCode } from "@/lib/errors";
+import { withHandler } from "@/lib/handler";
+import { db } from "@/db";
+import {
+  certificatesTable,
+  coursesTable,
+  enrollmentsTable,
+  tenantsTable,
+} from "@/db/schema";
+import { eq, and, desc } from "drizzle-orm";
+import { getPresignedUrl } from "@/lib/upload";
+import { sendEmail } from "@/lib/utils";
+import { getCertificateEmailHtml } from "@/lib/email-templates";
+import { env } from "@/lib/env";
+
+export const certificatesRoutes = new Elysia({ name: "certificates" })
+  .use(authPlugin)
+  .get(
+    "/",
+    (ctx) =>
+      withHandler(ctx, async () => {
+        if (!ctx.user) {
+          throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
+        }
+        if (!ctx.user.tenantId) {
+          throw new AppError(ErrorCode.TENANT_NOT_FOUND, "User has no tenant", 404);
+        }
+
+        const certificates = await db
+          .select({
+            id: certificatesTable.id,
+            verificationCode: certificatesTable.verificationCode,
+            imageKey: certificatesTable.imageKey,
+            userName: certificatesTable.userName,
+            courseName: certificatesTable.courseName,
+            issuedAt: certificatesTable.issuedAt,
+            enrollmentId: certificatesTable.enrollmentId,
+            course: {
+              id: coursesTable.id,
+              slug: coursesTable.slug,
+              title: coursesTable.title,
+              thumbnail: coursesTable.thumbnail,
+            },
+          })
+          .from(certificatesTable)
+          .innerJoin(coursesTable, eq(certificatesTable.courseId, coursesTable.id))
+          .where(
+            and(
+              eq(certificatesTable.userId, ctx.user.id),
+              eq(certificatesTable.tenantId, ctx.user.tenantId)
+            )
+          )
+          .orderBy(desc(certificatesTable.issuedAt));
+
+        return {
+          certificates: certificates.map((cert) => ({
+            id: cert.id,
+            verificationCode: cert.verificationCode,
+            imageUrl: cert.imageKey ? getPresignedUrl(cert.imageKey) : null,
+            userName: cert.userName,
+            courseName: cert.courseName,
+            issuedAt: cert.issuedAt,
+            enrollmentId: cert.enrollmentId,
+            verificationUrl: `${env.CLIENT_URL}/verify/${cert.verificationCode}`,
+            course: {
+              id: cert.course.id,
+              slug: cert.course.slug,
+              title: cert.course.title,
+              thumbnail: cert.course.thumbnail
+                ? getPresignedUrl(cert.course.thumbnail)
+                : null,
+            },
+          })),
+        };
+      }),
+    {
+      detail: { tags: ["Certificates"], summary: "List user certificates" },
+    }
+  )
+  .get(
+    "/:enrollmentId",
+    (ctx) =>
+      withHandler(ctx, async () => {
+        if (!ctx.user) {
+          throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
+        }
+        if (!ctx.user.tenantId) {
+          throw new AppError(ErrorCode.TENANT_NOT_FOUND, "User has no tenant", 404);
+        }
+
+        const [certificate] = await db
+          .select({
+            id: certificatesTable.id,
+            verificationCode: certificatesTable.verificationCode,
+            imageKey: certificatesTable.imageKey,
+            userName: certificatesTable.userName,
+            courseName: certificatesTable.courseName,
+            issuedAt: certificatesTable.issuedAt,
+            enrollmentId: certificatesTable.enrollmentId,
+          })
+          .from(certificatesTable)
+          .where(
+            and(
+              eq(certificatesTable.enrollmentId, ctx.params.enrollmentId),
+              eq(certificatesTable.userId, ctx.user.id),
+              eq(certificatesTable.tenantId, ctx.user.tenantId)
+            )
+          )
+          .limit(1);
+
+        if (!certificate) {
+          return { certificate: null };
+        }
+
+        return {
+          certificate: {
+            id: certificate.id,
+            verificationCode: certificate.verificationCode,
+            imageUrl: certificate.imageKey
+              ? getPresignedUrl(certificate.imageKey)
+              : null,
+            userName: certificate.userName,
+            courseName: certificate.courseName,
+            issuedAt: certificate.issuedAt,
+            enrollmentId: certificate.enrollmentId,
+            verificationUrl: `${env.CLIENT_URL}/verify/${certificate.verificationCode}`,
+          },
+        };
+      }),
+    {
+      params: t.Object({
+        enrollmentId: t.String({ format: "uuid" }),
+      }),
+      detail: {
+        tags: ["Certificates"],
+        summary: "Get certificate by enrollment ID",
+      },
+    }
+  )
+  .post(
+    "/:enrollmentId/email",
+    (ctx) =>
+      withHandler(ctx, async () => {
+        if (!ctx.user) {
+          throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
+        }
+        if (!ctx.user.tenantId) {
+          throw new AppError(ErrorCode.TENANT_NOT_FOUND, "User has no tenant", 404);
+        }
+
+        const [certificate] = await db
+          .select({
+            imageKey: certificatesTable.imageKey,
+            verificationCode: certificatesTable.verificationCode,
+            userName: certificatesTable.userName,
+            courseName: certificatesTable.courseName,
+            tenantId: certificatesTable.tenantId,
+          })
+          .from(certificatesTable)
+          .where(
+            and(
+              eq(certificatesTable.enrollmentId, ctx.params.enrollmentId),
+              eq(certificatesTable.userId, ctx.user.id),
+              eq(certificatesTable.tenantId, ctx.user.tenantId)
+            )
+          )
+          .limit(1);
+
+        if (!certificate) {
+          throw new AppError(ErrorCode.NOT_FOUND, "Certificate not found", 404);
+        }
+
+        const [tenant] = await db
+          .select({ name: tenantsTable.name })
+          .from(tenantsTable)
+          .where(eq(tenantsTable.id, certificate.tenantId))
+          .limit(1);
+
+        const verificationUrl = `${env.CLIENT_URL}/verify/${certificate.verificationCode}`;
+        const downloadUrl = certificate.imageKey
+          ? getPresignedUrl(certificate.imageKey)
+          : verificationUrl;
+
+        const emailHtml = getCertificateEmailHtml({
+          studentName: certificate.userName,
+          courseName: certificate.courseName,
+          verificationUrl,
+          downloadUrl,
+          tenantName: tenant?.name || "LMS",
+        });
+
+        await sendEmail({
+          to: ctx.user.email,
+          subject: `Your Certificate of Completion - ${certificate.courseName}`,
+          html: emailHtml,
+        });
+
+        return { success: true };
+      }),
+    {
+      params: t.Object({
+        enrollmentId: t.String({ format: "uuid" }),
+      }),
+      detail: {
+        tags: ["Certificates"],
+        summary: "Send certificate via email",
+      },
+    }
+  )
+  .get(
+    "/verify/:code",
+    (ctx) =>
+      withHandler(ctx, async () => {
+        const [certificate] = await db
+          .select({
+            id: certificatesTable.id,
+            verificationCode: certificatesTable.verificationCode,
+            imageKey: certificatesTable.imageKey,
+            userName: certificatesTable.userName,
+            courseName: certificatesTable.courseName,
+            issuedAt: certificatesTable.issuedAt,
+            tenant: {
+              name: tenantsTable.name,
+              logo: tenantsTable.logo,
+            },
+          })
+          .from(certificatesTable)
+          .innerJoin(tenantsTable, eq(certificatesTable.tenantId, tenantsTable.id))
+          .where(eq(certificatesTable.verificationCode, ctx.params.code))
+          .limit(1);
+
+        if (!certificate) {
+          return { valid: false, certificate: null };
+        }
+
+        return {
+          valid: true,
+          certificate: {
+            id: certificate.id,
+            verificationCode: certificate.verificationCode,
+            imageUrl: certificate.imageKey
+              ? getPresignedUrl(certificate.imageKey)
+              : null,
+            userName: certificate.userName,
+            courseName: certificate.courseName,
+            issuedAt: certificate.issuedAt,
+            tenant: {
+              name: certificate.tenant.name,
+              logo: certificate.tenant.logo
+                ? getPresignedUrl(certificate.tenant.logo)
+                : null,
+            },
+          },
+        };
+      }),
+    {
+      params: t.Object({
+        code: t.String({ minLength: 8, maxLength: 8 }),
+      }),
+      detail: {
+        tags: ["Certificates"],
+        summary: "Verify certificate (public)",
+      },
+    }
+  );

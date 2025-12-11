@@ -12,7 +12,7 @@ interface ImageUploadProps {
   onUpload: (base64: string) => Promise<string>;
   onDelete?: () => Promise<void>;
   maxSize?: number;
-  aspectRatio?: "16/9" | "4/3" | "1/1";
+  aspectRatio?: "16/9" | "4/3" | "1/1" | "3/1" | "3/2";
   className?: string;
   disabled?: boolean;
   isUploading?: boolean;
@@ -86,6 +86,8 @@ export function ImageUpload({
     "16/9": "aspect-video",
     "4/3": "aspect-[4/3]",
     "1/1": "aspect-square",
+    "3/1": "aspect-[3/1]",
+    "3/2": "aspect-[3/2]",
   }[aspectRatio];
 
   if (value) {

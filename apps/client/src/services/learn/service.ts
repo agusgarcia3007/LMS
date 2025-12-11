@@ -13,10 +13,32 @@ export type LearnModuleItem = {
   videoProgress?: number;
 };
 
-export type LearnModule = {
+export type LearnModuleLite = {
   id: string;
   title: string;
   order: number;
+  itemsCount: number;
+};
+
+export type ModuleProgressData = {
+  moduleId: string;
+  completed: number;
+  total: number;
+};
+
+export type ItemIdWithModule = {
+  id: string;
+  moduleId: string;
+};
+
+export type CourseProgress = {
+  totalItems: number;
+  completedItems: number;
+  moduleProgress: ModuleProgressData[];
+  itemIds: ItemIdWithModule[];
+};
+
+export type ModuleItemsResponse = {
   items: LearnModuleItem[];
 };
 
@@ -36,7 +58,7 @@ export type LearnEnrollment = {
 export type CourseStructure = {
   course: LearnCourse;
   enrollment: LearnEnrollment;
-  modules: LearnModule[];
+  modules: LearnModuleLite[];
   resumeItemId: string | null;
 };
 
@@ -117,6 +139,8 @@ export type RelatedCoursesResponse = {
 export const QUERY_KEYS = {
   LEARN: ["learn"] as const,
   COURSE_STRUCTURE: (courseSlug: string) => ["learn", "structure", courseSlug] as const,
+  COURSE_PROGRESS: (courseSlug: string) => ["learn", "progress", courseSlug] as const,
+  MODULE_ITEMS: (moduleId: string) => ["learn", "module", moduleId, "items"] as const,
   ITEM_CONTENT: (itemId: string) => ["learn", "content", itemId] as const,
   RELATED_COURSES: (courseSlug: string) => ["learn", "related", courseSlug] as const,
 } as const;
@@ -125,6 +149,20 @@ export const LearnService = {
   async getCourseStructure(courseSlug: string) {
     const { data } = await http.get<CourseStructure>(
       `/learn/courses/${courseSlug}/structure`
+    );
+    return data;
+  },
+
+  async getCourseProgress(courseSlug: string) {
+    const { data } = await http.get<CourseProgress>(
+      `/learn/courses/${courseSlug}/progress`
+    );
+    return data;
+  },
+
+  async getModuleItems(moduleId: string) {
+    const { data } = await http.get<ModuleItemsResponse>(
+      `/learn/modules/${moduleId}/items`
     );
     return data;
   },

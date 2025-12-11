@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { useFormContext } from "react-hook-form";
-import { Sparkles } from "lucide-react";
+import { useFormContext, useWatch } from "react-hook-form";
+import { Sparkles, Sun, Moon } from "lucide-react";
 
 import {
   FormControl,
@@ -16,10 +16,13 @@ import { Button } from "@/components/ui/button";
 import { ImageUpload } from "@/components/file-upload/image-upload";
 
 import { ThemeSelector } from "@/components/tenant-configuration/theme-selector";
+import { THEME_PRESETS } from "@/components/tenant-configuration/schema";
 import { ModeSelector } from "../mode-selector";
 import { SaveButton } from "../save-button";
 import { AiThemeModal } from "../ai-theme-modal";
+import { ThemePreview } from "../theme-preview";
 import { FontSelector } from "../font-selector";
+import { loadGoogleFont } from "@/hooks/use-custom-theme";
 import type { CustomizationFormData } from "../schema";
 import type { GeneratedTheme } from "@/services/ai";
 import type { CustomTheme } from "@/services/tenants/service";
@@ -123,10 +126,10 @@ export function AppearanceTab({
   const { t } = useTranslation();
   const form = useFormContext<CustomizationFormData>();
   const [aiModalOpen, setAiModalOpen] = useState(false);
+  const [previewMode, setPreviewMode] = useState<"light" | "dark">("light");
 
   const handleThemeChange = (theme: CustomizationFormData["theme"]) => {
     form.setValue("theme", theme);
-    form.setValue("customTheme", null);
   };
 
   const handleApplyAiTheme = (theme: GeneratedTheme) => {
@@ -134,7 +137,28 @@ export function AppearanceTab({
     form.setValue("theme", null);
   };
 
-  const customTheme = form.watch("customTheme");
+  const handleRestoreCustomTheme = () => {
+    form.setValue("theme", null);
+  };
+
+  const customTheme = useWatch({ control: form.control, name: "customTheme" });
+  const selectedTheme = useWatch({ control: form.control, name: "theme" });
+
+  const isCustomThemeActive = customTheme && !selectedTheme;
+  const activePreviewTheme = isCustomThemeActive
+    ? customTheme
+    : selectedTheme
+      ? THEME_PRESETS[selectedTheme]
+      : THEME_PRESETS.default;
+
+  useEffect(() => {
+    if (activePreviewTheme?.fontHeading) {
+      loadGoogleFont(activePreviewTheme.fontHeading);
+    }
+    if (activePreviewTheme?.fontBody && activePreviewTheme.fontBody !== activePreviewTheme.fontHeading) {
+      loadGoogleFont(activePreviewTheme.fontBody);
+    }
+  }, [activePreviewTheme?.fontHeading, activePreviewTheme?.fontBody]);
 
   return (
     <TabsContent value="appearance" className="space-y-6">
@@ -169,40 +193,83 @@ export function AppearanceTab({
                     {t("dashboard.site.customization.appearance.theme")}
                   </FormLabel>
                   <FormControl>
-                    <ThemeSelector
-                      value={field.value}
-                      onChange={handleThemeChange}
-                    />
+                    <div className="flex items-start gap-4">
+                      <div className="space-y-3">
+                        <ThemeSelector
+                          value={field.value}
+                          onChange={handleThemeChange}
+                        />
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setAiModalOpen(true)}
+                          >
+                            <Sparkles className="h-4 w-4 mr-2" />
+                            {t("dashboard.site.customization.appearance.generateWithAI")}
+                          </Button>
+                          {customTheme && selectedTheme && (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={handleRestoreCustomTheme}
+                            >
+                              <div
+                                className="h-4 w-4 rounded-full mr-2 ring-1 ring-border"
+                                style={{ backgroundColor: customTheme.primary }}
+                              />
+                              {t("dashboard.site.customization.appearance.restoreCustomTheme")}
+                            </Button>
+                          )}
+                          {isCustomThemeActive && (
+                            <div className="flex items-center gap-2">
+                              <div
+                                className="h-4 w-4 rounded-full ring-2 ring-primary ring-offset-1 ring-offset-background"
+                                style={{ backgroundColor: customTheme.primary }}
+                              />
+                              <span className="text-xs text-muted-foreground">
+                                {t("dashboard.site.customization.appearance.customThemeActive")}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <div className="hidden sm:block space-y-2">
+                        <div className="flex items-center gap-1 rounded-md border p-0.5">
+                          <button
+                            type="button"
+                            onClick={() => setPreviewMode("light")}
+                            className={`flex items-center justify-center rounded p-1 transition-colors ${
+                              previewMode === "light"
+                                ? "bg-primary text-primary-foreground"
+                                : "text-muted-foreground hover:text-foreground"
+                            }`}
+                          >
+                            <Sun className="h-3 w-3" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setPreviewMode("dark")}
+                            className={`flex items-center justify-center rounded p-1 transition-colors ${
+                              previewMode === "dark"
+                                ? "bg-primary text-primary-foreground"
+                                : "text-muted-foreground hover:text-foreground"
+                            }`}
+                          >
+                            <Moon className="h-3 w-3" />
+                          </button>
+                        </div>
+                        <ThemePreview theme={activePreviewTheme} mode={previewMode} variant="compact" />
+                      </div>
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <div className="flex items-center gap-3 pt-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => setAiModalOpen(true)}
-              >
-                <Sparkles className="h-4 w-4 mr-2" />
-                {t("dashboard.site.customization.appearance.generateWithAI")}
-              </Button>
-              {customTheme && (
-                <div className="flex items-center gap-2">
-                  <div
-                    className="h-6 w-6 rounded-full border-2 border-primary"
-                    style={{ backgroundColor: customTheme.primary }}
-                  />
-                  <span className="text-sm text-muted-foreground">
-                    {t("dashboard.site.customization.appearance.customThemeActive")}
-                  </span>
-                </div>
-              )}
-            </div>
           </div>
-
-          <div className="border-t" />
 
           <div className="space-y-4 p-5">
             <FormField
@@ -264,6 +331,7 @@ export function AppearanceTab({
                 label={t("dashboard.site.customization.appearance.fontHeading")}
                 value={customTheme?.fontHeading}
                 onChange={(font) => {
+                  if (!font) return;
                   const current = form.getValues("customTheme");
                   if (current) {
                     form.setValue("customTheme", { ...current, fontHeading: font });
@@ -279,6 +347,7 @@ export function AppearanceTab({
                 label={t("dashboard.site.customization.appearance.fontBody")}
                 value={customTheme?.fontBody}
                 onChange={(font) => {
+                  if (!font) return;
                   const current = form.getValues("customTheme");
                   if (current) {
                     form.setValue("customTheme", { ...current, fontBody: font });

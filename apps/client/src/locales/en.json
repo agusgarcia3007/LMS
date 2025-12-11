@@ -603,7 +603,8 @@
           "social": "Social",
           "seo": "SEO",
           "texts": "Texts",
-          "domain": "Domain"
+          "domain": "Domain",
+          "certificates": "Certificates"
         },
         "general": {
           "title": "General Settings",
@@ -722,6 +723,20 @@
           "remove": "Remove",
           "saved": "Domain configured",
           "removed": "Domain removed"
+        },
+        "certificates": {
+          "title": "Certificate Settings",
+          "description": "Customize certificates for your courses",
+          "signatureImage": "Signature Image",
+          "signatureImageHelp": "Image of the signature to display on certificates (max 1MB)",
+          "signatureTitle": "Signer Title",
+          "signatureTitlePlaceholder": "e.g., Academic Director",
+          "signatureTitleHelp": "Title shown below the signature",
+          "customMessage": "Custom Message",
+          "customMessagePlaceholder": "Congratulations on completing this course!",
+          "customMessageHelp": "Optional message to display on the certificate",
+          "signatureUploaded": "Signature uploaded successfully",
+          "signatureDeleted": "Signature deleted successfully"
         }
       },
       "customization": {
@@ -743,7 +758,8 @@
           "showHeaderName": "Show name in header",
           "showHeaderNameHelp": "Display the site name next to the logo in the header",
           "generateWithAI": "Generate with AI",
-          "customThemeActive": "Custom theme active",
+          "customThemeActive": "Custom theme",
+          "restoreCustomTheme": "Restore custom",
           "aiModal": {
             "title": "Generate Theme with AI",
             "description": "Create a unique color palette for your campus using AI",
@@ -755,13 +771,24 @@
             "generate": "Generate Theme",
             "preview": "Preview",
             "apply": "Apply Theme",
-            "previewHeader": "Header",
-            "previewBadge": "Badge",
-            "previewCardText": "This is how card content will look with your theme.",
-            "previewButton": "Button",
-            "previewOutline": "Outline",
-            "previewFocus": "Focus ring example",
-            "previewText": "Primary accent color",
+            "lightMode": "Light",
+            "darkMode": "Dark",
+            "previewEmpty": "Generate a theme to see the preview",
+            "previewLanding": "Your Academy",
+            "previewBadge": "New",
+            "previewHero": "Learn with the best courses",
+            "previewMuted": "Browse our catalog of courses and start learning today",
+            "previewInput": "Search courses...",
+            "previewCard1": "Featured",
+            "previewCard2": "Popular",
+            "previewCard3": "New",
+            "previewButton": "Primary",
+            "previewOutline": "Secondary",
+            "previewDestructive": "Delete",
+            "previewGhost": "Ghost",
+            "previewCharts": "Chart colors",
+            "previewSidebar": "Sidebar preview",
+            "previewSidebarSub": "Navigation area",
             "generating": "Generating theme..."
           },
           "typography": "Typography",
@@ -772,6 +799,7 @@
           "bodyPreview": "Body text preview: The quick brown fox jumps over the lazy dog.",
           "selectFont": "Select a font...",
           "fontCategories": {
+            "current": "Current",
             "sans": "Sans Serif",
             "serif": "Serif",
             "display": "Display"
@@ -1398,7 +1426,9 @@
       "features": "Included features",
       "featuresPlaceholder": "Add feature...",
       "publish": "Publish",
-      "publishDescription": "The course will be available for students"
+      "publishDescription": "The course will be available for students",
+      "includeCertificate": "Include certificate",
+      "includeCertificateDescription": "Students will receive a certificate upon completion"
     },
     "editor": {
       "tabs": {
@@ -1650,6 +1680,25 @@
       "questions": "{{count}} questions",
       "comingSoon": "Quiz coming soon",
       "comingSoonDescription": "The quiz functionality will be available soon"
+    }
+  },
+  "certificates": {
+    "title": "Certificate of Completion",
+    "downloadCertificate": "Download",
+    "emailCertificate": "Email",
+    "copyLink": "Copy link",
+    "linkCopied": "Link copied",
+    "emailSent": "Certificate sent to your email",
+    "verification": {
+      "title": "Certificate Verification",
+      "valid": "This certificate is valid",
+      "invalid": "Certificate not found",
+      "invalidDescription": "This certificate verification code is invalid or does not exist.",
+      "issuedTo": "Issued to",
+      "course": "Course",
+      "issuedOn": "Issued on",
+      "verificationCode": "Verification code",
+      "issuedBy": "Issued by"
     }
   },
   "quizzes": {

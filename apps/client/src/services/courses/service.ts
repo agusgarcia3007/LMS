@@ -36,6 +36,7 @@ export type Course = {
   features: string[] | null;
   requirements: string[] | null;
   objectives: string[] | null;
+  includeCertificate: boolean;
   createdAt: string;
   updatedAt: string;
   instructor: Instructor | null;
@@ -82,6 +83,7 @@ export type CreateCourseRequest = {
   features?: string[];
   requirements?: string[];
   objectives?: string[];
+  includeCertificate?: boolean;
 };
 
 export type UpdateCourseRequest = {
@@ -104,6 +106,7 @@ export type UpdateCourseRequest = {
   features?: string[] | null;
   requirements?: string[] | null;
   objectives?: string[] | null;
+  includeCertificate?: boolean;
 };
 
 export type UpdateCourseModulesRequest = {

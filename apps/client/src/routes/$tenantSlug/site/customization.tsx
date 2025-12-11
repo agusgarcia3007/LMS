@@ -4,7 +4,7 @@ import {
   useParams,
   useSearch,
 } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -56,6 +56,11 @@ function CustomizationPage() {
   const uploadLogoMutation = useUploadLogo(tenantSlug);
   const deleteLogoMutation = useDeleteLogo(tenantSlug);
 
+  const customThemeKey = useMemo(
+    () => (tenant?.customTheme ? JSON.stringify(tenant.customTheme) : null),
+    [tenant?.customTheme]
+  );
+
   const form = useForm<CustomizationFormData>({
     resolver: zodResolver(customizationSchema),
     defaultValues: {
@@ -68,27 +73,31 @@ function CustomizationPage() {
       heroSubtitle: "",
       heroCta: "",
       footerText: "",
+      customTheme: null,
     },
   });
 
   useEffect(() => {
     if (tenant) {
-      form.reset({
-        theme: tenant.theme ?? "default",
-        mode: tenant.mode ?? "auto",
-        heroPattern: tenant.heroPattern ?? "grid",
-        coursesPagePattern: tenant.coursesPagePattern ?? "grid",
-        showHeaderName: tenant.showHeaderName ?? true,
-        heroTitle: tenant.heroTitle ?? "",
-        heroSubtitle: tenant.heroSubtitle ?? "",
-        heroCta: tenant.heroCta ?? "",
-        footerText: tenant.footerText ?? "",
-        customTheme: tenant.customTheme ?? null,
-      });
+      form.reset(
+        {
+          theme: tenant.theme ?? "default",
+          mode: tenant.mode ?? "auto",
+          heroPattern: tenant.heroPattern ?? "grid",
+          coursesPagePattern: tenant.coursesPagePattern ?? "grid",
+          showHeaderName: tenant.showHeaderName ?? true,
+          heroTitle: tenant.heroTitle ?? "",
+          heroSubtitle: tenant.heroSubtitle ?? "",
+          heroCta: tenant.heroCta ?? "",
+          footerText: tenant.footerText ?? "",
+          customTheme: tenant.customTheme ?? null,
+        },
+        { keepDirtyValues: false }
+      );
       setLogoUrl(tenant.logo);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tenant?.id]);
+  }, [tenant?.id, customThemeKey]);
 
   const handleLogoUpload = async (base64: string) => {
     if (!tenant) return "";
