@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useMemo, useState } from "react";
+import { useEffect, useCallback, useMemo, useState, useRef } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { BookOpen } from "lucide-react";
@@ -113,8 +113,19 @@ function LearnPage({ tenant }: LearnPageProps) {
 
   const { mutate: completeItem } = useCompleteItem(courseSlug);
 
+  const isCourseCompleted = structureData?.enrollment.status === "completed";
+
   const { handleTimeUpdate, handlePause, reset: resetVideoProgress } =
-    useVideoProgress(currentItemId ?? "");
+    useVideoProgress({
+      moduleItemId: currentItemId ?? "",
+      isCompleted: isCourseCompleted,
+    });
+
+  const [currentVideoTime, setCurrentVideoTime] = useState(0);
+  const currentVideoTimeRef = useRef(0);
+  const [videoElement, setVideoElement] = useState<HTMLVideoElement | null>(
+    null
+  );
 
   const currentItemStatus = useMemo(() => {
     if (!currentItemId || !structureData) return null;
@@ -165,6 +176,17 @@ function LearnPage({ tenant }: LearnPageProps) {
       completeItem(currentItemId);
     }
   }, [currentItemId, completeItem]);
+
+  const handleVideoTimeUpdate = useCallback(
+    (time: number) => {
+      handleTimeUpdate(time);
+      currentVideoTimeRef.current = time;
+      if (Math.abs(time - currentVideoTime) >= 1) {
+        setCurrentVideoTime(time);
+      }
+    },
+    [handleTimeUpdate, currentVideoTime]
+  );
 
   if (structureLoading) {
     return (
@@ -235,9 +257,10 @@ function LearnPage({ tenant }: LearnPageProps) {
                       <VideoContent
                         src={contentData.url ?? ""}
                         initialTime={contentData.videoProgress}
-                        onTimeUpdate={(time) => handleTimeUpdate(time)}
+                        onTimeUpdate={handleVideoTimeUpdate}
                         onPause={(time) => handlePause(time)}
                         onComplete={handleComplete}
+                        onVideoRefReady={setVideoElement}
                         className="overflow-hidden rounded-xl shadow-lg"
                       />
                       <div className="space-y-2">
@@ -311,7 +334,17 @@ function LearnPage({ tenant }: LearnPageProps) {
           )}
         </LearnMainContent>
 
-        <AIChatSidebar />
+        {currentItemId && contentData && (
+          <AIChatSidebar
+            courseId={course.id}
+            courseTitle={course.title}
+            itemId={currentItemId}
+            itemTitle={contentData.title}
+            itemType={contentData.type}
+            currentTime={currentVideoTimeRef.current}
+            videoElement={videoElement}
+          />
+        )}
       </div>
     </>
   );

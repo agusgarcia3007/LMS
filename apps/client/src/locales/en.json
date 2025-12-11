@@ -1590,6 +1590,15 @@
     "closeAIChat": "Close AI chat",
     "aiChatEmpty": "Ask questions about this course content",
     "aiChatPlaceholder": "Ask a question...",
+    "aiChat": {
+      "initialMessage": "You're viewing \"{{itemTitle}}\". How can I help you?",
+      "thinking": "Thinking...",
+      "error": "An error occurred. Please try again.",
+      "contextError": "Context error. Please reload the page.",
+      "networkError": "Connection error. Check your internet.",
+      "notEnrolled": "You must be enrolled in the course to use the assistant.",
+      "attachImage": "Attach image"
+    },
     "congratulations": "Congratulations!",
     "courseCompleted": "You have completed the course \"{{title}}\"",
     "relatedCourses": "Courses you might like",

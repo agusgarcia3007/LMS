@@ -1,9 +1,13 @@
 import { $ } from "bun";
 import { experimental_transcribe as transcribe } from "ai";
+import { eq } from "drizzle-orm";
 import { groq } from "./groq";
 import { AI_MODELS } from "./models";
 import { logger } from "../logger";
 import { AppError, ErrorCode } from "../errors";
+import { getPresignedUrl } from "../upload";
+import { db } from "@/db";
+import { videosTable } from "@/db/schema";
 
 export async function transcribeVideo(videoUrl: string): Promise<string> {
   const start = Date.now();
@@ -56,4 +60,18 @@ export async function transcribeVideo(videoUrl: string): Promise<string> {
   });
 
   return text;
+}
+
+export async function updateVideoTranscript(videoId: string, videoKey: string) {
+  try {
+    const videoUrl = getPresignedUrl(videoKey);
+    const transcript = await transcribeVideo(videoUrl);
+    await db
+      .update(videosTable)
+      .set({ transcript })
+      .where(eq(videosTable.id, videoId));
+    logger.info("Video transcript updated", { videoId });
+  } catch (error) {
+    logger.error("Failed to update video transcript", { videoId, error });
+  }
 }

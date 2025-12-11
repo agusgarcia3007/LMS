@@ -211,6 +211,7 @@ export const videosTable = pgTable(
     description: text("description"),
     videoKey: text("video_key"),
     duration: integer("duration").notNull().default(0),
+    transcript: text("transcript"),
     status: contentStatusEnum("status").notNull().default("draft"),
     embedding: vector("embedding", { dimensions: 384 }),
     createdAt: timestamp("created_at").notNull().defaultNow(),

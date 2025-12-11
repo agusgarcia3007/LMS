@@ -21,6 +21,7 @@ type VideoContentProps = {
   onComplete?: () => void;
   onTimeUpdate?: (currentTime: number, duration: number) => void;
   onPause?: (currentTime: number) => void;
+  onVideoRefReady?: (ref: HTMLVideoElement | null) => void;
   className?: string;
 };
 
@@ -31,6 +32,7 @@ export function VideoContent({
   onComplete,
   onTimeUpdate,
   onPause,
+  onVideoRefReady,
   className,
 }: VideoContentProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -63,6 +65,11 @@ export function VideoContent({
     hasCalledComplete.current = false;
     hasSetInitialTime.current = false;
   }, [src]);
+
+  useEffect(() => {
+    onVideoRefReady?.(videoRef.current);
+    return () => onVideoRefReady?.(null);
+  }, [onVideoRefReady]);
 
   const handleTimeUpdate = useCallback(() => {
     const video = videoRef.current;

@@ -83,6 +83,7 @@ async function getEnrollmentForItem(
       contentType: moduleItemsTable.contentType,
       contentId: moduleItemsTable.contentId,
       enrollmentId: enrollmentsTable.id,
+      enrollmentStatus: enrollmentsTable.status,
     })
     .from(moduleItemsTable)
     .innerJoin(modulesTable, eq(moduleItemsTable.moduleId, modulesTable.id))
@@ -481,6 +482,10 @@ export const learnRoutes = new Elysia({ name: "learn" })
           ctx.params.moduleItemId
         );
 
+        if (item.enrollmentStatus === "completed") {
+          return { success: true };
+        }
+
         const { videoProgress, status } = ctx.body;
 
         const [currentProgress] = await db
@@ -494,11 +499,15 @@ export const learnRoutes = new Elysia({ name: "learn" })
           )
           .limit(1);
 
+        if (currentProgress?.status === "completed") {
+          return { success: true };
+        }
+
         const updateData: { videoProgress?: number; status?: ItemProgressStatus } = {};
         if (typeof videoProgress === "number") {
           updateData.videoProgress = videoProgress;
         }
-        if (status === "in_progress" && currentProgress?.status !== "completed") {
+        if (status === "in_progress") {
           updateData.status = "in_progress";
         }
 
@@ -633,6 +642,17 @@ export const learnRoutes = new Elysia({ name: "learn" })
 
         const enrolledCourseIds = userEnrollments.map((e) => e.courseId);
 
+        const conditions = [
+          eq(coursesTable.tenantId, ctx.user.tenantId),
+          eq(coursesTable.categoryId, course.categoryId),
+          eq(coursesTable.status, "published"),
+          ne(coursesTable.id, course.id),
+        ];
+
+        if (enrolledCourseIds.length > 0) {
+          conditions.push(notInArray(coursesTable.id, enrolledCourseIds));
+        }
+
         const relatedCourses = await db
           .select({
             id: coursesTable.id,
@@ -647,17 +667,7 @@ export const learnRoutes = new Elysia({ name: "learn" })
           })
           .from(coursesTable)
           .leftJoin(instructorsTable, eq(coursesTable.instructorId, instructorsTable.id))
-          .where(
-            and(
-              eq(coursesTable.tenantId, ctx.user.tenantId),
-              eq(coursesTable.categoryId, course.categoryId),
-              eq(coursesTable.status, "published"),
-              ne(coursesTable.id, course.id),
-              enrolledCourseIds.length > 0
-                ? notInArray(coursesTable.id, enrolledCourseIds)
-                : sql`true`
-            )
-          )
+          .where(and(...conditions))
           .limit(4);
 
         return {

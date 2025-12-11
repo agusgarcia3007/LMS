@@ -9,7 +9,8 @@ import {
 
 export const analyzeVideoOptions = () =>
   mutationOptions({
-    mutationFn: (videoKey: string) => AIService.analyzeVideo(videoKey),
+    mutationFn: ({ videoKey, videoId }: { videoKey: string; videoId?: string }) =>
+      AIService.analyzeVideo(videoKey, videoId),
   });
 
 export const generateQuizQuestionsOptions = () =>

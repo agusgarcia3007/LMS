@@ -1,13 +1,30 @@
+import { useEffect, useRef, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { Sparkles, ChevronRight } from "lucide-react";
+import { Sparkles, ChevronRight, ImagePlus, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   PromptInput,
   PromptInputTextarea,
   PromptInputFooter,
+  PromptInputTools,
   PromptInputSubmit,
+  PromptInputAttachments,
+  PromptInputAttachment,
+  PromptInputButton,
 } from "@/components/ai-elements/prompt-input";
+import {
+  Conversation,
+  ConversationContent,
+  ConversationScrollButton,
+} from "@/components/ai-elements/conversation";
+import {
+  Message,
+  MessageContent,
+  MessageResponse,
+  MessageAttachments,
+  MessageAttachment,
+} from "@/components/ai-elements/message";
+import { Loader } from "@/components/ai-elements/loader";
 import {
   DualSidebar,
   DualSidebarHeader,
@@ -17,14 +34,115 @@ import {
   useDualSidebar,
 } from "@/components/ui/dual-sidebar";
 import { cn } from "@/lib/utils";
+import { useLearnChat } from "@/hooks/use-learn-chat";
 
-export function AIChatSidebar() {
+type AIChatSidebarProps = {
+  courseId: string;
+  courseTitle: string;
+  itemId: string;
+  itemTitle: string;
+  itemType: "video" | "document" | "quiz";
+  currentTime: number;
+  videoElement?: HTMLVideoElement | null;
+};
+
+
+function dataURLToBlob(dataUrl: string): Blob {
+  const arr = dataUrl.split(",");
+  const mime = arr[0].match(/:(.*?);/)?.[1] || "image/jpeg";
+  const bstr = atob(arr[1]);
+  const u8arr = new Uint8Array(bstr.length);
+  for (let i = 0; i < bstr.length; i++) {
+    u8arr[i] = bstr.charCodeAt(i);
+  }
+  return new Blob([u8arr], { type: mime });
+}
+
+function captureVideoFrame(videoElement: HTMLVideoElement): File | null {
+  const canvas = document.createElement("canvas");
+  canvas.width = videoElement.videoWidth;
+  canvas.height = videoElement.videoHeight;
+
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return null;
+
+  ctx.drawImage(videoElement, 0, 0);
+
+  const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+  const blob = dataURLToBlob(dataUrl);
+  return new File([blob], `frame-${Date.now()}.jpg`, { type: "image/jpeg" });
+}
+
+export function AIChatSidebar({
+  courseId,
+  courseTitle,
+  itemId,
+  itemTitle,
+  itemType,
+  currentTime,
+  videoElement,
+}: AIChatSidebarProps) {
   const { t } = useTranslation();
   const { right, isMobile } = useDualSidebar();
+  const {
+    messages,
+    isStreaming,
+    toolInvocations,
+    sendMessage,
+    cancel,
+    reset,
+    setContext,
+    updateCurrentTime,
+  } = useLearnChat();
 
-  const handleSubmit = () => {
-    // TODO: Implement chat submission
-  };
+  const prevItemIdRef = useRef<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setContext({
+      courseId,
+      itemId,
+      currentTime,
+    });
+  }, [courseId, itemId, setContext, currentTime]);
+
+  useEffect(() => {
+    updateCurrentTime(currentTime);
+  }, [currentTime, updateCurrentTime]);
+
+  useEffect(() => {
+    if (prevItemIdRef.current && prevItemIdRef.current !== itemId) {
+      reset();
+    }
+    prevItemIdRef.current = itemId;
+  }, [itemId, reset]);
+
+  const handleSubmit = useCallback(
+    async ({ text, files }: { text: string; files?: File[] }) => {
+      if (!text.trim() && !files?.length) return;
+
+      const allFiles = files ? [...files] : [];
+
+      if (itemType === "video" && videoElement) {
+        const frame = captureVideoFrame(videoElement);
+        if (frame) {
+          allFiles.unshift(frame);
+        }
+      }
+
+      await sendMessage(text, allFiles.length > 0 ? allFiles : undefined);
+    },
+    [sendMessage, itemType, videoElement]
+  );
+
+  const handleOpenFileDialog = useCallback(() => {
+    fileInputRef.current?.click();
+  }, []);
+
+  const initialMessage =
+    messages.length === 0
+      ? t("learn.aiChat.initialMessage", { itemTitle })
+      : null;
 
   return (
     <>
@@ -34,7 +152,9 @@ export function AIChatSidebar() {
             <div className="flex items-center gap-2">
               <div className="relative">
                 <Sparkles className="text-primary size-5" />
-                <span className="bg-primary absolute -top-0.5 -right-0.5 size-2 animate-pulse rounded-full" />
+                {isStreaming && (
+                  <span className="bg-primary absolute -top-0.5 -right-0.5 size-2 animate-pulse rounded-full" />
+                )}
               </div>
               <span className="whitespace-nowrap font-semibold">
                 {t("learn.aiAssistant")}
@@ -52,25 +172,95 @@ export function AIChatSidebar() {
           </div>
         </DualSidebarHeader>
 
-        <DualSidebarContent>
-          <ScrollArea className="flex-1">
-            <div className="flex h-full min-h-[200px] items-center justify-center p-4">
-              <p className="text-muted-foreground text-center text-sm">
-                {t("learn.aiChatEmpty")}
-              </p>
-            </div>
-          </ScrollArea>
+        <DualSidebarContent className="flex flex-col">
+          <Conversation className="flex-1">
+            <ConversationContent className="gap-4">
+              {initialMessage && (
+                <Message from="assistant">
+                  <MessageContent>
+                    <MessageResponse>{initialMessage}</MessageResponse>
+                  </MessageContent>
+                </Message>
+              )}
+
+              {messages.map((message) => (
+                <Message key={message.id} from={message.role}>
+                  {message.attachments && message.attachments.length > 0 && (
+                    <MessageAttachments>
+                      {message.attachments.map((att, i) => (
+                        <MessageAttachment
+                          key={i}
+                          data={{
+                            type: "file",
+                            url: att.data,
+                            mediaType: att.mimeType,
+                          }}
+                        />
+                      ))}
+                    </MessageAttachments>
+                  )}
+                  <MessageContent>
+                    <MessageResponse>{message.content}</MessageResponse>
+                  </MessageContent>
+                </Message>
+              ))}
+
+              {toolInvocations.length > 0 && (
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  {toolInvocations.every((t) => t.state === "completed") ? (
+                    <CheckCircle className="size-3 text-green-600" />
+                  ) : (
+                    <Loader size={12} />
+                  )}
+                  <span>
+                    {toolInvocations.every((t) => t.state === "completed")
+                      ? `Used ${toolInvocations.length} resource${toolInvocations.length > 1 ? "s" : ""}`
+                      : `Using ${toolInvocations.length} resource${toolInvocations.length > 1 ? "s" : ""}...`}
+                  </span>
+                </div>
+              )}
+
+              {isStreaming && toolInvocations.length === 0 && (
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Loader size={16} />
+                  <span className="text-sm">{t("learn.aiChat.thinking")}</span>
+                </div>
+              )}
+            </ConversationContent>
+            <ConversationScrollButton />
+          </Conversation>
         </DualSidebarContent>
 
         <DualSidebarFooter className="border-t">
-          <PromptInput onSubmit={handleSubmit}>
+          <PromptInput
+            onSubmit={handleSubmit}
+            accept="image/*"
+            multiple
+            maxFiles={3}
+          >
+            <PromptInputAttachments>
+              {(file) => <PromptInputAttachment data={file} />}
+            </PromptInputAttachments>
             <PromptInputTextarea
               placeholder={t("learn.aiChatPlaceholder")}
               className="min-h-12"
+              disabled={isStreaming}
             />
             <PromptInputFooter>
-              <div />
-              <PromptInputSubmit />
+              <PromptInputTools>
+                <PromptInputButton
+                  type="button"
+                  onClick={handleOpenFileDialog}
+                  disabled={isStreaming}
+                  aria-label={t("learn.aiChat.attachImage")}
+                >
+                  <ImagePlus className="size-4" />
+                </PromptInputButton>
+              </PromptInputTools>
+              <PromptInputSubmit
+                status={isStreaming ? "streaming" : undefined}
+                onClick={isStreaming ? cancel : undefined}
+              />
             </PromptInputFooter>
           </PromptInput>
         </DualSidebarFooter>

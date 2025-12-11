@@ -22,6 +22,7 @@ import {
 } from "@/lib/filters";
 import { uploadBase64ToS3, deleteFromS3, getPresignedUrl } from "@/lib/upload";
 import { generateEmbedding } from "@/lib/ai/embeddings";
+import { updateVideoTranscript } from "@/lib/ai/transcript";
 
 async function updateVideoEmbedding(videoId: string, title: string, description: string | null) {
   const text = `${title} ${description || ""}`.trim();
@@ -267,6 +268,10 @@ export const videosRoutes = new Elysia()
 
         updateVideoEmbedding(video.id, video.title, video.description ?? null).catch(() => {});
 
+        if (ctx.body.videoKey) {
+          updateVideoTranscript(video.id, ctx.body.videoKey).catch(() => {});
+        }
+
         return { video: withUrl(video) };
       }),
     {
@@ -346,6 +351,10 @@ export const videosRoutes = new Elysia()
             updatedVideo.title,
             updatedVideo.description ?? null
           ).catch(() => {});
+        }
+
+        if (ctx.body.videoKey && ctx.body.videoKey !== existingVideo.videoKey) {
+          updateVideoTranscript(updatedVideo.id, ctx.body.videoKey).catch(() => {});
         }
 
         return { video: withUrl(updatedVideo) };
@@ -496,6 +505,8 @@ export const videosRoutes = new Elysia()
           .set(updateData)
           .where(eq(videosTable.id, ctx.params.id))
           .returning();
+
+        updateVideoTranscript(updatedVideo.id, videoKey).catch(() => {});
 
         return { video: withUrl(updatedVideo) };
       }),

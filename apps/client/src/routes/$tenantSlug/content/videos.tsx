@@ -234,13 +234,16 @@ function VideosPage() {
       toast.error(t("ai.errors.noVideo"));
       return;
     }
-    analyzeVideoMutation.mutate(videoKey, {
-      onSuccess: (data) => {
-        form.setValue("title", data.title);
-        form.setValue("description", data.description);
-        toast.success(t("ai.analyzeSuccess"));
-      },
-    });
+    analyzeVideoMutation.mutate(
+      { videoKey, videoId: editVideo?.id },
+      {
+        onSuccess: (data) => {
+          form.setValue("title", data.title);
+          form.setValue("description", data.description);
+          toast.success(t("ai.analyzeSuccess"));
+        },
+      }
+    );
   }, [editVideo, pendingVideoKey, analyzeVideoMutation, form, t]);
 
   const isPending = createMutation.isPending || updateMutation.isPending;

@@ -1353,6 +1353,15 @@
     "closeAIChat": "Cerrar chat IA",
     "aiChatEmpty": "Haz preguntas sobre el contenido de este curso",
     "aiChatPlaceholder": "Haz una pregunta...",
+    "aiChat": {
+      "initialMessage": "Estas viendo \"{{itemTitle}}\". ¿En que te puedo ayudar?",
+      "thinking": "Pensando...",
+      "error": "Ocurrio un error. Intenta de nuevo.",
+      "contextError": "Error de contexto. Recarga la pagina.",
+      "networkError": "Error de conexion. Verifica tu internet.",
+      "notEnrolled": "Debes estar inscrito en el curso para usar el asistente.",
+      "attachImage": "Adjuntar imagen"
+    },
     "congratulations": "Felicitaciones!",
     "courseCompleted": "Has completado el curso \"{{title}}\"",
     "relatedCourses": "Cursos que te pueden interesar",

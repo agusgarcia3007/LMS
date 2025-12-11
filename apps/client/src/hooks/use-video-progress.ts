@@ -3,13 +3,20 @@ import { useUpdateProgress } from "@/services/learn";
 
 const SAVE_INTERVAL = 10;
 
-export function useVideoProgress(moduleItemId: string) {
+type UseVideoProgressOptions = {
+  moduleItemId: string;
+  isCompleted?: boolean;
+};
+
+export function useVideoProgress({ moduleItemId, isCompleted }: UseVideoProgressOptions) {
   const { mutate: saveProgress } = useUpdateProgress();
   const lastSavedRef = useRef(0);
   const hasMarkedInProgressRef = useRef(false);
 
   const handleTimeUpdate = useCallback(
     (currentTime: number) => {
+      if (isCompleted) return;
+
       if (!hasMarkedInProgressRef.current && currentTime > 0) {
         hasMarkedInProgressRef.current = true;
         saveProgress({
@@ -28,11 +35,13 @@ export function useVideoProgress(moduleItemId: string) {
         });
       }
     },
-    [moduleItemId, saveProgress]
+    [moduleItemId, saveProgress, isCompleted]
   );
 
   const handlePause = useCallback(
     (currentTime: number) => {
+      if (isCompleted) return;
+
       if (Math.floor(currentTime) !== Math.floor(lastSavedRef.current)) {
         lastSavedRef.current = currentTime;
         saveProgress({
@@ -41,7 +50,7 @@ export function useVideoProgress(moduleItemId: string) {
         });
       }
     },
-    [moduleItemId, saveProgress]
+    [moduleItemId, saveProgress, isCompleted]
   );
 
   const reset = useCallback(() => {

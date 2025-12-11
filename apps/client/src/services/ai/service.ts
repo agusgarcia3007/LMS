@@ -92,9 +92,10 @@ export const QUERY_KEYS = {
 } as const;
 
 export const AIService = {
-  async analyzeVideo(videoKey: string) {
+  async analyzeVideo(videoKey: string, videoId?: string) {
     const { data } = await http.post<AnalyzeVideoResponse>("/ai/videos/analyze", {
       videoKey,
+      videoId,
     });
     return data;
   },
