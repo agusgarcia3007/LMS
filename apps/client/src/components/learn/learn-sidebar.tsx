@@ -39,7 +39,7 @@ export function LearnSidebar({
 
       <aside
         className={cn(
-          "bg-muted/30 hidden flex-col border-r transition-all duration-300 ease-in-out lg:flex",
+          "bg-muted/30 relative hidden flex-col border-r transition-all duration-300 ease-in-out lg:flex",
           leftOpen ? "w-(--sidebar-width)" : "w-12"
         )}
       >
