@@ -43,8 +43,9 @@ function AuthLayout() {
 function TenantAuthLayout() {
   const { data } = useSuspenseQuery(campusTenantOptions());
   const tenant = data?.tenant;
-  const { customStyles } = useCustomTheme(tenant?.customTheme);
-  const themeClass = !tenant?.customTheme && tenant?.theme ? `theme-${tenant.theme}` : "";
+  const usePresetTheme = tenant?.theme !== null && tenant?.theme !== undefined;
+  const { customStyles } = useCustomTheme(usePresetTheme ? null : tenant?.customTheme);
+  const themeClass = usePresetTheme ? `theme-${tenant.theme}` : "";
 
   return (
     <div className={cn("flex min-h-screen items-center justify-center", themeClass)} style={customStyles}>

@@ -25,8 +25,9 @@ type CartSheetProps = {
 export function CartSheet({ customTheme, theme }: CartSheetProps) {
   const { t, i18n } = useTranslation();
   const { items, summary, itemCount, removeFromCart, isPending, checkout, isCheckingOut } = useCart();
-  const { customStyles } = useCustomTheme(customTheme);
-  const themeClass = !customTheme && theme ? `theme-${theme}` : "";
+  const usePresetTheme = theme !== null && theme !== undefined;
+  const { customStyles } = useCustomTheme(usePresetTheme ? null : customTheme);
+  const themeClass = usePresetTheme ? `theme-${theme}` : "";
 
   return (
     <Sheet>

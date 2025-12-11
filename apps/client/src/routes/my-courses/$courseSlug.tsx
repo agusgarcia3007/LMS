@@ -72,10 +72,10 @@ export const Route = createFileRoute("/my-courses/$courseSlug")({
 function LearnPageWrapper() {
   const { data: tenantData, isLoading: tenantLoading } = useCampusTenant();
   const tenant = tenantData?.tenant;
-  const { customStyles } = useCustomTheme(tenant?.customTheme);
+  const usePresetTheme = tenant?.theme !== null && tenant?.theme !== undefined;
+  const { customStyles } = useCustomTheme(usePresetTheme ? null : tenant?.customTheme);
 
-  const themeClass =
-    !tenant?.customTheme && tenant?.theme ? `theme-${tenant.theme}` : "";
+  const themeClass = usePresetTheme ? `theme-${tenant.theme}` : "";
 
   if (tenantLoading || !tenant) {
     return <PageSkeleton />;

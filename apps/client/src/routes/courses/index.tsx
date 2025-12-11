@@ -76,7 +76,8 @@ function CoursesPage() {
   });
 
   const tenant = tenantData?.tenant;
-  const { customStyles } = useCustomTheme(tenant?.customTheme);
+  const usePresetTheme = tenant?.theme !== null && tenant?.theme !== undefined;
+  const { customStyles } = useCustomTheme(usePresetTheme ? null : tenant?.customTheme);
 
   useSeo({
     title: tenant?.seoTitle
@@ -115,8 +116,7 @@ function CoursesPage() {
     setSelectedLevel(null);
   };
 
-  const themeClass =
-    !tenant.customTheme && tenant.theme ? `theme-${tenant.theme}` : "";
+  const themeClass = usePresetTheme ? `theme-${tenant.theme}` : "";
   const pattern: BackgroundPattern = tenant.coursesPagePattern || "grid";
 
   return (

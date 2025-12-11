@@ -106,7 +106,8 @@ function CampusHome() {
   const { data: statsData } = useCampusStats();
 
   const tenant = tenantData?.tenant;
-  const { customStyles } = useCustomTheme(tenant?.customTheme);
+  const usePresetTheme = tenant?.theme !== null && tenant?.theme !== undefined;
+  const { customStyles } = useCustomTheme(usePresetTheme ? null : tenant?.customTheme);
 
   useSeo({
     title: tenant?.seoTitle || tenant?.name,
@@ -131,8 +132,7 @@ function CampusHome() {
     return <CampusNotFound />;
   }
 
-  const themeClass =
-    !tenant.customTheme && tenant.theme ? `theme-${tenant.theme}` : "";
+  const themeClass = usePresetTheme ? `theme-${tenant.theme}` : "";
   const hasCourses = coursesData?.courses && coursesData.courses.length > 0;
 
   return (

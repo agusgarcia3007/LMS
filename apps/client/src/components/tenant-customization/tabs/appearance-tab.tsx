@@ -152,13 +152,13 @@ export function AppearanceTab({
       : THEME_PRESETS.default;
 
   useEffect(() => {
-    if (activePreviewTheme?.fontHeading) {
-      loadGoogleFont(activePreviewTheme.fontHeading);
-    }
-    if (activePreviewTheme?.fontBody && activePreviewTheme.fontBody !== activePreviewTheme.fontHeading) {
-      loadGoogleFont(activePreviewTheme.fontBody);
-    }
-  }, [activePreviewTheme?.fontHeading, activePreviewTheme?.fontBody]);
+    Object.values(THEME_PRESETS).forEach((preset) => {
+      if (preset.fontHeading) loadGoogleFont(preset.fontHeading);
+      if (preset.fontBody && preset.fontBody !== preset.fontHeading) {
+        loadGoogleFont(preset.fontBody);
+      }
+    });
+  }, []);
 
   return (
     <TabsContent value="appearance" className="space-y-6">

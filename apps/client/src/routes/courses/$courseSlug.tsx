@@ -88,7 +88,8 @@ function CourseDetailPage() {
     useCampusCourse(courseSlug);
 
   const tenant = tenantData?.tenant;
-  const { customStyles } = useCustomTheme(tenant?.customTheme);
+  const usePresetTheme = tenant?.theme !== null && tenant?.theme !== undefined;
+  const { customStyles } = useCustomTheme(usePresetTheme ? null : tenant?.customTheme);
 
   useEffect(() => {
     const tenantMode = tenant?.mode;
@@ -103,8 +104,7 @@ function CourseDetailPage() {
     return <PageSkeleton />;
   }
 
-  const themeClass =
-    !tenant.customTheme && tenant.theme ? `theme-${tenant.theme}` : "";
+  const themeClass = usePresetTheme ? `theme-${tenant.theme}` : "";
 
   if (courseLoading) {
     return (
