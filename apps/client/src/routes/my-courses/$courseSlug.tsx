@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useMemo } from "react";
+import { useEffect, useCallback, useMemo, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { BookOpen } from "lucide-react";
@@ -17,6 +17,7 @@ import { LearnLayoutProvider, useLearnLayout } from "@/components/learn/learn-la
 import { LearnSidebar } from "@/components/learn/learn-sidebar";
 import { LearnDrawer } from "@/components/learn/learn-drawer";
 import { AIChatSidebar } from "@/components/learn/ai-chat-sidebar";
+import { CourseCompletedView } from "@/components/learn/course-completed-view";
 import { ItemNavigation } from "@/components/learn";
 import { VideoContent } from "@/components/campus/content-viewer/video-content";
 import { DocumentContent } from "@/components/campus/content-viewer/document-content";
@@ -101,6 +102,7 @@ function LearnPage({ tenant }: LearnPageProps) {
   const { courseSlug } = Route.useParams();
   const { item: currentItemId } = Route.useSearch();
   const { leftOpenMobile, setLeftOpenMobile } = useLearnLayout();
+  const [isReviewing, setIsReviewing] = useState(false);
 
   const { data: structureData, isLoading: structureLoading } =
     useCourseStructure(courseSlug);
@@ -201,7 +203,19 @@ function LearnPage({ tenant }: LearnPageProps) {
     );
   }
 
-  const { enrollment, modules } = structureData;
+  const { enrollment, modules, course } = structureData;
+
+  if (enrollment.status === "completed" && !isReviewing) {
+    return (
+      <>
+        <CampusHeader tenant={tenant} />
+        <CourseCompletedView
+          course={course}
+          onReviewCourse={() => setIsReviewing(true)}
+        />
+      </>
+    );
+  }
 
   return (
     <>

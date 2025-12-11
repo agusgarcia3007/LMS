@@ -1587,6 +1587,11 @@
     "closeAIChat": "Close AI chat",
     "aiChatEmpty": "Ask questions about this course content",
     "aiChatPlaceholder": "Ask a question...",
+    "congratulations": "Congratulations!",
+    "courseCompleted": "You have completed the course \"{{title}}\"",
+    "relatedCourses": "Courses you might like",
+    "backToMyCourses": "Back to My Courses",
+    "reviewCourse": "Review Course",
     "errors": {
       "notFound": "Course not found",
       "notFoundDescription": "The course you're looking for doesn't exist or you're not enrolled."

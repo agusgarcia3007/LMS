@@ -96,10 +96,29 @@ export type CompleteItemResponse = {
   courseCompleted: boolean;
 };
 
+export type RelatedCourse = {
+  id: string;
+  slug: string;
+  title: string;
+  thumbnail: string | null;
+  shortDescription: string | null;
+  price: number;
+  currency: string;
+  instructor: {
+    name: string;
+    avatar: string | null;
+  } | null;
+};
+
+export type RelatedCoursesResponse = {
+  courses: RelatedCourse[];
+};
+
 export const QUERY_KEYS = {
   LEARN: ["learn"] as const,
   COURSE_STRUCTURE: (courseSlug: string) => ["learn", "structure", courseSlug] as const,
   ITEM_CONTENT: (itemId: string) => ["learn", "content", itemId] as const,
+  RELATED_COURSES: (courseSlug: string) => ["learn", "related", courseSlug] as const,
 } as const;
 
 export const LearnService = {
@@ -128,6 +147,13 @@ export const LearnService = {
   async completeItem(moduleItemId: string) {
     const { data } = await http.post<CompleteItemResponse>(
       `/learn/items/${moduleItemId}/complete`
+    );
+    return data;
+  },
+
+  async getRelatedCourses(courseSlug: string) {
+    const { data } = await http.get<RelatedCoursesResponse>(
+      `/learn/courses/${courseSlug}/related`
     );
     return data;
   },

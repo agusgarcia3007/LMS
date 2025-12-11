@@ -34,3 +34,11 @@ export const completeItemOptions = () =>
     mutationFn: (moduleItemId: string) =>
       LearnService.completeItem(moduleItemId),
   });
+
+export const relatedCoursesOptions = (courseSlug: string) =>
+  queryOptions({
+    queryKey: QUERY_KEYS.RELATED_COURSES(courseSlug),
+    queryFn: () => LearnService.getRelatedCourses(courseSlug),
+    enabled: !!courseSlug,
+    staleTime: 5 * 60 * 1000,
+  });

@@ -16,8 +16,9 @@ import {
   quizzesTable,
   quizQuestionsTable,
   quizOptionsTable,
+  instructorsTable,
 } from "@/db/schema";
-import { eq, and, count, inArray, asc, sql } from "drizzle-orm";
+import { eq, and, count, inArray, asc, sql, ne, notInArray } from "drizzle-orm";
 
 type ItemProgressStatus = "not_started" | "in_progress" | "completed";
 
@@ -588,6 +589,102 @@ export const learnRoutes = new Elysia({ name: "learn" })
       detail: {
         tags: ["Learn"],
         summary: "Mark item as complete",
+      },
+    }
+  )
+  .get(
+    "/courses/:courseSlug/related",
+    (ctx) =>
+      withHandler(ctx, async () => {
+        if (!ctx.user) {
+          throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
+        }
+        if (!ctx.user.tenantId) {
+          throw new AppError(ErrorCode.TENANT_NOT_FOUND, "User has no tenant", 404);
+        }
+
+        const [[course], userEnrollments] = await Promise.all([
+          db
+            .select({
+              id: coursesTable.id,
+              categoryId: coursesTable.categoryId,
+            })
+            .from(coursesTable)
+            .where(
+              and(
+                eq(coursesTable.slug, ctx.params.courseSlug),
+                eq(coursesTable.tenantId, ctx.user.tenantId)
+              )
+            )
+            .limit(1),
+          db
+            .select({ courseId: enrollmentsTable.courseId })
+            .from(enrollmentsTable)
+            .where(eq(enrollmentsTable.userId, ctx.user.id)),
+        ]);
+
+        if (!course) {
+          throw new AppError(ErrorCode.NOT_FOUND, "Course not found", 404);
+        }
+
+        if (!course.categoryId) {
+          return { courses: [] };
+        }
+
+        const enrolledCourseIds = userEnrollments.map((e) => e.courseId);
+
+        const relatedCourses = await db
+          .select({
+            id: coursesTable.id,
+            slug: coursesTable.slug,
+            title: coursesTable.title,
+            thumbnail: coursesTable.thumbnail,
+            shortDescription: coursesTable.shortDescription,
+            price: coursesTable.price,
+            currency: coursesTable.currency,
+            instructorName: instructorsTable.name,
+            instructorAvatar: instructorsTable.avatar,
+          })
+          .from(coursesTable)
+          .leftJoin(instructorsTable, eq(coursesTable.instructorId, instructorsTable.id))
+          .where(
+            and(
+              eq(coursesTable.tenantId, ctx.user.tenantId),
+              eq(coursesTable.categoryId, course.categoryId),
+              eq(coursesTable.status, "published"),
+              ne(coursesTable.id, course.id),
+              enrolledCourseIds.length > 0
+                ? notInArray(coursesTable.id, enrolledCourseIds)
+                : sql`true`
+            )
+          )
+          .limit(4);
+
+        return {
+          courses: relatedCourses.map((c) => ({
+            id: c.id,
+            slug: c.slug,
+            title: c.title,
+            thumbnail: c.thumbnail ? getPresignedUrl(c.thumbnail) : null,
+            shortDescription: c.shortDescription,
+            price: c.price,
+            currency: c.currency,
+            instructor: c.instructorName
+              ? {
+                  name: c.instructorName,
+                  avatar: c.instructorAvatar ? getPresignedUrl(c.instructorAvatar) : null,
+                }
+              : null,
+          })),
+        };
+      }),
+    {
+      params: t.Object({
+        courseSlug: t.String(),
+      }),
+      detail: {
+        tags: ["Learn"],
+        summary: "Get related courses by category",
       },
     }
   );

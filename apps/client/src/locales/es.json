@@ -1350,6 +1350,11 @@
     "closeAIChat": "Cerrar chat IA",
     "aiChatEmpty": "Haz preguntas sobre el contenido de este curso",
     "aiChatPlaceholder": "Haz una pregunta...",
+    "congratulations": "Felicitaciones!",
+    "courseCompleted": "Has completado el curso \"{{title}}\"",
+    "relatedCourses": "Cursos que te pueden interesar",
+    "backToMyCourses": "Volver a Mis Cursos",
+    "reviewCourse": "Revisar Curso",
     "errors": {
       "notFound": "Curso no encontrado",
       "notFoundDescription": "El curso que buscas no existe o no estas inscrito."
