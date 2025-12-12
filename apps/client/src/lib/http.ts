@@ -10,12 +10,30 @@ const REDIRECT_PATH_KEY = "redirectPath";
 let isRefreshing = false;
 let refreshPromise: Promise<string | null> | null = null;
 
+const getBaseUrl = () => {
+  return import.meta.env.VITE_API_URL;
+};
+
 export const http = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: getBaseUrl(),
 });
 
 export const publicHttp = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: getBaseUrl(),
+});
+
+publicHttp.interceptors.request.use((config) => {
+  if (!isClient()) {
+    return config;
+  }
+
+  const { slug } = getTenantFromHost();
+  const tenantSlug = slug || getResolvedSlug();
+  if (tenantSlug) {
+    config.headers["X-Tenant-Slug"] = tenantSlug;
+  }
+
+  return config;
 });
 
 http.interceptors.request.use((config) => {

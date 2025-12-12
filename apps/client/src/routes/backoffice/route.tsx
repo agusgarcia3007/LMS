@@ -6,11 +6,8 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { profileOptions } from "@/services/profile/options";
 
 export const Route = createFileRoute("/backoffice")({
+  ssr: false,
   beforeLoad: async ({ context }) => {
-    if (typeof window === "undefined") {
-      return {};
-    }
-
     const { queryClient } = context;
 
     const token = localStorage.getItem("accessToken");

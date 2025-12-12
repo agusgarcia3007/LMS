@@ -42,6 +42,7 @@ const SplitText: React.FC<SplitTextProps> = ({
   const [fontsLoaded, setFontsLoaded] = useState<boolean>(false);
 
   useEffect(() => {
+    if (typeof document === 'undefined') return;
     const checkFonts = () => {
       if (document.fonts.status === 'loaded') {
         setFontsLoaded(true);

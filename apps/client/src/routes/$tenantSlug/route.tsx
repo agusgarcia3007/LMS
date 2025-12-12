@@ -11,12 +11,9 @@ import { profileOptions } from "@/services/profile/options";
 import { tenantOptions } from "@/services/tenants/options";
 
 export const Route = createFileRoute("/$tenantSlug")({
+  ssr: false,
   beforeLoad: async ({ context, params }) => {
     setResolvedSlug(params.tenantSlug);
-
-    if (typeof window === "undefined") {
-      return {};
-    }
 
     const { queryClient } = context;
 

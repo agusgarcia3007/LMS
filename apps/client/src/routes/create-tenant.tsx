@@ -33,11 +33,8 @@ const createTenantSchema = z.object({
 type CreateTenantInput = z.infer<typeof createTenantSchema>;
 
 export const Route = createFileRoute("/create-tenant")({
+  ssr: false,
   beforeLoad: async ({ context }) => {
-    if (typeof window === "undefined") {
-      return {};
-    }
-
     const token = localStorage.getItem("accessToken");
     if (!token) {
       throw redirect({ to: "/login" });

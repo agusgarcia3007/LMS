@@ -1,29 +1,23 @@
 import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { ArrowRight } from "lucide-react";
+import { lazy, Suspense } from "react";
 import { Button } from "@/components/ui/button";
-import Aurora from "@/components/Aurora";
 import GradientText from "@/components/GradientText";
 import { useTheme } from "@/components/ui/theme-provider";
+import { ClientOnly } from "@/components/ClientOnly";
+
+const Aurora = lazy(() => import("@/components/Aurora"));
 
 export function FinalCTA() {
   const { t } = useTranslation();
   const { theme } = useTheme();
-  const isDark = theme === "dark" || (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
-
-  const auroraColors = isDark
-    ? ["#8b5cf6", "#6366f1", "#3b82f6"]
-    : ["#c4b5fd", "#a5b4fc", "#93c5fd"];
 
   return (
     <section className="relative overflow-hidden bg-muted/50 py-24 md:py-32">
-      <div className="absolute inset-0 opacity-50">
-        <Aurora
-          colorStops={auroraColors}
-          amplitude={0.8}
-          speed={0.3}
-        />
-      </div>
+      <ClientOnly>
+        <AuroraBackground theme={theme} />
+      </ClientOnly>
 
       <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background" />
 
@@ -54,5 +48,25 @@ export function FinalCTA() {
         </p>
       </div>
     </section>
+  );
+}
+
+function AuroraBackground({ theme }: { theme: string }) {
+  const isDark = theme === "dark" || (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+
+  const auroraColors = isDark
+    ? ["#8b5cf6", "#6366f1", "#3b82f6"]
+    : ["#c4b5fd", "#a5b4fc", "#93c5fd"];
+
+  return (
+    <div className="absolute inset-0 opacity-50">
+      <Suspense fallback={null}>
+        <Aurora
+          colorStops={auroraColors}
+          amplitude={0.8}
+          speed={0.3}
+        />
+      </Suspense>
+    </div>
   );
 }

@@ -1,35 +1,28 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowRight, Play } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { lazy, Suspense } from "react";
 import { Button } from "@/components/ui/button";
 import SplitText from "@/components/SplitText";
 import ShinyText from "@/components/ShinyText";
-import Beams from "@/components/Beams";
 import { useTheme } from "@/components/ui/theme-provider";
+import { ClientOnly } from "@/components/ClientOnly";
+
+const Beams = lazy(() => import("@/components/Beams"));
 
 export function LandingHeroV2() {
   const { t } = useTranslation();
   const { theme } = useTheme();
-  const isDark = theme === "dark" || (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
 
   return (
     <section className="relative min-h-screen overflow-hidden bg-background">
-      {isDark ? (
-        <div className="absolute inset-0">
-          <Beams
-            beamWidth={3}
-            beamHeight={20}
-            beamNumber={8}
-            lightColor="#8b5cf6"
-            speed={1.5}
-            noiseIntensity={1.5}
-            scale={0.2}
-            rotation={-15}
-          />
-        </div>
-      ) : (
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-violet-100 via-background to-background" />
-      )}
+      <ClientOnly
+        fallback={
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-violet-100 via-background to-background" />
+        }
+      >
+        <BeamsBackground theme={theme} />
+      </ClientOnly>
 
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background/80" />
 
@@ -99,5 +92,32 @@ export function LandingHeroV2() {
 
       <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
     </section>
+  );
+}
+
+function BeamsBackground({ theme }: { theme: string }) {
+  const isDark = theme === "dark" || (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+
+  if (!isDark) {
+    return (
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-violet-100 via-background to-background" />
+    );
+  }
+
+  return (
+    <div className="absolute inset-0">
+      <Suspense fallback={null}>
+        <Beams
+          beamWidth={3}
+          beamHeight={20}
+          beamNumber={8}
+          lightColor="#8b5cf6"
+          speed={1.5}
+          noiseIntensity={1.5}
+          scale={0.2}
+          rotation={-15}
+        />
+      </Suspense>
+    </div>
   );
 }

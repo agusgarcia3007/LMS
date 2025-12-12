@@ -1,26 +1,33 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import Beams from "@/components/Beams";
+import { lazy, Suspense } from "react";
 import { Button } from "@/components/ui/button";
+import { ClientOnly } from "@/components/ClientOnly";
+
+const Beams = lazy(() => import("@/components/Beams"));
 
 export function LandingHero() {
   const { t } = useTranslation();
 
   return (
     <section className="relative min-h-screen overflow-hidden">
-      <div className="absolute inset-0">
-        <Beams
-          beamWidth={1.5}
-          beamHeight={20}
-          beamNumber={14}
-          lightColor="#8b5cf6"
-          speed={1.5}
-          noiseIntensity={1.5}
-          scale={0.15}
-          rotation={-15}
-        />
-      </div>
+      <ClientOnly>
+        <div className="absolute inset-0">
+          <Suspense fallback={null}>
+            <Beams
+              beamWidth={1.5}
+              beamHeight={20}
+              beamNumber={14}
+              lightColor="#8b5cf6"
+              speed={1.5}
+              noiseIntensity={1.5}
+              scale={0.15}
+              rotation={-15}
+            />
+          </Suspense>
+        </div>
+      </ClientOnly>
 
       <div className="relative z-10 flex min-h-screen items-center">
         <div className="mx-auto max-w-6xl px-6 py-32">

@@ -1,4 +1,4 @@
-import { http } from "@/lib/http";
+import { publicHttp } from "@/lib/http";
 import type { TenantTheme, TenantMode, BackgroundPattern, CustomTheme } from "@/services/tenants/service";
 import type { PaginationResult } from "@/types/pagination";
 
@@ -127,12 +127,12 @@ export const QUERY_KEYS = {
 
 export const CampusService = {
   async getTenant() {
-    const { data } = await http.get<{ tenant: CampusTenant }>("/campus/tenant");
+    const { data } = await publicHttp.get<{ tenant: CampusTenant }>("/campus/tenant");
     return data;
   },
 
   async resolveTenant(hostname: string) {
-    const { data } = await http.get<{ tenant: CampusTenant }>(
+    const { data } = await publicHttp.get<{ tenant: CampusTenant }>(
       `/campus/resolve?hostname=${encodeURIComponent(hostname)}`
     );
     return data;
@@ -148,27 +148,27 @@ export const CampusService = {
 
     const query = searchParams.toString();
     const url = query ? `/campus/courses?${query}` : "/campus/courses";
-    const { data } = await http.get<CoursesListResponse>(url);
+    const { data } = await publicHttp.get<CoursesListResponse>(url);
     return data;
   },
 
   async getCourse(slug: string) {
-    const { data } = await http.get<{ course: CampusCourseDetail }>(`/campus/courses/${slug}`);
+    const { data } = await publicHttp.get<{ course: CampusCourseDetail }>(`/campus/courses/${slug}`);
     return data;
   },
 
   async getCategories() {
-    const { data } = await http.get<{ categories: CampusCategory[] }>("/campus/categories");
+    const { data } = await publicHttp.get<{ categories: CampusCategory[] }>("/campus/categories");
     return data;
   },
 
   async getStats() {
-    const { data } = await http.get<{ stats: CampusStats }>("/campus/stats");
+    const { data } = await publicHttp.get<{ stats: CampusStats }>("/campus/stats");
     return data;
   },
 
   async getModuleItems(moduleId: string) {
-    const { data } = await http.get<{ items: CampusModuleItem[] }>(
+    const { data } = await publicHttp.get<{ items: CampusModuleItem[] }>(
       `/campus/modules/${moduleId}/items`
     );
     return data;

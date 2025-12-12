@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 import { useTranslation } from "react-i18next";
 import { CampusHeader } from "@/components/campus/header";
 import { CampusFooter } from "@/components/campus/footer";
@@ -66,8 +66,23 @@ export const Route = createFileRoute("/")({
   }),
 });
 
+const subscribeToNothing = () => () => {};
+const getDevCampusSnapshot = () => {
+  if (!import.meta.env.DEV) return false;
+  if (typeof window === "undefined") return false;
+  return new URL(window.location.href).searchParams.has("campus");
+};
+const getServerSnapshot = () => false;
+
 function RouteComponent() {
-  const { isCampus } = Route.useRouteContext();
+  const { isCampus: contextIsCampus } = Route.useRouteContext();
+  const hasDevCampusParam = useSyncExternalStore(
+    subscribeToNothing,
+    getDevCampusSnapshot,
+    getServerSnapshot
+  );
+
+  const isCampus = contextIsCampus || hasDevCampusParam;
 
   if (isCampus) {
     return <CampusHome />;

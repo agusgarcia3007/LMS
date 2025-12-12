@@ -6,7 +6,6 @@ type TenantInfo = {
 
 const RESERVED_SUBDOMAINS = ["www", "api", "admin", "app"];
 const BASE_DOMAIN = import.meta.env.VITE_BASE_DOMAIN || "learnbase.lat";
-
 let resolvedCustomDomainSlug: string | null = null;
 
 export function setResolvedSlug(slug: string): void {
@@ -22,9 +21,14 @@ function isOurDomain(hostname: string): boolean {
 }
 
 export function getTenantFromHost(): TenantInfo {
+  if (typeof window === "undefined") {
+    return { slug: null, isCampus: false, isCustomDomain: false };
+  }
+
   if (import.meta.env.DEV) {
     const url = new URL(window.location.href);
     const campusSlug = url.searchParams.get("campus");
+
     if (campusSlug) {
       return { slug: campusSlug, isCampus: true, isCustomDomain: false };
     }
