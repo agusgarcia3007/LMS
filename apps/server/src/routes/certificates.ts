@@ -6,7 +6,6 @@ import { db } from "@/db";
 import {
   certificatesTable,
   coursesTable,
-  enrollmentsTable,
   tenantsTable,
 } from "@/db/schema";
 import { eq, and, desc } from "drizzle-orm";
