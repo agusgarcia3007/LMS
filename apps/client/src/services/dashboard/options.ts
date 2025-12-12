@@ -7,6 +7,8 @@ import {
   type BackofficeInstructorsListParams,
   type BackofficeVideosListParams,
   type BackofficeDocumentsListParams,
+  type BackofficeEnrollmentsListParams,
+  type BackofficeCertificatesListParams,
 } from "./service";
 
 export const dashboardStatsOptions = queryOptions({
@@ -62,4 +64,20 @@ export const backofficeDocumentsOptions = (
   queryOptions({
     queryFn: () => DashboardService.getDocuments(params),
     queryKey: QUERY_KEYS.DOCUMENTS(params),
+  });
+
+export const backofficeEnrollmentsOptions = (
+  params: BackofficeEnrollmentsListParams = {}
+) =>
+  queryOptions({
+    queryFn: () => DashboardService.getEnrollments(params),
+    queryKey: QUERY_KEYS.ENROLLMENTS(params),
+  });
+
+export const backofficeCertificatesOptions = (
+  params: BackofficeCertificatesListParams = {}
+) =>
+  queryOptions({
+    queryFn: () => DashboardService.getCertificates(params),
+    queryKey: QUERY_KEYS.CERTIFICATES(params),
   });

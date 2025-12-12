@@ -925,7 +925,10 @@
       "categories": "Categorias",
       "instructors": "Instructores",
       "videos": "Videos",
-      "documents": "Documentos"
+      "documents": "Documentos",
+      "learning": "Aprendizaje",
+      "enrollments": "Inscripciones",
+      "certificates": "Certificados"
     },
     "dashboard": {
       "title": "Panel de control",
@@ -1102,6 +1105,62 @@
       "empty": {
         "title": "No hay documentos",
         "description": "No se encontraron documentos con los filtros actuales"
+      }
+    },
+    "enrollments": {
+      "title": "Gestion de inscripciones",
+      "description": "Administra todas las inscripciones de todas las organizaciones",
+      "columns": {
+        "user": "Usuario",
+        "course": "Curso",
+        "tenant": "Organizacion",
+        "progress": "Progreso",
+        "status": "Estado",
+        "enrolledAt": "Fecha de inscripcion"
+      },
+      "filters": {
+        "status": "Estado",
+        "tenant": "Organizacion",
+        "tenantPlaceholder": "Buscar organizacion...",
+        "enrolledAt": "Fecha de inscripcion"
+      },
+      "statuses": {
+        "active": "Activa",
+        "completed": "Completada",
+        "cancelled": "Cancelada"
+      },
+      "actions": {
+        "viewInTenant": "Ver en organizacion"
+      },
+      "empty": {
+        "title": "No hay inscripciones",
+        "description": "No se encontraron inscripciones con los filtros actuales"
+      }
+    },
+    "certificates": {
+      "title": "Gestion de certificados",
+      "description": "Administra todos los certificados de todas las organizaciones",
+      "columns": {
+        "userName": "Usuario",
+        "courseName": "Curso",
+        "tenant": "Organizacion",
+        "verificationCode": "Codigo de verificacion",
+        "issuedAt": "Fecha de emision"
+      },
+      "filters": {
+        "tenant": "Organizacion",
+        "tenantPlaceholder": "Buscar organizacion...",
+        "issuedAt": "Fecha de emision"
+      },
+      "actions": {
+        "verifyCertificate": "Verificar certificado",
+        "viewImage": "Ver imagen del certificado",
+        "viewInTenant": "Ver en organizacion",
+        "codeCopied": "Codigo de verificacion copiado"
+      },
+      "empty": {
+        "title": "No hay certificados",
+        "description": "No se encontraron certificados con los filtros actuales"
       }
     }
   },

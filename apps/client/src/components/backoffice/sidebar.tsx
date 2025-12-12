@@ -1,6 +1,8 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useEffect, useMemo } from "react";
 import {
+  Award,
+  BookOpen,
   Building2,
   ChevronsUpDown,
   FileText,
@@ -110,6 +112,23 @@ export function BackofficeSidebar({ user }: BackofficeSidebarProps) {
             url: "/backoffice/documents",
             icon: FileText,
             isActive: currentPath === "/backoffice/documents",
+          },
+        ],
+      },
+      {
+        title: t("backoffice.sidebar.learning"),
+        items: [
+          {
+            title: t("backoffice.sidebar.enrollments"),
+            url: "/backoffice/enrollments",
+            icon: BookOpen,
+            isActive: currentPath === "/backoffice/enrollments",
+          },
+          {
+            title: t("backoffice.sidebar.certificates"),
+            url: "/backoffice/certificates",
+            icon: Award,
+            isActive: currentPath === "/backoffice/certificates",
           },
         ],
       },

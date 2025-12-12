@@ -28,7 +28,9 @@ import { Route as BackofficeVideosRouteImport } from './routes/backoffice/videos
 import { Route as BackofficeUsersRouteImport } from './routes/backoffice/users'
 import { Route as BackofficeTenantsRouteImport } from './routes/backoffice/tenants'
 import { Route as BackofficeInstructorsRouteImport } from './routes/backoffice/instructors'
+import { Route as BackofficeEnrollmentsRouteImport } from './routes/backoffice/enrollments'
 import { Route as BackofficeDocumentsRouteImport } from './routes/backoffice/documents'
+import { Route as BackofficeCertificatesRouteImport } from './routes/backoffice/certificates'
 import { Route as BackofficeCategoriesRouteImport } from './routes/backoffice/categories'
 import { Route as _authSignupRouteImport } from './routes/__auth/signup'
 import { Route as _authResetPasswordRouteImport } from './routes/__auth/reset-password'
@@ -142,9 +144,19 @@ const BackofficeInstructorsRoute = BackofficeInstructorsRouteImport.update({
   path: '/instructors',
   getParentRoute: () => BackofficeRouteRoute,
 } as any)
+const BackofficeEnrollmentsRoute = BackofficeEnrollmentsRouteImport.update({
+  id: '/enrollments',
+  path: '/enrollments',
+  getParentRoute: () => BackofficeRouteRoute,
+} as any)
 const BackofficeDocumentsRoute = BackofficeDocumentsRouteImport.update({
   id: '/documents',
   path: '/documents',
+  getParentRoute: () => BackofficeRouteRoute,
+} as any)
+const BackofficeCertificatesRoute = BackofficeCertificatesRouteImport.update({
+  id: '/certificates',
+  path: '/certificates',
   getParentRoute: () => BackofficeRouteRoute,
 } as any)
 const BackofficeCategoriesRoute = BackofficeCategoriesRouteImport.update({
@@ -263,7 +275,9 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof _authResetPasswordRoute
   '/signup': typeof _authSignupRoute
   '/backoffice/categories': typeof BackofficeCategoriesRoute
+  '/backoffice/certificates': typeof BackofficeCertificatesRoute
   '/backoffice/documents': typeof BackofficeDocumentsRoute
+  '/backoffice/enrollments': typeof BackofficeEnrollmentsRoute
   '/backoffice/instructors': typeof BackofficeInstructorsRoute
   '/backoffice/tenants': typeof BackofficeTenantsRoute
   '/backoffice/users': typeof BackofficeUsersRoute
@@ -298,7 +312,9 @@ export interface FileRoutesByTo {
   '/reset-password': typeof _authResetPasswordRoute
   '/signup': typeof _authSignupRoute
   '/backoffice/categories': typeof BackofficeCategoriesRoute
+  '/backoffice/certificates': typeof BackofficeCertificatesRoute
   '/backoffice/documents': typeof BackofficeDocumentsRoute
+  '/backoffice/enrollments': typeof BackofficeEnrollmentsRoute
   '/backoffice/instructors': typeof BackofficeInstructorsRoute
   '/backoffice/tenants': typeof BackofficeTenantsRoute
   '/backoffice/users': typeof BackofficeUsersRoute
@@ -338,7 +354,9 @@ export interface FileRoutesById {
   '/__auth/reset-password': typeof _authResetPasswordRoute
   '/__auth/signup': typeof _authSignupRoute
   '/backoffice/categories': typeof BackofficeCategoriesRoute
+  '/backoffice/certificates': typeof BackofficeCertificatesRoute
   '/backoffice/documents': typeof BackofficeDocumentsRoute
+  '/backoffice/enrollments': typeof BackofficeEnrollmentsRoute
   '/backoffice/instructors': typeof BackofficeInstructorsRoute
   '/backoffice/tenants': typeof BackofficeTenantsRoute
   '/backoffice/users': typeof BackofficeUsersRoute
@@ -379,7 +397,9 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/signup'
     | '/backoffice/categories'
+    | '/backoffice/certificates'
     | '/backoffice/documents'
+    | '/backoffice/enrollments'
     | '/backoffice/instructors'
     | '/backoffice/tenants'
     | '/backoffice/users'
@@ -414,7 +434,9 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/signup'
     | '/backoffice/categories'
+    | '/backoffice/certificates'
     | '/backoffice/documents'
+    | '/backoffice/enrollments'
     | '/backoffice/instructors'
     | '/backoffice/tenants'
     | '/backoffice/users'
@@ -453,7 +475,9 @@ export interface FileRouteTypes {
     | '/__auth/reset-password'
     | '/__auth/signup'
     | '/backoffice/categories'
+    | '/backoffice/certificates'
     | '/backoffice/documents'
+    | '/backoffice/enrollments'
     | '/backoffice/instructors'
     | '/backoffice/tenants'
     | '/backoffice/users'
@@ -627,11 +651,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BackofficeInstructorsRouteImport
       parentRoute: typeof BackofficeRouteRoute
     }
+    '/backoffice/enrollments': {
+      id: '/backoffice/enrollments'
+      path: '/enrollments'
+      fullPath: '/backoffice/enrollments'
+      preLoaderRoute: typeof BackofficeEnrollmentsRouteImport
+      parentRoute: typeof BackofficeRouteRoute
+    }
     '/backoffice/documents': {
       id: '/backoffice/documents'
       path: '/documents'
       fullPath: '/backoffice/documents'
       preLoaderRoute: typeof BackofficeDocumentsRouteImport
+      parentRoute: typeof BackofficeRouteRoute
+    }
+    '/backoffice/certificates': {
+      id: '/backoffice/certificates'
+      path: '/certificates'
+      fullPath: '/backoffice/certificates'
+      preLoaderRoute: typeof BackofficeCertificatesRouteImport
       parentRoute: typeof BackofficeRouteRoute
     }
     '/backoffice/categories': {
@@ -833,7 +871,9 @@ const _authRouteRouteWithChildren = _authRouteRoute._addFileChildren(
 
 interface BackofficeRouteRouteChildren {
   BackofficeCategoriesRoute: typeof BackofficeCategoriesRoute
+  BackofficeCertificatesRoute: typeof BackofficeCertificatesRoute
   BackofficeDocumentsRoute: typeof BackofficeDocumentsRoute
+  BackofficeEnrollmentsRoute: typeof BackofficeEnrollmentsRoute
   BackofficeInstructorsRoute: typeof BackofficeInstructorsRoute
   BackofficeTenantsRoute: typeof BackofficeTenantsRoute
   BackofficeUsersRoute: typeof BackofficeUsersRoute
@@ -843,7 +883,9 @@ interface BackofficeRouteRouteChildren {
 
 const BackofficeRouteRouteChildren: BackofficeRouteRouteChildren = {
   BackofficeCategoriesRoute: BackofficeCategoriesRoute,
+  BackofficeCertificatesRoute: BackofficeCertificatesRoute,
   BackofficeDocumentsRoute: BackofficeDocumentsRoute,
+  BackofficeEnrollmentsRoute: BackofficeEnrollmentsRoute,
   BackofficeInstructorsRoute: BackofficeInstructorsRoute,
   BackofficeTenantsRoute: BackofficeTenantsRoute,
   BackofficeUsersRoute: BackofficeUsersRoute,

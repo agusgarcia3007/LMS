@@ -966,7 +966,10 @@
       "categories": "Categories",
       "instructors": "Instructors",
       "videos": "Videos",
-      "documents": "Documents"
+      "documents": "Documents",
+      "learning": "Learning",
+      "enrollments": "Enrollments",
+      "certificates": "Certificates"
     },
     "dashboard": {
       "title": "Dashboard",
@@ -1143,6 +1146,62 @@
       "empty": {
         "title": "No documents",
         "description": "No documents found with the current filters"
+      }
+    },
+    "enrollments": {
+      "title": "Enrollment management",
+      "description": "Manage all enrollments across organizations",
+      "columns": {
+        "user": "User",
+        "course": "Course",
+        "tenant": "Organization",
+        "progress": "Progress",
+        "status": "Status",
+        "enrolledAt": "Enrolled at"
+      },
+      "filters": {
+        "status": "Status",
+        "tenant": "Organization",
+        "tenantPlaceholder": "Search organization...",
+        "enrolledAt": "Enrolled at"
+      },
+      "statuses": {
+        "active": "Active",
+        "completed": "Completed",
+        "cancelled": "Cancelled"
+      },
+      "actions": {
+        "viewInTenant": "View in organization"
+      },
+      "empty": {
+        "title": "No enrollments",
+        "description": "No enrollments found with the current filters"
+      }
+    },
+    "certificates": {
+      "title": "Certificate management",
+      "description": "Manage all certificates across organizations",
+      "columns": {
+        "userName": "User",
+        "courseName": "Course",
+        "tenant": "Organization",
+        "verificationCode": "Verification Code",
+        "issuedAt": "Issued at"
+      },
+      "filters": {
+        "tenant": "Organization",
+        "tenantPlaceholder": "Search organization...",
+        "issuedAt": "Issued at"
+      },
+      "actions": {
+        "verifyCertificate": "Verify certificate",
+        "viewImage": "View certificate image",
+        "viewInTenant": "View in organization",
+        "codeCopied": "Verification code copied"
+      },
+      "empty": {
+        "title": "No certificates",
+        "description": "No certificates found with the current filters"
       }
     }
   },

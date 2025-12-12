@@ -162,6 +162,68 @@ export type BackofficeVideosListParams = {
 
 export type BackofficeDocumentsListParams = BackofficeVideosListParams;
 
+export type EnrollmentStatus = "active" | "completed" | "cancelled";
+
+export type UserRef = {
+  id: string;
+  name: string | null;
+  email: string | null;
+};
+
+export type CourseRef = {
+  id: string;
+  title: string | null;
+};
+
+export type BackofficeEnrollment = {
+  id: string;
+  userId: string | null;
+  user: UserRef | null;
+  courseId: string | null;
+  course: CourseRef | null;
+  tenantId: string | null;
+  tenant: TenantRef | null;
+  status: EnrollmentStatus;
+  progress: number;
+  completedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type BackofficeCertificate = {
+  id: string;
+  verificationCode: string;
+  imageKey: string | null;
+  imageUrl: string | null;
+  userName: string;
+  courseName: string;
+  userId: string;
+  courseId: string;
+  tenantId: string | null;
+  tenant: TenantRef | null;
+  issuedAt: string;
+  createdAt: string;
+};
+
+export type BackofficeEnrollmentsListParams = {
+  page?: number;
+  limit?: number;
+  sort?: string;
+  search?: string;
+  tenantId?: string;
+  status?: EnrollmentStatus;
+  createdAt?: string;
+};
+
+export type BackofficeCertificatesListParams = {
+  page?: number;
+  limit?: number;
+  sort?: string;
+  search?: string;
+  tenantId?: string;
+  issuedAt?: string;
+};
+
 export type PaginationInfo = {
   page: number;
   limit: number;
@@ -192,6 +254,16 @@ export const QUERY_KEYS = {
   DOCUMENTS: (params: BackofficeDocumentsListParams) => [
     "backoffice",
     "documents",
+    params,
+  ],
+  ENROLLMENTS: (params: BackofficeEnrollmentsListParams) => [
+    "backoffice",
+    "enrollments",
+    params,
+  ],
+  CERTIFICATES: (params: BackofficeCertificatesListParams) => [
+    "backoffice",
+    "certificates",
     params,
   ],
 } as const;
@@ -292,6 +364,41 @@ export const DashboardService = {
       documents: BackofficeDocument[];
       pagination: PaginationInfo;
     }>(`/backoffice/documents${query ? `?${query}` : ""}`);
+    return data;
+  },
+
+  async getEnrollments(params: BackofficeEnrollmentsListParams = {}) {
+    const searchParams = new URLSearchParams();
+    if (params.page) searchParams.set("page", String(params.page));
+    if (params.limit) searchParams.set("limit", String(params.limit));
+    if (params.sort) searchParams.set("sort", params.sort);
+    if (params.search) searchParams.set("search", params.search);
+    if (params.tenantId) searchParams.set("tenantId", params.tenantId);
+    if (params.status) searchParams.set("status", params.status);
+    if (params.createdAt) searchParams.set("createdAt", params.createdAt);
+
+    const query = searchParams.toString();
+    const { data } = await http.get<{
+      enrollments: BackofficeEnrollment[];
+      pagination: PaginationInfo;
+    }>(`/backoffice/enrollments${query ? `?${query}` : ""}`);
+    return data;
+  },
+
+  async getCertificates(params: BackofficeCertificatesListParams = {}) {
+    const searchParams = new URLSearchParams();
+    if (params.page) searchParams.set("page", String(params.page));
+    if (params.limit) searchParams.set("limit", String(params.limit));
+    if (params.sort) searchParams.set("sort", params.sort);
+    if (params.search) searchParams.set("search", params.search);
+    if (params.tenantId) searchParams.set("tenantId", params.tenantId);
+    if (params.issuedAt) searchParams.set("issuedAt", params.issuedAt);
+
+    const query = searchParams.toString();
+    const { data } = await http.get<{
+      certificates: BackofficeCertificate[];
+      pagination: PaginationInfo;
+    }>(`/backoffice/certificates${query ? `?${query}` : ""}`);
     return data;
   },
 } as const;

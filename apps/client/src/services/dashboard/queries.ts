@@ -8,6 +8,8 @@ import {
   backofficeInstructorsOptions,
   backofficeVideosOptions,
   backofficeDocumentsOptions,
+  backofficeEnrollmentsOptions,
+  backofficeCertificatesOptions,
 } from "./options";
 import type {
   TrendPeriod,
@@ -15,6 +17,8 @@ import type {
   BackofficeInstructorsListParams,
   BackofficeVideosListParams,
   BackofficeDocumentsListParams,
+  BackofficeEnrollmentsListParams,
+  BackofficeCertificatesListParams,
 } from "./service";
 
 export const useGetDashboardStats = () => useQuery(dashboardStatsOptions);
@@ -43,3 +47,11 @@ export const useGetBackofficeVideos = (
 export const useGetBackofficeDocuments = (
   params: BackofficeDocumentsListParams = {}
 ) => useQuery(backofficeDocumentsOptions(params));
+
+export const useGetBackofficeEnrollments = (
+  params: BackofficeEnrollmentsListParams = {}
+) => useQuery(backofficeEnrollmentsOptions(params));
+
+export const useGetBackofficeCertificates = (
+  params: BackofficeCertificatesListParams = {}
+) => useQuery(backofficeCertificatesOptions(params));

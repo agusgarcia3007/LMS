@@ -92,6 +92,34 @@ const documentSearchableFields: SearchableFields<typeof documentsTable> = [
 
 const documentDateFields: DateFields = new Set(["createdAt"]);
 
+const enrollmentFieldMap: FieldMap<typeof enrollmentsTable> = {
+  id: enrollmentsTable.id,
+  status: enrollmentsTable.status,
+  progress: enrollmentsTable.progress,
+  createdAt: enrollmentsTable.createdAt,
+  updatedAt: enrollmentsTable.updatedAt,
+  completedAt: enrollmentsTable.completedAt,
+};
+
+const enrollmentDateFields: DateFields = new Set(["createdAt", "completedAt"]);
+
+const certificateFieldMap: FieldMap<typeof certificatesTable> = {
+  id: certificatesTable.id,
+  verificationCode: certificatesTable.verificationCode,
+  userName: certificatesTable.userName,
+  courseName: certificatesTable.courseName,
+  issuedAt: certificatesTable.issuedAt,
+  createdAt: certificatesTable.createdAt,
+};
+
+const certificateSearchableFields: SearchableFields<typeof certificatesTable> = [
+  certificatesTable.userName,
+  certificatesTable.courseName,
+  certificatesTable.verificationCode,
+];
+
+const certificateDateFields: DateFields = new Set(["issuedAt", "createdAt"]);
+
 function requireSuperadmin(ctx: { user: unknown; userRole: string | null }) {
   if (!ctx.user) {
     throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
@@ -860,6 +888,231 @@ export const backofficeRoutes = new Elysia()
       detail: {
         tags: ["Backoffice"],
         summary: "List all documents across tenants (superadmin only)",
+      },
+    }
+  )
+  .get(
+    "/enrollments",
+    (ctx) =>
+      withHandler(ctx, async () => {
+        requireSuperadmin(ctx);
+
+        const params = parseListParams(ctx.query);
+        const baseWhereClause = buildWhereClause(
+          params,
+          enrollmentFieldMap,
+          [],
+          enrollmentDateFields
+        );
+
+        const tenantFilter = ctx.query.tenantId
+          ? ilike(tenantsTable.name, `%${ctx.query.tenantId}%`)
+          : undefined;
+
+        const statusFilter = ctx.query.status
+          ? eq(enrollmentsTable.status, ctx.query.status as "active" | "completed" | "cancelled")
+          : undefined;
+
+        const filters = [baseWhereClause, tenantFilter, statusFilter].filter(
+          Boolean
+        );
+        const whereClause = filters.length > 0 ? and(...filters) : undefined;
+
+        const sortColumn = getSortColumn(params.sort, enrollmentFieldMap, {
+          field: "createdAt",
+          order: "desc",
+        });
+        const { limit, offset } = getPaginationParams(params.page, params.limit);
+
+        const baseQuery = db
+          .select({
+            id: enrollmentsTable.id,
+            userId: enrollmentsTable.userId,
+            userName: usersTable.name,
+            userEmail: usersTable.email,
+            courseId: enrollmentsTable.courseId,
+            courseTitle: coursesTable.title,
+            tenantId: enrollmentsTable.tenantId,
+            tenantName: tenantsTable.name,
+            tenantSlug: tenantsTable.slug,
+            status: enrollmentsTable.status,
+            progress: enrollmentsTable.progress,
+            completedAt: enrollmentsTable.completedAt,
+            createdAt: enrollmentsTable.createdAt,
+            updatedAt: enrollmentsTable.updatedAt,
+          })
+          .from(enrollmentsTable)
+          .leftJoin(usersTable, eq(enrollmentsTable.userId, usersTable.id))
+          .leftJoin(coursesTable, eq(enrollmentsTable.courseId, coursesTable.id))
+          .leftJoin(tenantsTable, eq(enrollmentsTable.tenantId, tenantsTable.id));
+
+        let query = baseQuery.$dynamic();
+        if (whereClause) {
+          query = query.where(whereClause);
+        }
+        if (sortColumn) {
+          query = query.orderBy(sortColumn);
+        }
+        query = query.limit(limit).offset(offset);
+
+        const countQuery = db
+          .select({ count: count() })
+          .from(enrollmentsTable)
+          .leftJoin(tenantsTable, eq(enrollmentsTable.tenantId, tenantsTable.id));
+
+        let countQueryDynamic = countQuery.$dynamic();
+        if (whereClause) {
+          countQueryDynamic = countQueryDynamic.where(whereClause);
+        }
+
+        const [enrollments, [{ count: total }]] = await Promise.all([
+          query,
+          countQueryDynamic,
+        ]);
+
+        return {
+          enrollments: enrollments.map((enrollment) => ({
+            ...enrollment,
+            user: enrollment.userId
+              ? {
+                  id: enrollment.userId,
+                  name: enrollment.userName,
+                  email: enrollment.userEmail,
+                }
+              : null,
+            course: enrollment.courseId
+              ? {
+                  id: enrollment.courseId,
+                  title: enrollment.courseTitle,
+                }
+              : null,
+            tenant: enrollment.tenantId
+              ? {
+                  id: enrollment.tenantId,
+                  name: enrollment.tenantName,
+                  slug: enrollment.tenantSlug,
+                }
+              : null,
+          })),
+          pagination: calculatePagination(total, params.page, params.limit),
+        };
+      }),
+    {
+      query: t.Object({
+        page: t.Optional(t.String()),
+        limit: t.Optional(t.String()),
+        sort: t.Optional(t.String()),
+        search: t.Optional(t.String()),
+        tenantId: t.Optional(t.String()),
+        status: t.Optional(t.String()),
+        createdAt: t.Optional(t.String()),
+      }),
+      detail: {
+        tags: ["Backoffice"],
+        summary: "List all enrollments across tenants (superadmin only)",
+      },
+    }
+  )
+  .get(
+    "/certificates",
+    (ctx) =>
+      withHandler(ctx, async () => {
+        requireSuperadmin(ctx);
+
+        const params = parseListParams(ctx.query);
+        const baseWhereClause = buildWhereClause(
+          params,
+          certificateFieldMap,
+          certificateSearchableFields,
+          certificateDateFields
+        );
+
+        const tenantFilter = ctx.query.tenantId
+          ? ilike(tenantsTable.name, `%${ctx.query.tenantId}%`)
+          : undefined;
+
+        const filters = [baseWhereClause, tenantFilter].filter(Boolean);
+        const whereClause = filters.length > 0 ? and(...filters) : undefined;
+
+        const sortColumn = getSortColumn(params.sort, certificateFieldMap, {
+          field: "issuedAt",
+          order: "desc",
+        });
+        const { limit, offset } = getPaginationParams(params.page, params.limit);
+
+        const baseQuery = db
+          .select({
+            id: certificatesTable.id,
+            verificationCode: certificatesTable.verificationCode,
+            imageKey: certificatesTable.imageKey,
+            userName: certificatesTable.userName,
+            courseName: certificatesTable.courseName,
+            userId: certificatesTable.userId,
+            courseId: certificatesTable.courseId,
+            tenantId: certificatesTable.tenantId,
+            tenantName: tenantsTable.name,
+            tenantSlug: tenantsTable.slug,
+            issuedAt: certificatesTable.issuedAt,
+            createdAt: certificatesTable.createdAt,
+          })
+          .from(certificatesTable)
+          .leftJoin(tenantsTable, eq(certificatesTable.tenantId, tenantsTable.id));
+
+        let query = baseQuery.$dynamic();
+        if (whereClause) {
+          query = query.where(whereClause);
+        }
+        if (sortColumn) {
+          query = query.orderBy(sortColumn);
+        }
+        query = query.limit(limit).offset(offset);
+
+        const countQuery = db
+          .select({ count: count() })
+          .from(certificatesTable)
+          .leftJoin(tenantsTable, eq(certificatesTable.tenantId, tenantsTable.id));
+
+        let countQueryDynamic = countQuery.$dynamic();
+        if (whereClause) {
+          countQueryDynamic = countQueryDynamic.where(whereClause);
+        }
+
+        const [certificates, [{ count: total }]] = await Promise.all([
+          query,
+          countQueryDynamic,
+        ]);
+
+        const certificatesWithUrls = await Promise.all(
+          certificates.map(async (cert) => ({
+            ...cert,
+            imageUrl: cert.imageKey ? await getPresignedUrl(cert.imageKey) : null,
+            tenant: cert.tenantId
+              ? {
+                  id: cert.tenantId,
+                  name: cert.tenantName,
+                  slug: cert.tenantSlug,
+                }
+              : null,
+          }))
+        );
+
+        return {
+          certificates: certificatesWithUrls,
+          pagination: calculatePagination(total, params.page, params.limit),
+        };
+      }),
+    {
+      query: t.Object({
+        page: t.Optional(t.String()),
+        limit: t.Optional(t.String()),
+        sort: t.Optional(t.String()),
+        search: t.Optional(t.String()),
+        tenantId: t.Optional(t.String()),
+        issuedAt: t.Optional(t.String()),
+      }),
+      detail: {
+        tags: ["Backoffice"],
+        summary: "List all certificates across tenants (superadmin only)",
       },
     }
   );
