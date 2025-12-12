@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { ClientOnly, Link } from "@tanstack/react-router";
 import { ArrowRight, Play } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { lazy, Suspense } from "react";
@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import SplitText from "@/components/SplitText";
 import ShinyText from "@/components/ShinyText";
 import { useTheme } from "@/components/ui/theme-provider";
-import { ClientOnly } from "@/components/ClientOnly";
 
 const Beams = lazy(() => import("@/components/Beams"));
 

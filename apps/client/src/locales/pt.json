@@ -50,13 +50,26 @@
     "search": "Buscar...",
     "searchButton": "Buscar",
     "noResults": "Nenhum resultado encontrado",
-    "noDataAvailable": "Nenhum dado disponível",
-    "rowsPerPage": "Linhas por página",
-    "page": "Página",
+    "noDataAvailable": "Nenhum dado disponivel",
+    "rowsPerPage": "Linhas por pagina",
+    "page": "Pagina",
     "of": "de",
     "showing": "{{from}} - {{to}} de {{total}}",
-    "previousPage": "Ir para a página anterior",
-    "nextPage": "Ir para a próxima página"
+    "previousPage": "Ir para a pagina anterior",
+    "nextPage": "Ir para a proxima pagina",
+    "bulk": {
+      "selected": "{{count}} selecionados",
+      "clearSelection": "Limpar",
+      "deleteSelected": "Excluir selecionados",
+      "changeStatus": "Alterar status"
+    },
+    "export": {
+      "button": "Exportar",
+      "csv": "Exportar para CSV",
+      "excel": "Exportar para Excel",
+      "selectedCsv": "Exportar {{count}} para CSV",
+      "selectedExcel": "Exportar {{count}} para Excel"
+    }
   },
   "filters": {
     "addFilter": "Adicionar filtro",
@@ -846,9 +859,30 @@
     },
     "dashboard": {
       "title": "Painel de controle",
-      "description": "Visao geral do sistema",
-      "totalUsers": "Total de usuarios",
-      "totalTenants": "Total de organizacoes"
+      "description": "Resumo de analiticas da plataforma",
+      "totalUsers": "Total Usuarios",
+      "totalTenants": "Organizacoes",
+      "totalCourses": "Total Cursos",
+      "totalEnrollments": "Inscricoes",
+      "totalRevenue": "Receita Total",
+      "activeUsers": "Usuarios Ativos (30d)",
+      "completionRate": "Taxa de Conclusao",
+      "certificates": "Certificados",
+      "vsLastPeriod": "vs periodo anterior",
+      "userGrowth": "Crescimento de Usuarios",
+      "enrollmentGrowth": "Crescimento de Inscricoes",
+      "topCourses": "Top Cursos",
+      "topTenants": "Top Organizacoes",
+      "enrolled": "inscritos",
+      "users": "usuarios",
+      "courses": "cursos",
+      "noCoursesYet": "Nenhum curso ainda",
+      "noTenantsYet": "Nenhuma organizacao ainda",
+      "period": {
+        "7d": "7 dias",
+        "30d": "30 dias",
+        "90d": "90 dias"
+      }
     },
     "users": {
       "title": "Gestao de usuarios",

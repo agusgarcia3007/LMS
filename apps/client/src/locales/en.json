@@ -55,7 +55,20 @@
     "of": "of",
     "showing": "{{from}} - {{to}} of {{total}}",
     "previousPage": "Go to previous page",
-    "nextPage": "Go to next page"
+    "nextPage": "Go to next page",
+    "bulk": {
+      "selected": "{{count}} selected",
+      "clearSelection": "Clear",
+      "deleteSelected": "Delete selected",
+      "changeStatus": "Change status"
+    },
+    "export": {
+      "button": "Export",
+      "csv": "Export to CSV",
+      "excel": "Export to Excel",
+      "selectedCsv": "Export {{count}} to CSV",
+      "selectedExcel": "Export {{count}} to Excel"
+    }
   },
   "filters": {
     "addFilter": "Add filter",
@@ -952,9 +965,30 @@
     },
     "dashboard": {
       "title": "Dashboard",
-      "description": "System overview",
-      "totalUsers": "Total users",
-      "totalTenants": "Total organizations"
+      "description": "Platform analytics overview",
+      "totalUsers": "Total Users",
+      "totalTenants": "Organizations",
+      "totalCourses": "Total Courses",
+      "totalEnrollments": "Enrollments",
+      "totalRevenue": "Total Revenue",
+      "activeUsers": "Active Users (30d)",
+      "completionRate": "Completion Rate",
+      "certificates": "Certificates",
+      "vsLastPeriod": "vs last period",
+      "userGrowth": "User Growth",
+      "enrollmentGrowth": "Enrollment Growth",
+      "topCourses": "Top Courses",
+      "topTenants": "Top Organizations",
+      "enrolled": "enrolled",
+      "users": "users",
+      "courses": "courses",
+      "noCoursesYet": "No courses yet",
+      "noTenantsYet": "No organizations yet",
+      "period": {
+        "7d": "7 days",
+        "30d": "30 days",
+        "90d": "90 days"
+      }
     },
     "users": {
       "title": "User management",

@@ -1,11 +1,10 @@
-import { Link } from "@tanstack/react-router";
+import { ClientOnly, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { ArrowRight } from "lucide-react";
 import { lazy, Suspense } from "react";
 import { Button } from "@/components/ui/button";
 import GradientText from "@/components/GradientText";
 import { useTheme } from "@/components/ui/theme-provider";
-import { ClientOnly } from "@/components/ClientOnly";
 
 const Aurora = lazy(() => import("@/components/Aurora"));
 

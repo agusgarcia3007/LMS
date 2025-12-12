@@ -1,9 +1,8 @@
-import { Link } from "@tanstack/react-router";
+import { ClientOnly, Link } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { lazy, Suspense } from "react";
 import { Button } from "@/components/ui/button";
-import { ClientOnly } from "@/components/ClientOnly";
 
 const Beams = lazy(() => import("@/components/Beams"));
 
