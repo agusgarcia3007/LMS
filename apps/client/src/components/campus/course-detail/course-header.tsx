@@ -36,11 +36,14 @@ export function CourseHeader({ course, pattern = "grid" }: CourseHeaderProps) {
       <div className="relative mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
         <div className="max-w-3xl">
           <div className="mb-4 flex flex-wrap items-center gap-2">
-            {course.categoryName && (
-              <Badge className="border-primary/30 bg-primary/10 text-primary hover:bg-primary/15">
-                {course.categoryName}
+            {course.categories?.map((cat) => (
+              <Badge
+                key={cat.slug}
+                className="border-primary/30 bg-primary/10 text-primary hover:bg-primary/15"
+              >
+                {cat.name}
               </Badge>
-            )}
+            ))}
             <Badge variant="outline" className="border-border">
               {t(`campus.course.levels.${course.level}`)}
             </Badge>

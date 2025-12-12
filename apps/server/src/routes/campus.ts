@@ -7,6 +7,7 @@ import { getPresignedUrl } from "@/lib/upload";
 import {
   coursesTable,
   courseModulesTable,
+  courseCategoriesTable,
   modulesTable,
   moduleItemsTable,
   categoriesTable,
@@ -127,19 +128,29 @@ export const campusRoutes = new Elysia({ name: "campus" })
         );
 
         if (category) {
-          const [categoryRecord] = await db
-            .select()
-            .from(categoriesTable)
-            .where(
-              and(
-                eq(categoriesTable.tenantId, ctx.tenant.id),
-                eq(categoriesTable.slug, category)
-              )
-            )
-            .limit(1);
+          const categorySlugs = category.split(",").filter(Boolean);
+          if (categorySlugs.length > 0) {
+            const categoryRecords = await db
+              .select({ id: categoriesTable.id })
+              .from(categoriesTable)
+              .where(
+                and(
+                  eq(categoriesTable.tenantId, ctx.tenant.id),
+                  inArray(categoriesTable.slug, categorySlugs)
+                )
+              );
 
-          if (categoryRecord) {
-            whereClause = and(whereClause, eq(coursesTable.categoryId, categoryRecord.id));
+            if (categoryRecords.length > 0) {
+              const categoryIds = categoryRecords.map((c) => c.id);
+              const courseIdsInCategories = db
+                .select({ courseId: courseCategoriesTable.courseId })
+                .from(courseCategoriesTable)
+                .where(inArray(courseCategoriesTable.categoryId, categoryIds));
+              whereClause = and(
+                whereClause,
+                inArray(coursesTable.id, courseIdsInCategories)
+              );
+            }
           }
         }
 
@@ -161,11 +172,9 @@ export const campusRoutes = new Elysia({ name: "campus" })
           .select({
             course: coursesTable,
             instructor: instructorsTable,
-            category: categoriesTable,
           })
           .from(coursesTable)
           .leftJoin(instructorsTable, eq(coursesTable.instructorId, instructorsTable.id))
-          .leftJoin(categoriesTable, eq(coursesTable.categoryId, categoriesTable.id))
           .where(whereClause)
           .orderBy(coursesTable.order)
           .limit(limitNum)
@@ -183,9 +192,9 @@ export const campusRoutes = new Elysia({ name: "campus" })
 
         const courseIds = coursesData.map((c) => c.course.id);
 
-        const modulesCounts =
+        const [modulesCounts, categoriesData] = await Promise.all([
           courseIds.length > 0
-            ? await db
+            ? db
                 .select({
                   courseId: courseModulesTable.courseId,
                   count: count(),
@@ -193,13 +202,38 @@ export const campusRoutes = new Elysia({ name: "campus" })
                 .from(courseModulesTable)
                 .where(inArray(courseModulesTable.courseId, courseIds))
                 .groupBy(courseModulesTable.courseId)
-            : [];
+            : [],
+          courseIds.length > 0
+            ? db
+                .select({
+                  courseId: courseCategoriesTable.courseId,
+                  slug: categoriesTable.slug,
+                  name: categoriesTable.name,
+                })
+                .from(courseCategoriesTable)
+                .innerJoin(
+                  categoriesTable,
+                  eq(courseCategoriesTable.categoryId, categoriesTable.id)
+                )
+                .where(inArray(courseCategoriesTable.courseId, courseIds))
+            : [],
+        ]);
 
         const modulesCountMap = new Map(
           modulesCounts.map((mc) => [mc.courseId, mc.count])
         );
 
-        const courses = coursesData.map(({ course, instructor, category }) => ({
+        const categoriesByCourse = new Map<
+          string,
+          Array<{ slug: string; name: string }>
+        >();
+        for (const cat of categoriesData) {
+          const existing = categoriesByCourse.get(cat.courseId) ?? [];
+          existing.push({ slug: cat.slug, name: cat.name });
+          categoriesByCourse.set(cat.courseId, existing);
+        }
+
+        const courses = coursesData.map(({ course, instructor }) => ({
           id: course.id,
           slug: course.slug,
           title: course.title,
@@ -220,8 +254,7 @@ export const campusRoutes = new Elysia({ name: "campus" })
           studentsCount: 0,
           rating: 0,
           reviewsCount: 0,
-          category: category?.slug || null,
-          categoryName: category?.name || null,
+          categories: categoriesByCourse.get(course.id) ?? [],
           instructor: instructor
             ? {
                 name: instructor.name,
@@ -265,11 +298,9 @@ export const campusRoutes = new Elysia({ name: "campus" })
         .select({
           course: coursesTable,
           instructor: instructorsTable,
-          category: categoriesTable,
         })
         .from(coursesTable)
         .leftJoin(instructorsTable, eq(coursesTable.instructorId, instructorsTable.id))
-        .leftJoin(categoriesTable, eq(coursesTable.categoryId, categoriesTable.id))
         .where(
           and(
             eq(coursesTable.tenantId, ctx.tenant.id),
@@ -283,7 +314,19 @@ export const campusRoutes = new Elysia({ name: "campus" })
         throw new AppError(ErrorCode.NOT_FOUND, "Course not found", 404);
       }
 
-      const { course, instructor, category } = result;
+      const { course, instructor } = result;
+
+      const courseCategories = await db
+        .select({
+          slug: categoriesTable.slug,
+          name: categoriesTable.name,
+        })
+        .from(courseCategoriesTable)
+        .innerJoin(
+          categoriesTable,
+          eq(courseCategoriesTable.categoryId, categoriesTable.id)
+        )
+        .where(eq(courseCategoriesTable.courseId, course.id));
 
       const courseModules = await db
         .select({
@@ -333,8 +376,7 @@ export const campusRoutes = new Elysia({ name: "campus" })
           studentsCount: 0,
           rating: 0,
           reviewsCount: 0,
-          category: category?.slug || null,
-          categoryName: category?.name || null,
+          categories: courseCategories,
           instructor: instructor
             ? {
                 name: instructor.name,

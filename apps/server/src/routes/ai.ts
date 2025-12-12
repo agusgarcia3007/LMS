@@ -1132,8 +1132,11 @@ The user tagged these courses with @. Use the courseId values below directly in 
 
 ${courseInfos.join("\n")}
 
-IMPORTANT: When calling updateCourse, getCourse, publishCourse, etc., use the courseId value exactly as shown above (copy it directly).
-Example: updateCourse({ courseId: "${contextCourses[0]?.id || "<id>"}", categoryId: "..." })
+IMPORTANT:
+- When calling updateCourse, getCourse, publishCourse, etc., use the courseId value exactly as shown above.
+- IGNORE any @mentions in the user's message text (like "@CourseName"). The actual course IDs are listed above.
+- NEVER ask the user for a UUID or course ID - you already have them here.
+- Example: updateCourse({ courseId: "${contextCourses[0]?.id || "<id>"}", categoryId: "..." })
 `;
         }
       }

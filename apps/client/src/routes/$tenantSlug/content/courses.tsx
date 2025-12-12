@@ -59,7 +59,7 @@ export const Route = createFileRoute("/$tenantSlug/content/courses")({
     search: (search.search as string) || undefined,
     status: (search.status as string) || undefined,
     level: (search.level as string) || undefined,
-    categoryId: (search.categoryId as string) || undefined,
+    categoryIds: (search.categoryIds as string) || undefined,
     edit: (search.edit as string) || undefined,
   }),
 });
@@ -96,7 +96,7 @@ function CoursesPage() {
     search: tableState.serverParams.search,
     status: tableState.serverParams.status as string | undefined,
     level: tableState.serverParams.level as string | undefined,
-    categoryId: tableState.serverParams.categoryId as string | undefined,
+    categoryIds: tableState.serverParams.categoryIds as string | undefined,
     createdAt: tableState.serverParams.createdAt as string | undefined,
   });
 
@@ -269,8 +269,8 @@ function CoursesPage() {
         },
       },
       {
-        accessorKey: "category",
-        id: "category",
+        accessorKey: "categories",
+        id: "categories",
         header: ({ column }) => (
           <DataGridColumnHeader
             title={t("courses.columns.category")}
@@ -278,18 +278,27 @@ function CoursesPage() {
           />
         ),
         cell: ({ row }) => {
-          const category = row.original.category;
-          if (!category) {
+          const categories = row.original.categories;
+          if (!categories?.length) {
             return <span className="text-muted-foreground">-</span>;
           }
           return (
-            <Badge variant="outline" size="sm" className="gap-1">
-              <FolderTree className="size-3" />
-              {category.name}
-            </Badge>
+            <div className="flex flex-wrap gap-1">
+              {categories.slice(0, 2).map((cat) => (
+                <Badge key={cat.id} variant="outline" size="sm" className="gap-1">
+                  <FolderTree className="size-3" />
+                  {cat.name}
+                </Badge>
+              ))}
+              {categories.length > 2 && (
+                <Badge variant="outline" size="sm">
+                  +{categories.length - 2}
+                </Badge>
+              )}
+            </div>
           );
         },
-        size: 150,
+        size: 200,
         enableSorting: false,
         meta: {
           headerTitle: t("courses.columns.category"),

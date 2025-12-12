@@ -8,6 +8,7 @@ import { getPresignedUrl } from "@/lib/upload";
 import {
   cartItemsTable,
   coursesTable,
+  courseCategoriesTable,
   instructorsTable,
   categoriesTable,
 } from "@/db/schema";
@@ -50,14 +51,9 @@ const publicCartRoutes = new Elysia()
               name: instructorsTable.name,
               avatar: instructorsTable.avatar,
             },
-            category: {
-              name: categoriesTable.name,
-              slug: categoriesTable.slug,
-            },
           })
           .from(coursesTable)
           .leftJoin(instructorsTable, eq(coursesTable.instructorId, instructorsTable.id))
-          .leftJoin(categoriesTable, eq(coursesTable.categoryId, categoriesTable.id))
           .where(
             and(
               inArray(coursesTable.id, courseIds),
@@ -65,6 +61,37 @@ const publicCartRoutes = new Elysia()
               eq(coursesTable.status, "published")
             )
           );
+
+        const categoriesData =
+          courses.length > 0
+            ? await db
+                .select({
+                  courseId: courseCategoriesTable.courseId,
+                  name: categoriesTable.name,
+                  slug: categoriesTable.slug,
+                })
+                .from(courseCategoriesTable)
+                .innerJoin(
+                  categoriesTable,
+                  eq(courseCategoriesTable.categoryId, categoriesTable.id)
+                )
+                .where(
+                  inArray(
+                    courseCategoriesTable.courseId,
+                    courses.map((c) => c.id)
+                  )
+                )
+            : [];
+
+        const categoriesByCourse = new Map<
+          string,
+          Array<{ name: string; slug: string }>
+        >();
+        for (const cat of categoriesData) {
+          const existing = categoriesByCourse.get(cat.courseId) ?? [];
+          existing.push({ name: cat.name, slug: cat.slug });
+          categoriesByCourse.set(cat.courseId, existing);
+        }
 
         const items = courses.map((course) => ({
           id: course.id,
@@ -79,7 +106,7 @@ const publicCartRoutes = new Elysia()
             originalPrice: course.originalPrice,
             currency: course.currency,
             instructor: course.instructor?.name ? course.instructor : null,
-            category: course.category?.name ? course.category : null,
+            categories: categoriesByCourse.get(course.id) ?? [],
           },
         }));
 
@@ -122,50 +149,72 @@ export const cartRoutes = new Elysia()
         }
 
         const cartItems = await db
-        .select({
-          id: cartItemsTable.id,
-          courseId: cartItemsTable.courseId,
-          createdAt: cartItemsTable.createdAt,
-          course: {
-            id: coursesTable.id,
-            slug: coursesTable.slug,
-            title: coursesTable.title,
-            thumbnail: coursesTable.thumbnail,
-            price: coursesTable.price,
-            originalPrice: coursesTable.originalPrice,
-            currency: coursesTable.currency,
-          },
-          instructor: {
-            name: instructorsTable.name,
-            avatar: instructorsTable.avatar,
-          },
-          category: {
-            name: categoriesTable.name,
-            slug: categoriesTable.slug,
-          },
-        })
-        .from(cartItemsTable)
-        .innerJoin(coursesTable, eq(cartItemsTable.courseId, coursesTable.id))
-        .leftJoin(instructorsTable, eq(coursesTable.instructorId, instructorsTable.id))
-        .leftJoin(categoriesTable, eq(coursesTable.categoryId, categoriesTable.id))
-        .where(
-          and(
-            eq(cartItemsTable.userId, ctx.user.id),
-            eq(cartItemsTable.tenantId, ctx.user.tenantId)
-          )
-        );
+          .select({
+            id: cartItemsTable.id,
+            courseId: cartItemsTable.courseId,
+            createdAt: cartItemsTable.createdAt,
+            course: {
+              id: coursesTable.id,
+              slug: coursesTable.slug,
+              title: coursesTable.title,
+              thumbnail: coursesTable.thumbnail,
+              price: coursesTable.price,
+              originalPrice: coursesTable.originalPrice,
+              currency: coursesTable.currency,
+            },
+            instructor: {
+              name: instructorsTable.name,
+              avatar: instructorsTable.avatar,
+            },
+          })
+          .from(cartItemsTable)
+          .innerJoin(coursesTable, eq(cartItemsTable.courseId, coursesTable.id))
+          .leftJoin(instructorsTable, eq(coursesTable.instructorId, instructorsTable.id))
+          .where(
+            and(
+              eq(cartItemsTable.userId, ctx.user.id),
+              eq(cartItemsTable.tenantId, ctx.user.tenantId)
+            )
+          );
 
-      const items = cartItems.map(({ id, courseId, createdAt, course, instructor, category }) => ({
-        id,
-        courseId,
-        createdAt,
-        course: {
-          ...course,
-          thumbnail: course.thumbnail ? getPresignedUrl(course.thumbnail) : null,
-          instructor: instructor?.name ? instructor : null,
-          category: category?.name ? category : null,
-        },
-      }));
+        const courseIds = cartItems.map((item) => item.courseId);
+        const categoriesData =
+          courseIds.length > 0
+            ? await db
+                .select({
+                  courseId: courseCategoriesTable.courseId,
+                  name: categoriesTable.name,
+                  slug: categoriesTable.slug,
+                })
+                .from(courseCategoriesTable)
+                .innerJoin(
+                  categoriesTable,
+                  eq(courseCategoriesTable.categoryId, categoriesTable.id)
+                )
+                .where(inArray(courseCategoriesTable.courseId, courseIds))
+            : [];
+
+        const categoriesByCourse = new Map<
+          string,
+          Array<{ name: string; slug: string }>
+        >();
+        for (const cat of categoriesData) {
+          const existing = categoriesByCourse.get(cat.courseId) ?? [];
+          existing.push({ name: cat.name, slug: cat.slug });
+          categoriesByCourse.set(cat.courseId, existing);
+        }
+
+        const items = cartItems.map(({ id, courseId, createdAt, course, instructor }) => ({
+          id,
+          courseId,
+          createdAt,
+          course: {
+            ...course,
+            thumbnail: course.thumbnail ? getPresignedUrl(course.thumbnail) : null,
+            instructor: instructor?.name ? instructor : null,
+            categories: categoriesByCourse.get(courseId) ?? [],
+          },
+        }));
 
       const total = items.reduce((sum, item) => sum + item.course.price, 0);
       const originalTotal = items.reduce(

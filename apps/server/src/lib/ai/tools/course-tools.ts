@@ -9,6 +9,7 @@ import {
   coursesTable,
   courseModulesTable,
   categoriesTable,
+  courseCategoriesTable,
   instructorsTable,
   enrollmentsTable,
 } from "@/db/schema";
@@ -60,7 +61,7 @@ export function createCourseTools(ctx: ToolContext) {
         requirements,
         features,
         moduleIds,
-        categoryId,
+        categoryIds,
         price,
         customThumbnailKey,
       }) => {
@@ -106,23 +107,26 @@ export function createCourseTools(ctx: ToolContext) {
             }
           }
 
-          let validCategoryId: string | null = null;
-          if (categoryId) {
-            const [category] = await db
+          let validCategoryIds: string[] = [];
+          if (categoryIds && categoryIds.length > 0) {
+            const validCategories = await db
               .select({ id: categoriesTable.id })
               .from(categoriesTable)
               .where(
                 and(
                   eq(categoriesTable.tenantId, tenantId),
-                  eq(categoriesTable.id, categoryId)
+                  inArray(categoriesTable.id, categoryIds)
                 )
-              )
-              .limit(1);
+              );
 
-            if (category) {
-              validCategoryId = category.id;
-            } else {
-              logger.warn("createCourse: invalid categoryId, ignoring", { categoryId });
+            validCategoryIds = validCategories.map((c) => c.id);
+            const invalidIds = categoryIds.filter((id) => !validCategoryIds.includes(id));
+
+            if (invalidIds.length > 0) {
+              logger.warn("createCourse: invalid category IDs filtered", {
+                invalidIds,
+                validCount: validCategoryIds.length,
+              });
             }
           }
 
@@ -152,7 +156,6 @@ export function createCourseTools(ctx: ToolContext) {
               price: price ?? 0,
               currency: "USD",
               language: "es",
-              categoryId: validCategoryId,
               thumbnail: customThumbnailKey ?? null,
             })
             .returning();
@@ -167,10 +170,20 @@ export function createCourseTools(ctx: ToolContext) {
             await db.insert(courseModulesTable).values(moduleInserts);
           }
 
+          if (validCategoryIds.length > 0) {
+            await db.insert(courseCategoriesTable).values(
+              validCategoryIds.map((categoryId) => ({
+                courseId: course.id,
+                categoryId,
+              }))
+            );
+          }
+
           logger.info("createCourse executed", {
             courseId: course.id,
             title: course.title,
             moduleCount: validModuleIds.length,
+            categoryCount: validCategoryIds.length,
           });
 
           return {
@@ -180,6 +193,7 @@ export function createCourseTools(ctx: ToolContext) {
             slug: course.slug,
             modulesCount: validModuleIds.length,
             moduleIds: validModuleIds,
+            categoriesCount: validCategoryIds.length,
             hasCustomThumbnail: !!customThumbnailKey,
           };
         } catch (error) {
@@ -187,7 +201,7 @@ export function createCourseTools(ctx: ToolContext) {
             error: error instanceof Error ? error.message : String(error),
             title,
             moduleIds,
-            categoryId,
+            categoryIds,
           });
 
           return {
@@ -221,7 +235,6 @@ export function createCourseTools(ctx: ToolContext) {
             requirements: coursesTable.requirements,
             objectives: coursesTable.objectives,
             includeCertificate: coursesTable.includeCertificate,
-            categoryId: coursesTable.categoryId,
             instructorId: coursesTable.instructorId,
           })
           .from(coursesTable)
@@ -232,15 +245,14 @@ export function createCourseTools(ctx: ToolContext) {
           return { type: "error" as const, error: "Course not found" };
         }
 
-        let categoryName: string | null = null;
-        if (courseResult.categoryId) {
-          const [cat] = await db
-            .select({ name: categoriesTable.name })
-            .from(categoriesTable)
-            .where(eq(categoriesTable.id, courseResult.categoryId))
-            .limit(1);
-          categoryName = cat?.name ?? null;
-        }
+        const categoriesData = await db
+          .select({
+            id: categoriesTable.id,
+            name: categoriesTable.name,
+          })
+          .from(courseCategoriesTable)
+          .innerJoin(categoriesTable, eq(courseCategoriesTable.categoryId, categoriesTable.id))
+          .where(eq(courseCategoriesTable.courseId, courseId));
 
         let instructorName: string | null = null;
         if (courseResult.instructorId) {
@@ -326,7 +338,7 @@ export function createCourseTools(ctx: ToolContext) {
           type: "course_details" as const,
           course: {
             ...courseResult,
-            categoryName,
+            categories: categoriesData,
             instructorName,
             modulesCount: modulesWithItems.length,
             modules: modulesWithItems,
@@ -365,23 +377,38 @@ export function createCourseTools(ctx: ToolContext) {
         if (updates.language !== undefined) { updateData.language = updates.language; updatedFields.push("language"); }
         if (updates.includeCertificate !== undefined) { updateData.includeCertificate = updates.includeCertificate; updatedFields.push("includeCertificate"); }
 
-        if (updates.categoryId !== undefined) {
-          if (updates.categoryId === null) {
-            updateData.categoryId = null;
-            updatedFields.push("categoryId");
-          } else {
-            const [category] = await db
+        if (updates.categoryIds !== undefined) {
+          await db.delete(courseCategoriesTable).where(eq(courseCategoriesTable.courseId, courseId));
+
+          if (updates.categoryIds.length > 0) {
+            const validCategories = await db
               .select({ id: categoriesTable.id })
               .from(categoriesTable)
-              .where(and(eq(categoriesTable.tenantId, tenantId), eq(categoriesTable.id, updates.categoryId)))
-              .limit(1);
-            if (category) {
-              updateData.categoryId = updates.categoryId;
-              updatedFields.push("categoryId");
-            } else {
-              logger.warn("updateCourse: invalid categoryId", { categoryId: updates.categoryId });
+              .where(
+                and(
+                  eq(categoriesTable.tenantId, tenantId),
+                  inArray(categoriesTable.id, updates.categoryIds)
+                )
+              );
+
+            const validCategoryIds = validCategories.map((c) => c.id);
+
+            if (validCategoryIds.length > 0) {
+              await db.insert(courseCategoriesTable).values(
+                validCategoryIds.map((categoryId) => ({
+                  courseId,
+                  categoryId,
+                }))
+              );
+            }
+
+            const invalidIds = updates.categoryIds.filter((id) => !validCategoryIds.includes(id));
+            if (invalidIds.length > 0) {
+              logger.warn("updateCourse: invalid categoryIds filtered", { invalidIds });
             }
           }
+
+          updatedFields.push("categoryIds");
         }
 
         if (updates.instructorId !== undefined) {
@@ -407,7 +434,9 @@ export function createCourseTools(ctx: ToolContext) {
           return { type: "error" as const, error: "No valid fields to update" };
         }
 
-        await db.update(coursesTable).set(updateData).where(eq(coursesTable.id, courseId));
+        if (Object.keys(updateData).length > 0) {
+          await db.update(coursesTable).set(updateData).where(eq(coursesTable.id, courseId));
+        }
 
         logger.info("updateCourse executed", { courseId, updatedFields });
 

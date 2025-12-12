@@ -283,6 +283,17 @@ export function useAICourseChat() {
                   queryClient.invalidateQueries({ queryKey: COURSES_QUERY_KEYS.COURSES });
                 }
               }
+
+              const courseUpdateTypes = [
+                "course_updated",
+                "course_modules_updated",
+                "course_published",
+                "course_unpublished",
+                "course_deleted",
+              ];
+              if (courseUpdateTypes.includes(event.output?.type)) {
+                queryClient.invalidateQueries({ queryKey: COURSES_QUERY_KEYS.COURSES });
+              }
               break;
             }
           }

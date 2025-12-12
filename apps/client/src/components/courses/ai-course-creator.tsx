@@ -35,7 +35,7 @@ import {
 } from "@/components/ai-elements/tool";
 import { CoursePreviewCard } from "./course-preview-card";
 import { CourseMentionPopover } from "@/components/ai-elements/course-mention-popover";
-import { useAICourseChat, type ChatMessage, type ToolInvocation, type ContextCourse } from "@/hooks/use-ai-course-chat";
+import { useAICourseChat, type ChatMessage, type ToolInvocation, type ContextCourse, type ChatAttachment } from "@/hooks/use-ai-course-chat";
 import { useCourseMention, type SelectedCourse } from "@/hooks/use-course-mention";
 import { useVideosList } from "@/services/videos";
 import { useDocumentsList } from "@/services/documents";
@@ -72,7 +72,7 @@ function getToolState(invocation: ToolInvocation): "input-available" | "output-a
   return "output-available";
 }
 
-function UserBubble({ content, index, courses }: { content: string; index: number; courses?: ContextCourse[] }) {
+function UserBubble({ content, index, courses, attachments }: { content: string; index: number; courses?: ContextCourse[]; attachments?: ChatAttachment[] }) {
   return (
     <div
       className="flex w-full justify-end animate-in fade-in-0 slide-in-from-right-2"
@@ -80,6 +80,18 @@ function UserBubble({ content, index, courses }: { content: string; index: numbe
     >
       <div className="flex items-end gap-2 max-w-[85%]">
         <div className="rounded-2xl rounded-br-md bg-primary px-4 py-2.5 text-sm text-primary-foreground">
+          {attachments && attachments.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-2">
+              {attachments.map((att, i) => (
+                <img
+                  key={i}
+                  src={att.data}
+                  alt="attachment"
+                  className="max-w-[200px] max-h-[150px] rounded object-cover"
+                />
+              ))}
+            </div>
+          )}
           {courses && courses.length > 0 && (
             <div className="flex flex-wrap gap-1 mb-2">
               {courses.map((c) => (
@@ -401,6 +413,7 @@ export function AICourseCreator({
                         content={item.data.content}
                         index={index}
                         courses={item.data.contextCourses}
+                        attachments={item.data.attachments}
                       />
                     ) : (
                       <AssistantBubble

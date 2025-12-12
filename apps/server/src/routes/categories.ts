@@ -5,7 +5,7 @@ import { withHandler } from "@/lib/handler";
 import { db } from "@/db";
 import {
   categoriesTable,
-  coursesTable,
+  courseCategoriesTable,
   type SelectCategory,
 } from "@/db/schema";
 import { count, eq, and, desc, inArray } from "drizzle-orm";
@@ -106,17 +106,12 @@ export const categoriesRoutes = new Elysia()
           categoryIds.length > 0
             ? await db
                 .select({
-                  categoryId: coursesTable.categoryId,
+                  categoryId: courseCategoriesTable.categoryId,
                   count: count(),
                 })
-                .from(coursesTable)
-                .where(
-                  and(
-                    eq(coursesTable.tenantId, ctx.user.tenantId),
-                    inArray(coursesTable.categoryId, categoryIds)
-                  )
-                )
-                .groupBy(coursesTable.categoryId)
+                .from(courseCategoriesTable)
+                .where(inArray(courseCategoriesTable.categoryId, categoryIds))
+                .groupBy(courseCategoriesTable.categoryId)
             : [];
 
         const coursesCountMap = new Map(
@@ -176,13 +171,8 @@ export const categoriesRoutes = new Elysia()
 
         const [coursesCount] = await db
           .select({ count: count() })
-          .from(coursesTable)
-          .where(
-            and(
-              eq(coursesTable.categoryId, category.id),
-              eq(coursesTable.tenantId, ctx.user.tenantId)
-            )
-          );
+          .from(courseCategoriesTable)
+          .where(eq(courseCategoriesTable.categoryId, category.id));
 
         return {
           category: {
@@ -324,13 +314,8 @@ export const categoriesRoutes = new Elysia()
 
         const [coursesCount] = await db
           .select({ count: count() })
-          .from(coursesTable)
-          .where(
-            and(
-              eq(coursesTable.categoryId, ctx.params.id),
-              eq(coursesTable.tenantId, ctx.user.tenantId)
-            )
-          );
+          .from(courseCategoriesTable)
+          .where(eq(courseCategoriesTable.categoryId, ctx.params.id));
 
         return {
           category: { ...updatedCategory, coursesCount: coursesCount.count },

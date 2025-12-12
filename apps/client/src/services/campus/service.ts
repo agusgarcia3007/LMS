@@ -40,6 +40,11 @@ export type CampusInstructor = {
   bio: string | null;
 };
 
+export type CampusCourseCategory = {
+  slug: string;
+  name: string;
+};
+
 export type CampusCourse = {
   id: string;
   slug: string;
@@ -61,8 +66,7 @@ export type CampusCourse = {
   studentsCount: number;
   rating: number;
   reviewsCount: number;
-  category: string | null;
-  categoryName: string | null;
+  categories: CampusCourseCategory[];
   instructor: CampusInstructor | null;
 };
 

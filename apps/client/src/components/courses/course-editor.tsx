@@ -84,7 +84,7 @@ const schema = z.object({
   thumbnail: z.string().optional(),
   previewVideoUrl: z.string().optional(),
   instructorId: z.string().optional(),
-  categoryId: z.string().optional(),
+  categoryIds: z.array(z.string()).optional(),
   price: z.number().min(0),
   originalPrice: z.number().min(0).optional(),
   currency: z.string(),
@@ -256,7 +256,7 @@ export function CourseEditor({
       thumbnail: "",
       previewVideoUrl: "",
       instructorId: "",
-      categoryId: "",
+      categoryIds: [],
       price: 0,
       originalPrice: undefined,
       currency: "USD",
@@ -284,7 +284,7 @@ export function CourseEditor({
           thumbnail: course.thumbnail || "",
           previewVideoUrl: course.previewVideoUrl || "",
           instructorId: course.instructorId || "",
-          categoryId: course.categoryId || "",
+          categoryIds: course.categories?.map((c) => c.id) || [],
           price: course.price,
           originalPrice: course.originalPrice || undefined,
           currency: course.currency,
@@ -305,7 +305,7 @@ export function CourseEditor({
           thumbnail: "",
           previewVideoUrl: "",
           instructorId: "",
-          categoryId: "",
+          categoryIds: [],
           price: 0,
           originalPrice: undefined,
           currency: "USD",
@@ -328,7 +328,7 @@ export function CourseEditor({
           thumbnail: "",
           previewVideoUrl: "",
           instructorId: "",
-          categoryId: "",
+          categoryIds: [],
           price: 0,
           originalPrice: undefined,
           currency: "USD",
@@ -411,10 +411,10 @@ export function CourseEditor({
       slug: data.slug || undefined,
       shortDescription: data.shortDescription || undefined,
       description: data.description || undefined,
-      thumbnail: isBase64Thumbnail ? undefined : (data.thumbnail || undefined),
+      thumbnail: isBase64Thumbnail ? undefined : data.thumbnail || undefined,
       previewVideoUrl: data.previewVideoUrl || undefined,
       instructorId: data.instructorId || undefined,
-      categoryId: data.categoryId || undefined,
+      categoryIds: data.categoryIds?.length ? data.categoryIds : undefined,
       price: data.price,
       originalPrice: data.originalPrice,
       currency: data.currency,
@@ -574,7 +574,10 @@ export function CourseEditor({
   ).length;
   const courseCount = kanbanData.filter((i) => i.column === "course").length;
 
-  const isPending = createMutation.isPending || updateMutation.isPending || updateModulesMutation.isPending;
+  const isPending =
+    createMutation.isPending ||
+    updateMutation.isPending ||
+    updateModulesMutation.isPending;
   const isGenerating = generateCourseMutation.isPending;
 
   const canGoNext = () => {
@@ -722,7 +725,9 @@ export function CourseEditor({
                       name="originalPrice"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t("courses.form.originalPrice")}</FormLabel>
+                          <FormLabel>
+                            {t("courses.form.originalPrice")}
+                          </FormLabel>
                           <FormControl>
                             <Input
                               type="number"
@@ -789,7 +794,9 @@ export function CourseEditor({
                       type="button"
                       variant="outline"
                       onClick={handleAIGenerate}
-                      disabled={isGenerating || isPending || pendingModules.length === 0}
+                      disabled={
+                        isGenerating || isPending || pendingModules.length === 0
+                      }
                     >
                       <Sparkles className="mr-2 size-4" />
                       {t("courses.ai.generateButton")}
@@ -804,7 +811,10 @@ export function CourseEditor({
                         <FormItem>
                           <FormLabel>{t("courses.form.title")}</FormLabel>
                           <FormControl>
-                            <Input {...field} disabled={isPending || isGenerating} />
+                            <Input
+                              {...field}
+                              disabled={isPending || isGenerating}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -838,7 +848,11 @@ export function CourseEditor({
                           {t("courses.form.shortDescription")}
                         </FormLabel>
                         <FormControl>
-                          <Textarea {...field} rows={2} disabled={isPending || isGenerating} />
+                          <Textarea
+                            {...field}
+                            rows={2}
+                            disabled={isPending || isGenerating}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -852,7 +866,11 @@ export function CourseEditor({
                       <FormItem>
                         <FormLabel>{t("courses.form.description")}</FormLabel>
                         <FormControl>
-                          <Textarea {...field} rows={3} disabled={isPending || isGenerating} />
+                          <Textarea
+                            {...field}
+                            rows={3}
+                            disabled={isPending || isGenerating}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -875,7 +893,12 @@ export function CourseEditor({
                                   size="icon"
                                   className="size-5"
                                   onClick={handleGenerateThumbnail}
-                                  disabled={!form.getValues("title") || isPending || isGenerating || generateThumbnailMutation.isPending}
+                                  disabled={
+                                    !form.getValues("title") ||
+                                    isPending ||
+                                    isGenerating ||
+                                    generateThumbnailMutation.isPending
+                                  }
                                 >
                                   <Sparkles className="size-3.5" />
                                 </Button>
@@ -894,13 +917,17 @@ export function CourseEditor({
                                 onDelete={handleThumbnailDelete}
                                 isUploading={uploadThumbnailMutation.isPending}
                                 isDeleting={deleteThumbnailMutation.isPending}
-                                disabled={isPending || isGenerating || generateThumbnailMutation.isPending}
+                                disabled={
+                                  isPending ||
+                                  isGenerating ||
+                                  generateThumbnailMutation.isPending
+                                }
                                 aspectRatio="16/9"
                               />
                               {generateThumbnailMutation.isPending && (
                                 <div className="absolute inset-0 rounded-lg bg-muted overflow-hidden flex items-center justify-center">
                                   <ImageIcon className="size-8 text-muted-foreground" />
-                                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-muted-foreground/10 to-transparent animate-shimmer" />
+                                  <div className="absolute inset-0 bg-linear-to-r from-transparent via-muted-foreground/10 to-transparent animate-shimmer" />
                                 </div>
                               )}
                             </div>
@@ -914,7 +941,9 @@ export function CourseEditor({
                       name="previewVideoUrl"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t("courses.form.previewVideo")}</FormLabel>
+                          <FormLabel>
+                            {t("courses.form.previewVideo")}
+                          </FormLabel>
                           <FormControl>
                             <VideoUpload
                               value={field.value || null}
@@ -935,14 +964,14 @@ export function CourseEditor({
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
-                      name="categoryId"
+                      name="categoryIds"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>{t("courses.form.category")}</FormLabel>
                           <FormControl>
                             <CategoryCombobox
-                              value={field.value}
-                              onChange={(id) => field.onChange(id || "")}
+                              value={field.value || []}
+                              onChange={(ids) => field.onChange(ids)}
                               disabled={isPending || isGenerating}
                             />
                           </FormControl>
@@ -1039,7 +1068,9 @@ export function CourseEditor({
                           <ArrayFieldEditor
                             value={field.value ?? []}
                             onChange={field.onChange}
-                            placeholder={t("courses.form.objectivesPlaceholder")}
+                            placeholder={t(
+                              "courses.form.objectivesPlaceholder"
+                            )}
                             disabled={isPending || isGenerating}
                           />
                         </FormControl>

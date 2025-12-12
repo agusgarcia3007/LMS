@@ -520,6 +520,28 @@ export const courseModulesTable = pgTable(
   ]
 );
 
+export const courseCategoriesTable = pgTable(
+  "course_categories",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    courseId: uuid("course_id")
+      .notNull()
+      .references(() => coursesTable.id, { onDelete: "cascade" }),
+    categoryId: uuid("category_id")
+      .notNull()
+      .references(() => categoriesTable.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (table) => [
+    index("course_categories_course_id_idx").on(table.courseId),
+    index("course_categories_category_id_idx").on(table.categoryId),
+    uniqueIndex("course_categories_course_category_idx").on(
+      table.courseId,
+      table.categoryId
+    ),
+  ]
+);
+
 export const cartItemsTable = pgTable(
   "cart_items",
   {

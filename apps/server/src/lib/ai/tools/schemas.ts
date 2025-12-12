@@ -42,8 +42,8 @@ export const generateCoursePreviewSchema = z.object({
   objectives: z.array(z.string()).describe("Learning objectives"),
   requirements: z.array(z.string()).describe("Course requirements/prerequisites"),
   features: z.array(z.string()).describe("What's included in the course"),
-  categoryId: z.string().optional().describe("Category ID from listCategories"),
-  categoryName: z.string().optional().describe("Category name for display"),
+  categoryIds: z.array(z.string()).optional().describe("Category IDs from listCategories"),
+  categoryNames: z.array(z.string()).optional().describe("Category names for display"),
   price: z.number().optional().describe("Course price in USD cents (0 = free). Example: $50 = 5000"),
   customThumbnailKey: z.string().optional().describe("S3 key for custom thumbnail if user provided one"),
   thumbnailStyle: z.string().optional().describe("Style description for AI thumbnail generation if user specified"),
@@ -68,7 +68,7 @@ export const createCourseSchema = z.object({
   requirements: z.array(z.string()).describe("Course requirements/prerequisites"),
   features: z.array(z.string()).describe("Course features/highlights"),
   moduleIds: z.array(z.string()).describe("IDs of modules to include (from createModule results)"),
-  categoryId: z.string().optional().describe("Category ID for the course if known"),
+  categoryIds: z.array(z.string()).optional().describe("Category IDs for the course from listCategories"),
   price: z.number().optional().describe("Course price in USD cents (0 = free). Example: $50 = 5000"),
   customThumbnailKey: z.string().optional().describe("S3 key for custom thumbnail if user provided one"),
 });
@@ -88,8 +88,8 @@ export type CoursePreview = {
   objectives: string[];
   requirements: string[];
   features: string[];
-  categoryId?: string;
-  categoryName?: string;
+  categoryIds?: string[];
+  categoryNames?: string[];
   price?: number;
   customThumbnailKey?: string;
   thumbnailStyle?: string;
@@ -121,7 +121,7 @@ export const updateCourseSchema = z.object({
   features: z.array(z.string()).optional().describe("What's included in the course"),
   requirements: z.array(z.string()).optional().describe("Course requirements/prerequisites"),
   objectives: z.array(z.string()).optional().describe("Learning objectives"),
-  categoryId: z.string().uuid().nullable().optional().describe("Category ID from listCategories (null to remove)"),
+  categoryIds: z.array(z.string().uuid()).optional().describe("Category IDs from listCategories (empty array to remove all)"),
   instructorId: z.string().uuid().nullable().optional().describe("Instructor ID from listInstructors (null to remove)"),
   language: z.string().optional().describe("Language code (e.g., 'es', 'en', 'pt')"),
   includeCertificate: z.boolean().optional().describe("Whether to include certificate on completion"),

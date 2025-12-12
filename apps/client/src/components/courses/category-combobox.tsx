@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { Check, Plus, Loader2 } from "lucide-react";
+import { Check, Plus, Loader2, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button, ButtonArrow } from "@/components/ui/button";
 import {
@@ -18,13 +18,13 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useGetCategories, useCreateCategory } from "@/services/categories";
 
 interface CategoryComboboxProps {
-  value?: string | null;
-  onChange: (categoryId: string | null) => void;
+  value?: string[];
+  onChange: (categoryIds: string[]) => void;
   disabled?: boolean;
 }
 
 export function CategoryCombobox({
-  value,
+  value = [],
   onChange,
   disabled = false,
 }: CategoryComboboxProps) {
@@ -41,13 +41,22 @@ export function CategoryCombobox({
   const createMutation = useCreateCategory();
 
   const categories = data?.categories ?? [];
-  const selectedCategory = categories.find((c) => c.id === value);
+  const selectedCategories = categories.filter((c) => value.includes(c.id));
 
-  const handleSelect = useCallback(
+  const handleToggle = useCallback(
     (categoryId: string) => {
-      onChange(categoryId === value ? null : categoryId);
-      setOpen(false);
-      setSearch("");
+      if (value.includes(categoryId)) {
+        onChange(value.filter((id) => id !== categoryId));
+      } else {
+        onChange([...value, categoryId]);
+      }
+    },
+    [onChange, value]
+  );
+
+  const handleRemove = useCallback(
+    (categoryId: string) => {
+      onChange(value.filter((id) => id !== categoryId));
     },
     [onChange, value]
   );
@@ -59,14 +68,13 @@ export function CategoryCombobox({
       { name: newName.trim() },
       {
         onSuccess: (data) => {
-          onChange(data.category.id);
+          onChange([...value, data.category.id]);
           setIsCreating(false);
           setNewName("");
-          setOpen(false);
         },
       }
     );
-  }, [newName, createMutation, onChange]);
+  }, [newName, createMutation, onChange, value]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && newName.trim()) {
@@ -86,15 +94,34 @@ export function CategoryCombobox({
           variant="outline"
           role="combobox"
           mode="input"
-          placeholder={!value}
+          placeholder={value.length === 0}
           aria-expanded={open}
           disabled={disabled}
-          className="w-full justify-between"
+          className="w-full justify-between min-h-10 h-auto"
         >
-          {selectedCategory ? (
-            <Badge variant="secondary" appearance="outline">
-              {selectedCategory.name}
-            </Badge>
+          {selectedCategories.length > 0 ? (
+            <div className="flex flex-wrap gap-1">
+              {selectedCategories.map((cat) => (
+                <Badge
+                  key={cat.id}
+                  variant="secondary"
+                  appearance="outline"
+                  className="pr-1"
+                >
+                  {cat.name}
+                  <button
+                    type="button"
+                    className="ml-1 rounded-full hover:bg-muted"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRemove(cat.id);
+                    }}
+                  >
+                    <X className="size-3" />
+                  </button>
+                </Badge>
+              ))}
+            </div>
           ) : (
             <span className="text-muted-foreground">
               {t("courses.form.categoryPlaceholder")}
@@ -124,14 +151,24 @@ export function CategoryCombobox({
                     <CommandItem
                       key={category.id}
                       value={category.id}
-                      onSelect={handleSelect}
+                      onSelect={() => handleToggle(category.id)}
                     >
-                      <Badge variant="secondary" appearance="outline">
-                        {category.name}
-                      </Badge>
-                      {value === category.id && (
-                        <Check className="ml-auto size-4" />
-                      )}
+                      <div className="flex items-center gap-2 w-full">
+                        <div
+                          className={`flex size-4 shrink-0 items-center justify-center rounded-sm border ${
+                            value.includes(category.id)
+                              ? "bg-primary border-primary text-primary-foreground"
+                              : "border-muted-foreground/50"
+                          }`}
+                        >
+                          {value.includes(category.id) && (
+                            <Check className="size-3" />
+                          )}
+                        </div>
+                        <Badge variant="secondary" appearance="outline">
+                          {category.name}
+                        </Badge>
+                      </div>
                     </CommandItem>
                   ))}
                 </CommandGroup>

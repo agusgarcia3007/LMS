@@ -6,6 +6,7 @@ import { db } from "@/db";
 import {
   coursesTable,
   courseModulesTable,
+  courseCategoriesTable,
   modulesTable,
   moduleItemsTable,
   instructorsTable,
@@ -84,11 +85,18 @@ export const coursesRoutes = new Elysia()
           ? and(baseWhereClause, tenantFilter)
           : tenantFilter;
 
-        if (ctx.query.categoryId) {
-          whereClause = and(
-            whereClause,
-            eq(coursesTable.categoryId, ctx.query.categoryId)
-          );
+        if (ctx.query.categoryIds) {
+          const categoryIdList = ctx.query.categoryIds.split(",").filter(Boolean);
+          if (categoryIdList.length > 0) {
+            const courseIdsWithCategories = db
+              .select({ courseId: courseCategoriesTable.courseId })
+              .from(courseCategoriesTable)
+              .where(inArray(courseCategoriesTable.categoryId, categoryIdList));
+            whereClause = and(
+              whereClause,
+              inArray(coursesTable.id, courseIdsWithCategories)
+            );
+          }
         }
 
         const sortColumn = getSortColumn(params.sort, courseFieldMap, {
@@ -114,20 +122,12 @@ export const coursesRoutes = new Elysia()
               name: instructorsTable.name,
               avatar: instructorsTable.avatar,
             },
-            category: {
-              id: categoriesTable.id,
-              name: categoriesTable.name,
-            },
             modulesCount: modulesCountSq.modulesCount,
           })
           .from(coursesTable)
           .leftJoin(
             instructorsTable,
             eq(coursesTable.instructorId, instructorsTable.id)
-          )
-          .leftJoin(
-            categoriesTable,
-            eq(coursesTable.categoryId, categoriesTable.id)
           )
           .leftJoin(modulesCountSq, eq(coursesTable.id, modulesCountSq.courseId))
           .where(whereClause)
@@ -145,12 +145,39 @@ export const coursesRoutes = new Elysia()
           countQuery,
         ]);
 
-        const courses = coursesData.map(({ course, instructor, category, modulesCount }) => ({
+        const courseIds = coursesData.map((c) => c.course.id);
+        const categoriesData =
+          courseIds.length > 0
+            ? await db
+                .select({
+                  courseId: courseCategoriesTable.courseId,
+                  categoryId: categoriesTable.id,
+                  categoryName: categoriesTable.name,
+                })
+                .from(courseCategoriesTable)
+                .innerJoin(
+                  categoriesTable,
+                  eq(courseCategoriesTable.categoryId, categoriesTable.id)
+                )
+                .where(inArray(courseCategoriesTable.courseId, courseIds))
+            : [];
+
+        const categoriesByCourse = new Map<
+          string,
+          Array<{ id: string; name: string }>
+        >();
+        for (const cat of categoriesData) {
+          const existing = categoriesByCourse.get(cat.courseId) ?? [];
+          existing.push({ id: cat.categoryId, name: cat.categoryName });
+          categoriesByCourse.set(cat.courseId, existing);
+        }
+
+        const courses = coursesData.map(({ course, instructor, modulesCount }) => ({
           ...course,
           thumbnail: course.thumbnail ? getPresignedUrl(course.thumbnail) : null,
           previewVideoUrl: course.previewVideoUrl ? getPresignedUrl(course.previewVideoUrl) : null,
           instructor: instructor?.id ? instructor : null,
-          category: category?.id ? category : null,
+          categories: categoriesByCourse.get(course.id) ?? [],
           modulesCount: modulesCount ?? 0,
         }));
 
@@ -167,7 +194,7 @@ export const coursesRoutes = new Elysia()
         search: t.Optional(t.String()),
         status: t.Optional(t.String()),
         level: t.Optional(t.String()),
-        categoryId: t.Optional(t.String()),
+        categoryIds: t.Optional(t.String()),
         createdAt: t.Optional(t.String()),
       }),
       detail: {
@@ -192,16 +219,11 @@ export const coursesRoutes = new Elysia()
           .select({
             course: coursesTable,
             instructor: instructorsTable,
-            category: categoriesTable,
           })
           .from(coursesTable)
           .leftJoin(
             instructorsTable,
             eq(coursesTable.instructorId, instructorsTable.id)
-          )
-          .leftJoin(
-            categoriesTable,
-            eq(coursesTable.categoryId, categoriesTable.id)
           )
           .where(
             and(
@@ -214,6 +236,18 @@ export const coursesRoutes = new Elysia()
         if (!result) {
           throw new AppError(ErrorCode.NOT_FOUND, "Course not found", 404);
         }
+
+        const courseCategories = await db
+          .select({
+            id: categoriesTable.id,
+            name: categoriesTable.name,
+          })
+          .from(courseCategoriesTable)
+          .innerJoin(
+            categoriesTable,
+            eq(courseCategoriesTable.categoryId, categoriesTable.id)
+          )
+          .where(eq(courseCategoriesTable.courseId, ctx.params.id));
 
         const courseModules = await db
           .select({
@@ -259,7 +293,7 @@ export const coursesRoutes = new Elysia()
             thumbnail: result.course.thumbnail ? getPresignedUrl(result.course.thumbnail) : null,
             previewVideoUrl: result.course.previewVideoUrl ? getPresignedUrl(result.course.previewVideoUrl) : null,
             instructor: result.instructor?.id ? result.instructor : null,
-            category: result.category?.id ? result.category : null,
+            categories: courseCategories,
             modules: modulesWithItemsCount,
             modulesCount: courseModules.length,
           },
@@ -271,7 +305,7 @@ export const coursesRoutes = new Elysia()
       }),
       detail: {
         tags: ["Courses"],
-        summary: "Get course by ID with modules",
+        summary: "Get course by ID with modules and categories",
       },
     }
   )
@@ -323,7 +357,6 @@ export const coursesRoutes = new Elysia()
           .values({
             tenantId: ctx.user.tenantId,
             instructorId: ctx.body.instructorId,
-            categoryId: ctx.body.categoryId,
             slug,
             title: ctx.body.title,
             description: ctx.body.description,
@@ -343,7 +376,21 @@ export const coursesRoutes = new Elysia()
           })
           .returning();
 
-        return { course: { ...course, modulesCount: 0, modules: [] } };
+        let categories: Array<{ id: string; name: string }> = [];
+        if (ctx.body.categoryIds && ctx.body.categoryIds.length > 0) {
+          await db.insert(courseCategoriesTable).values(
+            ctx.body.categoryIds.map((categoryId) => ({
+              courseId: course.id,
+              categoryId,
+            }))
+          );
+          categories = await db
+            .select({ id: categoriesTable.id, name: categoriesTable.name })
+            .from(categoriesTable)
+            .where(inArray(categoriesTable.id, ctx.body.categoryIds));
+        }
+
+        return { course: { ...course, categories, modulesCount: 0, modules: [] } };
       }),
     {
       body: t.Object({
@@ -352,7 +399,7 @@ export const coursesRoutes = new Elysia()
         description: t.Optional(t.String()),
         shortDescription: t.Optional(t.String()),
         instructorId: t.Optional(t.String({ format: "uuid" })),
-        categoryId: t.Optional(t.String({ format: "uuid" })),
+        categoryIds: t.Optional(t.Array(t.String({ format: "uuid" }))),
         price: t.Optional(t.Number({ minimum: 0 })),
         originalPrice: t.Optional(t.Number({ minimum: 0 })),
         currency: t.Optional(t.String()),
@@ -428,8 +475,6 @@ export const coursesRoutes = new Elysia()
           updateData.shortDescription = ctx.body.shortDescription;
         if (ctx.body.instructorId !== undefined)
           updateData.instructorId = ctx.body.instructorId;
-        if (ctx.body.categoryId !== undefined)
-          updateData.categoryId = ctx.body.categoryId;
         if (ctx.body.price !== undefined) updateData.price = ctx.body.price;
         if (ctx.body.originalPrice !== undefined)
           updateData.originalPrice = ctx.body.originalPrice;
@@ -456,13 +501,41 @@ export const coursesRoutes = new Elysia()
           .where(eq(coursesTable.id, ctx.params.id))
           .returning();
 
-        const [modulesCount] = await db
-          .select({ count: count() })
-          .from(courseModulesTable)
-          .where(eq(courseModulesTable.courseId, ctx.params.id));
+        if (ctx.body.categoryIds !== undefined) {
+          await db
+            .delete(courseCategoriesTable)
+            .where(eq(courseCategoriesTable.courseId, ctx.params.id));
+          if (ctx.body.categoryIds.length > 0) {
+            await db.insert(courseCategoriesTable).values(
+              ctx.body.categoryIds.map((categoryId) => ({
+                courseId: ctx.params.id,
+                categoryId,
+              }))
+            );
+          }
+        }
+
+        const [categoriesData, [modulesCount]] = await Promise.all([
+          db
+            .select({ id: categoriesTable.id, name: categoriesTable.name })
+            .from(courseCategoriesTable)
+            .innerJoin(
+              categoriesTable,
+              eq(courseCategoriesTable.categoryId, categoriesTable.id)
+            )
+            .where(eq(courseCategoriesTable.courseId, ctx.params.id)),
+          db
+            .select({ count: count() })
+            .from(courseModulesTable)
+            .where(eq(courseModulesTable.courseId, ctx.params.id)),
+        ]);
 
         return {
-          course: { ...updatedCourse, modulesCount: modulesCount.count },
+          course: {
+            ...updatedCourse,
+            categories: categoriesData,
+            modulesCount: modulesCount.count,
+          },
         };
       }),
     {
@@ -477,9 +550,7 @@ export const coursesRoutes = new Elysia()
         instructorId: t.Optional(
           t.Union([t.String({ format: "uuid" }), t.Null()])
         ),
-        categoryId: t.Optional(
-          t.Union([t.String({ format: "uuid" }), t.Null()])
-        ),
+        categoryIds: t.Optional(t.Array(t.String({ format: "uuid" }))),
         price: t.Optional(t.Number({ minimum: 0 })),
         originalPrice: t.Optional(t.Union([t.Number({ minimum: 0 }), t.Null()])),
         currency: t.Optional(t.String()),

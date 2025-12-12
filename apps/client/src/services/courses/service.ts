@@ -14,11 +14,15 @@ export type CourseModule = {
   module: Module;
 };
 
+export type CourseCategory = {
+  id: string;
+  name: string;
+};
+
 export type Course = {
   id: string;
   tenantId: string;
   instructorId: string | null;
-  categoryId: string | null;
   slug: string;
   title: string;
   description: string | null;
@@ -40,7 +44,7 @@ export type Course = {
   createdAt: string;
   updatedAt: string;
   instructor: Instructor | null;
-  category: Category | null;
+  categories: CourseCategory[];
   modulesCount: number;
 };
 
@@ -55,7 +59,7 @@ export type CourseListParams = {
   search?: string;
   status?: string;
   level?: string;
-  categoryId?: string;
+  categoryIds?: string;
   createdAt?: string;
 };
 
@@ -72,7 +76,7 @@ export type CreateCourseRequest = {
   thumbnail?: string;
   previewVideoUrl?: string;
   instructorId?: string;
-  categoryId?: string;
+  categoryIds?: string[];
   price?: number;
   originalPrice?: number;
   currency?: string;
@@ -94,7 +98,7 @@ export type UpdateCourseRequest = {
   thumbnail?: string | null;
   previewVideoUrl?: string | null;
   instructorId?: string | null;
-  categoryId?: string | null;
+  categoryIds?: string[];
   price?: number;
   originalPrice?: number | null;
   currency?: string;
@@ -140,7 +144,7 @@ export const CoursesService = {
     if (params.search) searchParams.set("search", params.search);
     if (params.status) searchParams.set("status", params.status);
     if (params.level) searchParams.set("level", params.level);
-    if (params.categoryId) searchParams.set("categoryId", params.categoryId);
+    if (params.categoryIds) searchParams.set("categoryIds", params.categoryIds);
     if (params.createdAt) searchParams.set("createdAt", params.createdAt);
 
     const queryString = searchParams.toString();

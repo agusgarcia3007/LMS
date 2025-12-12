@@ -7,6 +7,7 @@ import {
   enrollmentsTable,
   coursesTable,
   courseModulesTable,
+  courseCategoriesTable,
   instructorsTable,
   categoriesTable,
   cartItemsTable,
@@ -62,10 +63,6 @@ export const enrollmentsRoutes = new Elysia({ name: "enrollments" })
                 name: instructorsTable.name,
                 avatar: instructorsTable.avatar,
               },
-              category: {
-                name: categoriesTable.name,
-                slug: categoriesTable.slug,
-              },
             })
             .from(enrollmentsTable)
             .innerJoin(coursesTable, eq(enrollmentsTable.courseId, coursesTable.id))
@@ -74,7 +71,6 @@ export const enrollmentsRoutes = new Elysia({ name: "enrollments" })
               instructorsTable,
               eq(coursesTable.instructorId, instructorsTable.id)
             )
-            .leftJoin(categoriesTable, eq(coursesTable.categoryId, categoriesTable.id))
             .where(whereCondition)
             .orderBy(desc(enrollmentsTable.createdAt))
             .limit(limit)
@@ -85,9 +81,36 @@ export const enrollmentsRoutes = new Elysia({ name: "enrollments" })
             .where(whereCondition),
         ]);
 
+        const courseIds = enrollments.map((e) => e.course.id);
+        const categoriesData =
+          courseIds.length > 0
+            ? await db
+                .select({
+                  courseId: courseCategoriesTable.courseId,
+                  name: categoriesTable.name,
+                  slug: categoriesTable.slug,
+                })
+                .from(courseCategoriesTable)
+                .innerJoin(
+                  categoriesTable,
+                  eq(courseCategoriesTable.categoryId, categoriesTable.id)
+                )
+                .where(inArray(courseCategoriesTable.courseId, courseIds))
+            : [];
+
+        const categoriesByCourse = new Map<
+          string,
+          Array<{ name: string; slug: string }>
+        >();
+        for (const cat of categoriesData) {
+          const existing = categoriesByCourse.get(cat.courseId) ?? [];
+          existing.push({ name: cat.name, slug: cat.slug });
+          categoriesByCourse.set(cat.courseId, existing);
+        }
+
         return {
           enrollments: enrollments.map(
-            ({ enrollment, course, modulesCount, instructor, category }) => ({
+            ({ enrollment, course, modulesCount, instructor }) => ({
               id: enrollment.id,
               status: enrollment.status,
               progress: enrollment.progress,
@@ -101,7 +124,7 @@ export const enrollmentsRoutes = new Elysia({ name: "enrollments" })
                 level: course.level,
                 modulesCount: modulesCount ?? 0,
                 instructor: instructor?.name ? instructor : null,
-                category: category?.name ? category : null,
+                categories: categoriesByCourse.get(course.id) ?? [],
               },
             })
           ),

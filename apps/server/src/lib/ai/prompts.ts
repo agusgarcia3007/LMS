@@ -257,7 +257,8 @@ WRONG: moduleIds: ["module-id-1"]
 CORRECT: moduleIds: ["fb76283b-f571-4843-aa16-8c8ea8b31efe"]
 
 ## THUMBNAILS & PRICING
-- If user uploads image: ask if they want it as cover
+- If user uploads image AND explicitly asks to use it as thumbnail/cover → do it immediately, NO confirmation needed
+- If user uploads image but purpose is unclear → ask if they want it as cover
 - Price in cents: $50 = 5000, "gratis" = 0
 - thumbnailStyle: pass user's description for AI generation
 
