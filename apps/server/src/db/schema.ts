@@ -70,6 +70,20 @@ export const itemProgressStatusEnum = pgEnum("item_progress_status", [
   "completed",
 ]);
 
+export const tenantStatusEnum = pgEnum("tenant_status", [
+  "active",
+  "suspended",
+  "cancelled",
+]);
+
+// TODO: Agregar planes de tenant cuando se implemente facturación
+// export const tenantPlanEnum = pgEnum("tenant_plan", [
+//   "free",
+//   "starter",
+//   "pro",
+//   "enterprise",
+// ]);
+
 export const tenantsTable = pgTable(
   "tenants",
   {
@@ -182,13 +196,33 @@ export const tenantsTable = pgTable(
       signatureTitle?: string;
       customMessage?: string;
     }>(),
+    maxUsers: integer("max_users"),
+    maxCourses: integer("max_courses"),
+    maxStorageBytes: text("max_storage_bytes"),
+    features: jsonb("features").$type<{
+      analytics?: boolean;
+      certificates?: boolean;
+      customDomain?: boolean;
+      aiAnalysis?: boolean;
+      whiteLabel?: boolean;
+    }>(),
+    status: tenantStatusEnum("status").default("active").notNull(),
+    // TODO: Agregar campos de facturación cuando se implemente
+    // plan: tenantPlanEnum("plan").default("free").notNull(),
+    // trialEndsAt: timestamp("trial_ends_at"),
+    // billingEmail: text("billing_email"),
+    // stripeCustomerId: text("stripe_customer_id"),
+    // stripeSubscriptionId: text("stripe_subscription_id"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at")
       .notNull()
       .defaultNow()
       .$onUpdate(() => new Date()),
   },
-  (table) => [index("tenants_custom_domain_idx").on(table.customDomain)]
+  (table) => [
+    index("tenants_custom_domain_idx").on(table.customDomain),
+    index("tenants_status_idx").on(table.status),
+  ]
 );
 
 export const usersTable = pgTable(
@@ -724,3 +758,8 @@ export type CertificateSettings = NonNullable<
 
 export type InsertWaitlist = typeof waitlistTable.$inferInsert;
 export type SelectWaitlist = typeof waitlistTable.$inferSelect;
+
+export type TenantStatus = (typeof tenantStatusEnum.enumValues)[number];
+// TODO: Agregar TenantPlan cuando se implemente facturación
+// export type TenantPlan = (typeof tenantPlanEnum.enumValues)[number];
+export type TenantFeatures = NonNullable<SelectTenant["features"]>;

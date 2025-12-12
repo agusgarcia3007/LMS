@@ -856,11 +856,8 @@
       "management": "Gestao",
       "users": "Usuarios",
       "tenants": "Organizacoes",
-      "content": "Conteudo",
-      "categories": "Categorias",
-      "instructors": "Instrutores",
-      "videos": "Videos",
-      "documents": "Documentos",
+      "storage": "Armazenamento",
+      "fileExplorer": "Explorador de arquivos",
       "learning": "Aprendizado",
       "enrollments": "Inscricoes",
       "certificates": "Certificados"
@@ -930,7 +927,39 @@
         "name": "Nome",
         "slug": "Identificador",
         "usersCount": "Usuarios",
+        "status": "Status",
         "createdAt": "Data de criacao"
+      },
+      "tabs": {
+        "basic": "Basico",
+        "limits": "Limites",
+        "features": "Funcionalidades"
+      },
+      "status": {
+        "active": "Ativo",
+        "suspended": "Suspenso",
+        "cancelled": "Cancelado"
+      },
+      "limits": {
+        "maxUsers": "Usuarios maximos",
+        "maxCourses": "Cursos maximos",
+        "maxStorage": "Armazenamento maximo",
+        "unlimited": "Ilimitado",
+        "maxUsersHelp": "Deixe vazio para usuarios ilimitados",
+        "maxCoursesHelp": "Deixe vazio para cursos ilimitados",
+        "maxStorageHelp": "Ex: 10GB, 500MB. Deixe vazio para ilimitado"
+      },
+      "features": {
+        "analytics": "Analiticas",
+        "analyticsHelp": "Acesso a analiticas avancadas e relatorios",
+        "certificates": "Certificados",
+        "certificatesHelp": "Emissao de certificados de conclusao",
+        "customDomain": "Dominio personalizado",
+        "customDomainHelp": "Usar um dominio proprio para o campus",
+        "aiAnalysis": "Analise com IA",
+        "aiAnalysisHelp": "Geracao de conteudo e analise com IA",
+        "whiteLabel": "Marca branca",
+        "whiteLabelHelp": "Remover branding do LearnBase"
       },
       "edit": {
         "title": "Editar organizacao",
@@ -946,6 +975,21 @@
         "title": "Nenhuma organizacao",
         "description": "Nenhuma organizacao encontrada com os filtros atuais"
       }
+    },
+    "files": {
+      "title": "Explorador de arquivos",
+      "description": "Explore os arquivos de todas as organizacoes",
+      "allTenants": "Todas as organizacoes",
+      "noTenants": "Nenhuma organizacao",
+      "users": "usuarios",
+      "courses": "cursos",
+      "selectFolder": "Selecione uma pasta para ver seus arquivos",
+      "files": "arquivos",
+      "noFiles": "Nenhum arquivo nesta pasta",
+      "unknownSize": "Tamanho desconhecido",
+      "preview": "Pre-visualizacao",
+      "noPreview": "Pre-visualizacao nao disponivel para este tipo de arquivo",
+      "download": "Baixar"
     },
     "categories": {
       "title": "Gestao de categorias",

@@ -34,4 +34,5 @@ export const env = {
   RAILWAY_CLIENT_SERVICE_ID: required("RAILWAY_CLIENT_SERVICE_ID"),
   GROQ_API_KEY: required("GROQ_API_KEY"),
   AI_GATEWAY_API_KEY: required("AI_GATEWAY_API_KEY"),
+  CDN_BASE_URL: Bun.env.CDN_BASE_URL,
 };

@@ -9,8 +9,6 @@ import {
   coursesTable,
   enrollmentsTable,
   certificatesTable,
-  categoriesTable,
-  instructorsTable,
   videosTable,
   documentsTable,
 } from "@/db/schema";
@@ -26,71 +24,6 @@ import {
   type DateFields,
 } from "@/lib/filters";
 import { getPresignedUrl } from "@/lib/upload";
-
-const categoryFieldMap: FieldMap<typeof categoriesTable> = {
-  id: categoriesTable.id,
-  name: categoriesTable.name,
-  slug: categoriesTable.slug,
-  order: categoriesTable.order,
-  createdAt: categoriesTable.createdAt,
-  updatedAt: categoriesTable.updatedAt,
-};
-
-const categorySearchableFields: SearchableFields<typeof categoriesTable> = [
-  categoriesTable.name,
-  categoriesTable.slug,
-];
-
-const categoryDateFields: DateFields = new Set(["createdAt"]);
-
-const instructorFieldMap: FieldMap<typeof instructorsTable> = {
-  id: instructorsTable.id,
-  name: instructorsTable.name,
-  title: instructorsTable.title,
-  email: instructorsTable.email,
-  order: instructorsTable.order,
-  createdAt: instructorsTable.createdAt,
-  updatedAt: instructorsTable.updatedAt,
-};
-
-const instructorSearchableFields: SearchableFields<typeof instructorsTable> = [
-  instructorsTable.name,
-  instructorsTable.title,
-  instructorsTable.email,
-];
-
-const instructorDateFields: DateFields = new Set(["createdAt"]);
-
-const videoFieldMap: FieldMap<typeof videosTable> = {
-  id: videosTable.id,
-  title: videosTable.title,
-  status: videosTable.status,
-  duration: videosTable.duration,
-  createdAt: videosTable.createdAt,
-  updatedAt: videosTable.updatedAt,
-};
-
-const videoSearchableFields: SearchableFields<typeof videosTable> = [
-  videosTable.title,
-];
-
-const videoDateFields: DateFields = new Set(["createdAt"]);
-
-const documentFieldMap: FieldMap<typeof documentsTable> = {
-  id: documentsTable.id,
-  title: documentsTable.title,
-  status: documentsTable.status,
-  fileName: documentsTable.fileName,
-  createdAt: documentsTable.createdAt,
-  updatedAt: documentsTable.updatedAt,
-};
-
-const documentSearchableFields: SearchableFields<typeof documentsTable> = [
-  documentsTable.title,
-  documentsTable.fileName,
-];
-
-const documentDateFields: DateFields = new Set(["createdAt"]);
 
 const enrollmentFieldMap: FieldMap<typeof enrollmentsTable> = {
   id: enrollmentsTable.id,
@@ -459,439 +392,6 @@ export const backofficeRoutes = new Elysia()
     }
   )
   .get(
-    "/categories",
-    (ctx) =>
-      withHandler(ctx, async () => {
-        requireSuperadmin(ctx);
-
-        const params = parseListParams(ctx.query);
-        const baseWhereClause = buildWhereClause(
-          params,
-          categoryFieldMap,
-          categorySearchableFields,
-          categoryDateFields
-        );
-
-        const tenantFilter = ctx.query.tenantId
-          ? ilike(tenantsTable.name, `%${ctx.query.tenantId}%`)
-          : undefined;
-
-        const whereClause =
-          baseWhereClause && tenantFilter
-            ? and(baseWhereClause, tenantFilter)
-            : baseWhereClause ?? tenantFilter;
-
-        const sortColumn = getSortColumn(params.sort, categoryFieldMap, {
-          field: "createdAt",
-          order: "desc",
-        });
-        const { limit, offset } = getPaginationParams(params.page, params.limit);
-
-        const baseQuery = db
-          .select({
-            id: categoriesTable.id,
-            name: categoriesTable.name,
-            slug: categoriesTable.slug,
-            description: categoriesTable.description,
-            order: categoriesTable.order,
-            tenantId: categoriesTable.tenantId,
-            tenantName: tenantsTable.name,
-            tenantSlug: tenantsTable.slug,
-            createdAt: categoriesTable.createdAt,
-            updatedAt: categoriesTable.updatedAt,
-            coursesCount: sql<number>`(
-              SELECT COUNT(*) FROM ${coursesTable}
-              WHERE ${coursesTable.categoryId} = ${categoriesTable.id}
-            )::int`,
-          })
-          .from(categoriesTable)
-          .leftJoin(tenantsTable, eq(categoriesTable.tenantId, tenantsTable.id));
-
-        let query = baseQuery.$dynamic();
-        if (whereClause) {
-          query = query.where(whereClause);
-        }
-        if (sortColumn) {
-          query = query.orderBy(sortColumn);
-        }
-        query = query.limit(limit).offset(offset);
-
-        const countQuery = db
-          .select({ count: count() })
-          .from(categoriesTable)
-          .leftJoin(tenantsTable, eq(categoriesTable.tenantId, tenantsTable.id));
-
-        let countQueryDynamic = countQuery.$dynamic();
-        if (whereClause) {
-          countQueryDynamic = countQueryDynamic.where(whereClause);
-        }
-
-        const [categories, [{ count: total }]] = await Promise.all([
-          query,
-          countQueryDynamic,
-        ]);
-
-        return {
-          categories: categories.map((cat) => ({
-            ...cat,
-            tenant: cat.tenantId
-              ? { id: cat.tenantId, name: cat.tenantName, slug: cat.tenantSlug }
-              : null,
-          })),
-          pagination: calculatePagination(total, params.page, params.limit),
-        };
-      }),
-    {
-      query: t.Object({
-        page: t.Optional(t.String()),
-        limit: t.Optional(t.String()),
-        sort: t.Optional(t.String()),
-        search: t.Optional(t.String()),
-        tenantId: t.Optional(t.String()),
-        createdAt: t.Optional(t.String()),
-      }),
-      detail: {
-        tags: ["Backoffice"],
-        summary: "List all categories across tenants (superadmin only)",
-      },
-    }
-  )
-  .get(
-    "/instructors",
-    (ctx) =>
-      withHandler(ctx, async () => {
-        requireSuperadmin(ctx);
-
-        const params = parseListParams(ctx.query);
-        const baseWhereClause = buildWhereClause(
-          params,
-          instructorFieldMap,
-          instructorSearchableFields,
-          instructorDateFields
-        );
-
-        const tenantFilter = ctx.query.tenantId
-          ? ilike(tenantsTable.name, `%${ctx.query.tenantId}%`)
-          : undefined;
-
-        const whereClause =
-          baseWhereClause && tenantFilter
-            ? and(baseWhereClause, tenantFilter)
-            : baseWhereClause ?? tenantFilter;
-
-        const sortColumn = getSortColumn(params.sort, instructorFieldMap, {
-          field: "createdAt",
-          order: "desc",
-        });
-        const { limit, offset } = getPaginationParams(params.page, params.limit);
-
-        const baseQuery = db
-          .select({
-            id: instructorsTable.id,
-            name: instructorsTable.name,
-            avatar: instructorsTable.avatar,
-            bio: instructorsTable.bio,
-            title: instructorsTable.title,
-            email: instructorsTable.email,
-            website: instructorsTable.website,
-            socialLinks: instructorsTable.socialLinks,
-            order: instructorsTable.order,
-            tenantId: instructorsTable.tenantId,
-            tenantName: tenantsTable.name,
-            tenantSlug: tenantsTable.slug,
-            createdAt: instructorsTable.createdAt,
-            updatedAt: instructorsTable.updatedAt,
-            coursesCount: sql<number>`(
-              SELECT COUNT(*) FROM ${coursesTable}
-              WHERE ${coursesTable.instructorId} = ${instructorsTable.id}
-            )::int`,
-          })
-          .from(instructorsTable)
-          .leftJoin(tenantsTable, eq(instructorsTable.tenantId, tenantsTable.id));
-
-        let query = baseQuery.$dynamic();
-        if (whereClause) {
-          query = query.where(whereClause);
-        }
-        if (sortColumn) {
-          query = query.orderBy(sortColumn);
-        }
-        query = query.limit(limit).offset(offset);
-
-        const countQuery = db
-          .select({ count: count() })
-          .from(instructorsTable)
-          .leftJoin(tenantsTable, eq(instructorsTable.tenantId, tenantsTable.id));
-
-        let countQueryDynamic = countQuery.$dynamic();
-        if (whereClause) {
-          countQueryDynamic = countQueryDynamic.where(whereClause);
-        }
-
-        const [instructors, [{ count: total }]] = await Promise.all([
-          query,
-          countQueryDynamic,
-        ]);
-
-        const instructorsWithUrls = await Promise.all(
-          instructors.map(async (instructor) => ({
-            ...instructor,
-            avatar: instructor.avatar
-              ? await getPresignedUrl(instructor.avatar)
-              : null,
-            tenant: instructor.tenantId
-              ? {
-                  id: instructor.tenantId,
-                  name: instructor.tenantName,
-                  slug: instructor.tenantSlug,
-                }
-              : null,
-          }))
-        );
-
-        return {
-          instructors: instructorsWithUrls,
-          pagination: calculatePagination(total, params.page, params.limit),
-        };
-      }),
-    {
-      query: t.Object({
-        page: t.Optional(t.String()),
-        limit: t.Optional(t.String()),
-        sort: t.Optional(t.String()),
-        search: t.Optional(t.String()),
-        tenantId: t.Optional(t.String()),
-        createdAt: t.Optional(t.String()),
-      }),
-      detail: {
-        tags: ["Backoffice"],
-        summary: "List all instructors across tenants (superadmin only)",
-      },
-    }
-  )
-  .get(
-    "/videos",
-    (ctx) =>
-      withHandler(ctx, async () => {
-        requireSuperadmin(ctx);
-
-        const params = parseListParams(ctx.query);
-        const baseWhereClause = buildWhereClause(
-          params,
-          videoFieldMap,
-          videoSearchableFields,
-          videoDateFields
-        );
-
-        const tenantFilter = ctx.query.tenantId
-          ? ilike(tenantsTable.name, `%${ctx.query.tenantId}%`)
-          : undefined;
-
-        const statusFilter = ctx.query.status
-          ? eq(videosTable.status, ctx.query.status as "draft" | "published")
-          : undefined;
-
-        const filters = [baseWhereClause, tenantFilter, statusFilter].filter(
-          Boolean
-        );
-        const whereClause = filters.length > 0 ? and(...filters) : undefined;
-
-        const sortColumn = getSortColumn(params.sort, videoFieldMap, {
-          field: "createdAt",
-          order: "desc",
-        });
-        const { limit, offset } = getPaginationParams(params.page, params.limit);
-
-        const baseQuery = db
-          .select({
-            id: videosTable.id,
-            title: videosTable.title,
-            description: videosTable.description,
-            videoKey: videosTable.videoKey,
-            duration: videosTable.duration,
-            status: videosTable.status,
-            tenantId: videosTable.tenantId,
-            tenantName: tenantsTable.name,
-            tenantSlug: tenantsTable.slug,
-            createdAt: videosTable.createdAt,
-            updatedAt: videosTable.updatedAt,
-          })
-          .from(videosTable)
-          .leftJoin(tenantsTable, eq(videosTable.tenantId, tenantsTable.id));
-
-        let query = baseQuery.$dynamic();
-        if (whereClause) {
-          query = query.where(whereClause);
-        }
-        if (sortColumn) {
-          query = query.orderBy(sortColumn);
-        }
-        query = query.limit(limit).offset(offset);
-
-        const countQuery = db
-          .select({ count: count() })
-          .from(videosTable)
-          .leftJoin(tenantsTable, eq(videosTable.tenantId, tenantsTable.id));
-
-        let countQueryDynamic = countQuery.$dynamic();
-        if (whereClause) {
-          countQueryDynamic = countQueryDynamic.where(whereClause);
-        }
-
-        const [videos, [{ count: total }]] = await Promise.all([
-          query,
-          countQueryDynamic,
-        ]);
-
-        const videosWithUrls = await Promise.all(
-          videos.map(async (video) => ({
-            ...video,
-            videoUrl: video.videoKey
-              ? await getPresignedUrl(video.videoKey)
-              : null,
-            tenant: video.tenantId
-              ? {
-                  id: video.tenantId,
-                  name: video.tenantName,
-                  slug: video.tenantSlug,
-                }
-              : null,
-          }))
-        );
-
-        return {
-          videos: videosWithUrls,
-          pagination: calculatePagination(total, params.page, params.limit),
-        };
-      }),
-    {
-      query: t.Object({
-        page: t.Optional(t.String()),
-        limit: t.Optional(t.String()),
-        sort: t.Optional(t.String()),
-        search: t.Optional(t.String()),
-        tenantId: t.Optional(t.String()),
-        status: t.Optional(t.String()),
-        createdAt: t.Optional(t.String()),
-      }),
-      detail: {
-        tags: ["Backoffice"],
-        summary: "List all videos across tenants (superadmin only)",
-      },
-    }
-  )
-  .get(
-    "/documents",
-    (ctx) =>
-      withHandler(ctx, async () => {
-        requireSuperadmin(ctx);
-
-        const params = parseListParams(ctx.query);
-        const baseWhereClause = buildWhereClause(
-          params,
-          documentFieldMap,
-          documentSearchableFields,
-          documentDateFields
-        );
-
-        const tenantFilter = ctx.query.tenantId
-          ? ilike(tenantsTable.name, `%${ctx.query.tenantId}%`)
-          : undefined;
-
-        const statusFilter = ctx.query.status
-          ? eq(documentsTable.status, ctx.query.status as "draft" | "published")
-          : undefined;
-
-        const filters = [baseWhereClause, tenantFilter, statusFilter].filter(
-          Boolean
-        );
-        const whereClause = filters.length > 0 ? and(...filters) : undefined;
-
-        const sortColumn = getSortColumn(params.sort, documentFieldMap, {
-          field: "createdAt",
-          order: "desc",
-        });
-        const { limit, offset } = getPaginationParams(params.page, params.limit);
-
-        const baseQuery = db
-          .select({
-            id: documentsTable.id,
-            title: documentsTable.title,
-            description: documentsTable.description,
-            fileKey: documentsTable.fileKey,
-            fileName: documentsTable.fileName,
-            fileSize: documentsTable.fileSize,
-            mimeType: documentsTable.mimeType,
-            status: documentsTable.status,
-            tenantId: documentsTable.tenantId,
-            tenantName: tenantsTable.name,
-            tenantSlug: tenantsTable.slug,
-            createdAt: documentsTable.createdAt,
-            updatedAt: documentsTable.updatedAt,
-          })
-          .from(documentsTable)
-          .leftJoin(tenantsTable, eq(documentsTable.tenantId, tenantsTable.id));
-
-        let query = baseQuery.$dynamic();
-        if (whereClause) {
-          query = query.where(whereClause);
-        }
-        if (sortColumn) {
-          query = query.orderBy(sortColumn);
-        }
-        query = query.limit(limit).offset(offset);
-
-        const countQuery = db
-          .select({ count: count() })
-          .from(documentsTable)
-          .leftJoin(tenantsTable, eq(documentsTable.tenantId, tenantsTable.id));
-
-        let countQueryDynamic = countQuery.$dynamic();
-        if (whereClause) {
-          countQueryDynamic = countQueryDynamic.where(whereClause);
-        }
-
-        const [documents, [{ count: total }]] = await Promise.all([
-          query,
-          countQueryDynamic,
-        ]);
-
-        const documentsWithUrls = await Promise.all(
-          documents.map(async (doc) => ({
-            ...doc,
-            fileUrl: doc.fileKey ? await getPresignedUrl(doc.fileKey) : null,
-            tenant: doc.tenantId
-              ? {
-                  id: doc.tenantId,
-                  name: doc.tenantName,
-                  slug: doc.tenantSlug,
-                }
-              : null,
-          }))
-        );
-
-        return {
-          documents: documentsWithUrls,
-          pagination: calculatePagination(total, params.page, params.limit),
-        };
-      }),
-    {
-      query: t.Object({
-        page: t.Optional(t.String()),
-        limit: t.Optional(t.String()),
-        sort: t.Optional(t.String()),
-        search: t.Optional(t.String()),
-        tenantId: t.Optional(t.String()),
-        status: t.Optional(t.String()),
-        createdAt: t.Optional(t.String()),
-      }),
-      detail: {
-        tags: ["Backoffice"],
-        summary: "List all documents across tenants (superadmin only)",
-      },
-    }
-  )
-  .get(
     "/enrollments",
     (ctx) =>
       withHandler(ctx, async () => {
@@ -1113,6 +613,336 @@ export const backofficeRoutes = new Elysia()
       detail: {
         tags: ["Backoffice"],
         summary: "List all certificates across tenants (superadmin only)",
+      },
+    }
+  )
+  .get(
+    "/files",
+    (ctx) =>
+      withHandler(ctx, async () => {
+        requireSuperadmin(ctx);
+
+        const tenantId = ctx.query.tenantId;
+        if (!tenantId) {
+          throw new AppError(ErrorCode.BAD_REQUEST, "tenantId is required", 400);
+        }
+
+        const types = ctx.query.type?.split(",").filter(Boolean) || [];
+        const includeAll = types.length === 0;
+
+        const [videos, documents, users, tenantData, certificates] =
+          await Promise.all([
+            includeAll || types.includes("videos")
+              ? db
+                  .select({
+                    id: videosTable.id,
+                    key: videosTable.videoKey,
+                    title: videosTable.title,
+                    createdAt: videosTable.createdAt,
+                  })
+                  .from(videosTable)
+                  .where(
+                    and(
+                      eq(videosTable.tenantId, tenantId),
+                      sql`${videosTable.videoKey} IS NOT NULL`
+                    )
+                  )
+              : Promise.resolve([]),
+            includeAll || types.includes("documents")
+              ? db
+                  .select({
+                    id: documentsTable.id,
+                    key: documentsTable.fileKey,
+                    title: documentsTable.title,
+                    fileName: documentsTable.fileName,
+                    fileSize: documentsTable.fileSize,
+                    createdAt: documentsTable.createdAt,
+                  })
+                  .from(documentsTable)
+                  .where(
+                    and(
+                      eq(documentsTable.tenantId, tenantId),
+                      sql`${documentsTable.fileKey} IS NOT NULL`
+                    )
+                  )
+              : Promise.resolve([]),
+            includeAll || types.includes("avatars")
+              ? db
+                  .select({
+                    id: usersTable.id,
+                    key: usersTable.avatar,
+                    name: usersTable.name,
+                    createdAt: usersTable.createdAt,
+                  })
+                  .from(usersTable)
+                  .where(
+                    and(
+                      eq(usersTable.tenantId, tenantId),
+                      sql`${usersTable.avatar} IS NOT NULL`
+                    )
+                  )
+              : Promise.resolve([]),
+            includeAll || types.includes("logos")
+              ? db
+                  .select({
+                    id: tenantsTable.id,
+                    logo: tenantsTable.logo,
+                    favicon: tenantsTable.favicon,
+                    createdAt: tenantsTable.createdAt,
+                  })
+                  .from(tenantsTable)
+                  .where(eq(tenantsTable.id, tenantId))
+                  .limit(1)
+              : Promise.resolve([]),
+            includeAll || types.includes("certificates")
+              ? db
+                  .select({
+                    id: certificatesTable.id,
+                    key: certificatesTable.imageKey,
+                    userName: certificatesTable.userName,
+                    courseName: certificatesTable.courseName,
+                    createdAt: certificatesTable.createdAt,
+                  })
+                  .from(certificatesTable)
+                  .where(
+                    and(
+                      eq(certificatesTable.tenantId, tenantId),
+                      sql`${certificatesTable.imageKey} IS NOT NULL`
+                    )
+                  )
+              : Promise.resolve([]),
+          ]);
+
+        type FileResult = {
+          key: string;
+          type: string;
+          size: number | null;
+          url: string;
+          createdAt: Date;
+          metadata: Record<string, unknown>;
+        };
+
+        const results: FileResult[] = [];
+
+        for (const video of videos) {
+          if (video.key) {
+            results.push({
+              key: video.key,
+              type: "video",
+              size: null,
+              url: await getPresignedUrl(video.key),
+              createdAt: video.createdAt,
+              metadata: { id: video.id, title: video.title },
+            });
+          }
+        }
+
+        for (const doc of documents) {
+          if (doc.key) {
+            results.push({
+              key: doc.key,
+              type: "document",
+              size: doc.fileSize,
+              url: await getPresignedUrl(doc.key),
+              createdAt: doc.createdAt,
+              metadata: { id: doc.id, title: doc.title, fileName: doc.fileName },
+            });
+          }
+        }
+
+        for (const user of users) {
+          if (user.key) {
+            results.push({
+              key: user.key,
+              type: "avatar",
+              size: null,
+              url: await getPresignedUrl(user.key),
+              createdAt: user.createdAt,
+              metadata: { id: user.id, userName: user.name },
+            });
+          }
+        }
+
+        if (tenantData.length > 0) {
+          const tenant = tenantData[0];
+          if (tenant.logo) {
+            results.push({
+              key: tenant.logo,
+              type: "logo",
+              size: null,
+              url: await getPresignedUrl(tenant.logo),
+              createdAt: tenant.createdAt,
+              metadata: { id: tenant.id },
+            });
+          }
+          if (tenant.favicon) {
+            results.push({
+              key: tenant.favicon,
+              type: "favicon",
+              size: null,
+              url: await getPresignedUrl(tenant.favicon),
+              createdAt: tenant.createdAt,
+              metadata: { id: tenant.id },
+            });
+          }
+        }
+
+        for (const cert of certificates) {
+          if (cert.key) {
+            results.push({
+              key: cert.key,
+              type: "certificate",
+              size: null,
+              url: await getPresignedUrl(cert.key),
+              createdAt: cert.createdAt,
+              metadata: {
+                id: cert.id,
+                userName: cert.userName,
+                courseName: cert.courseName,
+              },
+            });
+          }
+        }
+
+        const summary = {
+          totalFiles: results.length,
+          byType: {
+            videos: videos.filter((v) => v.key).length,
+            documents: documents.filter((d) => d.key).length,
+            avatars: users.filter((u) => u.key).length,
+            logos: tenantData.filter((t) => t.logo).length,
+            favicons: tenantData.filter((t) => t.favicon).length,
+            certificates: certificates.filter((c) => c.key).length,
+          },
+          estimatedStorageBytes: documents.reduce(
+            (acc, d) => acc + (d.fileSize || 0),
+            0
+          ),
+        };
+
+        return { files: results, summary };
+      }),
+    {
+      query: t.Object({
+        tenantId: t.String(),
+        type: t.Optional(t.String()),
+      }),
+      detail: {
+        tags: ["Backoffice"],
+        summary: "List all S3 files for a tenant (superadmin only)",
+      },
+    }
+  )
+  .get(
+    "/tenants",
+    (ctx) =>
+      withHandler(ctx, async () => {
+        requireSuperadmin(ctx);
+
+        const tenants = await db
+          .select({
+            id: tenantsTable.id,
+            slug: tenantsTable.slug,
+            name: tenantsTable.name,
+            status: tenantsTable.status,
+            maxUsers: tenantsTable.maxUsers,
+            maxCourses: tenantsTable.maxCourses,
+            maxStorageBytes: tenantsTable.maxStorageBytes,
+            features: tenantsTable.features,
+            createdAt: tenantsTable.createdAt,
+            usersCount: sql<number>`(
+              SELECT COUNT(*) FROM ${usersTable}
+              WHERE ${usersTable.tenantId} = ${tenantsTable.id}
+            )::int`,
+            coursesCount: sql<number>`(
+              SELECT COUNT(*) FROM ${coursesTable}
+              WHERE ${coursesTable.tenantId} = ${tenantsTable.id}
+            )::int`,
+          })
+          .from(tenantsTable)
+          .orderBy(desc(tenantsTable.createdAt));
+
+        return { tenants };
+      }),
+    {
+      detail: {
+        tags: ["Backoffice"],
+        summary: "List all tenants with stats (superadmin only)",
+      },
+    }
+  )
+  .put(
+    "/tenants/:id",
+    (ctx) =>
+      withHandler(ctx, async () => {
+        requireSuperadmin(ctx);
+
+        const [existingTenant] = await db
+          .select()
+          .from(tenantsTable)
+          .where(eq(tenantsTable.id, ctx.params.id))
+          .limit(1);
+
+        if (!existingTenant) {
+          throw new AppError(ErrorCode.TENANT_NOT_FOUND, "Tenant not found", 404);
+        }
+
+        const updateData: Partial<typeof tenantsTable.$inferInsert> = {};
+
+        if (ctx.body.maxUsers !== undefined) {
+          updateData.maxUsers = ctx.body.maxUsers;
+        }
+        if (ctx.body.maxCourses !== undefined) {
+          updateData.maxCourses = ctx.body.maxCourses;
+        }
+        if (ctx.body.maxStorageBytes !== undefined) {
+          updateData.maxStorageBytes = ctx.body.maxStorageBytes;
+        }
+        if (ctx.body.features !== undefined) {
+          updateData.features = ctx.body.features;
+        }
+        if (ctx.body.status !== undefined) {
+          updateData.status = ctx.body.status;
+        }
+
+        const [updatedTenant] = await db
+          .update(tenantsTable)
+          .set(updateData)
+          .where(eq(tenantsTable.id, ctx.params.id))
+          .returning();
+
+        return { tenant: updatedTenant };
+      }),
+    {
+      params: t.Object({
+        id: t.String(),
+      }),
+      body: t.Object({
+        maxUsers: t.Optional(t.Nullable(t.Integer())),
+        maxCourses: t.Optional(t.Nullable(t.Integer())),
+        maxStorageBytes: t.Optional(t.Nullable(t.String())),
+        features: t.Optional(
+          t.Nullable(
+            t.Object({
+              analytics: t.Optional(t.Boolean()),
+              certificates: t.Optional(t.Boolean()),
+              customDomain: t.Optional(t.Boolean()),
+              aiAnalysis: t.Optional(t.Boolean()),
+              whiteLabel: t.Optional(t.Boolean()),
+            })
+          )
+        ),
+        status: t.Optional(
+          t.Union([
+            t.Literal("active"),
+            t.Literal("suspended"),
+            t.Literal("cancelled"),
+          ])
+        ),
+      }),
+      detail: {
+        tags: ["Backoffice"],
+        summary: "Update tenant limits and settings (superadmin only)",
       },
     }
   );

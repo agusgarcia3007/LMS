@@ -962,11 +962,8 @@
       "management": "Management",
       "users": "Users",
       "tenants": "Organizations",
-      "content": "Content",
-      "categories": "Categories",
-      "instructors": "Instructors",
-      "videos": "Videos",
-      "documents": "Documents",
+      "storage": "Storage",
+      "fileExplorer": "File Explorer",
       "learning": "Learning",
       "enrollments": "Enrollments",
       "certificates": "Certificates"
@@ -1036,7 +1033,39 @@
         "name": "Name",
         "slug": "Identifier",
         "usersCount": "Users",
+        "status": "Status",
         "createdAt": "Created at"
+      },
+      "tabs": {
+        "basic": "Basic",
+        "limits": "Limits",
+        "features": "Features"
+      },
+      "status": {
+        "active": "Active",
+        "suspended": "Suspended",
+        "cancelled": "Cancelled"
+      },
+      "limits": {
+        "maxUsers": "Max users",
+        "maxCourses": "Max courses",
+        "maxStorage": "Max storage",
+        "unlimited": "Unlimited",
+        "maxUsersHelp": "Leave empty for unlimited users",
+        "maxCoursesHelp": "Leave empty for unlimited courses",
+        "maxStorageHelp": "E.g.: 10GB, 500MB. Leave empty for unlimited"
+      },
+      "features": {
+        "analytics": "Analytics",
+        "analyticsHelp": "Access to advanced analytics and reports",
+        "certificates": "Certificates",
+        "certificatesHelp": "Issue completion certificates",
+        "customDomain": "Custom domain",
+        "customDomainHelp": "Use a custom domain for the campus",
+        "aiAnalysis": "AI Analysis",
+        "aiAnalysisHelp": "Content generation and analysis with AI",
+        "whiteLabel": "White label",
+        "whiteLabelHelp": "Remove LearnBase branding"
       },
       "edit": {
         "title": "Edit organization",
@@ -1052,6 +1081,21 @@
         "title": "No organizations",
         "description": "No organizations found with the current filters"
       }
+    },
+    "files": {
+      "title": "File Explorer",
+      "description": "Explore files across all organizations",
+      "allTenants": "All organizations",
+      "noTenants": "No organizations",
+      "users": "users",
+      "courses": "courses",
+      "selectFolder": "Select a folder to view its files",
+      "files": "files",
+      "noFiles": "No files in this folder",
+      "unknownSize": "Unknown size",
+      "preview": "Preview",
+      "noPreview": "Preview not available for this file type",
+      "download": "Download"
     },
     "categories": {
       "title": "Category management",

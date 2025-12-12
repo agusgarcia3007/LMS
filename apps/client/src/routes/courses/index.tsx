@@ -13,7 +13,13 @@ import { getTenantFromRequest } from "@/lib/tenant.server";
 import { computeThemeStyles } from "@/lib/theme.server";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Empty,
@@ -166,24 +172,22 @@ function CoursesPage() {
               />
             </div>
 
-            <div className="flex flex-wrap items-center gap-2">
-              {categoriesData?.categories.map((category) => (
-                <Badge
-                  key={category.id}
-                  variant={
-                    selectedCategory === category.slug ? "primary" : "outline"
-                  }
-                  className="cursor-pointer transition-colors"
-                  onClick={() =>
-                    setSelectedCategory(
-                      selectedCategory === category.slug ? null : category.slug
-                    )
-                  }
-                >
-                  {category.name}
-                </Badge>
-              ))}
-            </div>
+            <Select
+              value={selectedCategory || "all"}
+              onValueChange={(value) => setSelectedCategory(value === "all" ? null : value)}
+            >
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Todas las categorias" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas las categorias</SelectItem>
+                {categoriesData?.categories.map((category) => (
+                  <SelectItem key={category.id} value={category.slug}>
+                    {category.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="mb-6 flex flex-wrap items-center gap-2">

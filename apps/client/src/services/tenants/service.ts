@@ -94,6 +94,16 @@ export type TenantCertificateSettings = {
   customMessage?: string;
 };
 
+export type TenantStatus = "active" | "suspended" | "cancelled";
+
+export type TenantFeatures = {
+  analytics?: boolean;
+  certificates?: boolean;
+  customDomain?: boolean;
+  aiAnalysis?: boolean;
+  whiteLabel?: boolean;
+};
+
 export type Tenant = {
   id: string;
   slug: string;
@@ -120,9 +130,15 @@ export type Tenant = {
   showHeaderName: boolean;
   customTheme: CustomTheme | null;
   certificateSettings: TenantCertificateSettings | null;
+  maxUsers: number | null;
+  maxCourses: number | null;
+  maxStorageBytes: string | null;
+  features: TenantFeatures | null;
+  status: TenantStatus;
   createdAt: string;
   updatedAt: string;
   usersCount?: number;
+  coursesCount?: number;
 };
 
 export type ConfigureDomainResponse = {

@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Ellipsis, Calendar } from "lucide-react";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DataGridColumnHeader } from "@/components/ui/data-grid";
 import {
@@ -127,6 +128,28 @@ function BackofficeTenants() {
         meta: {
           headerTitle: t("backoffice.tenants.columns.usersCount"),
           skeleton: <Skeleton className="h-4 w-12" />,
+        },
+      },
+      {
+        accessorKey: "status",
+        id: "status",
+        header: ({ column }) => (
+          <DataGridColumnHeader title={t("backoffice.tenants.columns.status")} column={column} />
+        ),
+        cell: ({ row }) => {
+          const status = row.original.status;
+          const variant = status === "active" ? "default" : status === "suspended" ? "secondary" : "destructive";
+          return (
+            <Badge variant={variant}>
+              {t(`backoffice.tenants.status.${status}`)}
+            </Badge>
+          );
+        },
+        size: 100,
+        enableSorting: false,
+        meta: {
+          headerTitle: t("backoffice.tenants.columns.status"),
+          skeleton: <Skeleton className="h-5 w-16" />,
         },
       },
       {

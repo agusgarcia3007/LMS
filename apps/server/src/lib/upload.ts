@@ -1,4 +1,5 @@
 import { s3 } from "./s3";
+import { env } from "./env";
 
 type Base64Upload = {
   base64: string; // data URL format: data:image/png;base64,xxxxx
@@ -37,11 +38,11 @@ export async function uploadBase64ToS3({
 const urlCache = new Map<string, { url: string; expiresAt: number }>();
 const CACHE_TTL = 60 * 60 * 1000; // 1 hour in ms
 
-/**
- * Generate a presigned URL for an S3 key (valid for 7 days).
- * Uses in-memory cache to avoid regenerating URLs on every request.
- */
 export function getPresignedUrl(key: string): string {
+  if (env.CDN_BASE_URL) {
+    return `${env.CDN_BASE_URL}/${key}`;
+  }
+
   const cached = urlCache.get(key);
   if (cached && cached.expiresAt > Date.now()) {
     return cached.url;
@@ -49,7 +50,7 @@ export function getPresignedUrl(key: string): string {
 
   const file = s3.file(key);
   const url = file.presign({
-    expiresIn: 60 * 60 * 24 * 7, // 7 days (max allowed)
+    expiresIn: 60 * 60 * 24 * 7,
   });
 
   urlCache.set(key, { url, expiresAt: Date.now() + CACHE_TTL });

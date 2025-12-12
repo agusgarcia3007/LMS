@@ -5,14 +5,11 @@ import {
   BookOpen,
   Building2,
   ChevronsUpDown,
-  FileText,
-  FolderTree,
-  GraduationCap,
+  HardDrive,
   Home,
   LogOut,
   Shield,
   Users,
-  Video,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -87,31 +84,13 @@ export function BackofficeSidebar({ user }: BackofficeSidebarProps) {
         ],
       },
       {
-        title: t("backoffice.sidebar.content"),
+        title: t("backoffice.sidebar.storage"),
         items: [
           {
-            title: t("backoffice.sidebar.categories"),
-            url: "/backoffice/categories",
-            icon: FolderTree,
-            isActive: currentPath === "/backoffice/categories",
-          },
-          {
-            title: t("backoffice.sidebar.instructors"),
-            url: "/backoffice/instructors",
-            icon: GraduationCap,
-            isActive: currentPath === "/backoffice/instructors",
-          },
-          {
-            title: t("backoffice.sidebar.videos"),
-            url: "/backoffice/videos",
-            icon: Video,
-            isActive: currentPath === "/backoffice/videos",
-          },
-          {
-            title: t("backoffice.sidebar.documents"),
-            url: "/backoffice/documents",
-            icon: FileText,
-            isActive: currentPath === "/backoffice/documents",
+            title: t("backoffice.sidebar.fileExplorer"),
+            url: "/backoffice/files",
+            icon: HardDrive,
+            isActive: currentPath.startsWith("/backoffice/files"),
           },
         ],
       },
