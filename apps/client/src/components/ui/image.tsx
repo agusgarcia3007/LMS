@@ -7,13 +7,17 @@ type ImageProps = UnpicImageProps & {
   className?: string;
 };
 
-function isPresignedUrl(src: string | undefined): boolean {
+function isCustomCdn(src: string | undefined): boolean {
   if (!src) return false;
-  return src.includes("X-Amz-Signature") || src.includes("x-amz-signature");
+  return (
+    src.includes("X-Amz-Signature") ||
+    src.includes("x-amz-signature") ||
+    src.includes("cdn.uselearnbase.com")
+  );
 }
 
 export function Image({ src, className, alt, ...props }: ImageProps) {
-  if (isPresignedUrl(src)) {
+  if (isCustomCdn(src)) {
     return (
       <img
         src={src}

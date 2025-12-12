@@ -32,7 +32,7 @@ export function useTenantInfo(): TenantInfo & { isResolving: boolean } {
     getServerSnapshot
   );
 
-  const { data, isLoading } = useQuery({
+  const { data } = useQuery({
     queryKey: QUERY_KEYS.TENANT_RESOLVE,
     queryFn: async () => {
       const hostname = window.location.hostname;
@@ -44,9 +44,11 @@ export function useTenantInfo(): TenantInfo & { isResolving: boolean } {
     staleTime: Infinity,
   });
 
-  if (baseInfo.isCustomDomain && data?.tenant) {
+  const resolvedSlug = data?.tenant?.slug || getResolvedSlug();
+
+  if (baseInfo.isCustomDomain && resolvedSlug) {
     return {
-      slug: data.tenant.slug,
+      slug: resolvedSlug,
       isCampus: true,
       isCustomDomain: true,
       isResolving: false,
@@ -55,6 +57,6 @@ export function useTenantInfo(): TenantInfo & { isResolving: boolean } {
 
   return {
     ...baseInfo,
-    isResolving: baseInfo.isCustomDomain && isLoading,
+    isResolving: baseInfo.isCustomDomain && !resolvedSlug,
   };
 }

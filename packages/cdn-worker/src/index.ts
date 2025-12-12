@@ -1,7 +1,10 @@
 import { Hono } from "hono";
+import { cors } from "hono/cors";
 import { getS3Object, type Env } from "./s3";
 
 const app = new Hono<{ Bindings: Env }>();
+
+app.use("/*", cors());
 
 app.get("/*", async (c) => {
   const key = c.req.path.slice(1);
