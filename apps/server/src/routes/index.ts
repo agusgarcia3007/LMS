@@ -1,3 +1,4 @@
+import { adminEnrollmentsRoutes } from "./admin-enrollments";
 import { aiRoutes } from "./ai";
 import { authRoutes } from "./auth";
 import { backofficeRoutes } from "./backoffice";
@@ -17,9 +18,11 @@ import { seoRoutes } from "./seo";
 import { tenantsRoutes } from "./tenants";
 import { usersRoutes } from "./users";
 import { videosRoutes } from "./videos";
+import { waitlistRoutes } from "./waitlist";
 
 export const ROUTES = [
   { path: "", name: "seo-routes", route: seoRoutes },
+  { path: "/admin/enrollments", name: "admin-enrollments-routes", route: adminEnrollmentsRoutes },
   { path: "/ai", name: "ai-routes", route: aiRoutes },
   { path: "/auth", name: "auth-routes", route: authRoutes },
   { path: "/backoffice", name: "backoffice-routes", route: backofficeRoutes },
@@ -38,4 +41,5 @@ export const ROUTES = [
   { path: "/tenants", name: "tenants-routes", route: tenantsRoutes },
   { path: "/users", name: "users-routes", route: usersRoutes },
   { path: "/videos", name: "videos-routes", route: videosRoutes },
+  { path: "/waitlist", name: "waitlist-routes", route: waitlistRoutes },
 ];

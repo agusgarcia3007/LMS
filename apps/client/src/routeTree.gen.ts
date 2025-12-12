@@ -33,6 +33,7 @@ import { Route as _authForgotPasswordRouteImport } from './routes/__auth/forgot-
 import { Route as TenantSlugSiteCustomizationRouteImport } from './routes/$tenantSlug/site/customization'
 import { Route as TenantSlugSiteConfigurationRouteImport } from './routes/$tenantSlug/site/configuration'
 import { Route as TenantSlugManagementUsersRouteImport } from './routes/$tenantSlug/management/users'
+import { Route as TenantSlugManagementEnrollmentsRouteImport } from './routes/$tenantSlug/management/enrollments'
 import { Route as TenantSlugContentVideosRouteImport } from './routes/$tenantSlug/content/videos'
 import { Route as TenantSlugContentQuizzesRouteImport } from './routes/$tenantSlug/content/quizzes'
 import { Route as TenantSlugContentModulesRouteImport } from './routes/$tenantSlug/content/modules'
@@ -165,6 +166,12 @@ const TenantSlugManagementUsersRoute =
     path: '/management/users',
     getParentRoute: () => TenantSlugRouteRoute,
   } as any)
+const TenantSlugManagementEnrollmentsRoute =
+  TenantSlugManagementEnrollmentsRouteImport.update({
+    id: '/management/enrollments',
+    path: '/management/enrollments',
+    getParentRoute: () => TenantSlugRouteRoute,
+  } as any)
 const TenantSlugContentVideosRoute = TenantSlugContentVideosRouteImport.update({
   id: '/content/videos',
   path: '/content/videos',
@@ -247,6 +254,7 @@ export interface FileRoutesByFullPath {
   '/$tenantSlug/content/modules': typeof TenantSlugContentModulesRoute
   '/$tenantSlug/content/quizzes': typeof TenantSlugContentQuizzesRouteWithChildren
   '/$tenantSlug/content/videos': typeof TenantSlugContentVideosRoute
+  '/$tenantSlug/management/enrollments': typeof TenantSlugManagementEnrollmentsRoute
   '/$tenantSlug/management/users': typeof TenantSlugManagementUsersRoute
   '/$tenantSlug/site/configuration': typeof TenantSlugSiteConfigurationRoute
   '/$tenantSlug/site/customization': typeof TenantSlugSiteCustomizationRoute
@@ -276,6 +284,7 @@ export interface FileRoutesByTo {
   '/$tenantSlug/content/instructors': typeof TenantSlugContentInstructorsRoute
   '/$tenantSlug/content/modules': typeof TenantSlugContentModulesRoute
   '/$tenantSlug/content/videos': typeof TenantSlugContentVideosRoute
+  '/$tenantSlug/management/enrollments': typeof TenantSlugManagementEnrollmentsRoute
   '/$tenantSlug/management/users': typeof TenantSlugManagementUsersRoute
   '/$tenantSlug/site/configuration': typeof TenantSlugSiteConfigurationRoute
   '/$tenantSlug/site/customization': typeof TenantSlugSiteCustomizationRoute
@@ -312,6 +321,7 @@ export interface FileRoutesById {
   '/$tenantSlug/content/modules': typeof TenantSlugContentModulesRoute
   '/$tenantSlug/content/quizzes': typeof TenantSlugContentQuizzesRouteWithChildren
   '/$tenantSlug/content/videos': typeof TenantSlugContentVideosRoute
+  '/$tenantSlug/management/enrollments': typeof TenantSlugManagementEnrollmentsRoute
   '/$tenantSlug/management/users': typeof TenantSlugManagementUsersRoute
   '/$tenantSlug/site/configuration': typeof TenantSlugSiteConfigurationRoute
   '/$tenantSlug/site/customization': typeof TenantSlugSiteCustomizationRoute
@@ -348,6 +358,7 @@ export interface FileRouteTypes {
     | '/$tenantSlug/content/modules'
     | '/$tenantSlug/content/quizzes'
     | '/$tenantSlug/content/videos'
+    | '/$tenantSlug/management/enrollments'
     | '/$tenantSlug/management/users'
     | '/$tenantSlug/site/configuration'
     | '/$tenantSlug/site/customization'
@@ -377,6 +388,7 @@ export interface FileRouteTypes {
     | '/$tenantSlug/content/instructors'
     | '/$tenantSlug/content/modules'
     | '/$tenantSlug/content/videos'
+    | '/$tenantSlug/management/enrollments'
     | '/$tenantSlug/management/users'
     | '/$tenantSlug/site/configuration'
     | '/$tenantSlug/site/customization'
@@ -412,6 +424,7 @@ export interface FileRouteTypes {
     | '/$tenantSlug/content/modules'
     | '/$tenantSlug/content/quizzes'
     | '/$tenantSlug/content/videos'
+    | '/$tenantSlug/management/enrollments'
     | '/$tenantSlug/management/users'
     | '/$tenantSlug/site/configuration'
     | '/$tenantSlug/site/customization'
@@ -601,6 +614,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TenantSlugManagementUsersRouteImport
       parentRoute: typeof TenantSlugRouteRoute
     }
+    '/$tenantSlug/management/enrollments': {
+      id: '/$tenantSlug/management/enrollments'
+      path: '/management/enrollments'
+      fullPath: '/$tenantSlug/management/enrollments'
+      preLoaderRoute: typeof TenantSlugManagementEnrollmentsRouteImport
+      parentRoute: typeof TenantSlugRouteRoute
+    }
     '/$tenantSlug/content/videos': {
       id: '/$tenantSlug/content/videos'
       path: '/content/videos'
@@ -692,6 +712,7 @@ interface TenantSlugRouteRouteChildren {
   TenantSlugContentModulesRoute: typeof TenantSlugContentModulesRoute
   TenantSlugContentQuizzesRoute: typeof TenantSlugContentQuizzesRouteWithChildren
   TenantSlugContentVideosRoute: typeof TenantSlugContentVideosRoute
+  TenantSlugManagementEnrollmentsRoute: typeof TenantSlugManagementEnrollmentsRoute
   TenantSlugManagementUsersRoute: typeof TenantSlugManagementUsersRoute
   TenantSlugSiteConfigurationRoute: typeof TenantSlugSiteConfigurationRoute
   TenantSlugSiteCustomizationRoute: typeof TenantSlugSiteCustomizationRoute
@@ -706,6 +727,7 @@ const TenantSlugRouteRouteChildren: TenantSlugRouteRouteChildren = {
   TenantSlugContentModulesRoute: TenantSlugContentModulesRoute,
   TenantSlugContentQuizzesRoute: TenantSlugContentQuizzesRouteWithChildren,
   TenantSlugContentVideosRoute: TenantSlugContentVideosRoute,
+  TenantSlugManagementEnrollmentsRoute: TenantSlugManagementEnrollmentsRoute,
   TenantSlugManagementUsersRoute: TenantSlugManagementUsersRoute,
   TenantSlugSiteConfigurationRoute: TenantSlugSiteConfigurationRoute,
   TenantSlugSiteCustomizationRoute: TenantSlugSiteCustomizationRoute,

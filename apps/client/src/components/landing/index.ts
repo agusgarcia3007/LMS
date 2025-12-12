@@ -7,6 +7,6 @@ export { ProblemSolution } from "./problem-solution";
 export { HowItWorks } from "./how-it-works";
 export { Stats } from "./stats";
 export { Testimonials } from "./testimonials";
-export { Pricing } from "./pricing";
+export { Waitlist } from "./waitlist";
 export { FAQ } from "./faq";
 export { FinalCTA } from "./final-cta";

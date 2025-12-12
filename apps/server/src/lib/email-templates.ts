@@ -93,3 +93,81 @@ export function getCertificateEmailHtml(params: CertificateEmailParams): string 
 </html>
 `.trim();
 }
+
+type InvitationEmailParams = {
+  recipientName: string;
+  tenantName: string;
+  inviterName: string;
+  resetUrl: string;
+};
+
+export function getInvitationEmailHtml(params: InvitationEmailParams): string {
+  const { recipientName, tenantName, inviterName, resetUrl } = params;
+
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>You've been invited</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f3f4f6;">
+  <table role="presentation" style="width: 100%; border-collapse: collapse;">
+    <tr>
+      <td align="center" style="padding: 40px 20px;">
+        <table role="presentation" style="width: 100%; max-width: 600px; border-collapse: collapse; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+          <tr>
+            <td style="padding: 48px 40px; text-align: center;">
+              <h1 style="margin: 0 0 8px; font-size: 28px; font-weight: 700; color: #1f2937;">
+                Welcome to ${tenantName}
+              </h1>
+
+              <p style="margin: 0 0 32px; font-size: 16px; color: #6b7280; line-height: 1.6;">
+                Hi ${recipientName}, you've been invited by <strong>${inviterName}</strong>
+              </p>
+
+              <div style="background-color: #f9fafb; border-radius: 8px; padding: 24px; margin-bottom: 32px;">
+                <p style="margin: 0; font-size: 16px; color: #4b5563; line-height: 1.6;">
+                  To get started, please set up your password by clicking the button below.
+                </p>
+              </div>
+
+              <table role="presentation" style="width: 100%; border-collapse: collapse;">
+                <tr>
+                  <td style="padding: 8px;">
+                    <a href="${resetUrl}" style="display: inline-block; padding: 14px 32px; background-color: #6366f1; color: #ffffff; text-decoration: none; font-weight: 600; font-size: 16px; border-radius: 8px;">
+                      Set Up Password
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="margin: 24px 0 0; font-size: 14px; color: #9ca3af;">
+                This link will expire in 1 hour.
+              </p>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding: 24px 40px; background-color: #f9fafb; border-radius: 0 0 12px 12px; text-align: center;">
+              <p style="margin: 0; font-size: 12px; color: #9ca3af; word-break: break-all;">
+                If the button doesn't work, copy this link:<br>
+                <a href="${resetUrl}" style="color: #6366f1; text-decoration: none;">
+                  ${resetUrl}
+                </a>
+              </p>
+            </td>
+          </tr>
+        </table>
+
+        <p style="margin: 24px 0 0; font-size: 12px; color: #9ca3af;">
+          If you didn't expect this invitation, you can safely ignore this email.
+        </p>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+`.trim();
+}

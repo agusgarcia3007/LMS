@@ -22,7 +22,7 @@ import {
   HowItWorks,
   Stats,
   Testimonials,
-  Pricing,
+  Waitlist,
   FAQ,
   FinalCTA,
 } from "@/components/landing";
@@ -238,7 +238,7 @@ function MainHome() {
         <Stats />
         <LandingFeatures />
         <Testimonials />
-        <Pricing />
+        <Waitlist />
         <FAQ />
         <FinalCTA />
       </main>

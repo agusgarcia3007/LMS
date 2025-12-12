@@ -15,13 +15,20 @@ import {
   EmptyDescription,
   EmptyContent,
 } from "@/components/ui/empty";
+import { createSeoMeta } from "@/lib/seo";
+import { cn } from "@/lib/utils";
 import { useCampusTenant } from "@/services/campus/queries";
 import { useEnrollments } from "@/services/enrollments";
-import { cn } from "@/lib/utils";
 import { useTheme } from "@/components/ui/theme-provider";
 import { useCustomTheme } from "@/hooks/use-custom-theme";
 
 export const Route = createFileRoute("/my-courses/")({
+  head: () =>
+    createSeoMeta({
+      title: "My Courses",
+      description: "View and continue your enrolled courses",
+      noindex: true,
+    }),
   component: MyCoursesPage,
 });
 

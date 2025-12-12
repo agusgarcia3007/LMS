@@ -3,10 +3,17 @@ import { Building2, Users } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { createSeoMeta } from "@/lib/seo";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useGetDashboardStats } from "@/services/dashboard";
 
 export const Route = createFileRoute("/backoffice/")({
+  head: () =>
+    createSeoMeta({
+      title: "Backoffice Dashboard",
+      description: "LearnBase administration dashboard",
+      noindex: true,
+    }),
   component: BackofficeDashboard,
 });
 

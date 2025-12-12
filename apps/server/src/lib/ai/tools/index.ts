@@ -33,6 +33,29 @@ import {
   unpublishCourseSchema,
   deleteCourseSchema,
   listInstructorsSchema,
+  createCategorySchema,
+  updateCategorySchema,
+  deleteCategorySchema,
+  createInstructorSchema,
+  updateInstructorSchema,
+  deleteInstructorSchema,
+  listVideosSchema,
+  listDocumentsSchema,
+  listQuizzesSchema,
+  listModulesSchema,
+  getQuizSchema,
+  updateQuizMetadataSchema,
+  deleteQuizSchema,
+  addQuizQuestionSchema,
+  updateQuizQuestionSchema,
+  deleteQuizQuestionSchema,
+  reorderQuizQuestionsSchema,
+  addQuizOptionSchema,
+  updateQuizOptionSchema,
+  deleteQuizOptionSchema,
+  getModuleSchema,
+  updateModuleMetadataSchema,
+  deleteModuleSchema,
 } from "./schemas";
 import { generateEmbedding } from "../embeddings";
 
@@ -306,6 +329,136 @@ export function createCourseCreatorTools(tenantId: string, cache?: Map<string, u
         setCacheWithLimit(searchCache, cacheKey, result);
         logger.info("listCategories executed", { found: categories.length });
         return result;
+      },
+    }),
+
+    createCategory: tool({
+      description: "Create a new category. Use this when the user wants to create a new category that doesn't exist.",
+      inputSchema: createCategorySchema,
+      execute: async ({ name, description }) => {
+        const slug = name
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/(^-|-$)/g, "");
+
+        const existing = await db
+          .select({ id: categoriesTable.id })
+          .from(categoriesTable)
+          .where(and(eq(categoriesTable.tenantId, tenantId), eq(categoriesTable.slug, slug)))
+          .limit(1);
+
+        if (existing.length > 0) {
+          return { type: "error" as const, error: `Category "${name}" already exists` };
+        }
+
+        const [maxOrder] = await db
+          .select({ maxOrder: categoriesTable.order })
+          .from(categoriesTable)
+          .where(eq(categoriesTable.tenantId, tenantId))
+          .orderBy(desc(categoriesTable.order))
+          .limit(1);
+
+        const [category] = await db
+          .insert(categoriesTable)
+          .values({
+            tenantId,
+            name,
+            slug,
+            description: description ?? null,
+            order: (maxOrder?.maxOrder ?? -1) + 1,
+          })
+          .returning();
+
+        for (const key of searchCache.keys()) {
+          if (key.startsWith("categories:")) searchCache.delete(key);
+        }
+
+        logger.info("createCategory executed", { categoryId: category.id, name: category.name });
+        return { type: "category_created" as const, id: category.id, name: category.name, slug: category.slug };
+      },
+    }),
+
+    updateCategory: tool({
+      description: "Update an existing category's name or description.",
+      inputSchema: updateCategorySchema,
+      execute: async ({ categoryId, name, description }) => {
+        const [existing] = await db
+          .select({ id: categoriesTable.id, name: categoriesTable.name })
+          .from(categoriesTable)
+          .where(and(eq(categoriesTable.tenantId, tenantId), eq(categoriesTable.id, categoryId)))
+          .limit(1);
+
+        if (!existing) {
+          return { type: "error" as const, error: "Category not found" };
+        }
+
+        const updateData: Record<string, unknown> = {};
+        if (name !== undefined) {
+          updateData.name = name;
+          updateData.slug = name
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .replace(/[^a-z0-9]+/g, "-")
+            .replace(/(^-|-$)/g, "");
+        }
+        if (description !== undefined) updateData.description = description;
+
+        if (Object.keys(updateData).length === 0) {
+          return { type: "error" as const, error: "No fields to update" };
+        }
+
+        await db.update(categoriesTable).set(updateData).where(eq(categoriesTable.id, categoryId));
+
+        for (const key of searchCache.keys()) {
+          if (key.startsWith("categories:")) searchCache.delete(key);
+        }
+
+        logger.info("updateCategory executed", { categoryId });
+        return { type: "category_updated" as const, categoryId, updatedFields: Object.keys(updateData) };
+      },
+    }),
+
+    deleteCategory: tool({
+      description: "Delete a category. Requires confirmation. Courses in this category will have their category removed.",
+      inputSchema: deleteCategorySchema,
+      execute: async ({ categoryId, confirmed }) => {
+        const [existing] = await db
+          .select({ id: categoriesTable.id, name: categoriesTable.name })
+          .from(categoriesTable)
+          .where(and(eq(categoriesTable.tenantId, tenantId), eq(categoriesTable.id, categoryId)))
+          .limit(1);
+
+        if (!existing) {
+          return { type: "error" as const, error: "Category not found" };
+        }
+
+        const [courseCount] = await db
+          .select({ count: count() })
+          .from(coursesTable)
+          .where(eq(coursesTable.categoryId, categoryId));
+
+        if (!confirmed) {
+          return {
+            type: "confirmation_required" as const,
+            action: "delete_category",
+            categoryId,
+            categoryName: existing.name,
+            message: `Are you sure you want to delete "${existing.name}"?`,
+            warning: courseCount.count > 0 ? `${courseCount.count} courses will have their category removed.` : undefined,
+          };
+        }
+
+        await db.delete(categoriesTable).where(eq(categoriesTable.id, categoryId));
+
+        for (const key of searchCache.keys()) {
+          if (key.startsWith("categories:")) searchCache.delete(key);
+        }
+
+        logger.info("deleteCategory executed", { categoryId, name: existing.name });
+        return { type: "category_deleted" as const, categoryId, name: existing.name };
       },
     }),
 
@@ -1227,6 +1380,674 @@ export function createCourseCreatorTools(tenantId: string, cache?: Map<string, u
         logger.info("listInstructors executed", { count: instructors.length });
 
         return { instructors, count: instructors.length };
+      },
+    }),
+
+    createInstructor: tool({
+      description: "Create a new instructor.",
+      inputSchema: createInstructorSchema,
+      execute: async ({ name, title, bio }) => {
+        const [instructor] = await db
+          .insert(instructorsTable)
+          .values({
+            tenantId,
+            name,
+            title: title ?? null,
+            bio: bio ?? null,
+          })
+          .returning();
+
+        logger.info("createInstructor executed", { instructorId: instructor.id, name });
+        return { type: "instructor_created" as const, id: instructor.id, name: instructor.name };
+      },
+    }),
+
+    updateInstructor: tool({
+      description: "Update an existing instructor's information.",
+      inputSchema: updateInstructorSchema,
+      execute: async ({ instructorId, name, title, bio }) => {
+        const [existing] = await db
+          .select({ id: instructorsTable.id })
+          .from(instructorsTable)
+          .where(and(eq(instructorsTable.tenantId, tenantId), eq(instructorsTable.id, instructorId)))
+          .limit(1);
+
+        if (!existing) {
+          return { type: "error" as const, error: "Instructor not found" };
+        }
+
+        const updateData: Record<string, unknown> = {};
+        if (name !== undefined) updateData.name = name;
+        if (title !== undefined) updateData.title = title;
+        if (bio !== undefined) updateData.bio = bio;
+
+        if (Object.keys(updateData).length === 0) {
+          return { type: "error" as const, error: "No fields to update" };
+        }
+
+        await db.update(instructorsTable).set(updateData).where(eq(instructorsTable.id, instructorId));
+
+        logger.info("updateInstructor executed", { instructorId });
+        return { type: "instructor_updated" as const, instructorId, updatedFields: Object.keys(updateData) };
+      },
+    }),
+
+    deleteInstructor: tool({
+      description: "Delete an instructor. Requires confirmation.",
+      inputSchema: deleteInstructorSchema,
+      execute: async ({ instructorId, confirmed }) => {
+        const [existing] = await db
+          .select({ id: instructorsTable.id, name: instructorsTable.name })
+          .from(instructorsTable)
+          .where(and(eq(instructorsTable.tenantId, tenantId), eq(instructorsTable.id, instructorId)))
+          .limit(1);
+
+        if (!existing) {
+          return { type: "error" as const, error: "Instructor not found" };
+        }
+
+        const [courseCount] = await db
+          .select({ count: count() })
+          .from(coursesTable)
+          .where(eq(coursesTable.instructorId, instructorId));
+
+        if (!confirmed) {
+          return {
+            type: "confirmation_required" as const,
+            action: "delete_instructor",
+            instructorId,
+            instructorName: existing.name,
+            message: `Are you sure you want to delete instructor "${existing.name}"?`,
+            warning: courseCount.count > 0 ? `${courseCount.count} courses will have their instructor removed.` : undefined,
+          };
+        }
+
+        await db.delete(instructorsTable).where(eq(instructorsTable.id, instructorId));
+
+        logger.info("deleteInstructor executed", { instructorId, name: existing.name });
+        return { type: "instructor_deleted" as const, instructorId, name: existing.name };
+      },
+    }),
+
+    listVideos: tool({
+      description: "List all videos with optional filtering by title or status.",
+      inputSchema: listVideosSchema,
+      execute: async ({ limit, search, status }) => {
+        const conditions = [eq(videosTable.tenantId, tenantId)];
+        if (search) conditions.push(ilike(videosTable.title, `%${search}%`));
+        if (status) conditions.push(eq(videosTable.status, status));
+
+        const videos = await db
+          .select({
+            id: videosTable.id,
+            title: videosTable.title,
+            description: videosTable.description,
+            status: videosTable.status,
+            duration: videosTable.duration,
+          })
+          .from(videosTable)
+          .where(and(...conditions))
+          .orderBy(desc(videosTable.createdAt))
+          .limit(limit ?? 20);
+
+        logger.info("listVideos executed", { count: videos.length });
+        return { videos, count: videos.length };
+      },
+    }),
+
+    listDocuments: tool({
+      description: "List all documents with optional filtering by title or status.",
+      inputSchema: listDocumentsSchema,
+      execute: async ({ limit, search, status }) => {
+        const conditions = [eq(documentsTable.tenantId, tenantId)];
+        if (search) conditions.push(ilike(documentsTable.title, `%${search}%`));
+        if (status) conditions.push(eq(documentsTable.status, status));
+
+        const documents = await db
+          .select({
+            id: documentsTable.id,
+            title: documentsTable.title,
+            description: documentsTable.description,
+            status: documentsTable.status,
+          })
+          .from(documentsTable)
+          .where(and(...conditions))
+          .orderBy(desc(documentsTable.createdAt))
+          .limit(limit ?? 20);
+
+        logger.info("listDocuments executed", { count: documents.length });
+        return { documents, count: documents.length };
+      },
+    }),
+
+    listQuizzes: tool({
+      description: "List all quizzes with optional filtering by title or status.",
+      inputSchema: listQuizzesSchema,
+      execute: async ({ limit, search, status }) => {
+        const conditions = [eq(quizzesTable.tenantId, tenantId)];
+        if (search) conditions.push(ilike(quizzesTable.title, `%${search}%`));
+        if (status) conditions.push(eq(quizzesTable.status, status));
+
+        const quizzes = await db
+          .select({
+            id: quizzesTable.id,
+            title: quizzesTable.title,
+            description: quizzesTable.description,
+            status: quizzesTable.status,
+          })
+          .from(quizzesTable)
+          .where(and(...conditions))
+          .orderBy(desc(quizzesTable.createdAt))
+          .limit(limit ?? 20);
+
+        logger.info("listQuizzes executed", { count: quizzes.length });
+        return { quizzes, count: quizzes.length };
+      },
+    }),
+
+    listModules: tool({
+      description: "List all modules with optional filtering by title or status.",
+      inputSchema: listModulesSchema,
+      execute: async ({ limit, search, status }) => {
+        const conditions = [eq(modulesTable.tenantId, tenantId)];
+        if (search) conditions.push(ilike(modulesTable.title, `%${search}%`));
+        if (status) conditions.push(eq(modulesTable.status, status));
+
+        const modules = await db
+          .select({
+            id: modulesTable.id,
+            title: modulesTable.title,
+            description: modulesTable.description,
+            status: modulesTable.status,
+          })
+          .from(modulesTable)
+          .where(and(...conditions))
+          .orderBy(desc(modulesTable.createdAt))
+          .limit(limit ?? 20);
+
+        logger.info("listModules executed", { count: modules.length });
+        return { modules, count: modules.length };
+      },
+    }),
+
+    getQuiz: tool({
+      description: "Get a quiz with all its questions and options.",
+      inputSchema: getQuizSchema,
+      execute: async ({ quizId }) => {
+        const [quiz] = await db
+          .select({
+            id: quizzesTable.id,
+            title: quizzesTable.title,
+            description: quizzesTable.description,
+            status: quizzesTable.status,
+          })
+          .from(quizzesTable)
+          .where(and(eq(quizzesTable.tenantId, tenantId), eq(quizzesTable.id, quizId)))
+          .limit(1);
+
+        if (!quiz) {
+          return { type: "error" as const, error: "Quiz not found" };
+        }
+
+        const questions = await db
+          .select({
+            id: quizQuestionsTable.id,
+            type: quizQuestionsTable.type,
+            questionText: quizQuestionsTable.questionText,
+            explanation: quizQuestionsTable.explanation,
+            order: quizQuestionsTable.order,
+          })
+          .from(quizQuestionsTable)
+          .where(eq(quizQuestionsTable.quizId, quizId))
+          .orderBy(quizQuestionsTable.order);
+
+        const questionIds = questions.map((q) => q.id);
+        const options = questionIds.length > 0
+          ? await db
+              .select({
+                id: quizOptionsTable.id,
+                questionId: quizOptionsTable.questionId,
+                optionText: quizOptionsTable.optionText,
+                isCorrect: quizOptionsTable.isCorrect,
+                order: quizOptionsTable.order,
+              })
+              .from(quizOptionsTable)
+              .where(inArray(quizOptionsTable.questionId, questionIds))
+              .orderBy(quizOptionsTable.order)
+          : [];
+
+        const questionsWithOptions = questions.map((q) => ({
+          ...q,
+          options: options.filter((o) => o.questionId === q.id),
+        }));
+
+        logger.info("getQuiz executed", { quizId, questionsCount: questions.length });
+        return { type: "quiz_details" as const, quiz: { ...quiz, questions: questionsWithOptions } };
+      },
+    }),
+
+    updateQuiz: tool({
+      description: "Update a quiz's title, description, or status.",
+      inputSchema: updateQuizMetadataSchema,
+      execute: async ({ quizId, title, description, status }) => {
+        const [existing] = await db
+          .select({ id: quizzesTable.id })
+          .from(quizzesTable)
+          .where(and(eq(quizzesTable.tenantId, tenantId), eq(quizzesTable.id, quizId)))
+          .limit(1);
+
+        if (!existing) {
+          return { type: "error" as const, error: "Quiz not found" };
+        }
+
+        const updateData: Record<string, unknown> = {};
+        if (title !== undefined) updateData.title = title;
+        if (description !== undefined) updateData.description = description;
+        if (status !== undefined) updateData.status = status;
+
+        if (Object.keys(updateData).length === 0) {
+          return { type: "error" as const, error: "No fields to update" };
+        }
+
+        await db.update(quizzesTable).set(updateData).where(eq(quizzesTable.id, quizId));
+
+        logger.info("updateQuiz executed", { quizId, updatedFields: Object.keys(updateData) });
+        return { type: "quiz_updated" as const, quizId, updatedFields: Object.keys(updateData) };
+      },
+    }),
+
+    deleteQuiz: tool({
+      description: "Delete a quiz and all its questions. Requires confirmation.",
+      inputSchema: deleteQuizSchema,
+      execute: async ({ quizId, confirmed }) => {
+        const [existing] = await db
+          .select({ id: quizzesTable.id, title: quizzesTable.title })
+          .from(quizzesTable)
+          .where(and(eq(quizzesTable.tenantId, tenantId), eq(quizzesTable.id, quizId)))
+          .limit(1);
+
+        if (!existing) {
+          return { type: "error" as const, error: "Quiz not found" };
+        }
+
+        if (!confirmed) {
+          return {
+            type: "confirmation_required" as const,
+            action: "delete_quiz",
+            quizId,
+            quizTitle: existing.title,
+            message: `Are you sure you want to delete quiz "${existing.title}"? All questions will be deleted.`,
+          };
+        }
+
+        await db.delete(quizzesTable).where(eq(quizzesTable.id, quizId));
+
+        logger.info("deleteQuiz executed", { quizId, title: existing.title });
+        return { type: "quiz_deleted" as const, quizId, title: existing.title };
+      },
+    }),
+
+    addQuizQuestion: tool({
+      description: "Add a new question to an existing quiz.",
+      inputSchema: addQuizQuestionSchema,
+      execute: async ({ quizId, type, questionText, explanation, options }) => {
+        const [quiz] = await db
+          .select({ id: quizzesTable.id })
+          .from(quizzesTable)
+          .where(and(eq(quizzesTable.tenantId, tenantId), eq(quizzesTable.id, quizId)))
+          .limit(1);
+
+        if (!quiz) {
+          return { type: "error" as const, error: "Quiz not found" };
+        }
+
+        const [maxOrder] = await db
+          .select({ maxOrder: quizQuestionsTable.order })
+          .from(quizQuestionsTable)
+          .where(eq(quizQuestionsTable.quizId, quizId))
+          .orderBy(desc(quizQuestionsTable.order))
+          .limit(1);
+
+        const [question] = await db
+          .insert(quizQuestionsTable)
+          .values({
+            quizId,
+            tenantId,
+            type,
+            questionText,
+            explanation: explanation ?? null,
+            order: (maxOrder?.maxOrder ?? -1) + 1,
+          })
+          .returning();
+
+        for (let i = 0; i < options.length; i++) {
+          await db.insert(quizOptionsTable).values({
+            questionId: question.id,
+            optionText: options[i].optionText,
+            isCorrect: options[i].isCorrect,
+            order: i,
+          });
+        }
+
+        logger.info("addQuizQuestion executed", { quizId, questionId: question.id });
+        return { type: "question_added" as const, questionId: question.id, optionsCount: options.length };
+      },
+    }),
+
+    updateQuizQuestion: tool({
+      description: "Update a quiz question's text or explanation.",
+      inputSchema: updateQuizQuestionSchema,
+      execute: async ({ questionId, questionText, explanation }) => {
+        const [existing] = await db
+          .select({ id: quizQuestionsTable.id, tenantId: quizQuestionsTable.tenantId })
+          .from(quizQuestionsTable)
+          .where(eq(quizQuestionsTable.id, questionId))
+          .limit(1);
+
+        if (!existing || existing.tenantId !== tenantId) {
+          return { type: "error" as const, error: "Question not found" };
+        }
+
+        const updateData: Record<string, unknown> = {};
+        if (questionText !== undefined) updateData.questionText = questionText;
+        if (explanation !== undefined) updateData.explanation = explanation;
+
+        if (Object.keys(updateData).length === 0) {
+          return { type: "error" as const, error: "No fields to update" };
+        }
+
+        await db.update(quizQuestionsTable).set(updateData).where(eq(quizQuestionsTable.id, questionId));
+
+        logger.info("updateQuizQuestion executed", { questionId });
+        return { type: "question_updated" as const, questionId, updatedFields: Object.keys(updateData) };
+      },
+    }),
+
+    deleteQuizQuestion: tool({
+      description: "Delete a question from a quiz.",
+      inputSchema: deleteQuizQuestionSchema,
+      execute: async ({ questionId }) => {
+        const [existing] = await db
+          .select({ id: quizQuestionsTable.id, tenantId: quizQuestionsTable.tenantId })
+          .from(quizQuestionsTable)
+          .where(eq(quizQuestionsTable.id, questionId))
+          .limit(1);
+
+        if (!existing || existing.tenantId !== tenantId) {
+          return { type: "error" as const, error: "Question not found" };
+        }
+
+        await db.delete(quizQuestionsTable).where(eq(quizQuestionsTable.id, questionId));
+
+        logger.info("deleteQuizQuestion executed", { questionId });
+        return { type: "question_deleted" as const, questionId };
+      },
+    }),
+
+    reorderQuizQuestions: tool({
+      description: "Reorder questions in a quiz by providing the question IDs in the desired order.",
+      inputSchema: reorderQuizQuestionsSchema,
+      execute: async ({ quizId, questionIds }) => {
+        const [quiz] = await db
+          .select({ id: quizzesTable.id })
+          .from(quizzesTable)
+          .where(and(eq(quizzesTable.tenantId, tenantId), eq(quizzesTable.id, quizId)))
+          .limit(1);
+
+        if (!quiz) {
+          return { type: "error" as const, error: "Quiz not found" };
+        }
+
+        for (let i = 0; i < questionIds.length; i++) {
+          await db
+            .update(quizQuestionsTable)
+            .set({ order: i })
+            .where(and(eq(quizQuestionsTable.id, questionIds[i]), eq(quizQuestionsTable.quizId, quizId)));
+        }
+
+        logger.info("reorderQuizQuestions executed", { quizId, questionsCount: questionIds.length });
+        return { type: "questions_reordered" as const, quizId, questionsCount: questionIds.length };
+      },
+    }),
+
+    addQuizOption: tool({
+      description: "Add a new option to a quiz question.",
+      inputSchema: addQuizOptionSchema,
+      execute: async ({ questionId, optionText, isCorrect }) => {
+        const [question] = await db
+          .select({ id: quizQuestionsTable.id, tenantId: quizQuestionsTable.tenantId })
+          .from(quizQuestionsTable)
+          .where(eq(quizQuestionsTable.id, questionId))
+          .limit(1);
+
+        if (!question || question.tenantId !== tenantId) {
+          return { type: "error" as const, error: "Question not found" };
+        }
+
+        const [maxOrder] = await db
+          .select({ maxOrder: quizOptionsTable.order })
+          .from(quizOptionsTable)
+          .where(eq(quizOptionsTable.questionId, questionId))
+          .orderBy(desc(quizOptionsTable.order))
+          .limit(1);
+
+        const [option] = await db
+          .insert(quizOptionsTable)
+          .values({
+            questionId,
+            optionText,
+            isCorrect,
+            order: (maxOrder?.maxOrder ?? -1) + 1,
+          })
+          .returning();
+
+        logger.info("addQuizOption executed", { questionId, optionId: option.id });
+        return { type: "option_added" as const, optionId: option.id };
+      },
+    }),
+
+    updateQuizOption: tool({
+      description: "Update a quiz option's text or correct status.",
+      inputSchema: updateQuizOptionSchema,
+      execute: async ({ optionId, optionText, isCorrect }) => {
+        const [existing] = await db
+          .select({
+            id: quizOptionsTable.id,
+            questionId: quizOptionsTable.questionId,
+          })
+          .from(quizOptionsTable)
+          .where(eq(quizOptionsTable.id, optionId))
+          .limit(1);
+
+        if (!existing) {
+          return { type: "error" as const, error: "Option not found" };
+        }
+
+        const [question] = await db
+          .select({ tenantId: quizQuestionsTable.tenantId })
+          .from(quizQuestionsTable)
+          .where(eq(quizQuestionsTable.id, existing.questionId))
+          .limit(1);
+
+        if (!question || question.tenantId !== tenantId) {
+          return { type: "error" as const, error: "Option not found" };
+        }
+
+        const updateData: Record<string, unknown> = {};
+        if (optionText !== undefined) updateData.optionText = optionText;
+        if (isCorrect !== undefined) updateData.isCorrect = isCorrect;
+
+        if (Object.keys(updateData).length === 0) {
+          return { type: "error" as const, error: "No fields to update" };
+        }
+
+        await db.update(quizOptionsTable).set(updateData).where(eq(quizOptionsTable.id, optionId));
+
+        logger.info("updateQuizOption executed", { optionId });
+        return { type: "option_updated" as const, optionId, updatedFields: Object.keys(updateData) };
+      },
+    }),
+
+    deleteQuizOption: tool({
+      description: "Delete an option from a quiz question.",
+      inputSchema: deleteQuizOptionSchema,
+      execute: async ({ optionId }) => {
+        const [existing] = await db
+          .select({
+            id: quizOptionsTable.id,
+            questionId: quizOptionsTable.questionId,
+          })
+          .from(quizOptionsTable)
+          .where(eq(quizOptionsTable.id, optionId))
+          .limit(1);
+
+        if (!existing) {
+          return { type: "error" as const, error: "Option not found" };
+        }
+
+        const [question] = await db
+          .select({ tenantId: quizQuestionsTable.tenantId })
+          .from(quizQuestionsTable)
+          .where(eq(quizQuestionsTable.id, existing.questionId))
+          .limit(1);
+
+        if (!question || question.tenantId !== tenantId) {
+          return { type: "error" as const, error: "Option not found" };
+        }
+
+        await db.delete(quizOptionsTable).where(eq(quizOptionsTable.id, optionId));
+
+        logger.info("deleteQuizOption executed", { optionId });
+        return { type: "option_deleted" as const, optionId };
+      },
+    }),
+
+    getModule: tool({
+      description: "Get a module with all its content items.",
+      inputSchema: getModuleSchema,
+      execute: async ({ moduleId }) => {
+        const [module] = await db
+          .select({
+            id: modulesTable.id,
+            title: modulesTable.title,
+            description: modulesTable.description,
+            status: modulesTable.status,
+          })
+          .from(modulesTable)
+          .where(and(eq(modulesTable.tenantId, tenantId), eq(modulesTable.id, moduleId)))
+          .limit(1);
+
+        if (!module) {
+          return { type: "error" as const, error: "Module not found" };
+        }
+
+        const items = await db
+          .select({
+            id: moduleItemsTable.id,
+            contentType: moduleItemsTable.contentType,
+            contentId: moduleItemsTable.contentId,
+            order: moduleItemsTable.order,
+            isPreview: moduleItemsTable.isPreview,
+          })
+          .from(moduleItemsTable)
+          .where(eq(moduleItemsTable.moduleId, moduleId))
+          .orderBy(moduleItemsTable.order);
+
+        const videoIds = items.filter((i) => i.contentType === "video").map((i) => i.contentId);
+        const documentIds = items.filter((i) => i.contentType === "document").map((i) => i.contentId);
+        const quizIds = items.filter((i) => i.contentType === "quiz").map((i) => i.contentId);
+
+        const [videos, documents, quizzes] = await Promise.all([
+          videoIds.length > 0
+            ? db.select({ id: videosTable.id, title: videosTable.title }).from(videosTable).where(inArray(videosTable.id, videoIds))
+            : [],
+          documentIds.length > 0
+            ? db.select({ id: documentsTable.id, title: documentsTable.title }).from(documentsTable).where(inArray(documentsTable.id, documentIds))
+            : [],
+          quizIds.length > 0
+            ? db.select({ id: quizzesTable.id, title: quizzesTable.title }).from(quizzesTable).where(inArray(quizzesTable.id, quizIds))
+            : [],
+        ]);
+
+        const contentTitles = new Map<string, string>();
+        for (const v of videos) contentTitles.set(v.id, v.title);
+        for (const d of documents) contentTitles.set(d.id, d.title);
+        for (const q of quizzes) contentTitles.set(q.id, q.title);
+
+        const itemsWithTitles = items.map((item) => ({
+          ...item,
+          title: contentTitles.get(item.contentId) ?? "Unknown",
+        }));
+
+        logger.info("getModule executed", { moduleId, itemsCount: items.length });
+        return { type: "module_details" as const, module: { ...module, items: itemsWithTitles } };
+      },
+    }),
+
+    updateModule: tool({
+      description: "Update a module's title, description, or status.",
+      inputSchema: updateModuleMetadataSchema,
+      execute: async ({ moduleId, title, description, status }) => {
+        const [existing] = await db
+          .select({ id: modulesTable.id })
+          .from(modulesTable)
+          .where(and(eq(modulesTable.tenantId, tenantId), eq(modulesTable.id, moduleId)))
+          .limit(1);
+
+        if (!existing) {
+          return { type: "error" as const, error: "Module not found" };
+        }
+
+        const updateData: Record<string, unknown> = {};
+        if (title !== undefined) updateData.title = title;
+        if (description !== undefined) updateData.description = description;
+        if (status !== undefined) updateData.status = status;
+
+        if (Object.keys(updateData).length === 0) {
+          return { type: "error" as const, error: "No fields to update" };
+        }
+
+        await db.update(modulesTable).set(updateData).where(eq(modulesTable.id, moduleId));
+
+        logger.info("updateModule executed", { moduleId, updatedFields: Object.keys(updateData) });
+        return { type: "module_updated" as const, moduleId, updatedFields: Object.keys(updateData) };
+      },
+    }),
+
+    deleteModule: tool({
+      description: "Delete a module and all its items. Requires confirmation.",
+      inputSchema: deleteModuleSchema,
+      execute: async ({ moduleId, confirmed }) => {
+        const [existing] = await db
+          .select({ id: modulesTable.id, title: modulesTable.title })
+          .from(modulesTable)
+          .where(and(eq(modulesTable.tenantId, tenantId), eq(modulesTable.id, moduleId)))
+          .limit(1);
+
+        if (!existing) {
+          return { type: "error" as const, error: "Module not found" };
+        }
+
+        const [courseUsage] = await db
+          .select({ count: count() })
+          .from(courseModulesTable)
+          .where(eq(courseModulesTable.moduleId, moduleId));
+
+        if (!confirmed) {
+          return {
+            type: "confirmation_required" as const,
+            action: "delete_module",
+            moduleId,
+            moduleTitle: existing.title,
+            message: `Are you sure you want to delete module "${existing.title}"?`,
+            warning: courseUsage.count > 0 ? `This module is used in ${courseUsage.count} courses.` : undefined,
+          };
+        }
+
+        await db.delete(modulesTable).where(eq(modulesTable.id, moduleId));
+
+        logger.info("deleteModule executed", { moduleId, title: existing.title });
+        return { type: "module_deleted" as const, moduleId, title: existing.title };
       },
     }),
   };

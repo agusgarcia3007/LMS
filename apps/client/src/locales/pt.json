@@ -43,7 +43,8 @@
     "false": "Falso",
     "more": "mais",
     "fullscreen": "Tela cheia",
-    "exitFullscreen": "Sair da tela cheia"
+    "exitFullscreen": "Sair da tela cheia",
+    "confirm": "Confirmar"
   },
   "dataTable": {
     "search": "Buscar...",
@@ -296,6 +297,17 @@
         "placeholder": "Digite sua mensagem..."
       }
     },
+    "waitlist": {
+      "title": "Seja o primeiro a saber",
+      "subtitle": "Entre na nossa lista de espera e tenha acesso antecipado quando lancarmos",
+      "form_title": "Entre na lista de espera",
+      "form_description": "Vamos te notificar quando o LearnBase estiver pronto. Seja um dos primeiros a criar sua academia com IA.",
+      "email_placeholder": "Digite seu email",
+      "cta": "Entrar na lista",
+      "privacy": "Respeitamos sua privacidade. Sem spam, nunca.",
+      "success_title": "Voce esta na lista!",
+      "success_message": "Obrigado por se juntar a nos! Vamos te notificar assim que o LearnBase estiver pronto."
+    },
     "pricing": {
       "title": "Precos simples e transparentes",
       "subtitle": "Escolha o plano que melhor atende suas necessidades. Todos incluem 14 dias de teste gratis.",
@@ -463,6 +475,7 @@
       "adminPanel": "Painel de administracao",
       "management": "Gestao",
       "users": "Usuarios",
+      "enrollments": "Inscricoes",
       "mySite": "Meu site",
       "configuration": "Configuracao da plataforma",
       "customization": "Personalizacao",
@@ -728,14 +741,97 @@
         "role": "Funcao",
         "createdAt": "Data de criacao"
       },
+      "invite": {
+        "button": "Convidar usuario",
+        "title": "Convidar usuario",
+        "description": "Envie um convite por email para que um usuario se junte a sua organizacao",
+        "success": "Convite enviado com sucesso",
+        "emailLabel": "Email",
+        "nameLabel": "Nome",
+        "roleLabel": "Funcao"
+      },
+      "edit": {
+        "title": "Editar usuario",
+        "success": "Usuario atualizado com sucesso"
+      },
       "delete": {
         "title": "Excluir usuario",
         "description": "Tem certeza de que deseja excluir {{name}}? Esta acao nao pode ser desfeita.",
         "success": "Usuario excluido com sucesso"
       },
+      "bulkDelete": {
+        "button": "Excluir ({{count}})",
+        "title": "Excluir usuarios",
+        "description": "Tem certeza de que deseja excluir {{count}} usuarios? Esta acao nao pode ser desfeita.",
+        "success": "{{count}} usuarios excluidos com sucesso"
+      },
+      "bulkRole": {
+        "button": "Alterar funcao",
+        "title": "Alterar funcao de usuarios",
+        "description": "Alterar a funcao de {{count}} usuarios selecionados",
+        "success": "Funcao atualizada para {{count}} usuarios"
+      },
+      "export": {
+        "button": "Exportar CSV",
+        "success": "Usuarios exportados com sucesso"
+      },
       "empty": {
         "title": "Nenhum usuario",
         "description": "Nenhum usuario encontrado com os filtros atuais"
+      }
+    },
+    "enrollments": {
+      "title": "Inscricoes",
+      "description": "Gerencie as inscricoes de usuarios em cursos",
+      "columns": {
+        "user": "Usuario",
+        "course": "Curso",
+        "status": "Status",
+        "progress": "Progresso",
+        "enrolledAt": "Data de inscricao",
+        "completedAt": "Data de conclusao"
+      },
+      "filters": {
+        "status": "Status",
+        "course": "Curso",
+        "enrolledAt": "Data de inscricao"
+      },
+      "statuses": {
+        "active": "Ativo",
+        "completed": "Concluido",
+        "cancelled": "Cancelado"
+      },
+      "enroll": {
+        "button": "Inscrever usuario",
+        "title": "Inscrever usuario",
+        "description": "Selecione um usuario e um curso para criar uma inscricao",
+        "selectUser": "Selecionar usuario",
+        "selectCourse": "Selecionar curso",
+        "success": "Usuario inscrito com sucesso"
+      },
+      "cancel": {
+        "button": "Cancelar inscricao",
+        "title": "Cancelar inscricao",
+        "description": "Tem certeza de que deseja cancelar esta inscricao? O usuario perdera acesso ao curso.",
+        "success": "Inscricao cancelada com sucesso"
+      },
+      "reactivate": {
+        "button": "Reativar",
+        "title": "Reativar inscricao",
+        "description": "Tem certeza de que deseja reativar esta inscricao? O usuario recuperara acesso ao curso.",
+        "success": "Inscricao reativada com sucesso"
+      },
+      "export": {
+        "button": "Exportar CSV"
+      },
+      "detail": {
+        "title": "Detalhes da inscricao",
+        "view": "Ver detalhes",
+        "itemsCompleted": "{{completed}} de {{total}} itens concluidos"
+      },
+      "empty": {
+        "title": "Nenhuma inscricao",
+        "description": "Nenhuma inscricao encontrada com os filtros atuais"
       }
     }
   },

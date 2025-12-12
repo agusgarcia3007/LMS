@@ -13,6 +13,7 @@ import {
   forgotPasswordSchema,
   type ForgotPasswordInput,
 } from "@/lib/schemas/auth";
+import { createSeoMeta } from "@/lib/seo";
 import { useForgotPassword } from "@/services/auth/mutations";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createFileRoute, Link } from "@tanstack/react-router";
@@ -20,6 +21,12 @@ import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 
 export const Route = createFileRoute("/__auth/forgot-password")({
+  head: () =>
+    createSeoMeta({
+      title: "Forgot Password",
+      description: "Reset your LearnBase account password",
+      noindex: true,
+    }),
   component: ForgotPasswordPage,
 });
 

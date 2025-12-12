@@ -164,6 +164,145 @@ export const listInstructorsSchema = z.object({
   limit: z.number().optional().default(20).describe("Maximum number of instructors to return"),
 });
 
+// CATEGORIES MANAGEMENT
+export const createCategorySchema = z.object({
+  name: z.string().min(1).describe("Category name"),
+  description: z.string().optional().describe("Category description"),
+});
+
+export const updateCategorySchema = z.object({
+  categoryId: z.string().uuid().describe("Category ID to update"),
+  name: z.string().min(1).optional().describe("New category name"),
+  description: z.string().nullable().optional().describe("New description"),
+});
+
+export const deleteCategorySchema = z.object({
+  categoryId: z.string().uuid().describe("Category ID to delete"),
+  confirmed: z.boolean().describe("Must be true to delete"),
+});
+
+// INSTRUCTORS MANAGEMENT
+export const createInstructorSchema = z.object({
+  name: z.string().min(1).describe("Instructor name"),
+  title: z.string().optional().describe("Professional title"),
+  bio: z.string().optional().describe("Biography"),
+});
+
+export const updateInstructorSchema = z.object({
+  instructorId: z.string().uuid().describe("Instructor ID to update"),
+  name: z.string().min(1).optional().describe("New name"),
+  title: z.string().nullable().optional().describe("New title"),
+  bio: z.string().nullable().optional().describe("New bio"),
+});
+
+export const deleteInstructorSchema = z.object({
+  instructorId: z.string().uuid().describe("Instructor ID to delete"),
+  confirmed: z.boolean().describe("Must be true to delete"),
+});
+
+// LIST CONTENT
+export const listVideosSchema = z.object({
+  limit: z.number().optional().default(20).describe("Max videos to return"),
+  search: z.string().optional().describe("Search by title"),
+  status: z.enum(["draft", "published"]).optional().describe("Filter by status"),
+});
+
+export const listDocumentsSchema = z.object({
+  limit: z.number().optional().default(20).describe("Max documents to return"),
+  search: z.string().optional().describe("Search by title"),
+  status: z.enum(["draft", "published"]).optional().describe("Filter by status"),
+});
+
+export const listQuizzesSchema = z.object({
+  limit: z.number().optional().default(20).describe("Max quizzes to return"),
+  search: z.string().optional().describe("Search by title"),
+  status: z.enum(["draft", "published"]).optional().describe("Filter by status"),
+});
+
+export const listModulesSchema = z.object({
+  limit: z.number().optional().default(20).describe("Max modules to return"),
+  search: z.string().optional().describe("Search by title"),
+  status: z.enum(["draft", "published"]).optional().describe("Filter by status"),
+});
+
+// QUIZ MANAGEMENT
+export const getQuizSchema = z.object({
+  quizId: z.string().uuid().describe("Quiz ID to get"),
+});
+
+export const updateQuizMetadataSchema = z.object({
+  quizId: z.string().uuid().describe("Quiz ID to update"),
+  title: z.string().min(1).optional().describe("New title"),
+  description: z.string().nullable().optional().describe("New description"),
+  status: z.enum(["draft", "published"]).optional().describe("New status"),
+});
+
+export const deleteQuizSchema = z.object({
+  quizId: z.string().uuid().describe("Quiz ID to delete"),
+  confirmed: z.boolean().describe("Must be true to delete"),
+});
+
+// QUIZ QUESTIONS
+export const addQuizQuestionSchema = z.object({
+  quizId: z.string().uuid().describe("Quiz ID to add question to"),
+  type: z.enum(["multiple_choice", "true_false"]).describe("Question type"),
+  questionText: z.string().min(1).describe("Question text"),
+  explanation: z.string().optional().describe("Explanation after answering"),
+  options: z.array(z.object({
+    optionText: z.string().describe("Option text"),
+    isCorrect: z.boolean().describe("Is this the correct answer"),
+  })).min(2).describe("Answer options"),
+});
+
+export const updateQuizQuestionSchema = z.object({
+  questionId: z.string().uuid().describe("Question ID to update"),
+  questionText: z.string().min(1).optional().describe("New question text"),
+  explanation: z.string().nullable().optional().describe("New explanation"),
+});
+
+export const deleteQuizQuestionSchema = z.object({
+  questionId: z.string().uuid().describe("Question ID to delete"),
+});
+
+export const reorderQuizQuestionsSchema = z.object({
+  quizId: z.string().uuid().describe("Quiz ID"),
+  questionIds: z.array(z.string().uuid()).describe("Question IDs in new order"),
+});
+
+// QUIZ OPTIONS
+export const addQuizOptionSchema = z.object({
+  questionId: z.string().uuid().describe("Question ID to add option to"),
+  optionText: z.string().min(1).describe("Option text"),
+  isCorrect: z.boolean().describe("Is this the correct answer"),
+});
+
+export const updateQuizOptionSchema = z.object({
+  optionId: z.string().uuid().describe("Option ID to update"),
+  optionText: z.string().min(1).optional().describe("New option text"),
+  isCorrect: z.boolean().optional().describe("New correct status"),
+});
+
+export const deleteQuizOptionSchema = z.object({
+  optionId: z.string().uuid().describe("Option ID to delete"),
+});
+
+// MODULES
+export const getModuleSchema = z.object({
+  moduleId: z.string().uuid().describe("Module ID to get"),
+});
+
+export const updateModuleMetadataSchema = z.object({
+  moduleId: z.string().uuid().describe("Module ID to update"),
+  title: z.string().min(1).optional().describe("New title"),
+  description: z.string().nullable().optional().describe("New description"),
+  status: z.enum(["draft", "published"]).optional().describe("New status"),
+});
+
+export const deleteModuleSchema = z.object({
+  moduleId: z.string().uuid().describe("Module ID to delete"),
+  confirmed: z.boolean().describe("Must be true to delete"),
+});
+
 export type GetCourseParams = z.infer<typeof getCourseSchema>;
 export type UpdateCourseParams = z.infer<typeof updateCourseSchema>;
 export type UpdateCourseModulesParams = z.infer<typeof updateCourseModulesSchema>;
@@ -172,3 +311,27 @@ export type PublishCourseParams = z.infer<typeof publishCourseSchema>;
 export type UnpublishCourseParams = z.infer<typeof unpublishCourseSchema>;
 export type DeleteCourseParams = z.infer<typeof deleteCourseSchema>;
 export type ListInstructorsParams = z.infer<typeof listInstructorsSchema>;
+
+export type CreateCategoryParams = z.infer<typeof createCategorySchema>;
+export type UpdateCategoryParams = z.infer<typeof updateCategorySchema>;
+export type DeleteCategoryParams = z.infer<typeof deleteCategorySchema>;
+export type CreateInstructorParams = z.infer<typeof createInstructorSchema>;
+export type UpdateInstructorParams = z.infer<typeof updateInstructorSchema>;
+export type DeleteInstructorParams = z.infer<typeof deleteInstructorSchema>;
+export type ListVideosParams = z.infer<typeof listVideosSchema>;
+export type ListDocumentsParams = z.infer<typeof listDocumentsSchema>;
+export type ListQuizzesParams = z.infer<typeof listQuizzesSchema>;
+export type ListModulesParams = z.infer<typeof listModulesSchema>;
+export type GetQuizParams = z.infer<typeof getQuizSchema>;
+export type UpdateQuizMetadataParams = z.infer<typeof updateQuizMetadataSchema>;
+export type DeleteQuizParams = z.infer<typeof deleteQuizSchema>;
+export type AddQuizQuestionParams = z.infer<typeof addQuizQuestionSchema>;
+export type UpdateQuizQuestionParams = z.infer<typeof updateQuizQuestionSchema>;
+export type DeleteQuizQuestionParams = z.infer<typeof deleteQuizQuestionSchema>;
+export type ReorderQuizQuestionsParams = z.infer<typeof reorderQuizQuestionsSchema>;
+export type AddQuizOptionParams = z.infer<typeof addQuizOptionSchema>;
+export type UpdateQuizOptionParams = z.infer<typeof updateQuizOptionSchema>;
+export type DeleteQuizOptionParams = z.infer<typeof deleteQuizOptionSchema>;
+export type GetModuleParams = z.infer<typeof getModuleSchema>;
+export type UpdateModuleMetadataParams = z.infer<typeof updateModuleMetadataSchema>;
+export type DeleteModuleParams = z.infer<typeof deleteModuleSchema>;

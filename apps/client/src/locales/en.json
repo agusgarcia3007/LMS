@@ -302,24 +302,16 @@
         }
       }
     },
-    "pricing": {
-      "title": "Simple pricing, no surprises",
-      "subtitle": "Everything you need to run a successful online academy",
-      "badge": "Most Popular",
-      "plan_name": "Professional",
-      "transaction_fee": "transaction fee",
-      "cta": "Start free trial",
-      "guarantee": "14 days free, cancel anytime",
-      "features": {
-        "unlimited_courses": "Unlimited courses",
-        "unlimited_students": "Unlimited students",
-        "ai_suite": "Complete AI suite",
-        "custom_domain": "Custom domain",
-        "white_label": "Full white-label",
-        "analytics": "Advanced analytics",
-        "support": "Priority support",
-        "updates": "Free updates forever"
-      }
+    "waitlist": {
+      "title": "Be the first to know",
+      "subtitle": "Join our waitlist and get early access when we launch",
+      "form_title": "Join the waitlist",
+      "form_description": "Get notified when LearnBase is ready. Be among the first to create your AI-powered academy.",
+      "email_placeholder": "Enter your email",
+      "cta": "Join waitlist",
+      "privacy": "We respect your privacy. No spam, ever.",
+      "success_title": "You're on the list!",
+      "success_message": "Thanks for joining! We'll notify you as soon as LearnBase is ready."
     },
     "faq": {
       "title": "Frequently asked questions",
@@ -586,6 +578,7 @@
       "adminPanel": "Admin Panel",
       "management": "Management",
       "users": "Users",
+      "enrollments": "Enrollments",
       "mySite": "My Site",
       "configuration": "Platform settings",
       "customization": "Customization",
@@ -851,14 +844,100 @@
         "role": "Role",
         "createdAt": "Created at"
       },
+      "invite": {
+        "button": "Invite User",
+        "title": "Invite User",
+        "description": "Send an invitation email to a new user",
+        "success": "Invitation sent successfully",
+        "emailLabel": "Email address",
+        "emailPlaceholder": "user@example.com",
+        "nameLabel": "Full name",
+        "namePlaceholder": "John Doe",
+        "roleLabel": "Role",
+        "rolePlaceholder": "Select a role"
+      },
+      "edit": {
+        "title": "Edit User",
+        "success": "User updated successfully"
+      },
       "delete": {
         "title": "Delete user",
         "description": "Are you sure you want to delete {{name}}? This action cannot be undone.",
         "success": "User deleted successfully"
       },
+      "bulkDelete": {
+        "button": "Delete ({{count}})",
+        "title": "Delete Users",
+        "description": "Are you sure you want to delete {{count}} users? This action cannot be undone.",
+        "success": "{{count}} users deleted successfully"
+      },
+      "bulkRole": {
+        "button": "Change Role",
+        "title": "Change Role",
+        "description": "Change the role of {{count}} users to {{role}}",
+        "success": "{{count}} users updated successfully"
+      },
+      "export": {
+        "button": "Export CSV"
+      },
       "empty": {
         "title": "No users",
         "description": "No users found with the current filters"
+      }
+    },
+    "enrollments": {
+      "title": "Enrollments",
+      "description": "Manage student enrollments across courses",
+      "columns": {
+        "user": "User",
+        "course": "Course",
+        "status": "Status",
+        "progress": "Progress",
+        "enrolledAt": "Enrolled",
+        "completedAt": "Completed"
+      },
+      "filters": {
+        "status": "Status",
+        "course": "Course",
+        "enrolledAt": "Enrolled date"
+      },
+      "statuses": {
+        "active": "Active",
+        "completed": "Completed",
+        "cancelled": "Cancelled"
+      },
+      "enroll": {
+        "button": "Enroll Users",
+        "title": "Enroll User",
+        "description": "Enroll a user in a course",
+        "selectUser": "Select user",
+        "selectCourse": "Select course",
+        "success": "User enrolled successfully",
+        "bulkSuccess": "{{count}} enrollments created"
+      },
+      "cancel": {
+        "button": "Cancel",
+        "title": "Cancel Enrollment",
+        "description": "Are you sure you want to cancel this enrollment?",
+        "success": "Enrollment cancelled"
+      },
+      "reactivate": {
+        "button": "Reactivate",
+        "title": "Reactivate Enrollment",
+        "description": "Are you sure you want to reactivate this enrollment?",
+        "success": "Enrollment reactivated"
+      },
+      "export": {
+        "button": "Export CSV"
+      },
+      "detail": {
+        "title": "Enrollment Details",
+        "view": "View Details",
+        "itemsCompleted": "{{completed}} of {{total}} items completed"
+      },
+      "empty": {
+        "title": "No enrollments yet",
+        "description": "Enroll users in courses to track their progress"
       }
     }
   },

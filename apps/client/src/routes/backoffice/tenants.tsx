@@ -19,10 +19,17 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { DataTable, DeleteDialog } from "@/components/data-table";
 import { EditTenantDialog } from "@/components/backoffice/edit-tenant-dialog";
 import { useDataTableState } from "@/hooks/use-data-table-state";
+import { createSeoMeta } from "@/lib/seo";
 import { useGetTenantsList, useDeleteTenant, useUpdateTenant } from "@/services/tenants";
 import type { Tenant } from "@/services/tenants/service";
 
 export const Route = createFileRoute("/backoffice/tenants")({
+  head: () =>
+    createSeoMeta({
+      title: "Manage Tenants",
+      description: "Manage all LearnBase tenants",
+      noindex: true,
+    }),
   component: BackofficeTenants,
   validateSearch: (search: Record<string, unknown>) => ({
     page: Number(search.page) || 1,

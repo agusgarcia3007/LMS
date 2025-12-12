@@ -13,6 +13,7 @@ import {
   resetPasswordSchema,
   type ResetPasswordInput,
 } from "@/lib/schemas/auth";
+import { createSeoMeta } from "@/lib/seo";
 import { useResetPassword } from "@/services/auth/mutations";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createFileRoute, Link } from "@tanstack/react-router";
@@ -25,6 +26,12 @@ const searchSchema = z.object({
 });
 
 export const Route = createFileRoute("/__auth/reset-password")({
+  head: () =>
+    createSeoMeta({
+      title: "Reset Password",
+      description: "Set a new password for your LearnBase account",
+      noindex: true,
+    }),
   component: ResetPasswordPage,
   validateSearch: searchSchema,
 });

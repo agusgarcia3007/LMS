@@ -1,8 +1,12 @@
 import { Elysia, t } from "elysia";
 import { authPlugin, invalidateUserCache } from "@/plugins/auth";
 import { tenantPlugin } from "@/plugins/tenant";
+import { jwtPlugin } from "@/plugins/jwt";
 import { AppError, ErrorCode } from "@/lib/errors";
 import { withHandler } from "@/lib/handler";
+import { sendEmail } from "@/lib/utils";
+import { getInvitationEmailHtml } from "@/lib/email-templates";
+import { CLIENT_URL } from "@/lib/constants";
 import { db } from "@/db";
 import {
   tenantsTable,
@@ -10,7 +14,7 @@ import {
   userRoleEnum,
   type SelectUser,
 } from "@/db/schema";
-import { count, eq, ilike, and } from "drizzle-orm";
+import { count, eq, ilike, and, inArray } from "drizzle-orm";
 import {
   parseListParams,
   buildWhereClause,
@@ -49,6 +53,7 @@ function excludePassword(user: SelectUser): UserWithoutPassword {
 export const usersRoutes = new Elysia()
   .use(tenantPlugin)
   .use(authPlugin)
+  .use(jwtPlugin)
   .get(
     "/",
     (ctx) =>
@@ -427,6 +432,414 @@ export const usersRoutes = new Elysia()
       detail: {
         tags: ["Users"],
         summary: "Delete user (superadmin only)",
+      },
+    }
+  )
+  .put(
+    "/tenant/:id",
+    (ctx) =>
+      withHandler(ctx, async () => {
+        if (!ctx.user) {
+          throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
+        }
+
+        const canManageUsers =
+          ctx.userRole === "owner" ||
+          ctx.userRole === "admin" ||
+          ctx.userRole === "superadmin";
+
+        if (!canManageUsers) {
+          throw new AppError(
+            ErrorCode.FORBIDDEN,
+            "Only owners and admins can update tenant users",
+            403
+          );
+        }
+
+        const effectiveTenantId = ctx.user.tenantId ?? ctx.tenant?.id;
+
+        if (!effectiveTenantId) {
+          throw new AppError(ErrorCode.TENANT_NOT_FOUND, "No tenant context", 404);
+        }
+
+        const [existingUser] = await db
+          .select()
+          .from(usersTable)
+          .where(
+            and(
+              eq(usersTable.id, ctx.params.id),
+              eq(usersTable.tenantId, effectiveTenantId)
+            )
+          )
+          .limit(1);
+
+        if (!existingUser) {
+          throw new AppError(ErrorCode.USER_NOT_FOUND, "User not found in tenant", 404);
+        }
+
+        if (ctx.params.id === ctx.user.id && ctx.body.role !== undefined) {
+          throw new AppError(
+            ErrorCode.BAD_REQUEST,
+            "Cannot change your own role",
+            400
+          );
+        }
+
+        if (ctx.body.role === "owner" || ctx.body.role === "superadmin") {
+          throw new AppError(
+            ErrorCode.FORBIDDEN,
+            "Cannot promote to owner or superadmin",
+            403
+          );
+        }
+
+        if (existingUser.role === "owner" && ctx.userRole !== "superadmin") {
+          throw new AppError(
+            ErrorCode.FORBIDDEN,
+            "Cannot modify owner account",
+            403
+          );
+        }
+
+        const updateData: Partial<SelectUser> = {};
+        if (ctx.body.name !== undefined) updateData.name = ctx.body.name;
+        if (ctx.body.role !== undefined) updateData.role = ctx.body.role;
+
+        const [updatedUser] = await db
+          .update(usersTable)
+          .set(updateData)
+          .where(eq(usersTable.id, ctx.params.id))
+          .returning();
+
+        invalidateUserCache(ctx.params.id);
+
+        return { user: excludePassword(updatedUser) };
+      }),
+    {
+      params: t.Object({
+        id: t.String({ format: "uuid" }),
+      }),
+      body: t.Object({
+        name: t.Optional(t.String({ minLength: 1 })),
+        role: t.Optional(t.Union([t.Literal("admin"), t.Literal("student")])),
+      }),
+      detail: {
+        tags: ["Users"],
+        summary: "Update tenant user (owner/admin only)",
+      },
+    }
+  )
+  .post(
+    "/tenant/invite",
+    (ctx) =>
+      withHandler(ctx, async () => {
+        if (!ctx.user) {
+          throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
+        }
+
+        const canInviteUsers =
+          ctx.userRole === "owner" ||
+          ctx.userRole === "admin" ||
+          ctx.userRole === "superadmin";
+
+        if (!canInviteUsers) {
+          throw new AppError(
+            ErrorCode.FORBIDDEN,
+            "Only owners and admins can invite users",
+            403
+          );
+        }
+
+        const effectiveTenantId = ctx.user.tenantId ?? ctx.tenant?.id;
+
+        if (!effectiveTenantId) {
+          throw new AppError(ErrorCode.TENANT_NOT_FOUND, "No tenant context", 404);
+        }
+
+        const [tenant] = await db
+          .select()
+          .from(tenantsTable)
+          .where(eq(tenantsTable.id, effectiveTenantId))
+          .limit(1);
+
+        if (!tenant) {
+          throw new AppError(ErrorCode.TENANT_NOT_FOUND, "Tenant not found", 404);
+        }
+
+        const [existing] = await db
+          .select()
+          .from(usersTable)
+          .where(
+            and(
+              eq(usersTable.email, ctx.body.email),
+              eq(usersTable.tenantId, effectiveTenantId)
+            )
+          )
+          .limit(1);
+
+        if (existing) {
+          throw new AppError(
+            ErrorCode.EMAIL_ALREADY_EXISTS,
+            "User with this email already exists in tenant",
+            409
+          );
+        }
+
+        const randomPassword = crypto.randomUUID();
+        const hashedPassword = await Bun.password.hash(randomPassword);
+
+        const [newUser] = await db
+          .insert(usersTable)
+          .values({
+            email: ctx.body.email,
+            password: hashedPassword,
+            name: ctx.body.name,
+            role: ctx.body.role,
+            tenantId: effectiveTenantId,
+          })
+          .returning();
+
+        const resetToken = await ctx.resetJwt.sign({ sub: newUser.id });
+        const resetUrl = `${CLIENT_URL}/reset-password?token=${resetToken}`;
+
+        await sendEmail({
+          to: ctx.body.email,
+          subject: `You've been invited to ${tenant.name}`,
+          html: getInvitationEmailHtml({
+            recipientName: ctx.body.name,
+            tenantName: tenant.name,
+            inviterName: ctx.user.name,
+            resetUrl,
+          }),
+        });
+
+        return { user: excludePassword(newUser) };
+      }),
+    {
+      body: t.Object({
+        email: t.String({ format: "email" }),
+        name: t.String({ minLength: 1 }),
+        role: t.Union([t.Literal("admin"), t.Literal("student")]),
+      }),
+      detail: {
+        tags: ["Users"],
+        summary: "Invite user to tenant (owner/admin only)",
+      },
+    }
+  )
+  .delete(
+    "/tenant/bulk",
+    (ctx) =>
+      withHandler(ctx, async () => {
+        if (!ctx.user) {
+          throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
+        }
+
+        if (ctx.userRole !== "owner" && ctx.userRole !== "superadmin") {
+          throw new AppError(
+            ErrorCode.FORBIDDEN,
+            "Only owners can bulk delete users",
+            403
+          );
+        }
+
+        const effectiveTenantId = ctx.user.tenantId ?? ctx.tenant?.id;
+
+        if (!effectiveTenantId) {
+          throw new AppError(ErrorCode.TENANT_NOT_FOUND, "No tenant context", 404);
+        }
+
+        const ids = ctx.body.ids.filter((id) => id !== ctx.user!.id);
+
+        if (ids.length === 0) {
+          throw new AppError(ErrorCode.BAD_REQUEST, "No valid users to delete", 400);
+        }
+
+        const usersToDelete = await db
+          .select()
+          .from(usersTable)
+          .where(
+            and(
+              inArray(usersTable.id, ids),
+              eq(usersTable.tenantId, effectiveTenantId)
+            )
+          );
+
+        const ownerIds = usersToDelete
+          .filter((u) => u.role === "owner")
+          .map((u) => u.id);
+
+        if (ownerIds.length > 0) {
+          throw new AppError(
+            ErrorCode.FORBIDDEN,
+            "Cannot delete owner accounts",
+            403
+          );
+        }
+
+        const validIds = usersToDelete.map((u) => u.id);
+
+        if (validIds.length === 0) {
+          throw new AppError(ErrorCode.BAD_REQUEST, "No valid users found", 400);
+        }
+
+        await db.delete(usersTable).where(inArray(usersTable.id, validIds));
+
+        validIds.forEach((id) => invalidateUserCache(id));
+
+        return { deleted: validIds.length };
+      }),
+    {
+      body: t.Object({
+        ids: t.Array(t.String({ format: "uuid" }), { minItems: 1, maxItems: 100 }),
+      }),
+      detail: {
+        tags: ["Users"],
+        summary: "Bulk delete tenant users (owner only)",
+      },
+    }
+  )
+  .put(
+    "/tenant/bulk/role",
+    (ctx) =>
+      withHandler(ctx, async () => {
+        if (!ctx.user) {
+          throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
+        }
+
+        if (ctx.userRole !== "owner" && ctx.userRole !== "superadmin") {
+          throw new AppError(
+            ErrorCode.FORBIDDEN,
+            "Only owners can bulk update roles",
+            403
+          );
+        }
+
+        const effectiveTenantId = ctx.user.tenantId ?? ctx.tenant?.id;
+
+        if (!effectiveTenantId) {
+          throw new AppError(ErrorCode.TENANT_NOT_FOUND, "No tenant context", 404);
+        }
+
+        const ids = ctx.body.ids.filter((id) => id !== ctx.user!.id);
+
+        if (ids.length === 0) {
+          throw new AppError(ErrorCode.BAD_REQUEST, "No valid users to update", 400);
+        }
+
+        const usersToUpdate = await db
+          .select()
+          .from(usersTable)
+          .where(
+            and(
+              inArray(usersTable.id, ids),
+              eq(usersTable.tenantId, effectiveTenantId)
+            )
+          );
+
+        const ownerIds = usersToUpdate
+          .filter((u) => u.role === "owner")
+          .map((u) => u.id);
+
+        if (ownerIds.length > 0) {
+          throw new AppError(
+            ErrorCode.FORBIDDEN,
+            "Cannot change role of owner accounts",
+            403
+          );
+        }
+
+        const validIds = usersToUpdate.map((u) => u.id);
+
+        if (validIds.length === 0) {
+          throw new AppError(ErrorCode.BAD_REQUEST, "No valid users found", 400);
+        }
+
+        await db
+          .update(usersTable)
+          .set({ role: ctx.body.role })
+          .where(inArray(usersTable.id, validIds));
+
+        validIds.forEach((id) => invalidateUserCache(id));
+
+        return { updated: validIds.length };
+      }),
+    {
+      body: t.Object({
+        ids: t.Array(t.String({ format: "uuid" }), { minItems: 1, maxItems: 100 }),
+        role: t.Union([t.Literal("admin"), t.Literal("student")]),
+      }),
+      detail: {
+        tags: ["Users"],
+        summary: "Bulk update tenant user roles (owner only)",
+      },
+    }
+  )
+  .get(
+    "/tenant/export",
+    (ctx) =>
+      withHandler(ctx, async () => {
+        if (!ctx.user) {
+          throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
+        }
+
+        const canExport =
+          ctx.userRole === "owner" ||
+          ctx.userRole === "admin" ||
+          ctx.userRole === "superadmin";
+
+        if (!canExport) {
+          throw new AppError(
+            ErrorCode.FORBIDDEN,
+            "Only owners and admins can export users",
+            403
+          );
+        }
+
+        const effectiveTenantId = ctx.user.tenantId ?? ctx.tenant?.id;
+
+        if (!effectiveTenantId) {
+          throw new AppError(ErrorCode.TENANT_NOT_FOUND, "No tenant context", 404);
+        }
+
+        const users = await db
+          .select({
+            name: usersTable.name,
+            email: usersTable.email,
+            role: usersTable.role,
+            createdAt: usersTable.createdAt,
+          })
+          .from(usersTable)
+          .where(eq(usersTable.tenantId, effectiveTenantId))
+          .orderBy(usersTable.createdAt);
+
+        const headers = ["Name", "Email", "Role", "Created At"];
+        const rows = users.map((u) => [
+          u.name,
+          u.email,
+          u.role,
+          u.createdAt.toISOString(),
+        ]);
+
+        const csv = [headers, ...rows]
+          .map((row) =>
+            row
+              .map((cell) => `"${String(cell).replace(/"/g, '""')}"`)
+              .join(",")
+          )
+          .join("\n");
+
+        return new Response(csv, {
+          headers: {
+            "Content-Type": "text/csv",
+            "Content-Disposition": `attachment; filename="users-${new Date().toISOString().split("T")[0]}.csv"`,
+          },
+        });
+      }),
+    {
+      detail: {
+        tags: ["Users"],
+        summary: "Export tenant users to CSV (owner/admin only)",
       },
     }
   );

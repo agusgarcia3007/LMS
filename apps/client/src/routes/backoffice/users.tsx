@@ -21,10 +21,17 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EditUserDialog } from "@/components/backoffice/edit-user-dialog";
 import { DataTable, DeleteDialog } from "@/components/data-table";
 import { useDataTableState } from "@/hooks/use-data-table-state";
+import { createSeoMeta } from "@/lib/seo";
 import { useDeleteUser, useGetUsers, useUpdateUser } from "@/services/users";
 import type { User, UserRole } from "@/services/users/service";
 
 export const Route = createFileRoute("/backoffice/users")({
+  head: () =>
+    createSeoMeta({
+      title: "Manage Users",
+      description: "Manage all LearnBase users",
+      noindex: true,
+    }),
   component: BackofficeUsers,
   validateSearch: (search: Record<string, unknown>) => ({
     page: Number(search.page) || 1,

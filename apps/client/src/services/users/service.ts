@@ -47,6 +47,26 @@ export type UpdateUserRequest = {
   tenantId?: string | null;
 };
 
+export type UpdateTenantUserRequest = {
+  name?: string;
+  role?: "admin" | "student";
+};
+
+export type InviteUserRequest = {
+  email: string;
+  name: string;
+  role: "admin" | "student";
+};
+
+export type BulkDeleteRequest = {
+  ids: string[];
+};
+
+export type BulkUpdateRoleRequest = {
+  ids: string[];
+  role: "admin" | "student";
+};
+
 export type TenantUserListParams = Omit<UserListParams, "tenantId">;
 
 export const QUERY_KEYS = {
@@ -102,5 +122,51 @@ export const UsersService = {
     const url = queryString ? `/users/tenant?${queryString}` : "/users/tenant";
     const { data } = await http.get<TenantUserListResponse>(url);
     return data;
+  },
+
+  async updateTenantUser(id: string, payload: UpdateTenantUserRequest) {
+    const { data } = await http.put<{ user: TenantUser }>(
+      `/users/tenant/${id}`,
+      payload
+    );
+    return data;
+  },
+
+  async inviteUser(payload: InviteUserRequest) {
+    const { data } = await http.post<{ user: TenantUser }>(
+      "/users/tenant/invite",
+      payload
+    );
+    return data;
+  },
+
+  async deleteTenantUser(id: string) {
+    const { data } = await http.delete<{ success: boolean }>(
+      `/users/tenant/${id}`
+    );
+    return data;
+  },
+
+  async bulkDeleteTenantUsers(ids: string[]) {
+    const { data } = await http.delete<{ deleted: number }>(
+      "/users/tenant/bulk",
+      { data: { ids } }
+    );
+    return data;
+  },
+
+  async bulkUpdateRole(payload: BulkUpdateRoleRequest) {
+    const { data } = await http.put<{ updated: number }>(
+      "/users/tenant/bulk/role",
+      payload
+    );
+    return data;
+  },
+
+  async exportTenantUsersCsv() {
+    const response = await http.get("/users/tenant/export", {
+      responseType: "blob",
+    });
+    return response.data as Blob;
   },
 } as const;

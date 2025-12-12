@@ -22,6 +22,7 @@ import {
   updateProfileSchema,
   type UpdateProfileInput,
 } from "@/lib/schemas/profile";
+import { createSeoMeta } from "@/lib/seo";
 import { useGetProfile } from "@/services/profile/queries";
 import { useUpdateProfile } from "@/services/profile/mutations";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -32,6 +33,12 @@ import { useEffect } from "react";
 
 export const Route = createFileRoute("/profile")({
   ssr: false,
+  head: () =>
+    createSeoMeta({
+      title: "Profile",
+      description: "Manage your LearnBase profile settings",
+      noindex: true,
+    }),
   component: ProfilePage,
 });
 

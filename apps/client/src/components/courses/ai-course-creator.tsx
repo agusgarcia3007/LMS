@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useParams } from "@tanstack/react-router";
 import { Check, ChevronDown, ImageIcon, Paperclip, RotateCcw, Sparkles, User } from "lucide-react";
@@ -41,6 +41,7 @@ import { useCourseMention, type SelectedCourse } from "@/hooks/use-course-mentio
 import { useVideosList } from "@/services/videos";
 import { useDocumentsList } from "@/services/documents";
 import { useQuizzesList } from "@/services/quizzes";
+import type { Course } from "@/services/courses/service";
 import { cn } from "@/lib/utils";
 
 type TimelineItem =
@@ -180,6 +181,7 @@ export function AICourseCreator({
   const [isCreating, setIsCreating] = useState(false);
   const [selectedCourses, setSelectedCourses] = useState<SelectedCourse[]>([]);
   const [inputValue, setInputValue] = useState("");
+  const [availableCourses, setAvailableCourses] = useState<Course[]>([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const { data: videosData } = useVideosList({ limit: 10, status: "published" });
@@ -216,14 +218,29 @@ export function AICourseCreator({
   const {
     isOpen: isMentionOpen,
     searchQuery,
+    selectedIndex,
     handleInputChange: handleMentionInputChange,
     handleSelect: handleMentionSelect,
+    handleKeyDown: handleMentionKeyDown,
     close: closeMention,
   } = useCourseMention({
     onSelect: handleCourseSelect,
     maxMentions: 3,
     selectedCourseIds: selectedCourses.map((c) => c.id),
   });
+
+  const handleCoursesChange = useCallback((courses: Course[]) => {
+    setAvailableCourses(courses);
+  }, []);
+
+  const handleTextareaKeyDown = useCallback(
+    (e: KeyboardEvent<HTMLTextAreaElement>) => {
+      if (handleMentionKeyDown(e, availableCourses)) {
+        return;
+      }
+    },
+    [handleMentionKeyDown, availableCourses]
+  );
 
   useEffect(() => {
     if (onGeneratingThumbnailChange) {
@@ -510,14 +527,17 @@ export function AICourseCreator({
                     setInputValue(e.target.value);
                     handleMentionInputChange(e.target.value);
                   }}
+                  onKeyDown={handleTextareaKeyDown}
                 />
                 <CourseMentionPopover
                   open={isMentionOpen}
                   searchQuery={searchQuery}
+                  selectedIndex={selectedIndex}
                   onSelect={handleMentionSelect}
                   onClose={closeMention}
+                  onCoursesChange={handleCoursesChange}
                   excludeIds={selectedCourses.map((c) => c.id)}
-                  anchorRef={textareaRef}
+                  anchorRef={textareaRef as React.RefObject<HTMLTextAreaElement>}
                 />
                 <PromptInputFooter>
                   {messages.length === 0 && selectedCourses.length === 0 && (

@@ -11,6 +11,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
 import { loginSchema, type LoginInput } from "@/lib/schemas/auth";
+import { createSeoMeta } from "@/lib/seo";
 import { useLogin } from "@/services/auth/mutations";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { getRedirectPath, clearRedirectPath } from "@/lib/http";
@@ -19,6 +20,12 @@ import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 
 export const Route = createFileRoute("/__auth/login")({
+  head: () =>
+    createSeoMeta({
+      title: "Sign In",
+      description: "Sign in to your LearnBase account",
+      noindex: true,
+    }),
   component: LoginPage,
 });
 

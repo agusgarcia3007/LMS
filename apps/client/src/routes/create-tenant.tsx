@@ -10,6 +10,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { createSeoMeta } from "@/lib/seo";
 import { profileOptions } from "@/services/profile/options";
 import { useCreateTenant } from "@/services/tenants/mutations";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -34,6 +35,12 @@ type CreateTenantInput = z.infer<typeof createTenantSchema>;
 
 export const Route = createFileRoute("/create-tenant")({
   ssr: false,
+  head: () =>
+    createSeoMeta({
+      title: "Create Your LMS",
+      description: "Set up your learning management system with LearnBase",
+      noindex: true,
+    }),
   beforeLoad: async ({ context }) => {
     const token = localStorage.getItem("accessToken");
     if (!token) {

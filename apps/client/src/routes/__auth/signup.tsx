@@ -11,6 +11,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
 import { signupSchema, type SignupInput } from "@/lib/schemas/auth";
+import { createSeoMeta } from "@/lib/seo";
 import { useSignup } from "@/services/auth/mutations";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
@@ -18,6 +19,12 @@ import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 
 export const Route = createFileRoute("/__auth/signup")({
+  head: () =>
+    createSeoMeta({
+      title: "Sign Up",
+      description: "Create your LearnBase account",
+      noindex: true,
+    }),
   component: SignupPage,
 });
 

@@ -43,7 +43,8 @@
     "false": "Falso",
     "more": "mas",
     "fullscreen": "Pantalla completa",
-    "exitFullscreen": "Salir de pantalla completa"
+    "exitFullscreen": "Salir de pantalla completa",
+    "confirm": "Confirmar"
   },
   "dataTable": {
     "search": "Buscar...",
@@ -342,24 +343,18 @@
       "satisfaction": "Tasa de satisfaccion",
       "hours": "Horas de contenido"
     },
+    "waitlist": {
+      "title": "Se el primero en enterarte",
+      "subtitle": "Unete a nuestra lista de espera y obtén acceso anticipado cuando lancemos",
+      "form_title": "Unete a la lista de espera",
+      "form_description": "Te notificaremos cuando LearnBase esté listo. Sé de los primeros en crear tu academia con IA.",
+      "email_placeholder": "Ingresa tu email",
+      "cta": "Unirme",
+      "privacy": "Respetamos tu privacidad. Sin spam, nunca.",
+      "success_title": "¡Estas en la lista!",
+      "success_message": "Gracias por unirte. Te notificaremos tan pronto LearnBase esté listo."
+    },
     "pricing": {
-      "title": "Precio simple, sin sorpresas",
-      "subtitle": "Todo lo que necesitas para una academia exitosa",
-      "badge": "Mas Popular",
-      "plan_name": "Profesional",
-      "transaction_fee": "comision por venta",
-      "cta": "Comenzar prueba gratis",
-      "guarantee": "14 dias gratis, cancela cuando quieras",
-      "features": {
-        "unlimited_courses": "Cursos ilimitados",
-        "unlimited_students": "Estudiantes ilimitados",
-        "ai_suite": "Suite completa de IA",
-        "custom_domain": "Dominio personalizado",
-        "white_label": "White-label completo",
-        "analytics": "Analiticas avanzadas",
-        "support": "Soporte prioritario",
-        "updates": "Actualizaciones gratis"
-      },
       "popular": "Mas popular",
       "starter": {
         "name": "Starter",
@@ -545,6 +540,7 @@
       "adminPanel": "Panel de administracion",
       "management": "Gestion",
       "users": "Usuarios",
+      "enrollments": "Inscripciones",
       "mySite": "Mi sitio",
       "configuration": "Configuracion de la plataforma",
       "customization": "Personalizacion",
@@ -810,14 +806,97 @@
         "role": "Rol",
         "createdAt": "Fecha de creacion"
       },
+      "invite": {
+        "button": "Invitar usuario",
+        "title": "Invitar usuario",
+        "description": "Envia una invitacion por email para que un usuario se una a tu organizacion",
+        "success": "Invitacion enviada correctamente",
+        "emailLabel": "Email",
+        "nameLabel": "Nombre",
+        "roleLabel": "Rol"
+      },
+      "edit": {
+        "title": "Editar usuario",
+        "success": "Usuario actualizado correctamente"
+      },
       "delete": {
         "title": "Eliminar usuario",
         "description": "¿Estas seguro de que deseas eliminar a {{name}}? Esta accion no se puede deshacer.",
         "success": "Usuario eliminado correctamente"
       },
+      "bulkDelete": {
+        "button": "Eliminar ({{count}})",
+        "title": "Eliminar usuarios",
+        "description": "¿Estas seguro de que deseas eliminar {{count}} usuarios? Esta accion no se puede deshacer.",
+        "success": "{{count}} usuarios eliminados correctamente"
+      },
+      "bulkRole": {
+        "button": "Cambiar rol",
+        "title": "Cambiar rol de usuarios",
+        "description": "Cambiar el rol de {{count}} usuarios seleccionados",
+        "success": "Rol actualizado para {{count}} usuarios"
+      },
+      "export": {
+        "button": "Exportar CSV",
+        "success": "Usuarios exportados correctamente"
+      },
       "empty": {
         "title": "No hay usuarios",
         "description": "No se encontraron usuarios con los filtros actuales"
+      }
+    },
+    "enrollments": {
+      "title": "Inscripciones",
+      "description": "Administra las inscripciones de usuarios a cursos",
+      "columns": {
+        "user": "Usuario",
+        "course": "Curso",
+        "status": "Estado",
+        "progress": "Progreso",
+        "enrolledAt": "Fecha de inscripcion",
+        "completedAt": "Fecha de finalizacion"
+      },
+      "filters": {
+        "status": "Estado",
+        "course": "Curso",
+        "enrolledAt": "Fecha de inscripcion"
+      },
+      "statuses": {
+        "active": "Activo",
+        "completed": "Completado",
+        "cancelled": "Cancelado"
+      },
+      "enroll": {
+        "button": "Inscribir usuario",
+        "title": "Inscribir usuario",
+        "description": "Selecciona un usuario y un curso para crear una inscripcion",
+        "selectUser": "Seleccionar usuario",
+        "selectCourse": "Seleccionar curso",
+        "success": "Usuario inscrito correctamente"
+      },
+      "cancel": {
+        "button": "Cancelar inscripcion",
+        "title": "Cancelar inscripcion",
+        "description": "¿Estas seguro de que deseas cancelar esta inscripcion? El usuario perdera acceso al curso.",
+        "success": "Inscripcion cancelada correctamente"
+      },
+      "reactivate": {
+        "button": "Reactivar",
+        "title": "Reactivar inscripcion",
+        "description": "¿Estas seguro de que deseas reactivar esta inscripcion? El usuario recuperara acceso al curso.",
+        "success": "Inscripcion reactivada correctamente"
+      },
+      "export": {
+        "button": "Exportar CSV"
+      },
+      "detail": {
+        "title": "Detalle de inscripcion",
+        "view": "Ver detalle",
+        "itemsCompleted": "{{completed}} de {{total}} items completados"
+      },
+      "empty": {
+        "title": "No hay inscripciones",
+        "description": "No se encontraron inscripciones con los filtros actuales"
       }
     }
   },

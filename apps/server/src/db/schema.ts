@@ -646,6 +646,12 @@ export const certificatesTable = pgTable(
   ]
 );
 
+export const waitlistTable = pgTable("waitlist", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  email: text("email").notNull().unique(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
 // Type exports
 export type InsertTenant = typeof tenantsTable.$inferInsert;
 export type SelectTenant = typeof tenantsTable.$inferSelect;
@@ -715,3 +721,6 @@ export type SelectCertificate = typeof certificatesTable.$inferSelect;
 export type CertificateSettings = NonNullable<
   SelectTenant["certificateSettings"]
 >;
+
+export type InsertWaitlist = typeof waitlistTable.$inferInsert;
+export type SelectWaitlist = typeof waitlistTable.$inferSelect;
