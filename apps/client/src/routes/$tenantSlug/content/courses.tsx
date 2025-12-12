@@ -32,6 +32,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 import { DataTable, DeleteDialog } from "@/components/data-table";
 import { CourseEditor, AICourseCreator } from "@/components/courses";
+import { createSeoMeta } from "@/lib/seo";
 import type { CoursePreview } from "@/hooks/use-ai-course-chat";
 import { useDataTableState } from "@/hooks/use-data-table-state";
 import {
@@ -44,6 +45,12 @@ import {
 } from "@/services/courses";
 
 export const Route = createFileRoute("/$tenantSlug/content/courses")({
+  head: () =>
+    createSeoMeta({
+      title: "Courses",
+      description: "Manage your courses",
+      noindex: true,
+    }),
   component: CoursesPage,
   validateSearch: (search: Record<string, unknown>) => ({
     page: Number(search.page) || 1,

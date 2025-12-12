@@ -47,8 +47,15 @@ import {
   useDeleteInstructor,
   type Instructor,
 } from "@/services/instructors";
+import { createSeoMeta } from "@/lib/seo";
 
 export const Route = createFileRoute("/$tenantSlug/content/instructors")({
+  head: () =>
+    createSeoMeta({
+      title: "Instructors",
+      description: "Manage your instructors",
+      noindex: true,
+    }),
   component: InstructorsPage,
   validateSearch: (search: Record<string, unknown>) => ({
     page: Number(search.page) || 1,

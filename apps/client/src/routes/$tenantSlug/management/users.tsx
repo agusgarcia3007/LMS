@@ -41,6 +41,7 @@ import type { FilterFieldConfig } from "@/components/ui/filters";
 import { Skeleton } from "@/components/ui/skeleton";
 
 import { DataTable, DeleteDialog } from "@/components/data-table";
+import { createSeoMeta } from "@/lib/seo";
 import { EditUserDialog } from "@/components/users/edit-user-dialog";
 import { InviteUserDialog } from "@/components/users/invite-user-dialog";
 import { useDataTableState } from "@/hooks/use-data-table-state";
@@ -56,6 +57,12 @@ import {
 import type { TenantUser, UserRole } from "@/services/users/service";
 
 export const Route = createFileRoute("/$tenantSlug/management/users")({
+  head: () =>
+    createSeoMeta({
+      title: "Users",
+      description: "Manage your users",
+      noindex: true,
+    }),
   component: TenantUsersPage,
   validateSearch: (search: Record<string, unknown>) => ({
     page: Number(search.page) || 1,

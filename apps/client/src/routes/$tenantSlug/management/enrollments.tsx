@@ -39,6 +39,7 @@ import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 
 import { DataTable } from "@/components/data-table";
+import { createSeoMeta } from "@/lib/seo";
 import { EnrollDialog } from "@/components/enrollments/enroll-dialog";
 import { EnrollmentDetailDialog } from "@/components/enrollments/enrollment-detail-dialog";
 import { useDataTableState } from "@/hooks/use-data-table-state";
@@ -52,6 +53,12 @@ import {
 } from "@/services/admin-enrollments";
 
 export const Route = createFileRoute("/$tenantSlug/management/enrollments")({
+  head: () =>
+    createSeoMeta({
+      title: "Enrollments",
+      description: "Manage student enrollments",
+      noindex: true,
+    }),
   component: EnrollmentsPage,
   validateSearch: (search: Record<string, unknown>) => ({
     page: Number(search.page) || 1,

@@ -45,8 +45,15 @@ import {
   useDeleteCategory,
   type Category,
 } from "@/services/categories";
+import { createSeoMeta } from "@/lib/seo";
 
 export const Route = createFileRoute("/$tenantSlug/content/categories")({
+  head: () =>
+    createSeoMeta({
+      title: "Categories",
+      description: "Manage your categories",
+      noindex: true,
+    }),
   component: CategoriesPage,
   validateSearch: (search: Record<string, unknown>) => ({
     page: Number(search.page) || 1,

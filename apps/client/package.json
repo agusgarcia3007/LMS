@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev --port 3001",
-    "build": "vite build",
+    "build": "NODE_OPTIONS='--max-old-space-size=8192' vite build",
     "start": "node .output/server/index.mjs",
     "lint": "eslint .",
     "preview": "vite preview"

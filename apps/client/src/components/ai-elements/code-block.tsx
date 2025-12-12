@@ -12,11 +12,13 @@ import {
   useRef,
   useState,
 } from "react";
-import { type BundledLanguage, codeToHtml, type ShikiTransformer } from "shiki";
+import { createHighlighterCore, type HighlighterCore } from "shiki/core";
+import { createJavaScriptRegexEngine } from "shiki/engine/javascript";
+import type { ShikiTransformer } from "shiki";
 
 type CodeBlockProps = HTMLAttributes<HTMLDivElement> & {
   code: string;
-  language: BundledLanguage;
+  language: string;
   showLineNumbers?: boolean;
 };
 
@@ -49,23 +51,52 @@ const lineNumberTransformer: ShikiTransformer = {
   },
 };
 
+let highlighterPromise: Promise<HighlighterCore> | null = null;
+
+async function getHighlighter(): Promise<HighlighterCore> {
+  if (!highlighterPromise) {
+    highlighterPromise = createHighlighterCore({
+      themes: [
+        import("@shikijs/themes/one-light"),
+        import("@shikijs/themes/one-dark-pro"),
+      ],
+      langs: [
+        import("@shikijs/langs/json"),
+        import("@shikijs/langs/typescript"),
+        import("@shikijs/langs/javascript"),
+        import("@shikijs/langs/bash"),
+        import("@shikijs/langs/python"),
+        import("@shikijs/langs/sql"),
+        import("@shikijs/langs/html"),
+        import("@shikijs/langs/css"),
+      ],
+      engine: createJavaScriptRegexEngine(),
+    });
+  }
+  return highlighterPromise;
+}
+
 export async function highlightCode(
   code: string,
-  language: BundledLanguage,
+  language: string,
   showLineNumbers = false
 ) {
+  const highlighter = await getHighlighter();
   const transformers: ShikiTransformer[] = showLineNumbers
     ? [lineNumberTransformer]
     : [];
 
+  const supportedLangs = highlighter.getLoadedLanguages();
+  const lang = supportedLangs.includes(language) ? language : "text";
+
   return await Promise.all([
-    codeToHtml(code, {
-      lang: language,
+    highlighter.codeToHtml(code, {
+      lang,
       theme: "one-light",
       transformers,
     }),
-    codeToHtml(code, {
-      lang: language,
+    highlighter.codeToHtml(code, {
+      lang,
       theme: "one-dark-pro",
       transformers,
     }),

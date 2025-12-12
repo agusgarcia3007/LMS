@@ -36,8 +36,15 @@ import { ModuleEditor } from "@/components/modules";
 import { useDataTableState } from "@/hooks/use-data-table-state";
 import { useGetModules, useDeleteModule, useBulkDeleteModules } from "@/services/modules";
 import type { Module, ModuleStatus } from "@/services/modules";
+import { createSeoMeta } from "@/lib/seo";
 
 export const Route = createFileRoute("/$tenantSlug/content/modules")({
+  head: () =>
+    createSeoMeta({
+      title: "Modules",
+      description: "Manage your modules",
+      noindex: true,
+    }),
   component: ModulesPage,
   validateSearch: (search: Record<string, unknown>) => ({
     page: Number(search.page) || 1,

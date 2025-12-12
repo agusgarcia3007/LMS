@@ -855,7 +855,12 @@
       "home": "Inicio",
       "management": "Gestao",
       "users": "Usuarios",
-      "tenants": "Organizacoes"
+      "tenants": "Organizacoes",
+      "content": "Conteudo",
+      "categories": "Categorias",
+      "instructors": "Instrutores",
+      "videos": "Videos",
+      "documents": "Documentos"
     },
     "dashboard": {
       "title": "Painel de controle",
@@ -937,6 +942,101 @@
       "empty": {
         "title": "Nenhuma organizacao",
         "description": "Nenhuma organizacao encontrada com os filtros atuais"
+      }
+    },
+    "categories": {
+      "title": "Gestao de categorias",
+      "description": "Gerencie todas as categorias de todas as organizacoes",
+      "columns": {
+        "name": "Nome",
+        "tenant": "Organizacao",
+        "courses": "Cursos",
+        "coursesLabel": "cursos",
+        "createdAt": "Data de criacao"
+      },
+      "filters": {
+        "tenant": "Organizacao",
+        "tenantPlaceholder": "Buscar organizacao...",
+        "createdAt": "Data de criacao"
+      },
+      "actions": {
+        "viewInTenant": "Ver na organizacao"
+      },
+      "empty": {
+        "title": "Nenhuma categoria",
+        "description": "Nenhuma categoria encontrada com os filtros atuais"
+      }
+    },
+    "instructors": {
+      "title": "Gestao de instrutores",
+      "description": "Gerencie todos os instrutores de todas as organizacoes",
+      "columns": {
+        "name": "Nome",
+        "email": "E-mail",
+        "tenant": "Organizacao",
+        "courses": "Cursos",
+        "coursesLabel": "cursos",
+        "createdAt": "Data de criacao"
+      },
+      "filters": {
+        "tenant": "Organizacao",
+        "tenantPlaceholder": "Buscar organizacao...",
+        "createdAt": "Data de criacao"
+      },
+      "actions": {
+        "viewInTenant": "Ver na organizacao"
+      },
+      "empty": {
+        "title": "Nenhum instrutor",
+        "description": "Nenhum instrutor encontrado com os filtros atuais"
+      }
+    },
+    "videos": {
+      "title": "Gestao de videos",
+      "description": "Gerencie todos os videos de todas as organizacoes",
+      "columns": {
+        "title": "Titulo",
+        "tenant": "Organizacao",
+        "duration": "Duracao",
+        "status": "Status",
+        "createdAt": "Data de criacao"
+      },
+      "filters": {
+        "status": "Status",
+        "tenant": "Organizacao",
+        "tenantPlaceholder": "Buscar organizacao...",
+        "createdAt": "Data de criacao"
+      },
+      "actions": {
+        "viewInTenant": "Ver na organizacao"
+      },
+      "empty": {
+        "title": "Nenhum video",
+        "description": "Nenhum video encontrado com os filtros atuais"
+      }
+    },
+    "documents": {
+      "title": "Gestao de documentos",
+      "description": "Gerencie todos os documentos de todas as organizacoes",
+      "columns": {
+        "title": "Titulo",
+        "tenant": "Organizacao",
+        "fileSize": "Tamanho",
+        "status": "Status",
+        "createdAt": "Data de criacao"
+      },
+      "filters": {
+        "status": "Status",
+        "tenant": "Organizacao",
+        "tenantPlaceholder": "Buscar organizacao...",
+        "createdAt": "Data de criacao"
+      },
+      "actions": {
+        "viewInTenant": "Ver na organizacao"
+      },
+      "empty": {
+        "title": "Nenhum documento",
+        "description": "Nenhum documento encontrado com os filtros atuais"
       }
     }
   },

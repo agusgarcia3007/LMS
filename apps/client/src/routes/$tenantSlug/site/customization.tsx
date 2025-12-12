@@ -12,6 +12,7 @@ import { Palette, Grid3X3, Type } from "lucide-react";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { createSeoMeta } from "@/lib/seo";
 
 import {
   useGetTenant,
@@ -31,6 +32,12 @@ const TABS = ["appearance", "patterns", "texts"] as const;
 type Tab = (typeof TABS)[number];
 
 export const Route = createFileRoute("/$tenantSlug/site/customization")({
+  head: () =>
+    createSeoMeta({
+      title: "Site Customization",
+      description: "Customize your site appearance",
+      noindex: true,
+    }),
   component: CustomizationPage,
   validateSearch: (search: Record<string, unknown>): { tab: Tab } => ({
     tab: TABS.includes(search.tab as Tab) ? (search.tab as Tab) : "appearance",

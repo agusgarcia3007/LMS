@@ -11,10 +11,17 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { ExternalLink, BookOpen, Users, BarChart3 } from "lucide-react";
 import { getCampusUrl } from "@/lib/tenant";
+import { createSeoMeta } from "@/lib/seo";
 import { useGetTenantStats, useGetOnboarding } from "@/services/tenants";
 import { OnboardingChecklist } from "@/components/dashboard/onboarding-checklist";
 
 export const Route = createFileRoute("/$tenantSlug/")({
+  head: () =>
+    createSeoMeta({
+      title: "Dashboard",
+      description: "Manage your academy",
+      noindex: true,
+    }),
   component: DashboardHome,
 });
 

@@ -1,5 +1,13 @@
 import { queryOptions } from "@tanstack/react-query";
-import { DashboardService, QUERY_KEYS, type TrendPeriod } from "./service";
+import {
+  DashboardService,
+  QUERY_KEYS,
+  type TrendPeriod,
+  type BackofficeCategoriesListParams,
+  type BackofficeInstructorsListParams,
+  type BackofficeVideosListParams,
+  type BackofficeDocumentsListParams,
+} from "./service";
 
 export const dashboardStatsOptions = queryOptions({
   queryFn: () => DashboardService.getStats(),
@@ -22,4 +30,36 @@ export const topTenantsOptions = (limit = 5) =>
   queryOptions({
     queryFn: () => DashboardService.getTopTenants(limit),
     queryKey: QUERY_KEYS.TOP_TENANTS(limit),
+  });
+
+export const backofficeCategoriesOptions = (
+  params: BackofficeCategoriesListParams = {}
+) =>
+  queryOptions({
+    queryFn: () => DashboardService.getCategories(params),
+    queryKey: QUERY_KEYS.CATEGORIES(params),
+  });
+
+export const backofficeInstructorsOptions = (
+  params: BackofficeInstructorsListParams = {}
+) =>
+  queryOptions({
+    queryFn: () => DashboardService.getInstructors(params),
+    queryKey: QUERY_KEYS.INSTRUCTORS(params),
+  });
+
+export const backofficeVideosOptions = (
+  params: BackofficeVideosListParams = {}
+) =>
+  queryOptions({
+    queryFn: () => DashboardService.getVideos(params),
+    queryKey: QUERY_KEYS.VIDEOS(params),
+  });
+
+export const backofficeDocumentsOptions = (
+  params: BackofficeDocumentsListParams = {}
+) =>
+  queryOptions({
+    queryFn: () => DashboardService.getDocuments(params),
+    queryKey: QUERY_KEYS.DOCUMENTS(params),
   });

@@ -74,8 +74,15 @@ import {
   useBulkDeleteQuizzes,
   type Quiz,
 } from "@/services/quizzes";
+import { createSeoMeta } from "@/lib/seo";
 
 export const Route = createFileRoute("/$tenantSlug/content/quizzes/")({
+  head: () =>
+    createSeoMeta({
+      title: "Quizzes",
+      description: "Manage your quizzes",
+      noindex: true,
+    }),
   component: QuizzesPage,
   validateSearch: (search: Record<string, unknown>) => ({
     page: Number(search.page) || 1,

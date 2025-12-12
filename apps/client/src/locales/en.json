@@ -961,7 +961,12 @@
       "home": "Home",
       "management": "Management",
       "users": "Users",
-      "tenants": "Organizations"
+      "tenants": "Organizations",
+      "content": "Content",
+      "categories": "Categories",
+      "instructors": "Instructors",
+      "videos": "Videos",
+      "documents": "Documents"
     },
     "dashboard": {
       "title": "Dashboard",
@@ -1043,6 +1048,101 @@
       "empty": {
         "title": "No organizations",
         "description": "No organizations found with the current filters"
+      }
+    },
+    "categories": {
+      "title": "Category management",
+      "description": "Manage all categories across organizations",
+      "columns": {
+        "name": "Name",
+        "tenant": "Organization",
+        "courses": "Courses",
+        "coursesLabel": "courses",
+        "createdAt": "Created at"
+      },
+      "filters": {
+        "tenant": "Organization",
+        "tenantPlaceholder": "Search organization...",
+        "createdAt": "Created at"
+      },
+      "actions": {
+        "viewInTenant": "View in organization"
+      },
+      "empty": {
+        "title": "No categories",
+        "description": "No categories found with the current filters"
+      }
+    },
+    "instructors": {
+      "title": "Instructor management",
+      "description": "Manage all instructors across organizations",
+      "columns": {
+        "name": "Name",
+        "email": "Email",
+        "tenant": "Organization",
+        "courses": "Courses",
+        "coursesLabel": "courses",
+        "createdAt": "Created at"
+      },
+      "filters": {
+        "tenant": "Organization",
+        "tenantPlaceholder": "Search organization...",
+        "createdAt": "Created at"
+      },
+      "actions": {
+        "viewInTenant": "View in organization"
+      },
+      "empty": {
+        "title": "No instructors",
+        "description": "No instructors found with the current filters"
+      }
+    },
+    "videos": {
+      "title": "Video management",
+      "description": "Manage all videos across organizations",
+      "columns": {
+        "title": "Title",
+        "tenant": "Organization",
+        "duration": "Duration",
+        "status": "Status",
+        "createdAt": "Created at"
+      },
+      "filters": {
+        "status": "Status",
+        "tenant": "Organization",
+        "tenantPlaceholder": "Search organization...",
+        "createdAt": "Created at"
+      },
+      "actions": {
+        "viewInTenant": "View in organization"
+      },
+      "empty": {
+        "title": "No videos",
+        "description": "No videos found with the current filters"
+      }
+    },
+    "documents": {
+      "title": "Document management",
+      "description": "Manage all documents across organizations",
+      "columns": {
+        "title": "Title",
+        "tenant": "Organization",
+        "fileSize": "Size",
+        "status": "Status",
+        "createdAt": "Created at"
+      },
+      "filters": {
+        "status": "Status",
+        "tenant": "Organization",
+        "tenantPlaceholder": "Search organization...",
+        "createdAt": "Created at"
+      },
+      "actions": {
+        "viewInTenant": "View in organization"
+      },
+      "empty": {
+        "title": "No documents",
+        "description": "No documents found with the current filters"
       }
     }
   },

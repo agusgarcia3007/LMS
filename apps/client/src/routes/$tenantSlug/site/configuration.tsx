@@ -12,6 +12,7 @@ import { Settings, Mail, Share2, Search, Globe, Award } from "lucide-react";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { createSeoMeta } from "@/lib/seo";
 
 import {
   useGetTenant,
@@ -37,6 +38,12 @@ const TABS = ["general", "contact", "social", "seo", "domain", "certificates"] a
 type Tab = (typeof TABS)[number];
 
 export const Route = createFileRoute("/$tenantSlug/site/configuration")({
+  head: () =>
+    createSeoMeta({
+      title: "Site Configuration",
+      description: "Configure your site settings",
+      noindex: true,
+    }),
   component: ConfigurationPage,
   validateSearch: (search: Record<string, unknown>): { tab: Tab } => ({
     tab: TABS.includes(search.tab as Tab) ? (search.tab as Tab) : "general",

@@ -920,7 +920,12 @@
       "home": "Inicio",
       "management": "Gestion",
       "users": "Usuarios",
-      "tenants": "Organizaciones"
+      "tenants": "Organizaciones",
+      "content": "Contenido",
+      "categories": "Categorias",
+      "instructors": "Instructores",
+      "videos": "Videos",
+      "documents": "Documentos"
     },
     "dashboard": {
       "title": "Panel de control",
@@ -1002,6 +1007,101 @@
       "empty": {
         "title": "No hay organizaciones",
         "description": "No se encontraron organizaciones con los filtros actuales"
+      }
+    },
+    "categories": {
+      "title": "Gestion de categorias",
+      "description": "Administra todas las categorias de todas las organizaciones",
+      "columns": {
+        "name": "Nombre",
+        "tenant": "Organizacion",
+        "courses": "Cursos",
+        "coursesLabel": "cursos",
+        "createdAt": "Fecha de creacion"
+      },
+      "filters": {
+        "tenant": "Organizacion",
+        "tenantPlaceholder": "Buscar organizacion...",
+        "createdAt": "Fecha de creacion"
+      },
+      "actions": {
+        "viewInTenant": "Ver en organizacion"
+      },
+      "empty": {
+        "title": "No hay categorias",
+        "description": "No se encontraron categorias con los filtros actuales"
+      }
+    },
+    "instructors": {
+      "title": "Gestion de instructores",
+      "description": "Administra todos los instructores de todas las organizaciones",
+      "columns": {
+        "name": "Nombre",
+        "email": "Email",
+        "tenant": "Organizacion",
+        "courses": "Cursos",
+        "coursesLabel": "cursos",
+        "createdAt": "Fecha de creacion"
+      },
+      "filters": {
+        "tenant": "Organizacion",
+        "tenantPlaceholder": "Buscar organizacion...",
+        "createdAt": "Fecha de creacion"
+      },
+      "actions": {
+        "viewInTenant": "Ver en organizacion"
+      },
+      "empty": {
+        "title": "No hay instructores",
+        "description": "No se encontraron instructores con los filtros actuales"
+      }
+    },
+    "videos": {
+      "title": "Gestion de videos",
+      "description": "Administra todos los videos de todas las organizaciones",
+      "columns": {
+        "title": "Titulo",
+        "tenant": "Organizacion",
+        "duration": "Duracion",
+        "status": "Estado",
+        "createdAt": "Fecha de creacion"
+      },
+      "filters": {
+        "status": "Estado",
+        "tenant": "Organizacion",
+        "tenantPlaceholder": "Buscar organizacion...",
+        "createdAt": "Fecha de creacion"
+      },
+      "actions": {
+        "viewInTenant": "Ver en organizacion"
+      },
+      "empty": {
+        "title": "No hay videos",
+        "description": "No se encontraron videos con los filtros actuales"
+      }
+    },
+    "documents": {
+      "title": "Gestion de documentos",
+      "description": "Administra todos los documentos de todas las organizaciones",
+      "columns": {
+        "title": "Titulo",
+        "tenant": "Organizacion",
+        "fileSize": "Tamano",
+        "status": "Estado",
+        "createdAt": "Fecha de creacion"
+      },
+      "filters": {
+        "status": "Estado",
+        "tenant": "Organizacion",
+        "tenantPlaceholder": "Buscar organizacion...",
+        "createdAt": "Fecha de creacion"
+      },
+      "actions": {
+        "viewInTenant": "Ver en organizacion"
+      },
+      "empty": {
+        "title": "No hay documentos",
+        "description": "No se encontraron documentos con los filtros actuales"
       }
     }
   },

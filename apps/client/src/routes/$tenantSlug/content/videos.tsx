@@ -58,8 +58,15 @@ import {
   type Video as VideoType,
 } from "@/services/videos";
 import { useAnalyzeVideo } from "@/services/ai";
+import { createSeoMeta } from "@/lib/seo";
 
 export const Route = createFileRoute("/$tenantSlug/content/videos")({
+  head: () =>
+    createSeoMeta({
+      title: "Videos",
+      description: "Manage your videos",
+      noindex: true,
+    }),
   component: VideosPage,
   validateSearch: (search: Record<string, unknown>) => ({
     page: Number(search.page) || 1,

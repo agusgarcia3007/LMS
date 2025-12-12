@@ -57,8 +57,15 @@ import {
   useUploadDocumentStandalone,
   type Document as DocumentType,
 } from "@/services/documents";
+import { createSeoMeta } from "@/lib/seo";
 
 export const Route = createFileRoute("/$tenantSlug/content/documents")({
+  head: () =>
+    createSeoMeta({
+      title: "Documents",
+      description: "Manage your documents",
+      noindex: true,
+    }),
   component: DocumentsPage,
   validateSearch: (search: Record<string, unknown>) => ({
     page: Number(search.page) || 1,
