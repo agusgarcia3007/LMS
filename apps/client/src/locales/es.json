@@ -980,6 +980,11 @@
       "courses": "cursos",
       "noCoursesYet": "Sin cursos todavia",
       "noTenantsYet": "Sin organizaciones todavia",
+      "newUsersOverTime": "Nuevos usuarios a lo largo del tiempo",
+      "enrollmentsOverTime": "Inscripciones a cursos a lo largo del tiempo",
+      "byEnrollments": "Por total de inscripciones",
+      "byUsers": "Por total de usuarios",
+      "showingDataFor": "Mostrando datos de",
       "period": {
         "7d": "7 dias",
         "30d": "30 dias",

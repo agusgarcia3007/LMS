@@ -35,7 +35,7 @@ import {
 } from "@/components/ai-elements/tool";
 import { CoursePreviewCard } from "./course-preview-card";
 import { CourseMentionPopover } from "@/components/ai-elements/course-mention-popover";
-import { useAICourseChat, type ChatMessage, type ToolInvocation } from "@/hooks/use-ai-course-chat";
+import { useAICourseChat, type ChatMessage, type ToolInvocation, type ContextCourse } from "@/hooks/use-ai-course-chat";
 import { useCourseMention, type SelectedCourse } from "@/hooks/use-course-mention";
 import { useVideosList } from "@/services/videos";
 import { useDocumentsList } from "@/services/documents";
@@ -72,7 +72,7 @@ function getToolState(invocation: ToolInvocation): "input-available" | "output-a
   return "output-available";
 }
 
-function UserBubble({ content, index }: { content: string; index: number }) {
+function UserBubble({ content, index, courses }: { content: string; index: number; courses?: ContextCourse[] }) {
   return (
     <div
       className="flex w-full justify-end animate-in fade-in-0 slide-in-from-right-2"
@@ -80,6 +80,19 @@ function UserBubble({ content, index }: { content: string; index: number }) {
     >
       <div className="flex items-end gap-2 max-w-[85%]">
         <div className="rounded-2xl rounded-br-md bg-primary px-4 py-2.5 text-sm text-primary-foreground">
+          {courses && courses.length > 0 && (
+            <div className="flex flex-wrap gap-1 mb-2">
+              {courses.map((c) => (
+                <span
+                  key={c.id}
+                  className="inline-flex items-center gap-1 rounded bg-primary-foreground/20 px-1.5 py-0.5 text-xs"
+                >
+                  <BookOpen className="size-3" />
+                  <span className="truncate max-w-[100px]">{c.title}</span>
+                </span>
+              ))}
+            </div>
+          )}
           <p className="whitespace-pre-wrap">{content}</p>
         </div>
         <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary">
@@ -250,11 +263,17 @@ export function AICourseCreator({
       }
     }
 
+    const coursesToSend: ContextCourse[] | undefined = selectedCourses.length > 0
+      ? selectedCourses.map((c) => ({ id: c.id, title: c.title }))
+      : undefined;
+
     sendMessage(
       message.text,
-      imageFiles.length > 0 ? imageFiles : undefined
+      imageFiles.length > 0 ? imageFiles : undefined,
+      coursesToSend
     );
     setInputValue("");
+    setSelectedCourses([]);
   };
 
   const handleSuggestionClick = (suggestion: string) => {
@@ -381,6 +400,7 @@ export function AICourseCreator({
                         key={item.data.id}
                         content={item.data.content}
                         index={index}
+                        courses={item.data.contextCourses}
                       />
                     ) : (
                       <AssistantBubble

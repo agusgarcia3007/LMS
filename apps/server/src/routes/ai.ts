@@ -1127,12 +1127,16 @@ ${modules.join("\n") || "  No modules"}`;
 
           contextCoursesInfo = `
 ## CONTEXT COURSES (User mentioned these courses with @)
-The user is referencing the following course(s). Use getCourse tool to get full details before making changes.
+IMPORTANT: The user has explicitly selected the following course(s). You have their IDs below.
+When the user asks to modify/edit/update a course, use the course ID directly with getCourse or updateCourse tools.
+DO NOT search for courses by name - use the ID provided directly.
+
 ${courseInfos.join("\n")}
 
-When editing these courses, remember:
-- Use updateCourse for metadata changes
-- Use updateCourseModules to change modules (REPLACES all modules)
+To work with these courses:
+- Use getCourse(courseId: "<the-course-id>") to get full details
+- Use updateCourse(courseId: "<the-course-id>", ...) for metadata changes
+- Use updateCourseModules(courseId: "<the-course-id>", ...) to change modules (REPLACES all modules)
 - Use updateModuleItems to change items in a module
 - For destructive actions (delete, unpublish), always confirm first
 `;

@@ -13,12 +13,18 @@ export type ChatAttachment = {
   mimeType: string;
 };
 
+export type ContextCourse = {
+  id: string;
+  title: string;
+};
+
 export type ChatMessage = {
   id: string;
   role: "user" | "assistant";
   content: string;
   timestamp: number;
   attachments?: ChatAttachment[];
+  contextCourses?: ContextCourse[];
 };
 
 export type CoursePreviewModule = {
@@ -90,7 +96,7 @@ export function useAICourseChat() {
 
   messagesRef.current = messages;
 
-  const sendMessage = useCallback(async (content: string, files?: File[], contextCourseIds?: string[]) => {
+  const sendMessage = useCallback(async (content: string, files?: File[], contextCourses?: ContextCourse[]) => {
     const processedAttachments: ChatAttachment[] | undefined = files?.length
       ? await Promise.all(
           files.map(async (file) => ({
@@ -107,6 +113,7 @@ export function useAICourseChat() {
       content,
       timestamp: Date.now(),
       attachments: processedAttachments,
+      contextCourses: contextCourses?.length ? contextCourses : undefined,
     };
 
     setMessages((prev) => [...prev, userMessage]);
@@ -150,7 +157,7 @@ export function useAICourseChat() {
           headers,
           body: JSON.stringify({
             messages: allMessages,
-            contextCourseIds: contextCourseIds?.length ? contextCourseIds : undefined,
+            contextCourseIds: contextCourses?.length ? contextCourses.map((c) => c.id) : undefined,
           }),
           signal: abortControllerRef.current.signal,
         }

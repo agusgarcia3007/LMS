@@ -8,8 +8,8 @@ import {
   TrendingUp,
   TrendingDown,
   DollarSign,
+  Activity,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { DashboardStats } from "@/services/dashboard";
 import { cn } from "@/lib/utils";
@@ -24,25 +24,23 @@ function GrowthIndicator({ value }: { value: number }) {
   const isPositive = value >= 0;
 
   return (
-    <div
+    <span
       className={cn(
-        "flex items-center gap-1 text-xs font-medium",
-        isPositive ? "text-emerald-600" : "text-red-600"
+        "inline-flex items-center gap-1 text-[11px] font-medium tracking-wide",
+        isPositive ? "text-emerald-600" : "text-rose-500"
       )}
     >
       {isPositive ? (
-        <TrendingUp className="size-3" />
+        <TrendingUp className="size-3" strokeWidth={2.5} />
       ) : (
-        <TrendingDown className="size-3" />
+        <TrendingDown className="size-3" strokeWidth={2.5} />
       )}
-      <span>
-        {isPositive ? "+" : ""}
-        {value}%
-      </span>
-      <span className="text-muted-foreground font-normal">
+      {isPositive ? "+" : ""}
+      {value}%
+      <span className="text-muted-foreground/60 font-normal ml-0.5">
         {t("backoffice.dashboard.vsLastPeriod")}
       </span>
-    </div>
+    </span>
   );
 }
 
@@ -53,6 +51,7 @@ function StatCard({
   growth,
   isLoading,
   format = "number",
+  accent = "default",
 }: {
   title: string;
   value: number | undefined;
@@ -60,11 +59,17 @@ function StatCard({
   growth?: number;
   isLoading: boolean;
   format?: "number" | "currency" | "percent";
+  accent?: "default" | "primary" | "success" | "warning";
 }) {
   const formatValue = (val: number) => {
     switch (format) {
       case "currency":
-        return `$${val.toLocaleString()}`;
+        return new Intl.NumberFormat("en-US", {
+          style: "currency",
+          currency: "USD",
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 0,
+        }).format(val);
       case "percent":
         return `${val}%`;
       default:
@@ -72,28 +77,57 @@ function StatCard({
     }
   };
 
+  const accentColors = {
+    default: "bg-muted/40",
+    primary: "bg-primary/5",
+    success: "bg-emerald-500/5",
+    warning: "bg-amber-500/5",
+  };
+
+  const iconColors = {
+    default: "text-muted-foreground/50",
+    primary: "text-primary/40",
+    success: "text-emerald-500/40",
+    warning: "text-amber-500/40",
+  };
+
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium">{title}</CardTitle>
-        <Icon className="text-muted-foreground size-4" />
-      </CardHeader>
-      <CardContent>
-        {isLoading ? (
-          <div className="space-y-2">
-            <Skeleton className="h-8 w-20" />
-            <Skeleton className="h-4 w-24" />
-          </div>
-        ) : (
-          <div className="space-y-1">
-            <div className="text-2xl font-bold">
-              {value !== undefined ? formatValue(value) : "-"}
+    <div
+      className={cn(
+        "group relative rounded-xl p-5 transition-all duration-300",
+        accentColors[accent],
+        "hover:shadow-sm hover:shadow-black/[0.03]"
+      )}
+    >
+      <div className="flex items-start justify-between">
+        <div className="space-y-3">
+          <p className="text-[13px] font-medium text-muted-foreground tracking-tight">
+            {title}
+          </p>
+          {isLoading ? (
+            <div className="space-y-2">
+              <Skeleton className="h-9 w-24 rounded-lg" />
+              <Skeleton className="h-4 w-20 rounded" />
             </div>
-            {growth !== undefined && <GrowthIndicator value={growth} />}
-          </div>
-        )}
-      </CardContent>
-    </Card>
+          ) : (
+            <div className="space-y-1.5">
+              <p className="text-3xl font-semibold tracking-tight tabular-nums">
+                {value !== undefined ? formatValue(value) : "—"}
+              </p>
+              {growth !== undefined && <GrowthIndicator value={growth} />}
+            </div>
+          )}
+        </div>
+        <div
+          className={cn(
+            "rounded-lg p-2.5 transition-transform duration-300 group-hover:scale-110",
+            iconColors[accent]
+          )}
+        >
+          <Icon className="size-5" strokeWidth={1.75} />
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -101,60 +135,68 @@ export function StatsOverview({ stats, isLoading }: StatsOverviewProps) {
   const { t } = useTranslation();
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-      <StatCard
-        title={t("backoffice.dashboard.totalUsers")}
-        value={stats?.overview.totalUsers}
-        icon={Users}
-        growth={stats?.growth.usersChange}
-        isLoading={isLoading}
-      />
-      <StatCard
-        title={t("backoffice.dashboard.totalTenants")}
-        value={stats?.overview.totalTenants}
-        icon={Building2}
-        growth={stats?.growth.tenantsChange}
-        isLoading={isLoading}
-      />
-      <StatCard
-        title={t("backoffice.dashboard.totalCourses")}
-        value={stats?.overview.totalCourses}
-        icon={BookOpen}
-        isLoading={isLoading}
-      />
-      <StatCard
-        title={t("backoffice.dashboard.totalRevenue")}
-        value={stats?.revenue.total}
-        icon={DollarSign}
-        isLoading={isLoading}
-        format="currency"
-      />
-      <StatCard
-        title={t("backoffice.dashboard.totalEnrollments")}
-        value={stats?.overview.totalEnrollments}
-        icon={GraduationCap}
-        growth={stats?.growth.enrollmentsChange}
-        isLoading={isLoading}
-      />
-      <StatCard
-        title={t("backoffice.dashboard.activeUsers")}
-        value={stats?.overview.activeUsers30d}
-        icon={Users}
-        isLoading={isLoading}
-      />
-      <StatCard
-        title={t("backoffice.dashboard.completionRate")}
-        value={stats?.engagement.avgCompletionRate}
-        icon={TrendingUp}
-        isLoading={isLoading}
-        format="percent"
-      />
-      <StatCard
-        title={t("backoffice.dashboard.certificates")}
-        value={stats?.overview.totalCertificates}
-        icon={Award}
-        isLoading={isLoading}
-      />
+    <div className="space-y-6">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard
+          title={t("backoffice.dashboard.totalUsers")}
+          value={stats?.overview.totalUsers}
+          icon={Users}
+          growth={stats?.growth.usersChange}
+          isLoading={isLoading}
+          accent="primary"
+        />
+        <StatCard
+          title={t("backoffice.dashboard.totalTenants")}
+          value={stats?.overview.totalTenants}
+          icon={Building2}
+          growth={stats?.growth.tenantsChange}
+          isLoading={isLoading}
+        />
+        <StatCard
+          title={t("backoffice.dashboard.totalCourses")}
+          value={stats?.overview.totalCourses}
+          icon={BookOpen}
+          isLoading={isLoading}
+        />
+        <StatCard
+          title={t("backoffice.dashboard.totalRevenue")}
+          value={stats?.revenue.total}
+          icon={DollarSign}
+          isLoading={isLoading}
+          format="currency"
+          accent="success"
+        />
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard
+          title={t("backoffice.dashboard.totalEnrollments")}
+          value={stats?.overview.totalEnrollments}
+          icon={GraduationCap}
+          growth={stats?.growth.enrollmentsChange}
+          isLoading={isLoading}
+        />
+        <StatCard
+          title={t("backoffice.dashboard.activeUsers")}
+          value={stats?.overview.activeUsers30d}
+          icon={Activity}
+          isLoading={isLoading}
+          accent="warning"
+        />
+        <StatCard
+          title={t("backoffice.dashboard.completionRate")}
+          value={stats?.engagement.avgCompletionRate}
+          icon={TrendingUp}
+          isLoading={isLoading}
+          format="percent"
+        />
+        <StatCard
+          title={t("backoffice.dashboard.certificates")}
+          value={stats?.overview.totalCertificates}
+          icon={Award}
+          isLoading={isLoading}
+        />
+      </div>
     </div>
   );
 }

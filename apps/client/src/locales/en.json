@@ -1021,6 +1021,11 @@
       "courses": "courses",
       "noCoursesYet": "No courses yet",
       "noTenantsYet": "No organizations yet",
+      "newUsersOverTime": "New users over time",
+      "enrollmentsOverTime": "Course enrollments over time",
+      "byEnrollments": "By total enrollments",
+      "byUsers": "By total users",
+      "showingDataFor": "Showing data for",
       "period": {
         "7d": "7 days",
         "30d": "30 days",

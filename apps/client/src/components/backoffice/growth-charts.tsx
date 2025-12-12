@@ -1,6 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { Area, AreaChart, XAxis, YAxis } from "recharts";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Area, AreaChart, XAxis, YAxis, CartesianGrid } from "recharts";
 import {
   ChartContainer,
   ChartTooltip,
@@ -9,6 +8,7 @@ import {
 } from "@/components/ui/chart";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { TrendsData } from "@/services/dashboard";
+import { cn } from "@/lib/utils";
 
 type GrowthChartsProps = {
   trends: TrendsData | undefined;
@@ -35,29 +35,52 @@ function formatDate(dateStr: string) {
   return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }
 
+function ChartSection({
+  title,
+  subtitle,
+  children,
+  className,
+}: {
+  title: string;
+  subtitle?: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={cn("space-y-4", className)}>
+      <div className="space-y-0.5">
+        <h3 className="text-sm font-medium text-foreground">{title}</h3>
+        {subtitle && (
+          <p className="text-xs text-muted-foreground">{subtitle}</p>
+        )}
+      </div>
+      {children}
+    </div>
+  );
+}
+
 function GrowthChart({
   title,
+  subtitle,
   data,
   dataKey,
   color,
   isLoading,
 }: {
   title: string;
+  subtitle?: string;
   data: { date: string; count: number }[];
   dataKey: string;
   color: string;
   isLoading: boolean;
 }) {
+  const { t } = useTranslation();
+
   if (isLoading) {
     return (
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base font-medium">{title}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Skeleton className="h-[200px] w-full" />
-        </CardContent>
-      </Card>
+      <ChartSection title={title} subtitle={subtitle}>
+        <Skeleton className="h-[220px] w-full rounded-xl" />
+      </ChartSection>
     );
   }
 
@@ -66,45 +89,72 @@ function GrowthChart({
     formattedDate: formatDate(item.date),
   }));
 
+  const totalValue = data.reduce((sum, item) => sum + item.count, 0);
+  const avgValue = data.length > 0 ? Math.round(totalValue / data.length) : 0;
+
   return (
-    <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-base font-medium">{title}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        {formattedData.length === 0 ? (
-          <div className="flex h-[200px] items-center justify-center text-muted-foreground">
-            No data available
+    <ChartSection title={title} subtitle={subtitle}>
+      {formattedData.length === 0 ? (
+        <div className="flex h-[220px] items-center justify-center rounded-xl bg-muted/30">
+          <p className="text-sm text-muted-foreground">
+            {t("common.noDataAvailable")}
+          </p>
+        </div>
+      ) : (
+        <div className="relative">
+          <div className="absolute right-0 top-0 flex items-baseline gap-1.5 text-right">
+            <span className="text-2xl font-semibold tabular-nums tracking-tight">
+              {avgValue.toLocaleString()}
+            </span>
+            <span className="text-xs text-muted-foreground">avg/day</span>
           </div>
-        ) : (
-          <ChartContainer config={chartConfig} className="h-[200px] w-full">
-            <AreaChart data={formattedData} margin={{ left: 0, right: 0 }}>
+          <ChartContainer config={chartConfig} className="h-[220px] w-full">
+            <AreaChart
+              data={formattedData}
+              margin={{ left: -20, right: 0, top: 40, bottom: 0 }}
+            >
               <defs>
-                <linearGradient id={`fill-${dataKey}`} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor={color} stopOpacity={0.3} />
-                  <stop offset="95%" stopColor={color} stopOpacity={0} />
+                <linearGradient
+                  id={`gradient-${dataKey}`}
+                  x1="0"
+                  y1="0"
+                  x2="0"
+                  y2="1"
+                >
+                  <stop offset="0%" stopColor={color} stopOpacity={0.15} />
+                  <stop offset="100%" stopColor={color} stopOpacity={0} />
                 </linearGradient>
               </defs>
+              <CartesianGrid
+                strokeDasharray="3 3"
+                vertical={false}
+                stroke="hsl(var(--border))"
+                strokeOpacity={0.5}
+              />
               <XAxis
                 dataKey="formattedDate"
                 tickLine={false}
                 axisLine={false}
-                tickMargin={8}
-                minTickGap={32}
-                tick={{ fontSize: 12 }}
+                tickMargin={12}
+                minTickGap={40}
+                tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
               />
               <YAxis
                 tickLine={false}
                 axisLine={false}
                 tickMargin={8}
-                tick={{ fontSize: 12 }}
-                width={40}
+                tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+                width={45}
+                tickFormatter={(value) =>
+                  value >= 1000 ? `${(value / 1000).toFixed(1)}k` : value
+                }
               />
               <ChartTooltip
                 content={
                   <ChartTooltipContent
                     labelFormatter={(value) => value}
                     indicator="line"
+                    className="rounded-lg border-none bg-background/95 shadow-lg backdrop-blur-sm"
                   />
                 }
               />
@@ -112,14 +162,21 @@ function GrowthChart({
                 type="monotone"
                 dataKey="count"
                 stroke={color}
-                fill={`url(#fill-${dataKey})`}
+                fill={`url(#gradient-${dataKey})`}
                 strokeWidth={2}
+                dot={false}
+                activeDot={{
+                  r: 4,
+                  strokeWidth: 2,
+                  stroke: "hsl(var(--background))",
+                  fill: color,
+                }}
               />
             </AreaChart>
           </ChartContainer>
-        )}
-      </CardContent>
-    </Card>
+        </div>
+      )}
+    </ChartSection>
   );
 }
 
@@ -127,21 +184,25 @@ export function GrowthCharts({ trends, isLoading }: GrowthChartsProps) {
   const { t } = useTranslation();
 
   return (
-    <div className="grid gap-4 md:grid-cols-2">
-      <GrowthChart
-        title={t("backoffice.dashboard.userGrowth")}
-        data={trends?.userGrowth ?? []}
-        dataKey="users"
-        color="hsl(var(--chart-1))"
-        isLoading={isLoading}
-      />
-      <GrowthChart
-        title={t("backoffice.dashboard.enrollmentGrowth")}
-        data={trends?.enrollmentGrowth ?? []}
-        dataKey="enrollments"
-        color="hsl(var(--chart-2))"
-        isLoading={isLoading}
-      />
+    <div className="rounded-xl bg-muted/20 p-6">
+      <div className="grid gap-8 lg:grid-cols-2">
+        <GrowthChart
+          title={t("backoffice.dashboard.userGrowth")}
+          subtitle={t("backoffice.dashboard.newUsersOverTime")}
+          data={trends?.userGrowth ?? []}
+          dataKey="users"
+          color="hsl(var(--chart-1))"
+          isLoading={isLoading}
+        />
+        <GrowthChart
+          title={t("backoffice.dashboard.enrollmentGrowth")}
+          subtitle={t("backoffice.dashboard.enrollmentsOverTime")}
+          data={trends?.enrollmentGrowth ?? []}
+          dataKey="enrollments"
+          color="hsl(var(--chart-2))"
+          isLoading={isLoading}
+        />
+      </div>
     </div>
   );
 }
