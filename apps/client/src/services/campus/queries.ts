@@ -8,21 +8,52 @@ import {
   campusModuleItemsOptions,
 } from "./options";
 import type { CoursesListParams } from "./service";
+import { useTenantInfo } from "@/hooks/use-tenant-info";
 
-export const useCampusTenant = () => useQuery(campusTenantOptions());
-
-export const useCampusCourses = (params: CoursesListParams = {}) =>
-  useQuery(campusCoursesOptions(params));
-
-export const useCampusCourse = (slug: string) =>
-  useQuery(campusCourseOptions(slug));
-
-export const useCampusCategories = () => useQuery(campusCategoriesOptions());
-
-export const useCampusStats = () => useQuery(campusStatsOptions());
-
-export const useCampusModuleItems = (moduleId: string | null) =>
-  useQuery({
-    ...campusModuleItemsOptions(moduleId!),
-    enabled: !!moduleId,
+export const useCampusTenant = () => {
+  const { isResolving } = useTenantInfo();
+  return useQuery({
+    ...campusTenantOptions(),
+    enabled: !isResolving,
   });
+};
+
+export const useCampusCourses = (params: CoursesListParams = {}) => {
+  const { isResolving } = useTenantInfo();
+  return useQuery({
+    ...campusCoursesOptions(params),
+    enabled: !isResolving,
+  });
+};
+
+export const useCampusCourse = (slug: string) => {
+  const { isResolving } = useTenantInfo();
+  return useQuery({
+    ...campusCourseOptions(slug),
+    enabled: !isResolving && !!slug,
+  });
+};
+
+export const useCampusCategories = () => {
+  const { isResolving } = useTenantInfo();
+  return useQuery({
+    ...campusCategoriesOptions(),
+    enabled: !isResolving,
+  });
+};
+
+export const useCampusStats = () => {
+  const { isResolving } = useTenantInfo();
+  return useQuery({
+    ...campusStatsOptions(),
+    enabled: !isResolving,
+  });
+};
+
+export const useCampusModuleItems = (moduleId: string | null) => {
+  const { isResolving } = useTenantInfo();
+  return useQuery({
+    ...campusModuleItemsOptions(moduleId!),
+    enabled: !isResolving && !!moduleId,
+  });
+};

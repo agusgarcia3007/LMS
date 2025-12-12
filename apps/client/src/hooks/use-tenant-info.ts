@@ -1,5 +1,7 @@
 import { useSyncExternalStore } from "react";
-import { getTenantFromHost, type TenantInfo } from "@/lib/tenant";
+import { useQuery } from "@tanstack/react-query";
+import { getTenantFromHost, setResolvedSlug, getResolvedSlug, type TenantInfo } from "@/lib/tenant";
+import { CampusService, QUERY_KEYS } from "@/services/campus/service";
 
 const subscribeToNothing = () => () => {};
 
@@ -23,10 +25,36 @@ const getTenantSnapshot = (): TenantInfo => {
 
 const getServerSnapshot = (): TenantInfo => SERVER_SNAPSHOT;
 
-export function useTenantInfo(): TenantInfo {
-  return useSyncExternalStore(
+export function useTenantInfo(): TenantInfo & { isResolving: boolean } {
+  const baseInfo = useSyncExternalStore(
     subscribeToNothing,
     getTenantSnapshot,
     getServerSnapshot
   );
+
+  const { data, isLoading } = useQuery({
+    queryKey: QUERY_KEYS.TENANT_RESOLVE,
+    queryFn: async () => {
+      const hostname = window.location.hostname;
+      const result = await CampusService.resolveTenant(hostname);
+      setResolvedSlug(result.tenant.slug);
+      return result;
+    },
+    enabled: baseInfo.isCustomDomain && !getResolvedSlug(),
+    staleTime: Infinity,
+  });
+
+  if (baseInfo.isCustomDomain && data?.tenant) {
+    return {
+      slug: data.tenant.slug,
+      isCampus: true,
+      isCustomDomain: true,
+      isResolving: false,
+    };
+  }
+
+  return {
+    ...baseInfo,
+    isResolving: baseInfo.isCustomDomain && isLoading,
+  };
 }

@@ -9,12 +9,7 @@ export const getRouter = () => {
 
   const router = createRouter({
     routeTree,
-    context: {
-      ...rqContext,
-      isCampus: false,
-      tenantSlug: null,
-      isCustomDomain: false,
-    },
+    context: rqContext,
     defaultPreload: "intent",
     defaultPreloadStaleTime: 0,
     defaultPendingMs: 0,

@@ -117,6 +117,7 @@ export type CoursesListResponse = {
 export const QUERY_KEYS = {
   CAMPUS: ["campus"],
   TENANT: ["campus", "tenant"],
+  TENANT_RESOLVE: ["campus", "tenant", "resolve"],
   COURSES: ["campus", "courses"],
   COURSES_LIST: (params: CoursesListParams) => ["campus", "courses", "list", params],
   COURSE: (slug: string) => ["campus", "courses", slug],
