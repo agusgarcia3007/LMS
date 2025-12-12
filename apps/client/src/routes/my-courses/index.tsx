@@ -22,17 +22,18 @@ import { useTheme } from "@/components/ui/theme-provider";
 import { getCampusTenantServer } from "@/services/campus/server";
 import { getTenantFromRequest } from "@/lib/tenant.server";
 import { computeThemeStyles } from "@/lib/theme.server";
+import { setResolvedSlug } from "@/lib/tenant";
 
 export const Route = createFileRoute("/my-courses/")({
   loader: async () => {
     const tenantInfo = await getTenantFromRequest({ data: {} });
     if (!tenantInfo.slug) {
-      return { tenant: null, themeClass: "", customStyles: undefined };
+      return { slug: null, tenant: null, themeClass: "", customStyles: undefined };
     }
     const tenantData = await getCampusTenantServer({ data: { slug: tenantInfo.slug } });
     const tenant = tenantData?.tenant ?? null;
     const { themeClass, customStyles } = computeThemeStyles(tenant);
-    return { tenant, themeClass, customStyles };
+    return { slug: tenantInfo.slug, tenant, themeClass, customStyles };
   },
   head: ({ loaderData }) => {
     const tenant = loaderData?.tenant;
@@ -59,10 +60,16 @@ function MyCoursesPage() {
   const { setTheme } = useTheme();
 
   const loaderData = Route.useLoaderData();
-  const { tenant, themeClass, customStyles } = loaderData;
+  const { slug, tenant, themeClass, customStyles } = loaderData;
 
   const { data: enrollmentsData, isLoading: enrollmentsLoading } =
     useEnrollments();
+
+  useEffect(() => {
+    if (slug) {
+      setResolvedSlug(slug);
+    }
+  }, [slug]);
 
   useEffect(() => {
     const tenantMode = tenant?.mode;

@@ -509,6 +509,38 @@
         "title": "Tu Campus",
         "description": "Tu plataforma de cursos esta disponible en el siguiente enlace",
         "open": "Abrir"
+      },
+      "period": {
+        "7d": "7 dias",
+        "30d": "30 dias",
+        "90d": "90 dias"
+      },
+      "analytics": {
+        "title": "Analiticas",
+        "enrollmentTrends": "Tendencia de Inscripciones",
+        "completionTrends": "Tendencia de Completados",
+        "noData": "Sin datos disponibles"
+      },
+      "topCourses": {
+        "title": "Cursos Populares",
+        "students": "estudiantes",
+        "noCourses": "Sin cursos aun"
+      },
+      "activity": {
+        "title": "Actividad Reciente",
+        "noActivity": "Sin actividad reciente",
+        "types": {
+          "enrollment": "se inscribio en",
+          "completion": "completo",
+          "certificate": "obtuvo certificado de"
+        }
+      },
+      "quickActions": {
+        "title": "Acciones Rapidas",
+        "createCourse": "Crear Curso",
+        "inviteStudents": "Invitar Estudiantes",
+        "viewEnrollments": "Ver Inscripciones",
+        "siteSettings": "Configuracion"
       }
     },
     "onboarding": {

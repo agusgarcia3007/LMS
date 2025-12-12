@@ -444,6 +444,38 @@
         "title": "Seu Campus",
         "description": "Sua plataforma de cursos esta disponivel no seguinte link",
         "open": "Abrir"
+      },
+      "period": {
+        "7d": "7 dias",
+        "30d": "30 dias",
+        "90d": "90 dias"
+      },
+      "analytics": {
+        "title": "Analiticos",
+        "enrollmentTrends": "Tendencia de Matriculas",
+        "completionTrends": "Tendencia de Conclusoes",
+        "noData": "Sem dados disponiveis"
+      },
+      "topCourses": {
+        "title": "Cursos Populares",
+        "students": "estudantes",
+        "noCourses": "Sem cursos ainda"
+      },
+      "activity": {
+        "title": "Atividade Recente",
+        "noActivity": "Sem atividade recente",
+        "types": {
+          "enrollment": "se matriculou em",
+          "completion": "concluiu",
+          "certificate": "obteve certificado de"
+        }
+      },
+      "quickActions": {
+        "title": "Acoes Rapidas",
+        "createCourse": "Criar Curso",
+        "inviteStudents": "Convidar Estudantes",
+        "viewEnrollments": "Ver Matriculas",
+        "siteSettings": "Configuracoes"
       }
     },
     "onboarding": {

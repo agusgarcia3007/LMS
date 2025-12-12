@@ -16,6 +16,7 @@ import {
   getCampusTenantServer,
 } from "@/services/campus/server";
 import { getTenantFromRequest } from "@/lib/tenant.server";
+import { setResolvedSlug } from "@/lib/tenant";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -30,7 +31,7 @@ export const Route = createFileRoute("/courses/$courseSlug")({
   loader: async ({ params }) => {
     const tenantInfo = await getTenantFromRequest({ data: {} });
     if (!tenantInfo.slug) {
-      return { course: null, tenant: null, themeClass: "", customStyles: undefined };
+      return { slug: null, course: null, tenant: null, themeClass: "", customStyles: undefined };
     }
     const [courseData, tenantData] = await Promise.all([
       getCampusCourseServer({
@@ -41,6 +42,7 @@ export const Route = createFileRoute("/courses/$courseSlug")({
     const tenant = tenantData?.tenant ?? null;
     const { themeClass, customStyles } = computeThemeStyles(tenant);
     return {
+      slug: tenantInfo.slug,
       course: courseData?.course ?? null,
       tenant,
       themeClass,
@@ -110,7 +112,13 @@ function CourseDetailPage() {
   const { t } = useTranslation();
   const { setTheme } = useTheme();
   const loaderData = Route.useLoaderData();
-  const { tenant, course, themeClass, customStyles } = loaderData;
+  const { slug, tenant, course, themeClass, customStyles } = loaderData;
+
+  useEffect(() => {
+    if (slug) {
+      setResolvedSlug(slug);
+    }
+  }, [slug]);
 
   useEffect(() => {
     const tenantMode = tenant?.mode;

@@ -35,6 +35,7 @@ import { useTheme } from "@/components/ui/theme-provider";
 import { computeThemeStyles } from "@/lib/theme.server";
 import { getTenantFromRequest } from "@/lib/tenant.server";
 import { getCampusTenantServer } from "@/services/campus/server";
+import { setResolvedSlug } from "@/lib/tenant";
 import { createSeoMeta } from "@/lib/seo";
 import { LearnService } from "@/services/learn/service";
 import type { CampusTenant } from "@/services/campus/service";
@@ -56,6 +57,7 @@ export const Route = createFileRoute("/my-courses/$courseSlug")({
     const tenant = tenantResult?.tenant ?? null;
     const { themeClass, customStyles } = computeThemeStyles(tenant);
     return {
+      slug: tenantInfo.slug,
       course: courseResult?.course ?? null,
       tenant,
       themeClass,
@@ -80,7 +82,13 @@ export const Route = createFileRoute("/my-courses/$courseSlug")({
 
 function LearnPageWrapper() {
   const loaderData = Route.useLoaderData();
-  const { tenant, themeClass, customStyles } = loaderData;
+  const { slug, tenant, themeClass, customStyles } = loaderData;
+
+  useEffect(() => {
+    if (slug) {
+      setResolvedSlug(slug);
+    }
+  }, [slug]);
 
   if (!tenant) {
     return <PageSkeleton />;

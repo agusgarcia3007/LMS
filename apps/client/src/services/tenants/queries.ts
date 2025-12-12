@@ -6,8 +6,11 @@ import {
   tenantStatsOptions,
   tenantOnboardingOptions,
   verifyDomainOptions,
+  tenantTrendsOptions,
+  tenantTopCoursesOptions,
+  tenantActivityOptions,
 } from "./options";
-import type { TenantListParams } from "./service";
+import type { TenantListParams, TenantTrendPeriod } from "./service";
 
 export const useGetTenants = () => useQuery(tenantsOptions);
 
@@ -24,3 +27,12 @@ export const useGetOnboarding = (id: string) =>
 
 export const useVerifyDomain = (tenantId: string, enabled: boolean) =>
   useQuery(verifyDomainOptions(tenantId, enabled));
+
+export const useGetTenantTrends = (id: string, period: TenantTrendPeriod = "30d") =>
+  useQuery(tenantTrendsOptions(id, period));
+
+export const useGetTenantTopCourses = (id: string, limit = 5) =>
+  useQuery(tenantTopCoursesOptions(id, limit));
+
+export const useGetTenantActivity = (id: string, limit = 10) =>
+  useQuery(tenantActivityOptions(id, limit));

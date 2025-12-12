@@ -11,8 +11,10 @@ import {
   categoriesTable,
   instructorsTable,
   modulesTable,
+  enrollmentsTable,
+  certificatesTable,
 } from "@/db/schema";
-import { count, eq, sql, and, ne } from "drizzle-orm";
+import { count, eq, sql, and, ne, gte, desc } from "drizzle-orm";
 import { uploadBase64ToS3, getPresignedUrl, deleteFromS3 } from "@/lib/upload";
 import {
   createCustomHostname,
@@ -414,6 +416,251 @@ export const tenantsRoutes = new Elysia()
       detail: {
         tags: ["Tenants"],
         summary: "Get tenant onboarding status (owner or superadmin)",
+      },
+    }
+  )
+  .get(
+    "/:id/stats/trends",
+    (ctx) =>
+      withHandler(ctx, async () => {
+        if (!ctx.user) {
+          throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
+        }
+
+        const isOwnerViewingOwnTenant =
+          ctx.userRole === "owner" && ctx.user.tenantId === ctx.params.id;
+
+        if (ctx.userRole !== "superadmin" && !isOwnerViewingOwnTenant) {
+          throw new AppError(ErrorCode.FORBIDDEN, "Access denied", 403);
+        }
+
+        const period = ctx.query.period || "30d";
+        const days = period === "7d" ? 7 : period === "90d" ? 90 : 30;
+        const startDate = new Date();
+        startDate.setDate(startDate.getDate() - days);
+
+        const enrollmentTrends = await db
+          .select({
+            date: sql<string>`DATE(${enrollmentsTable.createdAt})`.as("date"),
+            count: count().as("count"),
+          })
+          .from(enrollmentsTable)
+          .where(
+            and(
+              eq(enrollmentsTable.tenantId, ctx.params.id),
+              gte(enrollmentsTable.createdAt, startDate)
+            )
+          )
+          .groupBy(sql`DATE(${enrollmentsTable.createdAt})`)
+          .orderBy(sql`DATE(${enrollmentsTable.createdAt})`);
+
+        const completionTrends = await db
+          .select({
+            date: sql<string>`DATE(${enrollmentsTable.completedAt})`.as("date"),
+            count: count().as("count"),
+          })
+          .from(enrollmentsTable)
+          .where(
+            and(
+              eq(enrollmentsTable.tenantId, ctx.params.id),
+              eq(enrollmentsTable.status, "completed"),
+              gte(enrollmentsTable.completedAt, startDate)
+            )
+          )
+          .groupBy(sql`DATE(${enrollmentsTable.completedAt})`)
+          .orderBy(sql`DATE(${enrollmentsTable.completedAt})`);
+
+        return {
+          trends: {
+            enrollmentGrowth: enrollmentTrends,
+            completionGrowth: completionTrends,
+            period,
+          },
+        };
+      }),
+    {
+      params: t.Object({
+        id: t.String({ format: "uuid" }),
+      }),
+      query: t.Object({
+        period: t.Optional(t.Union([
+          t.Literal("7d"),
+          t.Literal("30d"),
+          t.Literal("90d"),
+        ])),
+      }),
+      detail: {
+        tags: ["Tenants"],
+        summary: "Get tenant enrollment and completion trends",
+      },
+    }
+  )
+  .get(
+    "/:id/stats/top-courses",
+    (ctx) =>
+      withHandler(ctx, async () => {
+        if (!ctx.user) {
+          throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
+        }
+
+        const isOwnerViewingOwnTenant =
+          ctx.userRole === "owner" && ctx.user.tenantId === ctx.params.id;
+
+        if (ctx.userRole !== "superadmin" && !isOwnerViewingOwnTenant) {
+          throw new AppError(ErrorCode.FORBIDDEN, "Access denied", 403);
+        }
+
+        const limit = ctx.query.limit ? parseInt(ctx.query.limit) : 5;
+
+        const courses = await db
+          .select({
+            id: coursesTable.id,
+            title: coursesTable.title,
+            enrollments: count(enrollmentsTable.id).as("enrollments"),
+            completionRate: sql<number>`
+              COALESCE(
+                ROUND(
+                  (COUNT(CASE WHEN ${enrollmentsTable.status} = 'completed' THEN 1 END)::numeric /
+                   NULLIF(COUNT(${enrollmentsTable.id}), 0)::numeric) * 100
+                ),
+                0
+              )
+            `.as("completion_rate"),
+          })
+          .from(coursesTable)
+          .leftJoin(
+            enrollmentsTable,
+            eq(coursesTable.id, enrollmentsTable.courseId)
+          )
+          .where(eq(coursesTable.tenantId, ctx.params.id))
+          .groupBy(coursesTable.id)
+          .orderBy(desc(sql`COUNT(${enrollmentsTable.id})`))
+          .limit(limit);
+
+        return { courses };
+      }),
+    {
+      params: t.Object({
+        id: t.String({ format: "uuid" }),
+      }),
+      query: t.Object({
+        limit: t.Optional(t.String()),
+      }),
+      detail: {
+        tags: ["Tenants"],
+        summary: "Get tenant top courses by enrollment",
+      },
+    }
+  )
+  .get(
+    "/:id/stats/activity",
+    (ctx) =>
+      withHandler(ctx, async () => {
+        if (!ctx.user) {
+          throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
+        }
+
+        const isOwnerViewingOwnTenant =
+          ctx.userRole === "owner" && ctx.user.tenantId === ctx.params.id;
+
+        if (ctx.userRole !== "superadmin" && !isOwnerViewingOwnTenant) {
+          throw new AppError(ErrorCode.FORBIDDEN, "Access denied", 403);
+        }
+
+        const limit = ctx.query.limit ? parseInt(ctx.query.limit) : 10;
+
+        const recentEnrollments = await db
+          .select({
+            id: enrollmentsTable.id,
+            type: sql<string>`'enrollment'`.as("type"),
+            userId: usersTable.id,
+            userName: usersTable.name,
+            userAvatar: usersTable.avatar,
+            courseId: coursesTable.id,
+            courseName: coursesTable.title,
+            createdAt: enrollmentsTable.createdAt,
+          })
+          .from(enrollmentsTable)
+          .innerJoin(usersTable, eq(enrollmentsTable.userId, usersTable.id))
+          .innerJoin(coursesTable, eq(enrollmentsTable.courseId, coursesTable.id))
+          .where(eq(enrollmentsTable.tenantId, ctx.params.id))
+          .orderBy(desc(enrollmentsTable.createdAt))
+          .limit(limit);
+
+        const recentCompletions = await db
+          .select({
+            id: enrollmentsTable.id,
+            type: sql<string>`'completion'`.as("type"),
+            userId: usersTable.id,
+            userName: usersTable.name,
+            userAvatar: usersTable.avatar,
+            courseId: coursesTable.id,
+            courseName: coursesTable.title,
+            createdAt: enrollmentsTable.completedAt,
+          })
+          .from(enrollmentsTable)
+          .innerJoin(usersTable, eq(enrollmentsTable.userId, usersTable.id))
+          .innerJoin(coursesTable, eq(enrollmentsTable.courseId, coursesTable.id))
+          .where(
+            and(
+              eq(enrollmentsTable.tenantId, ctx.params.id),
+              eq(enrollmentsTable.status, "completed")
+            )
+          )
+          .orderBy(desc(enrollmentsTable.completedAt))
+          .limit(limit);
+
+        const recentCertificates = await db
+          .select({
+            id: certificatesTable.id,
+            type: sql<string>`'certificate'`.as("type"),
+            userId: usersTable.id,
+            userName: usersTable.name,
+            userAvatar: usersTable.avatar,
+            courseId: coursesTable.id,
+            courseName: coursesTable.title,
+            createdAt: certificatesTable.issuedAt,
+          })
+          .from(certificatesTable)
+          .innerJoin(usersTable, eq(certificatesTable.userId, usersTable.id))
+          .innerJoin(coursesTable, eq(certificatesTable.courseId, coursesTable.id))
+          .where(eq(certificatesTable.tenantId, ctx.params.id))
+          .orderBy(desc(certificatesTable.issuedAt))
+          .limit(limit);
+
+        const allActivities = [
+          ...recentEnrollments.map((e) => ({
+            ...e,
+            userAvatar: e.userAvatar ? getPresignedUrl(e.userAvatar) : null,
+          })),
+          ...recentCompletions.map((c) => ({
+            ...c,
+            userAvatar: c.userAvatar ? getPresignedUrl(c.userAvatar) : null,
+          })),
+          ...recentCertificates.map((c) => ({
+            ...c,
+            userAvatar: c.userAvatar ? getPresignedUrl(c.userAvatar) : null,
+          })),
+        ]
+          .sort((a, b) => {
+            const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+            const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+            return dateB - dateA;
+          })
+          .slice(0, limit);
+
+        return { activities: allActivities };
+      }),
+    {
+      params: t.Object({
+        id: t.String({ format: "uuid" }),
+      }),
+      query: t.Object({
+        limit: t.Optional(t.String()),
+      }),
+      detail: {
+        tags: ["Tenants"],
+        summary: "Get tenant recent activity",
       },
     }
   )

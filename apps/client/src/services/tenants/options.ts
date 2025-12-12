@@ -13,6 +13,7 @@ import {
   QUERY_KEYS,
   type TenantListParams,
   type UpdateTenantRequest,
+  type TenantTrendPeriod,
 } from "./service";
 
 export const tenantsOptions = queryOptions({
@@ -168,4 +169,25 @@ export const useDeleteSignatureOptions = (tenantSlug: string) =>
     mutationFn: TenantsService.deleteSignature,
     invalidateKeys: () => [QUERY_KEYS.TENANTS, QUERY_KEYS.TENANT(tenantSlug)],
     successMessage: "dashboard.site.configuration.certificates.signatureDeleted",
+  });
+
+export const tenantTrendsOptions = (id: string, period: TenantTrendPeriod = "30d") =>
+  queryOptions({
+    queryFn: () => TenantsService.getTrends(id, period),
+    queryKey: QUERY_KEYS.TENANT_TRENDS(id, period),
+    enabled: !!id,
+  });
+
+export const tenantTopCoursesOptions = (id: string, limit = 5) =>
+  queryOptions({
+    queryFn: () => TenantsService.getTopCourses(id, limit),
+    queryKey: QUERY_KEYS.TENANT_TOP_COURSES(id, limit),
+    enabled: !!id,
+  });
+
+export const tenantActivityOptions = (id: string, limit = 10) =>
+  queryOptions({
+    queryFn: () => TenantsService.getActivity(id, limit),
+    queryKey: QUERY_KEYS.TENANT_ACTIVITY(id, limit),
+    enabled: !!id,
   });

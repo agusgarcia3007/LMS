@@ -1,26 +1,21 @@
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { BookOpen, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useGetCourses } from "@/services/courses";
 import type { Course } from "@/services/courses/service";
-import { cn } from "@/lib/utils";
 
 interface CourseMentionPopoverProps {
   open: boolean;
   searchQuery: string;
-  selectedIndex: number;
   onSelect: (course: Course) => void;
-  onCoursesChange?: (courses: Course[]) => void;
   excludeIds?: string[];
 }
 
 export function CourseMentionPopover({
   open,
   searchQuery,
-  selectedIndex,
   onSelect,
-  onCoursesChange,
   excludeIds = [],
 }: CourseMentionPopoverProps) {
   const { t } = useTranslation();
@@ -36,10 +31,6 @@ export function CourseMentionPopover({
     () => (data?.courses ?? []).filter((c) => !excludeIds.includes(c.id)),
     [data?.courses, excludeIds]
   );
-
-  useEffect(() => {
-    onCoursesChange?.(courses);
-  }, [courses, onCoursesChange]);
 
   if (!open) return null;
 
@@ -61,14 +52,11 @@ export function CourseMentionPopover({
             <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
               {t("courses.aiCreator.mention.courses")}
             </div>
-            {courses.map((course, index) => (
+            {courses.map((course) => (
               <div
                 key={course.id}
                 onClick={() => onSelect(course)}
-                className={cn(
-                  "relative flex cursor-pointer gap-2 select-none items-center rounded-sm px-2 py-1.5 text-sm outline-hidden",
-                  index === selectedIndex && "bg-accent"
-                )}
+                className="relative flex cursor-pointer gap-2 select-none items-center rounded-sm px-2 py-1.5 text-sm outline-hidden hover:bg-accent"
               >
                 <BookOpen className="size-4 shrink-0 text-muted-foreground" />
                 <div className="flex-1 truncate">

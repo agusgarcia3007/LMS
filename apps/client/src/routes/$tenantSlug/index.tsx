@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
@@ -12,8 +13,20 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ExternalLink, BookOpen, Users, BarChart3 } from "lucide-react";
 import { getCampusUrl } from "@/lib/tenant";
 import { createSeoMeta } from "@/lib/seo";
-import { useGetTenantStats, useGetOnboarding } from "@/services/tenants";
+import {
+  useGetTenantStats,
+  useGetOnboarding,
+  useGetTenantTrends,
+  useGetTenantTopCourses,
+  useGetTenantActivity,
+  type TenantTrendPeriod,
+} from "@/services/tenants";
 import { OnboardingChecklist } from "@/components/dashboard/onboarding-checklist";
+import { PeriodSelector } from "@/components/dashboard/period-selector";
+import { AnalyticsCharts } from "@/components/dashboard/analytics-charts";
+import { TopCoursesTable } from "@/components/dashboard/top-courses-table";
+import { RecentActivity } from "@/components/dashboard/recent-activity";
+import { QuickActions } from "@/components/dashboard/quick-actions";
 
 export const Route = createFileRoute("/$tenantSlug/")({
   head: () =>
@@ -29,10 +42,20 @@ function DashboardHome() {
   const { t } = useTranslation();
   const { tenant } = Route.useRouteContext();
   const campusUrl = getCampusUrl(tenant.slug, tenant.customDomain);
+  const [period, setPeriod] = useState<TenantTrendPeriod>("30d");
+
   const { data: statsData, isLoading: isLoadingStats } = useGetTenantStats(
     tenant.id
   );
   const { data: onboardingData } = useGetOnboarding(tenant.id);
+  const { data: trendsData, isLoading: isLoadingTrends } = useGetTenantTrends(
+    tenant.id,
+    period
+  );
+  const { data: topCoursesData, isLoading: isLoadingTopCourses } =
+    useGetTenantTopCourses(tenant.id, 5);
+  const { data: activityData, isLoading: isLoadingActivity } =
+    useGetTenantActivity(tenant.id, 10);
 
   return (
     <div className="space-y-8">
@@ -45,12 +68,15 @@ function DashboardHome() {
             {t("dashboard.home.description")}
           </p>
         </div>
-        <a href={campusUrl} target="_blank" rel="noopener noreferrer">
-          <Button className="gap-2">
-            <ExternalLink className="size-4" />
-            {t("dashboard.home.viewCampus")}
-          </Button>
-        </a>
+        <div className="flex items-center gap-2">
+          <PeriodSelector value={period} onChange={setPeriod} />
+          <a href={campusUrl} target="_blank" rel="noopener noreferrer">
+            <Button className="gap-2">
+              <ExternalLink className="size-4" />
+              {t("dashboard.home.viewCampus")}
+            </Button>
+          </a>
+        </div>
       </div>
 
       {onboardingData?.steps && (
@@ -59,6 +85,8 @@ function DashboardHome() {
           steps={onboardingData.steps}
         />
       )}
+
+      <QuickActions tenantSlug={tenant.slug} />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <Card>
@@ -123,6 +151,19 @@ function DashboardHome() {
             </p>
           </CardContent>
         </Card>
+      </div>
+
+      <AnalyticsCharts trends={trendsData?.trends} isLoading={isLoadingTrends} />
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <TopCoursesTable
+          courses={topCoursesData?.courses}
+          isLoading={isLoadingTopCourses}
+        />
+        <RecentActivity
+          activities={activityData?.activities}
+          isLoading={isLoadingActivity}
+        />
       </div>
 
       <Card>

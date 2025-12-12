@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useParams } from "@tanstack/react-router";
-import { Check, ChevronDown, ImageIcon, Paperclip, RotateCcw, Sparkles, User } from "lucide-react";
+import { BookOpen, Check, ChevronDown, ImageIcon, Paperclip, RotateCcw, Sparkles, User, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -34,7 +34,9 @@ import {
   ToolOutput,
 } from "@/components/ai-elements/tool";
 import { CoursePreviewCard } from "./course-preview-card";
+import { CourseMentionPopover } from "@/components/ai-elements/course-mention-popover";
 import { useAICourseChat, type ChatMessage, type ToolInvocation } from "@/hooks/use-ai-course-chat";
+import { useCourseMention, type SelectedCourse } from "@/hooks/use-course-mention";
 import { useVideosList } from "@/services/videos";
 import { useDocumentsList } from "@/services/documents";
 import { useQuizzesList } from "@/services/quizzes";
@@ -176,6 +178,7 @@ export function AICourseCreator({
   const [isOpen, setIsOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [inputValue, setInputValue] = useState("");
+  const [selectedCourses, setSelectedCourses] = useState<SelectedCourse[]>([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const { data: videosData } = useVideosList({ limit: 10, status: "published" });
@@ -196,8 +199,24 @@ export function AICourseCreator({
     createCourseFromPreview,
   } = useAICourseChat();
 
-  // TODO: Re-enable course mentions when Radix UI fixes the useComposedRefs bug
-  // See: https://github.com/radix-ui/primitives/issues/3664
+  const selectedCourseIds = useMemo(
+    () => selectedCourses.map((c) => c.id),
+    [selectedCourses]
+  );
+
+  const handleCourseSelect = useCallback((course: SelectedCourse) => {
+    setSelectedCourses((prev) => [...prev, course]);
+  }, []);
+
+  const mention = useCourseMention({
+    onSelect: handleCourseSelect,
+    maxMentions: 3,
+    selectedCourseIds,
+  });
+
+  const handleCourseRemove = useCallback((courseId: string) => {
+    setSelectedCourses((prev) => prev.filter((c) => c.id !== courseId));
+  }, []);
 
   useEffect(() => {
     if (onGeneratingThumbnailChange) {
@@ -255,7 +274,28 @@ export function AICourseCreator({
   const handleReset = () => {
     reset();
     setInputValue("");
+    setSelectedCourses([]);
+    mention.close();
   };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newValue = e.target.value;
+    setInputValue(newValue);
+    mention.handleInputChange(newValue);
+  };
+
+  const handleTextareaKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    mention.handleKeyDown(e);
+  };
+
+  const handleMentionSelect = useCallback(
+    (course: { id: string; title: string; level: string; modulesCount: number }) => {
+      mention.handleSelect(course as Parameters<typeof mention.handleSelect>[0]);
+      setInputValue(mention.getCleanedInput(inputValue));
+      textareaRef.current?.focus();
+    },
+    [mention, inputValue]
+  );
 
   const suggestions = useMemo(() => {
     const result: string[] = [];
@@ -447,34 +487,64 @@ export function AICourseCreator({
                   <RotateCcw className="size-4" />
                 </Button>
               )}
-              <PromptInput
-                onSubmit={handleSendMessage}
-                accept="image/*"
-                maxFiles={1}
-                maxFileSize={5 * 1024 * 1024}
-                className="flex-1 rounded-xl border-border bg-background focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/20"
-              >
-                <PromptInputAttachments>
-                  {(file) => <PromptInputAttachment data={file} />}
-                </PromptInputAttachments>
-                <PromptInputTextarea
-                  ref={textareaRef}
-                  placeholder={t("courses.aiCreator.placeholder")}
-                  disabled={isStreaming}
-                  className="min-h-10 resize-none bg-transparent"
-                  value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
+              <div className="relative flex-1">
+                <CourseMentionPopover
+                  open={mention.isOpen}
+                  searchQuery={mention.searchQuery}
+                  onSelect={handleMentionSelect}
+                  excludeIds={selectedCourseIds}
                 />
-                <PromptInputFooter>
-                  <div className="flex-1" />
-                  <AttachmentButton disabled={isStreaming} />
-                  <PromptInputSubmit
-                    status={isStreaming ? "streaming" : undefined}
-                    onClick={isStreaming ? cancel : undefined}
-                    type={isStreaming ? "button" : "submit"}
+                <PromptInput
+                  onSubmit={handleSendMessage}
+                  accept="image/*"
+                  maxFiles={1}
+                  maxFileSize={5 * 1024 * 1024}
+                  className="rounded-xl border-border bg-background focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/20"
+                >
+                  <PromptInputAttachments>
+                    {(file) => <PromptInputAttachment data={file} />}
+                  </PromptInputAttachments>
+                  {selectedCourses.length > 0 && (
+                    <div data-align="block-start" className="flex w-full flex-wrap justify-start gap-1.5 px-3 pt-2 pb-1">
+                      {selectedCourses.map((course) => (
+                        <span
+                          key={course.id}
+                          className="inline-flex items-center gap-1 rounded border border-primary/20 bg-primary/5 px-1.5 py-0.5 text-xs font-medium text-primary"
+                        >
+                          <BookOpen className="size-3" />
+                          <span className="max-w-[120px] truncate">{course.title}</span>
+                          <button
+                            type="button"
+                            onClick={() => handleCourseRemove(course.id)}
+                            disabled={isStreaming}
+                            className="opacity-60 hover:opacity-100 disabled:pointer-events-none"
+                          >
+                            <X className="size-2.5" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  <PromptInputTextarea
+                    ref={textareaRef}
+                    placeholder={t("courses.aiCreator.placeholder")}
+                    disabled={isStreaming}
+                    className="min-h-10 resize-none bg-transparent"
+                    value={inputValue}
+                    onChange={handleInputChange}
+                    onKeyDown={handleTextareaKeyDown}
                   />
-                </PromptInputFooter>
-              </PromptInput>
+                  <PromptInputFooter>
+                    <div className="flex-1" />
+                    <AttachmentButton disabled={isStreaming} />
+                    <PromptInputSubmit
+                      status={isStreaming ? "streaming" : undefined}
+                      onClick={isStreaming ? cancel : undefined}
+                      type={isStreaming ? "button" : "submit"}
+                    />
+                  </PromptInputFooter>
+                </PromptInput>
+              </div>
             </div>
           </div>
         </div>

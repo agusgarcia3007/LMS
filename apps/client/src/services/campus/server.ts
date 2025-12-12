@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import type { CampusTenant, CampusCourse, CampusCourseDetail, CampusStats } from "./service";
+import type { CampusTenant, CampusCourse, CampusCourseDetail, CampusStats, CampusCategory } from "./service";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -7,6 +7,7 @@ type TenantResponse = { tenant: CampusTenant };
 type CoursesResponse = { courses: CampusCourse[] };
 type CourseResponse = { course: CampusCourseDetail };
 type StatsResponse = { stats: CampusStats };
+type CategoriesResponse = { categories: CampusCategory[] };
 
 export const getCampusTenantServer = createServerFn({ method: "GET" })
   .inputValidator((d: { slug: string }) => d)
@@ -44,5 +45,14 @@ export const getCampusCourseServer = createServerFn({ method: "GET" })
     if (!response.ok) {
       return null;
     }
+    return response.json();
+  });
+
+export const getCampusCategoriesServer = createServerFn({ method: "GET" })
+  .inputValidator((d: { slug: string }) => d)
+  .handler(async ({ data: { slug } }): Promise<CategoriesResponse> => {
+    const response = await fetch(`${API_URL}/campus/categories`, {
+      headers: { "X-Tenant-Slug": slug },
+    });
     return response.json();
   });

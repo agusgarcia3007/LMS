@@ -213,6 +213,39 @@ export type TenantStats = {
   totalRevenue: number;
 };
 
+export type TenantTrendPeriod = "7d" | "30d" | "90d";
+
+export type TenantTrendDataPoint = {
+  date: string;
+  count: number;
+};
+
+export type TenantTrendsData = {
+  enrollmentGrowth: TenantTrendDataPoint[];
+  completionGrowth: TenantTrendDataPoint[];
+  period: string;
+};
+
+export type TenantTopCourse = {
+  id: string;
+  title: string;
+  enrollments: number;
+  completionRate: number;
+};
+
+export type TenantActivityType = "enrollment" | "completion" | "certificate";
+
+export type TenantActivity = {
+  id: string;
+  type: TenantActivityType;
+  userId: string;
+  userName: string;
+  userAvatar: string | null;
+  courseId: string;
+  courseName: string;
+  createdAt: string;
+};
+
 export type OnboardingSteps = {
   basicInfo: boolean;
   category: boolean;
@@ -228,6 +261,9 @@ export const QUERY_KEYS = {
   TENANT_STATS: (id: string) => ["tenants", id, "stats"],
   TENANT_ONBOARDING: (id: string) => ["tenants", id, "onboarding"],
   DOMAIN_VERIFICATION: (id: string) => ["tenants", id, "domain-verification"],
+  TENANT_TRENDS: (id: string, period: TenantTrendPeriod) => ["tenants", id, "trends", period],
+  TENANT_TOP_COURSES: (id: string, limit: number) => ["tenants", id, "top-courses", limit],
+  TENANT_ACTIVITY: (id: string, limit: number) => ["tenants", id, "activity", limit],
 } as const;
 
 export const TenantsService = {
@@ -332,6 +368,27 @@ export const TenantsService = {
   async deleteSignature(id: string) {
     const { data } = await http.delete<{ tenant: Tenant }>(
       `/tenants/${id}/certificate-signature`
+    );
+    return data;
+  },
+
+  async getTrends(id: string, period: TenantTrendPeriod = "30d") {
+    const { data } = await http.get<{ trends: TenantTrendsData }>(
+      `/tenants/${id}/stats/trends?period=${period}`
+    );
+    return data;
+  },
+
+  async getTopCourses(id: string, limit = 5) {
+    const { data } = await http.get<{ courses: TenantTopCourse[] }>(
+      `/tenants/${id}/stats/top-courses?limit=${limit}`
+    );
+    return data;
+  },
+
+  async getActivity(id: string, limit = 10) {
+    const { data } = await http.get<{ activities: TenantActivity[] }>(
+      `/tenants/${id}/stats/activity?limit=${limit}`
     );
     return data;
   },

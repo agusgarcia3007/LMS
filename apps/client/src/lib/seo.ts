@@ -124,6 +124,7 @@ export function createCourseSeoMeta({
   instructor,
   locale = "en",
   siteName,
+  useGeneratedOg = true,
 }: {
   title: string;
   description: string;
@@ -134,17 +135,20 @@ export function createCourseSeoMeta({
   instructor?: string;
   locale?: string;
   siteName?: string;
+  useGeneratedOg?: boolean;
 }): HeadConfig {
   const url = `${BASE_URL}/courses/${slug}`;
   const keywords = `${title} course, online course, learn ${title}, ${
     instructor || ""
   }`.trim();
 
+  const ogImage = useGeneratedOg ? `${BASE_URL}/api/og/course/${slug}` : image;
+
   const seo = createSeoMeta({
     title,
     description,
     url,
-    image,
+    image: ogImage,
     keywords,
     type: "product",
     locale,

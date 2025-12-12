@@ -18,11 +18,15 @@ export const useCampusTenant = () => {
   });
 };
 
-export const useCampusCourses = (params: CoursesListParams = {}) => {
+export const useCampusCourses = (
+  params: CoursesListParams = {},
+  options?: { enabled?: boolean }
+) => {
   const { isResolving } = useTenantInfo();
+  const enabledFromOptions = options?.enabled ?? true;
   return useQuery({
     ...campusCoursesOptions(params),
-    enabled: !isResolving,
+    enabled: !isResolving && enabledFromOptions,
   });
 };
 

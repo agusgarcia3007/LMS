@@ -547,6 +547,38 @@
         "title": "Your Campus",
         "description": "Your course platform is available at the following link",
         "open": "Open"
+      },
+      "period": {
+        "7d": "7 days",
+        "30d": "30 days",
+        "90d": "90 days"
+      },
+      "analytics": {
+        "title": "Analytics",
+        "enrollmentTrends": "Enrollment Trends",
+        "completionTrends": "Completion Trends",
+        "noData": "No data available"
+      },
+      "topCourses": {
+        "title": "Top Courses",
+        "students": "students",
+        "noCourses": "No courses yet"
+      },
+      "activity": {
+        "title": "Recent Activity",
+        "noActivity": "No recent activity",
+        "types": {
+          "enrollment": "enrolled in",
+          "completion": "completed",
+          "certificate": "earned certificate for"
+        }
+      },
+      "quickActions": {
+        "title": "Quick Actions",
+        "createCourse": "Create Course",
+        "inviteStudents": "Invite Students",
+        "viewEnrollments": "View Enrollments",
+        "siteSettings": "Site Settings"
       }
     },
     "onboarding": {

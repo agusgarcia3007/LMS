@@ -4,13 +4,16 @@ import { useTranslation } from "react-i18next";
 import { CampusHeader } from "@/components/campus/header";
 import { CampusFooter } from "@/components/campus/footer";
 import { CourseGrid } from "@/components/campus/course-grid";
+import { useCampusCourses } from "@/services/campus/queries";
 import {
-  useCampusCourses,
-  useCampusCategories,
-} from "@/services/campus/queries";
-import { getCampusTenantServer } from "@/services/campus/server";
+  getCampusTenantServer,
+  getCampusCoursesServer,
+  getCampusCategoriesServer,
+} from "@/services/campus/server";
 import { getTenantFromRequest } from "@/lib/tenant.server";
 import { computeThemeStyles } from "@/lib/theme.server";
+import { setResolvedSlug } from "@/lib/tenant";
+import type { CampusTenant, CampusCourse, CampusCategory } from "@/services/campus/service";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -54,17 +57,40 @@ const catalogSeo = createSeoMeta({
     "online courses, e-learning, digital training, virtual classes, learn online",
 });
 
+type LoaderData = {
+  slug: string | null;
+  tenant: CampusTenant | null;
+  courses: CampusCourse[];
+  categories: CampusCategory[];
+  themeClass: string;
+  customStyles: ReturnType<typeof computeThemeStyles>["customStyles"];
+};
+
 export const Route = createFileRoute("/courses/")({
   component: CoursesPage,
-  loader: async () => {
+  loader: async (): Promise<LoaderData> => {
     const tenantInfo = await getTenantFromRequest({ data: {} });
     if (!tenantInfo.slug) {
-      return { tenant: null, themeClass: "", customStyles: undefined };
+      return { slug: null, tenant: null, courses: [], categories: [], themeClass: "", customStyles: undefined };
     }
-    const tenantData = await getCampusTenantServer({ data: { slug: tenantInfo.slug } });
+
+    const [tenantData, coursesData, categoriesData] = await Promise.all([
+      getCampusTenantServer({ data: { slug: tenantInfo.slug } }),
+      getCampusCoursesServer({ data: { slug: tenantInfo.slug, limit: 100 } }),
+      getCampusCategoriesServer({ data: { slug: tenantInfo.slug } }),
+    ]);
+
     const tenant = tenantData?.tenant ?? null;
     const { themeClass, customStyles } = computeThemeStyles(tenant);
-    return { tenant, themeClass, customStyles };
+
+    return {
+      slug: tenantInfo.slug,
+      tenant,
+      courses: coursesData?.courses ?? [],
+      categories: categoriesData?.categories ?? [],
+      themeClass,
+      customStyles,
+    };
   },
   head: ({ loaderData }) => {
     const tenant = loaderData?.tenant;
@@ -94,15 +120,27 @@ function CoursesPage() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedLevel, setSelectedLevel] = useState<string | null>(null);
 
-  const loaderData = Route.useLoaderData();
-  const { tenant, themeClass, customStyles } = loaderData;
+  const { slug, tenant, courses: initialCourses, categories, themeClass, customStyles } = Route.useLoaderData();
 
-  const { data: categoriesData } = useCampusCategories();
-  const { data: coursesData, isLoading: coursesLoading } = useCampusCourses({
-    search: search || undefined,
-    category: selectedCategory || undefined,
-    level: selectedLevel || undefined,
-  });
+  const hasFilters = !!(search || selectedCategory || selectedLevel);
+
+  const { data: filteredCoursesData, isLoading: isFiltering } = useCampusCourses(
+    {
+      search: search || undefined,
+      category: selectedCategory || undefined,
+      level: selectedLevel || undefined,
+    },
+    { enabled: hasFilters }
+  );
+
+  const courses = hasFilters ? (filteredCoursesData?.courses ?? []) : initialCourses;
+  const coursesLoading = hasFilters && isFiltering;
+
+  useEffect(() => {
+    if (slug) {
+      setResolvedSlug(slug);
+    }
+  }, [slug]);
 
   useSeo({
     title: tenant?.seoTitle
@@ -132,8 +170,6 @@ function CoursesPage() {
     { value: "intermediate", label: "Intermedio" },
     { value: "advanced", label: "Avanzado" },
   ];
-
-  const hasFilters = search || selectedCategory || selectedLevel;
 
   const clearFilters = () => {
     setSearch("");
@@ -181,7 +217,7 @@ function CoursesPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todas las categorias</SelectItem>
-                {categoriesData?.categories.map((category) => (
+                {categories.map((category) => (
                   <SelectItem key={category.id} value={category.slug}>
                     {category.name}
                   </SelectItem>
@@ -221,7 +257,7 @@ function CoursesPage() {
 
           {coursesLoading ? (
             <CourseGridSkeleton />
-          ) : coursesData?.courses.length === 0 ? (
+          ) : courses.length === 0 ? (
             <Empty className="border">
               <EmptyHeader>
                 <EmptyMedia variant="icon">
@@ -248,7 +284,7 @@ function CoursesPage() {
               )}
             </Empty>
           ) : (
-            <CourseGrid courses={coursesData?.courses || []} />
+            <CourseGrid courses={courses} />
           )}
         </div>
       </main>
