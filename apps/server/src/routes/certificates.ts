@@ -413,7 +413,7 @@ export const certificatesRoutes = new Elysia({ name: "certificates" })
 
         if (!result.success) {
           throw new AppError(
-            ErrorCode.INTERNAL_ERROR,
+            ErrorCode.INTERNAL_SERVER_ERROR,
             "Failed to regenerate certificate",
             500
           );
