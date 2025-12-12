@@ -1,4 +1,4 @@
-import { useEffect, type RefObject } from "react";
+import { useEffect, useMemo, type RefObject } from "react";
 import { useTranslation } from "react-i18next";
 import { BookOpen, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -37,7 +37,10 @@ export function CourseMentionPopover({
     { enabled: open }
   );
 
-  const courses = (data?.courses ?? []).filter((c) => !excludeIds.includes(c.id));
+  const courses = useMemo(
+    () => (data?.courses ?? []).filter((c) => !excludeIds.includes(c.id)),
+    [data?.courses, excludeIds]
+  );
 
   useEffect(() => {
     onCoursesChange?.(courses);
