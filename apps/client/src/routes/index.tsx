@@ -5,12 +5,6 @@ import { CampusHeader } from "@/components/campus/header";
 import { CampusFooter } from "@/components/campus/footer";
 import { HeroSection } from "@/components/campus/hero-section";
 import { CourseGrid } from "@/components/campus/course-grid";
-import {
-  useCampusTenant,
-  useCampusCourses,
-  useCampusStats,
-} from "@/services/campus/queries";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import {
   Empty,
@@ -32,10 +26,8 @@ import {
   FAQ,
   FinalCTA,
 } from "@/components/landing";
-import { getMainDomainUrl, getTenantFromHost } from "@/lib/tenant";
-import { useTenantInfo } from "@/hooks/use-tenant-info";
+import { getMainDomainUrl, setResolvedSlug } from "@/lib/tenant";
 import { cn } from "@/lib/utils";
-import { useSeo } from "@/hooks/use-seo";
 import { useTheme } from "@/components/ui/theme-provider";
 import { useCustomTheme } from "@/hooks/use-custom-theme";
 import { BookOpen } from "lucide-react";
@@ -45,6 +37,17 @@ import {
   createWebSiteSchema,
   createSoftwareApplicationSchema,
 } from "@/lib/json-ld";
+import { getTenantFromRequest } from "@/lib/tenant.server";
+import {
+  getCampusTenantServer,
+  getCampusCoursesServer,
+  getCampusStatsServer,
+} from "@/services/campus/server";
+import type {
+  CampusTenant,
+  CampusCourse,
+  CampusStats,
+} from "@/services/campus/service";
 
 const landingSeo = createSeoMeta({
   title: "LearnBase - Create Your AI-Powered Online Academy",
@@ -55,23 +58,80 @@ const landingSeo = createSeoMeta({
   url: "https://uselearnbase.com",
 });
 
+type LoaderData = {
+  isCampus: boolean;
+  slug: string | null;
+  tenant: CampusTenant | null;
+  courses: CampusCourse[] | null;
+  stats: CampusStats | null;
+};
+
 export const Route = createFileRoute("/")({
   component: RouteComponent,
-  head: () => ({
-    ...landingSeo,
-    scripts: [
-      createOrganizationSchema(),
-      createWebSiteSchema(),
-      createSoftwareApplicationSchema(),
-    ],
-  }),
+  loader: async (): Promise<LoaderData> => {
+    const tenantInfo = await getTenantFromRequest();
+
+    if (!tenantInfo.isCampus) {
+      return { isCampus: false, slug: null, tenant: null, courses: null, stats: null };
+    }
+
+    if (!tenantInfo.slug) {
+      return { isCampus: true, slug: null, tenant: null, courses: null, stats: null };
+    }
+
+    const [tenantData, coursesData, statsData] = await Promise.all([
+      getCampusTenantServer({ data: { slug: tenantInfo.slug } }),
+      getCampusCoursesServer({ data: { slug: tenantInfo.slug, limit: 8 } }),
+      getCampusStatsServer({ data: { slug: tenantInfo.slug } }),
+    ]);
+
+    return {
+      isCampus: true,
+      slug: tenantInfo.slug,
+      tenant: tenantData.tenant,
+      courses: coursesData.courses,
+      stats: statsData.stats,
+    };
+  },
+  head: ({ loaderData }) => {
+    if (loaderData?.tenant) {
+      return {
+        meta: [
+          { charSet: "utf-8" },
+          { name: "viewport", content: "width=device-width, initial-scale=1" },
+          { title: loaderData.tenant.seoTitle || loaderData.tenant.name },
+          { name: "description", content: loaderData.tenant.seoDescription || "" },
+          { name: "keywords", content: loaderData.tenant.seoKeywords || "" },
+        ],
+      };
+    }
+    return {
+      ...landingSeo,
+      scripts: [
+        createOrganizationSchema(),
+        createWebSiteSchema(),
+        createSoftwareApplicationSchema(),
+      ],
+    };
+  },
 });
 
 function RouteComponent() {
-  const { isCampus } = useTenantInfo();
+  const data = Route.useLoaderData();
 
-  if (isCampus) {
-    return <CampusHome />;
+  useEffect(() => {
+    if (data.slug) {
+      setResolvedSlug(data.slug);
+    }
+  }, [data.slug]);
+
+  if (data.isCampus) {
+    if (!data.tenant) {
+      return <CampusNotFound />;
+    }
+    return (
+      <CampusHome tenant={data.tenant} courses={data.courses} stats={data.stats} />
+    );
   }
 
   return <MainHome />;
@@ -97,46 +157,32 @@ function MainHome() {
   );
 }
 
-function CampusHome() {
+type CampusHomeProps = {
+  tenant: CampusTenant;
+  courses: CampusCourse[] | null;
+  stats: CampusStats | null;
+};
+
+function CampusHome({ tenant, courses, stats }: CampusHomeProps) {
   const { t } = useTranslation();
   const { setTheme } = useTheme();
-  const { data: tenantData, isLoading: tenantLoading } = useCampusTenant();
-  const { data: coursesData, isLoading: coursesLoading } = useCampusCourses({
-    limit: 8,
-  });
-  const { data: statsData } = useCampusStats();
 
-  const tenant = tenantData?.tenant;
-  const usePresetTheme = tenant?.theme !== null && tenant?.theme !== undefined;
+  const usePresetTheme = tenant.theme !== null && tenant.theme !== undefined;
   const { customStyles } = useCustomTheme(
-    usePresetTheme ? null : tenant?.customTheme
+    usePresetTheme ? null : tenant.customTheme
   );
 
-  useSeo({
-    title: tenant?.seoTitle || tenant?.name,
-    description: tenant?.seoDescription,
-    keywords: tenant?.seoKeywords,
-  });
-
   useEffect(() => {
-    const tenantMode = tenant?.mode;
+    const tenantMode = tenant.mode;
     if (tenantMode === "light" || tenantMode === "dark") {
       setTheme(tenantMode);
     } else if (tenantMode === "auto") {
       setTheme("system");
     }
-  }, [tenant?.mode, setTheme]);
-
-  if (tenantLoading) {
-    return <CampusSkeleton />;
-  }
-
-  if (!tenant) {
-    return <CampusNotFound />;
-  }
+  }, [tenant.mode, setTheme]);
 
   const themeClass = usePresetTheme ? `theme-${tenant.theme}` : "";
-  const hasCourses = coursesData?.courses && coursesData.courses.length > 0;
+  const hasCourses = courses && courses.length > 0;
 
   return (
     <div
@@ -145,13 +191,11 @@ function CampusHome() {
     >
       <CampusHeader tenant={tenant} />
       <main className="flex-1">
-        <HeroSection tenant={tenant} stats={statsData?.stats} />
+        <HeroSection tenant={tenant} stats={stats ?? undefined} />
         <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-          {coursesLoading ? (
-            <CourseGridSkeleton />
-          ) : hasCourses ? (
+          {hasCourses ? (
             <CourseGrid
-              courses={coursesData.courses}
+              courses={courses}
               title="Cursos destacados"
               description="Explora nuestros cursos mas populares"
             />
@@ -175,49 +219,8 @@ function CampusHome() {
   );
 }
 
-function CampusSkeleton() {
-  return (
-    <div className="min-h-screen">
-      <div className="h-16 border-b border-border/40 bg-background" />
-      <div className="mx-auto max-w-7xl px-4 py-24">
-        <div className="mx-auto max-w-2xl text-center">
-          <Skeleton className="mx-auto mb-6 h-8 w-48" />
-          <Skeleton className="mx-auto mb-4 h-12 w-full max-w-lg" />
-          <Skeleton className="mx-auto h-6 w-96" />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function CourseGridSkeleton() {
-  return (
-    <div>
-      <Skeleton className="mb-2 h-8 w-48" />
-      <Skeleton className="mb-8 h-5 w-72" />
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {Array.from({ length: 8 }).map((_, i) => (
-          <div
-            key={i}
-            className="overflow-hidden rounded-xl border border-border/50"
-          >
-            <Skeleton className="aspect-video w-full" />
-            <div className="p-5">
-              <Skeleton className="mb-3 h-6 w-24" />
-              <Skeleton className="mb-2 h-5 w-full" />
-              <Skeleton className="mb-4 h-4 w-3/4" />
-              <Skeleton className="h-8 w-20" />
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 function CampusNotFound() {
   const { t } = useTranslation();
-  const { slug } = getTenantFromHost();
   const mainDomainUrl = getMainDomainUrl();
 
   return (
@@ -230,7 +233,7 @@ function CampusNotFound() {
           {t("campusNotFound.title")}
         </h1>
         <p className="mb-2 text-muted-foreground">
-          {t("campusNotFound.description", { slug })}
+          {t("campusNotFound.description")}
         </p>
         <p className="mb-8 text-sm text-muted-foreground">
           {t("campusNotFound.hint")}

@@ -67,6 +67,10 @@ export function getCampusUrl(slug: string, customDomain?: string | null): string
 }
 
 export function getMainDomainUrl(): string {
+  if (typeof window === "undefined") {
+    return `https://${BASE_DOMAIN}`;
+  }
+
   const { protocol } = window.location;
   const hostname = window.location.hostname;
   const parts = hostname.split(".");

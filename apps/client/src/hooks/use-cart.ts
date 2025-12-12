@@ -1,7 +1,7 @@
 import { useGetCart, useAddToCart, useRemoveFromCart, useClearCart, useCheckout } from "@/services/cart";
 
 export const useCart = () => {
-  const isAuthenticated = !!localStorage.getItem("accessToken");
+  const isAuthenticated = typeof window !== "undefined" && !!localStorage.getItem("accessToken");
 
   const { data: cartData, isLoading } = useGetCart({ enabled: isAuthenticated });
   const { mutate: addToCartMutation, isPending: isAdding } = useAddToCart();
