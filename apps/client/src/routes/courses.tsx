@@ -1,12 +1,16 @@
 import { createFileRoute, Outlet, Navigate } from "@tanstack/react-router";
-import { useTenantInfo } from "@/hooks/use-tenant-info";
+import { getTenantFromRequest } from "@/lib/tenant.server";
 
 export const Route = createFileRoute("/courses")({
+  loader: async () => {
+    const tenantInfo = await getTenantFromRequest();
+    return { isCampus: tenantInfo.isCampus };
+  },
   component: CoursesLayout,
 });
 
 function CoursesLayout() {
-  const { isCampus } = useTenantInfo();
+  const { isCampus } = Route.useLoaderData();
 
   if (!isCampus) {
     return <Navigate to="/" />;

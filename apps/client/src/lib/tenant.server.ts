@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { getRequestHost } from "@tanstack/react-start/server";
+import { getRequestURL } from "vinxi/http";
 
 const BASE_DOMAIN = import.meta.env.VITE_BASE_DOMAIN || "uselearnbase.com";
 const API_URL = import.meta.env.VITE_API_URL;
@@ -21,6 +22,13 @@ export const getTenantFromRequest = createServerFn({ method: "GET" }).handler(
     const hostname = host.split(":")[0];
 
     if (!hostname || hostname === "localhost" || hostname === "127.0.0.1") {
+      if (import.meta.env.DEV) {
+        const url = getRequestURL({ xForwardedHost: true });
+        const campusSlug = url.searchParams.get("campus");
+        if (campusSlug) {
+          return { slug: campusSlug, isCampus: true, isCustomDomain: false };
+        }
+      }
       return { slug: null, isCampus: false, isCustomDomain: false };
     }
 
