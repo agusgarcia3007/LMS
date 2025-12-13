@@ -18,17 +18,22 @@ export async function sendEmail({
   to,
   subject,
   html,
+  senderName,
+  replyTo,
 }: {
   to: string;
   subject: string;
   html: string;
+  senderName?: string;
+  replyTo?: string;
 }) {
   const resend = new Resend(env.RESEND_API_KEY!);
   const { data, error } = await resend.emails.send({
-    from: `${SITE_DATA.NAME} <${SITE_DATA.EMAIL}>`,
+    from: `${senderName || SITE_DATA.NAME} <${SITE_DATA.EMAIL}>`,
     to,
     subject,
     html,
+    ...(replyTo && { replyTo }),
   });
 
   if (error) {

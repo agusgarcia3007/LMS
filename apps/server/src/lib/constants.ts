@@ -12,6 +12,6 @@ export const RESET_SECRET = env.RESET_SECRET;
 export const CLIENT_URL = env.CLIENT_URL;
 
 export const SITE_DATA = {
-  NAME: "My LMS",
-  EMAIL: "no-reply@mylms.com",
+  NAME: "Learnbase",
+  EMAIL: "noreply@news.uselearnbase.com",
 } as const;

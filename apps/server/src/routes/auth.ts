@@ -289,6 +289,8 @@ authRoutes.post(
           <a href="${resetUrl}">Reset Password</a>
           <p>If you didn't request this, please ignore this email.</p>
         `,
+        senderName: ctx.tenant?.name,
+        replyTo: ctx.tenant?.contactEmail || undefined,
       });
 
       return { message: "If the email exists, a reset link has been sent" };
@@ -467,6 +469,8 @@ authRoutes
             userName: ctx.user.name,
             verificationUrl,
           }),
+          senderName: ctx.tenant?.name,
+          replyTo: ctx.tenant?.contactEmail || undefined,
         });
 
         invalidateUserCache(ctx.user.id);

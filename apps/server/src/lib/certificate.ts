@@ -363,6 +363,7 @@ export async function generateAndStoreCertificate(
       logo: tenantsTable.logo,
       customTheme: tenantsTable.customTheme,
       certificateSettings: tenantsTable.certificateSettings,
+      contactEmail: tenantsTable.contactEmail,
     })
     .from(tenantsTable)
     .where(eq(tenantsTable.id, tenantId))
@@ -421,6 +422,8 @@ export async function generateAndStoreCertificate(
     to: user.email,
     subject: `Your Certificate of Completion - ${course.title}`,
     html: emailHtml,
+    senderName: tenant.name,
+    replyTo: tenant.contactEmail || undefined,
   });
 
   logger.info("Certificate generated and sent", {

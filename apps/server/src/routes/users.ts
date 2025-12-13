@@ -603,6 +603,8 @@ export const usersRoutes = new Elysia()
             inviterName: ctx.user.name,
             resetUrl,
           }),
+          senderName: tenant.name,
+          replyTo: tenant.contactEmail || undefined,
         });
 
         return { user: excludePassword(newUser) };

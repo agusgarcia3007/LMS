@@ -213,6 +213,7 @@ export const certificatesRoutes = new Elysia({ name: "certificates" })
             name: tenantsTable.name,
             slug: tenantsTable.slug,
             customDomain: tenantsTable.customDomain,
+            contactEmail: tenantsTable.contactEmail,
           })
           .from(tenantsTable)
           .where(eq(tenantsTable.id, certificate.tenantId))
@@ -237,6 +238,8 @@ export const certificatesRoutes = new Elysia({ name: "certificates" })
           to: ctx.user.email,
           subject: `Your Certificate of Completion - ${certificate.courseName}`,
           html: emailHtml,
+          senderName: tenant?.name,
+          replyTo: tenant?.contactEmail || undefined,
         });
 
         return { success: true };
