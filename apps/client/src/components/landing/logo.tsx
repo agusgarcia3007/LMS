@@ -8,7 +8,7 @@ type LearnbaseLogoProps = {
 export function LearnbaseLogo({ className }: LearnbaseLogoProps) {
   return (
     <img
-      src="/logos/blue.png"
+      src="https://cdn.uselearnbase.com/logo.png"
       alt={siteData.name}
       className={cn("size-7", className)}
     />
