@@ -166,6 +166,7 @@ export const chatCreatorRoutes = new Elysia({ name: "ai-chat-creator" })
 
       const tools = createCourseCreatorTools(
         tenantId,
+        userId,
         searchCache,
         validatedContextCourses.length > 0 ? validatedContextCourses : undefined
       );

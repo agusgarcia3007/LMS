@@ -11,6 +11,7 @@ export * from "./utils";
 
 export function createCourseCreatorTools(
   tenantId: string,
+  userId: string,
   cache?: Map<string, unknown>,
   contextCourses?: ValidatedContextCourse[]
 ) {
@@ -19,6 +20,7 @@ export function createCourseCreatorTools(
 
   const ctx: ToolContext = {
     tenantId,
+    userId,
     searchCache,
     getCachedEmbedding,
     contextCourses,

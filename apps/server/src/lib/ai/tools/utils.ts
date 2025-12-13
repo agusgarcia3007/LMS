@@ -54,6 +54,7 @@ export type ValidatedContextCourse = {
 
 export type ToolContext = {
   tenantId: string;
+  userId: string;
   searchCache: Map<string, unknown>;
   getCachedEmbedding: (query: string) => Promise<number[]>;
   contextCourses?: ValidatedContextCourse[];

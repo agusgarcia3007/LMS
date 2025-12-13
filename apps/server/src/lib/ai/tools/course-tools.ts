@@ -15,9 +15,10 @@ import {
 } from "@/db/schema";
 import { eq, and, desc, inArray, count } from "drizzle-orm";
 import { logger } from "@/lib/logger";
-import { aiGateway, AI_MODELS } from "@/lib/ai-gateway";
+import { aiGateway } from "@/lib/ai/gateway";
+import { AI_MODELS } from "@/lib/ai/models";
 import { THUMBNAIL_GENERATION_PROMPT } from "@/lib/ai/prompts";
-import { uploadBase64ToS3, getPresignedUrl } from "@/lib/s3";
+import { uploadBase64ToS3, getPresignedUrl } from "@/lib/upload";
 import {
   generateCoursePreviewSchema,
   createCourseSchema,
@@ -32,7 +33,7 @@ import {
 import { type ToolContext } from "./utils";
 
 export function createCourseTools(ctx: ToolContext) {
-  const { tenantId } = ctx;
+  const { tenantId, userId } = ctx;
 
   return {
     generateCoursePreview: tool({
@@ -752,15 +753,16 @@ export function createCourseTools(ctx: ToolContext) {
           });
 
           const imageFile = imageResult.files?.[0];
-          if (!imageFile || imageFile.mimeType !== "image") {
+          if (!imageFile || !imageFile.mediaType.startsWith("image")) {
             logger.error("regenerateThumbnail: no image generated");
             return { type: "error" as const, error: "Failed to generate thumbnail image" };
           }
 
+          const base64Data = `data:${imageFile.mediaType};base64,${imageFile.base64}`;
           const thumbnailKey = await uploadBase64ToS3({
-            base64: imageFile.base64,
-            contentType: imageFile.mediaType,
-            folder: "course-thumbnails",
+            base64: base64Data,
+            folder: `courses/${courseId}`,
+            userId,
           });
 
           await db
