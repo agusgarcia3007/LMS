@@ -35,6 +35,8 @@ import { Route as _authSignupRouteImport } from './routes/__auth/signup'
 import { Route as _authResetPasswordRouteImport } from './routes/__auth/reset-password'
 import { Route as _authLoginRouteImport } from './routes/__auth/login'
 import { Route as _authForgotPasswordRouteImport } from './routes/__auth/forgot-password'
+import { Route as ApiOgHomeRouteImport } from './routes/api/og/home'
+import { Route as ApiOgCampusRouteImport } from './routes/api/og/campus'
 import { Route as TenantSlugSiteCustomizationRouteImport } from './routes/$tenantSlug/site/customization'
 import { Route as TenantSlugSiteConfigurationRouteImport } from './routes/$tenantSlug/site/configuration'
 import { Route as TenantSlugSiteAiRouteImport } from './routes/$tenantSlug/site/ai'
@@ -48,6 +50,7 @@ import { Route as TenantSlugContentDocumentsRouteImport } from './routes/$tenant
 import { Route as TenantSlugContentCoursesRouteImport } from './routes/$tenantSlug/content/courses'
 import { Route as TenantSlugContentCategoriesRouteImport } from './routes/$tenantSlug/content/categories'
 import { Route as TenantSlugContentQuizzesIndexRouteImport } from './routes/$tenantSlug/content/quizzes.index'
+import { Route as ApiOgCourseSlugRouteImport } from './routes/api/og/course.$slug'
 import { Route as TenantSlugContentQuizzesQuizIdRouteImport } from './routes/$tenantSlug/content/quizzes.$quizId'
 
 const ProfileRoute = ProfileRouteImport.update({
@@ -179,6 +182,16 @@ const _authForgotPasswordRoute = _authForgotPasswordRouteImport.update({
   path: '/forgot-password',
   getParentRoute: () => _authRouteRoute,
 } as any)
+const ApiOgHomeRoute = ApiOgHomeRouteImport.update({
+  id: '/api/og/home',
+  path: '/api/og/home',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiOgCampusRoute = ApiOgCampusRouteImport.update({
+  id: '/api/og/campus',
+  path: '/api/og/campus',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TenantSlugSiteCustomizationRoute =
   TenantSlugSiteCustomizationRouteImport.update({
     id: '/site/customization',
@@ -255,6 +268,11 @@ const TenantSlugContentQuizzesIndexRoute =
     path: '/',
     getParentRoute: () => TenantSlugContentQuizzesRoute,
   } as any)
+const ApiOgCourseSlugRoute = ApiOgCourseSlugRouteImport.update({
+  id: '/api/og/course/$slug',
+  path: '/api/og/course/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TenantSlugContentQuizzesQuizIdRoute =
   TenantSlugContentQuizzesQuizIdRouteImport.update({
     id: '/$quizId',
@@ -300,7 +318,10 @@ export interface FileRoutesByFullPath {
   '/$tenantSlug/site/ai': typeof TenantSlugSiteAiRoute
   '/$tenantSlug/site/configuration': typeof TenantSlugSiteConfigurationRoute
   '/$tenantSlug/site/customization': typeof TenantSlugSiteCustomizationRoute
+  '/api/og/campus': typeof ApiOgCampusRoute
+  '/api/og/home': typeof ApiOgHomeRoute
   '/$tenantSlug/content/quizzes/$quizId': typeof TenantSlugContentQuizzesQuizIdRoute
+  '/api/og/course/$slug': typeof ApiOgCourseSlugRoute
   '/$tenantSlug/content/quizzes/': typeof TenantSlugContentQuizzesIndexRoute
 }
 export interface FileRoutesByTo {
@@ -336,7 +357,10 @@ export interface FileRoutesByTo {
   '/$tenantSlug/site/ai': typeof TenantSlugSiteAiRoute
   '/$tenantSlug/site/configuration': typeof TenantSlugSiteConfigurationRoute
   '/$tenantSlug/site/customization': typeof TenantSlugSiteCustomizationRoute
+  '/api/og/campus': typeof ApiOgCampusRoute
+  '/api/og/home': typeof ApiOgHomeRoute
   '/$tenantSlug/content/quizzes/$quizId': typeof TenantSlugContentQuizzesQuizIdRoute
+  '/api/og/course/$slug': typeof ApiOgCourseSlugRoute
   '/$tenantSlug/content/quizzes': typeof TenantSlugContentQuizzesIndexRoute
 }
 export interface FileRoutesById {
@@ -379,7 +403,10 @@ export interface FileRoutesById {
   '/$tenantSlug/site/ai': typeof TenantSlugSiteAiRoute
   '/$tenantSlug/site/configuration': typeof TenantSlugSiteConfigurationRoute
   '/$tenantSlug/site/customization': typeof TenantSlugSiteCustomizationRoute
+  '/api/og/campus': typeof ApiOgCampusRoute
+  '/api/og/home': typeof ApiOgHomeRoute
   '/$tenantSlug/content/quizzes/$quizId': typeof TenantSlugContentQuizzesQuizIdRoute
+  '/api/og/course/$slug': typeof ApiOgCourseSlugRoute
   '/$tenantSlug/content/quizzes/': typeof TenantSlugContentQuizzesIndexRoute
 }
 export interface FileRouteTypes {
@@ -422,7 +449,10 @@ export interface FileRouteTypes {
     | '/$tenantSlug/site/ai'
     | '/$tenantSlug/site/configuration'
     | '/$tenantSlug/site/customization'
+    | '/api/og/campus'
+    | '/api/og/home'
     | '/$tenantSlug/content/quizzes/$quizId'
+    | '/api/og/course/$slug'
     | '/$tenantSlug/content/quizzes/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -458,7 +488,10 @@ export interface FileRouteTypes {
     | '/$tenantSlug/site/ai'
     | '/$tenantSlug/site/configuration'
     | '/$tenantSlug/site/customization'
+    | '/api/og/campus'
+    | '/api/og/home'
     | '/$tenantSlug/content/quizzes/$quizId'
+    | '/api/og/course/$slug'
     | '/$tenantSlug/content/quizzes'
   id:
     | '__root__'
@@ -500,7 +533,10 @@ export interface FileRouteTypes {
     | '/$tenantSlug/site/ai'
     | '/$tenantSlug/site/configuration'
     | '/$tenantSlug/site/customization'
+    | '/api/og/campus'
+    | '/api/og/home'
     | '/$tenantSlug/content/quizzes/$quizId'
+    | '/api/og/course/$slug'
     | '/$tenantSlug/content/quizzes/'
   fileRoutesById: FileRoutesById
 }
@@ -514,6 +550,9 @@ export interface RootRouteChildren {
   CreateTenantRoute: typeof CreateTenantRoute
   ProfileRoute: typeof ProfileRoute
   VerifyCodeRoute: typeof VerifyCodeRoute
+  ApiOgCampusRoute: typeof ApiOgCampusRoute
+  ApiOgHomeRoute: typeof ApiOgHomeRoute
+  ApiOgCourseSlugRoute: typeof ApiOgCourseSlugRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -700,6 +739,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof _authForgotPasswordRouteImport
       parentRoute: typeof _authRouteRoute
     }
+    '/api/og/home': {
+      id: '/api/og/home'
+      path: '/api/og/home'
+      fullPath: '/api/og/home'
+      preLoaderRoute: typeof ApiOgHomeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/og/campus': {
+      id: '/api/og/campus'
+      path: '/api/og/campus'
+      fullPath: '/api/og/campus'
+      preLoaderRoute: typeof ApiOgCampusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/$tenantSlug/site/customization': {
       id: '/$tenantSlug/site/customization'
       path: '/site/customization'
@@ -790,6 +843,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/$tenantSlug/content/quizzes/'
       preLoaderRoute: typeof TenantSlugContentQuizzesIndexRouteImport
       parentRoute: typeof TenantSlugContentQuizzesRoute
+    }
+    '/api/og/course/$slug': {
+      id: '/api/og/course/$slug'
+      path: '/api/og/course/$slug'
+      fullPath: '/api/og/course/$slug'
+      preLoaderRoute: typeof ApiOgCourseSlugRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/$tenantSlug/content/quizzes/$quizId': {
       id: '/$tenantSlug/content/quizzes/$quizId'
@@ -934,6 +994,9 @@ const rootRouteChildren: RootRouteChildren = {
   CreateTenantRoute: CreateTenantRoute,
   ProfileRoute: ProfileRoute,
   VerifyCodeRoute: VerifyCodeRoute,
+  ApiOgCampusRoute: ApiOgCampusRoute,
+  ApiOgHomeRoute: ApiOgHomeRoute,
+  ApiOgCourseSlugRoute: ApiOgCourseSlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

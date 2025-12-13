@@ -26,7 +26,7 @@ import { getMainDomainUrl, setResolvedSlug } from "@/lib/tenant";
 import { cn } from "@/lib/utils";
 import { loadGoogleFont } from "@/hooks/use-custom-theme";
 import { BookOpen } from "lucide-react";
-import { createSeoMeta, createGoogleFontLinks, createFaviconLinks } from "@/lib/seo";
+import { createSeoMeta, createGoogleFontLinks, createFaviconLinks, LANDING_OG_IMAGE, CAMPUS_OG_IMAGE } from "@/lib/seo";
 import {
   createOrganizationSchema,
   createWebSiteSchema,
@@ -54,6 +54,7 @@ const landingSeo = createSeoMeta({
   keywords:
     "create online courses with AI, AI course generator, white-label LMS, sell courses online platform, academy builder software, online course platform, e-learning platform",
   url: "https://uselearnbase.com",
+  image: LANDING_OG_IMAGE,
 });
 
 const landingFaqData = [
@@ -126,13 +127,23 @@ export const Route = createFileRoute("/")({
         customTheme?.fontBody,
       ]);
       const faviconLinks = createFaviconLinks(tenant.favicon);
+      const title = tenant.seoTitle || tenant.name;
+      const description = tenant.seoDescription || "";
       return {
         meta: [
           { charSet: "utf-8" },
           { name: "viewport", content: "width=device-width, initial-scale=1" },
-          { title: tenant.seoTitle || tenant.name },
-          { name: "description", content: tenant.seoDescription || "" },
+          { title },
+          { name: "description", content: description },
           { name: "keywords", content: tenant.seoKeywords || "" },
+          { property: "og:title", content: title },
+          { property: "og:description", content: description },
+          { property: "og:image", content: CAMPUS_OG_IMAGE },
+          { property: "og:type", content: "website" },
+          { name: "twitter:card", content: "summary_large_image" },
+          { name: "twitter:title", content: title },
+          { name: "twitter:description", content: description },
+          { name: "twitter:image", content: CAMPUS_OG_IMAGE },
         ],
         links: [...fontLinks, ...faviconLinks],
       };
