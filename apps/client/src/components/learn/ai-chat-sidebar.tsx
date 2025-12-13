@@ -47,6 +47,7 @@ type AIChatSidebarProps = {
   documentUrl?: string | null;
   documentFileName?: string | null;
   documentMimeType?: string | null;
+  assistantName?: string;
 };
 
 
@@ -98,6 +99,7 @@ export function AIChatSidebar({
   documentUrl,
   documentFileName,
   documentMimeType,
+  assistantName,
 }: AIChatSidebarProps) {
   const { t } = useTranslation();
   const { right, isMobile } = useDualSidebar();
@@ -199,7 +201,7 @@ export function AIChatSidebar({
                 )}
               </div>
               <span className="whitespace-nowrap font-semibold">
-                {t("learn.aiAssistant")}
+                {assistantName || t("learn.aiAssistant")}
               </span>
             </div>
             <Button

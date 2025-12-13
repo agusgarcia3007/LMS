@@ -377,6 +377,7 @@ function LearnPage({ tenant }: LearnPageProps) {
             documentMimeType={
               contentData.type === "document" ? contentData.mimeType : undefined
             }
+            assistantName={tenant.aiAssistantSettings?.name}
           />
         )}
       </div>
