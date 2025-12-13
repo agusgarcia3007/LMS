@@ -280,6 +280,7 @@ export const QUERY_KEYS = {
     "certificates",
     params,
   ],
+  WAITLIST_BASE: ["backoffice", "waitlist"],
   WAITLIST: (params: BackofficeWaitlistListParams) => [
     "backoffice",
     "waitlist",
@@ -435,5 +436,9 @@ export const DashboardService = {
       pagination: PaginationInfo;
     }>(`/backoffice/waitlist${query ? `?${query}` : ""}`);
     return data;
+  },
+
+  async deleteWaitlist(id: string) {
+    await http.delete(`/backoffice/waitlist/${id}`);
   },
 } as const;

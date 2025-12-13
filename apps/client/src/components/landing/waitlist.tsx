@@ -70,20 +70,21 @@ export function Waitlist() {
                     </p>
                   </div>
 
-                  <div className="mx-auto flex w-full max-w-md flex-col gap-3 sm:flex-row">
+                  <div className="mx-auto flex w-full max-w-md flex-col gap-3 sm:flex-row sm:gap-2">
                     <Input
                       type="email"
                       placeholder={t("landing.waitlist.email_placeholder")}
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
-                      className="h-12 flex-1"
+                      variant="lg"
+                      className="flex-1"
                     />
                     <Button
                       type="submit"
                       size="lg"
                       isLoading={isPending}
-                      className="h-12 sm:w-auto"
+                      className="w-full sm:w-auto"
                     >
                       {t("landing.waitlist.cta")}
                     </Button>

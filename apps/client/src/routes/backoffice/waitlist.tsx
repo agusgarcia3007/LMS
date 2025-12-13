@@ -1,18 +1,20 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Calendar, Mail } from "lucide-react";
-import { useMemo } from "react";
+import { Calendar, Mail, Trash2 } from "lucide-react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import { DataTable, DeleteDialog } from "@/components/data-table";
+import { Button } from "@/components/ui/button";
+import { DataGridColumnHeader } from "@/components/ui/data-grid";
 import type { FilterFieldConfig } from "@/components/ui/filters";
 import { Skeleton } from "@/components/ui/skeleton";
 
-import { DataTable } from "@/components/data-table";
-import { DataGridColumnHeader } from "@/components/ui/data-grid";
 import { useDataTableState } from "@/hooks/use-data-table-state";
 import { createSeoMeta } from "@/lib/seo";
 import {
   useGetBackofficeWaitlist,
+  useDeleteWaitlist,
   type BackofficeWaitlistEntry,
 } from "@/services/dashboard";
 
@@ -46,6 +48,16 @@ function BackofficeWaitlist() {
     search: tableState.serverParams.search,
     createdAt: tableState.serverParams.createdAt as string | undefined,
   });
+
+  const [deleteEntry, setDeleteEntry] = useState<BackofficeWaitlistEntry | null>(null);
+  const deleteMutation = useDeleteWaitlist();
+
+  const handleDelete = () => {
+    if (!deleteEntry) return;
+    deleteMutation.mutate(deleteEntry.id, {
+      onSuccess: () => setDeleteEntry(null),
+    });
+  };
 
   const columns = useMemo<ColumnDef<BackofficeWaitlistEntry>[]>(
     () => [
@@ -101,6 +113,23 @@ function BackofficeWaitlist() {
           skeleton: <Skeleton className="h-4 w-24" />,
         },
       },
+      {
+        id: "actions",
+        header: "",
+        cell: ({ row }) => (
+          <Button
+            className="size-7"
+            mode="icon"
+            variant="ghost"
+            onClick={() => setDeleteEntry(row.original)}
+          >
+            <Trash2 className="size-4 text-destructive" />
+          </Button>
+        ),
+        size: 60,
+        enableSorting: false,
+        enableHiding: false,
+      },
     ],
     [t]
   );
@@ -135,6 +164,18 @@ function BackofficeWaitlist() {
         isLoading={isLoading}
         tableState={tableState}
         filterFields={filterFields}
+      />
+
+      <DeleteDialog
+        open={!!deleteEntry}
+        onOpenChange={(open) => !open && setDeleteEntry(null)}
+        title={t("backoffice.waitlist.delete.title")}
+        description={t("backoffice.waitlist.delete.description", {
+          email: deleteEntry?.email,
+        })}
+        confirmValue={deleteEntry?.email ?? ""}
+        onConfirm={handleDelete}
+        isPending={deleteMutation.isPending}
       />
     </div>
   );

@@ -1111,4 +1111,31 @@ export const backofficeRoutes = new Elysia()
         summary: "List all waitlist entries (superadmin only)",
       },
     }
+  )
+  .delete(
+    "/waitlist/:id",
+    (ctx) =>
+      withHandler(ctx, async () => {
+        requireSuperadmin(ctx);
+
+        const [deleted] = await db
+          .delete(waitlistTable)
+          .where(eq(waitlistTable.id, ctx.params.id))
+          .returning();
+
+        if (!deleted) {
+          throw new AppError(ErrorCode.NOT_FOUND, "Waitlist entry not found", 404);
+        }
+
+        return { success: true };
+      }),
+    {
+      params: t.Object({
+        id: t.String({ format: "uuid" }),
+      }),
+      detail: {
+        tags: ["Backoffice"],
+        summary: "Delete waitlist entry (superadmin only)",
+      },
+    }
   );

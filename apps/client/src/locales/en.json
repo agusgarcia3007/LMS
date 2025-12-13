@@ -1328,6 +1328,11 @@
       "empty": {
         "title": "No entries",
         "description": "No waitlist entries found"
+      },
+      "delete": {
+        "title": "Delete waitlist entry",
+        "description": "Are you sure you want to delete {{email}} from the waitlist? This action cannot be undone.",
+        "success": "Waitlist entry deleted successfully"
       }
     }
   },

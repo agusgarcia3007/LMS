@@ -1288,6 +1288,11 @@
       "empty": {
         "title": "Sin inscripciones",
         "description": "No se encontraron inscripciones en la lista de espera"
+      },
+      "delete": {
+        "title": "Eliminar de la lista de espera",
+        "description": "Estas seguro que queres eliminar a {{email}} de la lista de espera? Esta accion no se puede deshacer.",
+        "success": "Eliminado de la lista de espera exitosamente"
       }
     }
   },

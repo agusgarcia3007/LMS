@@ -1,4 +1,10 @@
-import { queryOptions } from "@tanstack/react-query";
+import {
+  mutationOptions,
+  queryOptions,
+  useQueryClient,
+} from "@tanstack/react-query";
+import { toast } from "sonner";
+import { i18n } from "@/i18n";
 import {
   DashboardService,
   QUERY_KEYS,
@@ -90,3 +96,14 @@ export const backofficeWaitlistOptions = (
     queryFn: () => DashboardService.getWaitlist(params),
     queryKey: QUERY_KEYS.WAITLIST(params),
   });
+
+export const useDeleteWaitlistOptions = () => {
+  const queryClient = useQueryClient();
+  return mutationOptions({
+    mutationFn: DashboardService.deleteWaitlist,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.WAITLIST_BASE });
+      toast.success(i18n.t("backoffice.waitlist.delete.success"));
+    },
+  });
+};

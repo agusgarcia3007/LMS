@@ -1305,6 +1305,11 @@
       "empty": {
         "title": "Nenhuma inscricao",
         "description": "Nenhuma inscricao encontrada na lista de espera"
+      },
+      "delete": {
+        "title": "Remover da lista de espera",
+        "description": "Tem certeza que deseja remover {{email}} da lista de espera? Esta acao nao pode ser desfeita.",
+        "success": "Removido da lista de espera com sucesso"
       }
     }
   },
