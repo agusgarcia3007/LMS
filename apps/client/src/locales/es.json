@@ -1096,6 +1096,10 @@
       "noPreview": "Vista previa no disponible para este tipo de archivo",
       "download": "Descargar",
       "searchPlaceholder": "Buscar archivos...",
+      "root": "Raiz",
+      "folder": "Carpeta",
+      "file": "Archivo",
+      "modified": "Modificado",
       "columns": {
         "name": "Nombre",
         "type": "Tipo",

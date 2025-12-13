@@ -1136,6 +1136,10 @@
       "noPreview": "Preview not available for this file type",
       "download": "Download",
       "searchPlaceholder": "Search files...",
+      "root": "Root",
+      "folder": "Folder",
+      "file": "File",
+      "modified": "Modified",
       "columns": {
         "name": "Name",
         "type": "Type",

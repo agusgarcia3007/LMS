@@ -885,6 +885,53 @@ export const backofficeRoutes = new Elysia()
     }
   )
   .get(
+    "/files/browse",
+    (ctx) =>
+      withHandler(ctx, async () => {
+        requireSuperadmin(ctx);
+
+        const prefix = ctx.query.prefix || "";
+        const response = await s3.list({
+          prefix,
+          delimiter: "/",
+          maxKeys: 1000,
+        });
+
+        const folders = (response.commonPrefixes || []).map((p) => ({
+          name: p.prefix?.replace(prefix, "").replace("/", "") || "",
+          path: p.prefix || "",
+          type: "folder" as const,
+        }));
+
+        const files = (response.contents || [])
+          .filter((obj) => obj.key !== prefix && obj.key)
+          .map((obj) => ({
+            name: obj.key?.split("/").pop() || obj.key || "",
+            path: obj.key || "",
+            type: "file" as const,
+            size: obj.size,
+            lastModified: obj.lastModified,
+            url: getPresignedUrl(obj.key!),
+          }));
+
+        return {
+          items: [...folders, ...files],
+          prefix,
+          isTruncated: response.isTruncated,
+          nextToken: response.nextContinuationToken,
+        };
+      }),
+    {
+      query: t.Object({
+        prefix: t.Optional(t.String()),
+      }),
+      detail: {
+        tags: ["Backoffice"],
+        summary: "Browse S3 files directly (superadmin only)",
+      },
+    }
+  )
+  .get(
     "/tenants",
     (ctx) =>
       withHandler(ctx, async () => {

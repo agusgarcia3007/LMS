@@ -1113,6 +1113,10 @@
       "noPreview": "Pre-visualizacao nao disponivel para este tipo de arquivo",
       "download": "Baixar",
       "searchPlaceholder": "Buscar arquivos...",
+      "root": "Raiz",
+      "folder": "Pasta",
+      "file": "Arquivo",
+      "modified": "Modificado",
       "columns": {
         "name": "Nome",
         "type": "Tipo",

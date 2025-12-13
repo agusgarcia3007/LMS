@@ -69,6 +69,7 @@ export const QUERY_KEYS = {
   files: (tenantId: string, type?: string) =>
     ["backoffice", "files", tenantId, type] as const,
   tenants: () => ["backoffice", "tenants"] as const,
+  browse: (prefix?: string) => ["backoffice", "files", "browse", prefix] as const,
 };
 
 export async function getBackofficeFiles(
@@ -129,6 +130,32 @@ export async function uploadBackofficeFile(
   const { data } = await http.post<ManualUploadResponse>(
     "/backoffice/files/upload",
     payload
+  );
+  return data;
+}
+
+export type BrowseItem = {
+  name: string;
+  path: string;
+  type: "folder" | "file";
+  size?: number;
+  lastModified?: string;
+  url?: string;
+};
+
+export type BrowseResponse = {
+  items: BrowseItem[];
+  prefix: string;
+  isTruncated?: boolean;
+  nextToken?: string;
+};
+
+export async function browseBackofficeFiles(
+  prefix?: string
+): Promise<BrowseResponse> {
+  const params = prefix ? `?prefix=${encodeURIComponent(prefix)}` : "";
+  const { data } = await http.get<BrowseResponse>(
+    `/backoffice/files/browse${params}`
   );
   return data;
 }
