@@ -22,6 +22,7 @@ import { Route as CoursesIndexRouteImport } from './routes/courses/index'
 import { Route as BackofficeIndexRouteImport } from './routes/backoffice/index'
 import { Route as TenantSlugIndexRouteImport } from './routes/$tenantSlug/index'
 import { Route as VerifyCodeRouteImport } from './routes/verify.$code'
+import { Route as SitemapXmlRouteImport } from './routes/sitemap.xml'
 import { Route as MyCoursesCourseSlugRouteImport } from './routes/my-courses/$courseSlug'
 import { Route as CoursesCourseSlugRouteImport } from './routes/courses/$courseSlug'
 import { Route as BackofficeWaitlistRouteImport } from './routes/backoffice/waitlist'
@@ -35,7 +36,6 @@ import { Route as _authSignupRouteImport } from './routes/__auth/signup'
 import { Route as _authResetPasswordRouteImport } from './routes/__auth/reset-password'
 import { Route as _authLoginRouteImport } from './routes/__auth/login'
 import { Route as _authForgotPasswordRouteImport } from './routes/__auth/forgot-password'
-import { Route as ApiSitemapXmlRouteImport } from './routes/api/sitemap.xml'
 import { Route as ApiOgHomeRouteImport } from './routes/api/og/home'
 import { Route as ApiOgCampusRouteImport } from './routes/api/og/campus'
 import { Route as TenantSlugSiteCustomizationRouteImport } from './routes/$tenantSlug/site/customization'
@@ -118,6 +118,11 @@ const VerifyCodeRoute = VerifyCodeRouteImport.update({
   path: '/verify/$code',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SitemapXmlRoute = SitemapXmlRouteImport.update({
+  id: '/sitemap/xml',
+  path: '/sitemap/xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MyCoursesCourseSlugRoute = MyCoursesCourseSlugRouteImport.update({
   id: '/$courseSlug',
   path: '/$courseSlug',
@@ -182,11 +187,6 @@ const _authForgotPasswordRoute = _authForgotPasswordRouteImport.update({
   id: '/forgot-password',
   path: '/forgot-password',
   getParentRoute: () => _authRouteRoute,
-} as any)
-const ApiSitemapXmlRoute = ApiSitemapXmlRouteImport.update({
-  id: '/api/sitemap/xml',
-  path: '/api/sitemap/xml',
-  getParentRoute: () => rootRouteImport,
 } as any)
 const ApiOgHomeRoute = ApiOgHomeRouteImport.update({
   id: '/api/og/home',
@@ -307,6 +307,7 @@ export interface FileRoutesByFullPath {
   '/backoffice/waitlist': typeof BackofficeWaitlistRoute
   '/courses/$courseSlug': typeof CoursesCourseSlugRoute
   '/my-courses/$courseSlug': typeof MyCoursesCourseSlugRoute
+  '/sitemap/xml': typeof SitemapXmlRoute
   '/verify/$code': typeof VerifyCodeRoute
   '/$tenantSlug/': typeof TenantSlugIndexRoute
   '/backoffice/': typeof BackofficeIndexRoute
@@ -326,7 +327,6 @@ export interface FileRoutesByFullPath {
   '/$tenantSlug/site/customization': typeof TenantSlugSiteCustomizationRoute
   '/api/og/campus': typeof ApiOgCampusRoute
   '/api/og/home': typeof ApiOgHomeRoute
-  '/api/sitemap/xml': typeof ApiSitemapXmlRoute
   '/$tenantSlug/content/quizzes/$quizId': typeof TenantSlugContentQuizzesQuizIdRoute
   '/api/og/course/$slug': typeof ApiOgCourseSlugRoute
   '/$tenantSlug/content/quizzes/': typeof TenantSlugContentQuizzesIndexRoute
@@ -348,6 +348,7 @@ export interface FileRoutesByTo {
   '/backoffice/waitlist': typeof BackofficeWaitlistRoute
   '/courses/$courseSlug': typeof CoursesCourseSlugRoute
   '/my-courses/$courseSlug': typeof MyCoursesCourseSlugRoute
+  '/sitemap/xml': typeof SitemapXmlRoute
   '/verify/$code': typeof VerifyCodeRoute
   '/$tenantSlug': typeof TenantSlugIndexRoute
   '/backoffice': typeof BackofficeIndexRoute
@@ -366,7 +367,6 @@ export interface FileRoutesByTo {
   '/$tenantSlug/site/customization': typeof TenantSlugSiteCustomizationRoute
   '/api/og/campus': typeof ApiOgCampusRoute
   '/api/og/home': typeof ApiOgHomeRoute
-  '/api/sitemap/xml': typeof ApiSitemapXmlRoute
   '/$tenantSlug/content/quizzes/$quizId': typeof TenantSlugContentQuizzesQuizIdRoute
   '/api/og/course/$slug': typeof ApiOgCourseSlugRoute
   '/$tenantSlug/content/quizzes': typeof TenantSlugContentQuizzesIndexRoute
@@ -394,6 +394,7 @@ export interface FileRoutesById {
   '/backoffice/waitlist': typeof BackofficeWaitlistRoute
   '/courses/$courseSlug': typeof CoursesCourseSlugRoute
   '/my-courses/$courseSlug': typeof MyCoursesCourseSlugRoute
+  '/sitemap/xml': typeof SitemapXmlRoute
   '/verify/$code': typeof VerifyCodeRoute
   '/$tenantSlug/': typeof TenantSlugIndexRoute
   '/backoffice/': typeof BackofficeIndexRoute
@@ -413,7 +414,6 @@ export interface FileRoutesById {
   '/$tenantSlug/site/customization': typeof TenantSlugSiteCustomizationRoute
   '/api/og/campus': typeof ApiOgCampusRoute
   '/api/og/home': typeof ApiOgHomeRoute
-  '/api/sitemap/xml': typeof ApiSitemapXmlRoute
   '/$tenantSlug/content/quizzes/$quizId': typeof TenantSlugContentQuizzesQuizIdRoute
   '/api/og/course/$slug': typeof ApiOgCourseSlugRoute
   '/$tenantSlug/content/quizzes/': typeof TenantSlugContentQuizzesIndexRoute
@@ -441,6 +441,7 @@ export interface FileRouteTypes {
     | '/backoffice/waitlist'
     | '/courses/$courseSlug'
     | '/my-courses/$courseSlug'
+    | '/sitemap/xml'
     | '/verify/$code'
     | '/$tenantSlug/'
     | '/backoffice/'
@@ -460,7 +461,6 @@ export interface FileRouteTypes {
     | '/$tenantSlug/site/customization'
     | '/api/og/campus'
     | '/api/og/home'
-    | '/api/sitemap/xml'
     | '/$tenantSlug/content/quizzes/$quizId'
     | '/api/og/course/$slug'
     | '/$tenantSlug/content/quizzes/'
@@ -482,6 +482,7 @@ export interface FileRouteTypes {
     | '/backoffice/waitlist'
     | '/courses/$courseSlug'
     | '/my-courses/$courseSlug'
+    | '/sitemap/xml'
     | '/verify/$code'
     | '/$tenantSlug'
     | '/backoffice'
@@ -500,7 +501,6 @@ export interface FileRouteTypes {
     | '/$tenantSlug/site/customization'
     | '/api/og/campus'
     | '/api/og/home'
-    | '/api/sitemap/xml'
     | '/$tenantSlug/content/quizzes/$quizId'
     | '/api/og/course/$slug'
     | '/$tenantSlug/content/quizzes'
@@ -527,6 +527,7 @@ export interface FileRouteTypes {
     | '/backoffice/waitlist'
     | '/courses/$courseSlug'
     | '/my-courses/$courseSlug'
+    | '/sitemap/xml'
     | '/verify/$code'
     | '/$tenantSlug/'
     | '/backoffice/'
@@ -546,7 +547,6 @@ export interface FileRouteTypes {
     | '/$tenantSlug/site/customization'
     | '/api/og/campus'
     | '/api/og/home'
-    | '/api/sitemap/xml'
     | '/$tenantSlug/content/quizzes/$quizId'
     | '/api/og/course/$slug'
     | '/$tenantSlug/content/quizzes/'
@@ -561,10 +561,10 @@ export interface RootRouteChildren {
   CoursesRoute: typeof CoursesRouteWithChildren
   CreateTenantRoute: typeof CreateTenantRoute
   ProfileRoute: typeof ProfileRoute
+  SitemapXmlRoute: typeof SitemapXmlRoute
   VerifyCodeRoute: typeof VerifyCodeRoute
   ApiOgCampusRoute: typeof ApiOgCampusRoute
   ApiOgHomeRoute: typeof ApiOgHomeRoute
-  ApiSitemapXmlRoute: typeof ApiSitemapXmlRoute
   ApiOgCourseSlugRoute: typeof ApiOgCourseSlugRoute
 }
 
@@ -661,6 +661,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VerifyCodeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/sitemap/xml': {
+      id: '/sitemap/xml'
+      path: '/sitemap/xml'
+      fullPath: '/sitemap/xml'
+      preLoaderRoute: typeof SitemapXmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/my-courses/$courseSlug': {
       id: '/my-courses/$courseSlug'
       path: '/$courseSlug'
@@ -751,13 +758,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/forgot-password'
       preLoaderRoute: typeof _authForgotPasswordRouteImport
       parentRoute: typeof _authRouteRoute
-    }
-    '/api/sitemap/xml': {
-      id: '/api/sitemap/xml'
-      path: '/api/sitemap/xml'
-      fullPath: '/api/sitemap/xml'
-      preLoaderRoute: typeof ApiSitemapXmlRouteImport
-      parentRoute: typeof rootRouteImport
     }
     '/api/og/home': {
       id: '/api/og/home'
@@ -1013,10 +1013,10 @@ const rootRouteChildren: RootRouteChildren = {
   CoursesRoute: CoursesRouteWithChildren,
   CreateTenantRoute: CreateTenantRoute,
   ProfileRoute: ProfileRoute,
+  SitemapXmlRoute: SitemapXmlRoute,
   VerifyCodeRoute: VerifyCodeRoute,
   ApiOgCampusRoute: ApiOgCampusRoute,
   ApiOgHomeRoute: ApiOgHomeRoute,
-  ApiSitemapXmlRoute: ApiSitemapXmlRoute,
   ApiOgCourseSlugRoute: ApiOgCourseSlugRoute,
 }
 export const routeTree = rootRouteImport

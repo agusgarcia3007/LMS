@@ -19,4 +19,4 @@ Disallow: /*.json$
 Crawl-delay: 1
 
 # Sitemap location
-Sitemap: https://uselearnbase.com/sitemap.xml
+Sitemap: https://uselearnbase.com/sitemap/xml
