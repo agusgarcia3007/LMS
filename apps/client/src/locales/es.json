@@ -46,7 +46,8 @@
     "exitFullscreen": "Salir de pantalla completa",
     "confirm": "Confirmar",
     "backoffice": "Backoffice",
-    "adminDashboard": "Panel de Admin"
+    "adminDashboard": "Panel de Admin",
+    "remove": "Eliminar"
   },
   "dataTable": {
     "search": "Buscar...",
@@ -588,7 +589,7 @@
           "name": "Nombre del sitio",
           "namePlaceholder": "Mi Academia",
           "nameHelp": "El nombre que se mostrara en tu sitio",
-          "description": "Descripcion del sitio",
+          "descriptionLabel": "Descripcion del sitio",
           "descriptionPlaceholder": "Una breve descripcion de tu academia"
         },
         "branding": {

@@ -95,7 +95,7 @@ export function GeneralTab({ isSlugChanged, isSaving }: GeneralTabProps) {
         render={({ field }) => (
           <FormItem>
             <FormLabel>
-              {t("dashboard.site.configuration.general.description")}
+              {t("dashboard.site.configuration.general.descriptionLabel")}
             </FormLabel>
             <FormControl>
               <Textarea

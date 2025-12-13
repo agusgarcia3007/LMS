@@ -45,7 +45,8 @@
     "fullscreen": "Fullscreen",
     "exitFullscreen": "Exit fullscreen",
     "backoffice": "Backoffice",
-    "adminDashboard": "Admin Dashboard"
+    "adminDashboard": "Admin Dashboard",
+    "remove": "Remove"
   },
   "dataTable": {
     "search": "Search...",
@@ -625,7 +626,7 @@
           "name": "Site Name",
           "namePlaceholder": "My Academy",
           "nameHelp": "The name that will be displayed on your site",
-          "description": "Site Description",
+          "descriptionLabel": "Site Description",
           "descriptionPlaceholder": "A brief description of your academy"
         },
         "branding": {

@@ -46,7 +46,8 @@
     "exitFullscreen": "Sair da tela cheia",
     "confirm": "Confirmar",
     "backoffice": "Backoffice",
-    "adminDashboard": "Painel de Admin"
+    "adminDashboard": "Painel de Admin",
+    "remove": "Remover"
   },
   "dataTable": {
     "search": "Buscar...",
@@ -266,6 +267,52 @@
       "benefit2": "Quizzes gerados por IA",
       "benefit3": "Sua marca, seu dominio"
     },
+    "problem": {
+      "title": "Criar uma academia online e dificil... ou era",
+      "points": {
+        "time": {
+          "title": "Semanas configurando plataformas",
+          "description": "Configurar seu LMS, desenhar paginas, configurar pagamentos. Tempo que voce poderia usar criando conteudo."
+        },
+        "content": {
+          "title": "Horas escrevendo descricoes",
+          "description": "Cada curso precisa de titulos, descricoes, objetivos. Trabalho manual repetitivo."
+        },
+        "quizzes": {
+          "title": "Dias criando quizzes",
+          "description": "Pensar em perguntas, escrever opcoes, marcar respostas corretas. Exaustivo."
+        }
+      },
+      "solution": {
+        "badge": "A Solucao",
+        "title": "Com LearnBase, a IA faz o trabalho pesado",
+        "description": "Envie seus videos e documentos. Nossa IA gera tudo: transcricoes, descricoes, quizzes e cursos completos. Voce foca no que importa: ensinar."
+      }
+    },
+    "howItWorks": {
+      "title": "E assim que a magia funciona",
+      "subtitle": "Tres passos simples para lancar sua academia",
+      "steps": {
+        "upload": {
+          "title": "Envie seu conteudo",
+          "description": "Videos, documentos, apresentacoes. Qualquer formato. Nossa plataforma processa tudo automaticamente."
+        },
+        "generate": {
+          "title": "A IA gera tudo",
+          "description": "Transcricoes automaticas, titulos otimizados, descricoes detalhadas e quizzes baseados no seu conteudo."
+        },
+        "launch": {
+          "title": "Personalize e lance",
+          "description": "Ajuste detalhes, defina precos, personalize sua marca e publique. Sua academia pronta em minutos."
+        }
+      }
+    },
+    "stats": {
+      "courses": "Cursos criados",
+      "students": "Alunos ativos",
+      "satisfaction": "Taxa de satisfacao",
+      "hours": "Horas de conteudo"
+    },
     "features": {
       "title": "O que o LearnBase faz por voce",
       "subtitle": "Automatizamos a parte tediosa. Voce foca em ensinar.",
@@ -422,6 +469,12 @@
         }
       }
     },
+    "finalCta": {
+      "title": "Sua academia esta a um clique",
+      "subtitle": "Junte-se a milhares de criadores que ja estao transformando conhecimento em impacto",
+      "cta": "Criar minha academia gratis",
+      "guarantee": "Sem cartao de credito, sem compromisso"
+    },
     "footer": {
       "description": "Crie academias online com IA.",
       "copyright": "© {{year}} LearnBase"
@@ -553,7 +606,7 @@
           "name": "Nome do site",
           "namePlaceholder": "Minha Academia",
           "nameHelp": "O nome que sera exibido no seu site",
-          "description": "Descricao do site",
+          "descriptionLabel": "Descricao do site",
           "descriptionPlaceholder": "Uma breve descricao da sua academia"
         },
         "branding": {
