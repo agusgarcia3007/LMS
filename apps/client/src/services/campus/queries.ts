@@ -6,6 +6,7 @@ import {
   campusCategoriesOptions,
   campusStatsOptions,
   campusModuleItemsOptions,
+  campusPreviewContentOptions,
 } from "./options";
 import type { CoursesListParams } from "./service";
 import { useTenantInfo } from "@/hooks/use-tenant-info";
@@ -59,5 +60,13 @@ export const useCampusModuleItems = (moduleId: string | null) => {
   return useQuery({
     ...campusModuleItemsOptions(moduleId!),
     enabled: !isResolving && !!moduleId,
+  });
+};
+
+export const useCampusPreviewContent = (moduleItemId: string | null) => {
+  const { isResolving } = useTenantInfo();
+  return useQuery({
+    ...campusPreviewContentOptions(moduleItemId),
+    enabled: !isResolving && !!moduleItemId,
   });
 };

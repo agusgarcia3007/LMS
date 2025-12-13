@@ -1,4 +1,4 @@
-import { tool } from "ai";
+import { tool, generateText } from "ai";
 import { db } from "@/db";
 import {
   videosTable,
@@ -15,6 +15,9 @@ import {
 } from "@/db/schema";
 import { eq, and, desc, inArray, count } from "drizzle-orm";
 import { logger } from "@/lib/logger";
+import { aiGateway, AI_MODELS } from "@/lib/ai-gateway";
+import { THUMBNAIL_GENERATION_PROMPT } from "@/lib/ai/prompts";
+import { uploadBase64ToS3, getPresignedUrl } from "@/lib/s3";
 import {
   generateCoursePreviewSchema,
   createCourseSchema,
@@ -24,6 +27,7 @@ import {
   publishCourseSchema,
   unpublishCourseSchema,
   deleteCourseSchema,
+  regenerateThumbnailSchema,
 } from "./schemas";
 import { type ToolContext } from "./utils";
 
@@ -63,7 +67,9 @@ export function createCourseTools(ctx: ToolContext) {
         moduleIds,
         categoryIds,
         price,
+        currency,
         customThumbnailKey,
+        previewVideoUrl,
       }) => {
         try {
           let slug = title
@@ -154,9 +160,10 @@ export function createCourseTools(ctx: ToolContext) {
               status: "draft",
               order: nextOrder,
               price: price ?? 0,
-              currency: "USD",
+              currency: currency ?? "USD",
               language: "es",
               thumbnail: customThumbnailKey ?? null,
+              previewVideoUrl: previewVideoUrl ?? null,
             })
             .returning();
 
@@ -392,12 +399,15 @@ export function createCourseTools(ctx: ToolContext) {
         if (updates.level !== undefined) { updateData.level = updates.level; updatedFields.push("level"); }
         if (updates.price !== undefined) { updateData.price = updates.price; updatedFields.push("price"); }
         if (updates.originalPrice !== undefined) { updateData.originalPrice = updates.originalPrice; updatedFields.push("originalPrice"); }
+        if (updates.currency !== undefined) { updateData.currency = updates.currency; updatedFields.push("currency"); }
         if (updates.tags !== undefined) { updateData.tags = updates.tags; updatedFields.push("tags"); }
         if (updates.features !== undefined) { updateData.features = updates.features; updatedFields.push("features"); }
         if (updates.requirements !== undefined) { updateData.requirements = updates.requirements; updatedFields.push("requirements"); }
         if (updates.objectives !== undefined) { updateData.objectives = updates.objectives; updatedFields.push("objectives"); }
         if (updates.language !== undefined) { updateData.language = updates.language; updatedFields.push("language"); }
         if (updates.includeCertificate !== undefined) { updateData.includeCertificate = updates.includeCertificate; updatedFields.push("includeCertificate"); }
+        if (updates.thumbnail !== undefined) { updateData.thumbnail = updates.thumbnail; updatedFields.push("thumbnail"); }
+        if (updates.previewVideoUrl !== undefined) { updateData.previewVideoUrl = updates.previewVideoUrl; updatedFields.push("previewVideoUrl"); }
 
         if (updates.categoryIds !== undefined) {
           await db.delete(courseCategoriesTable).where(eq(courseCategoriesTable.courseId, courseId));
@@ -652,6 +662,131 @@ export function createCourseTools(ctx: ToolContext) {
           courseId,
           title: existing.title,
         };
+      },
+    }),
+
+    regenerateThumbnail: tool({
+      description: "Regenerate course thumbnail using AI with optional style. Use when user wants a new AI-generated image for the course cover.",
+      inputSchema: regenerateThumbnailSchema,
+      execute: async ({ courseId, style }) => {
+        const [course] = await db
+          .select({
+            id: coursesTable.id,
+            title: coursesTable.title,
+            shortDescription: coursesTable.shortDescription,
+          })
+          .from(coursesTable)
+          .where(and(eq(coursesTable.id, courseId), eq(coursesTable.tenantId, tenantId)))
+          .limit(1);
+
+        if (!course) {
+          return { type: "error" as const, error: "Course not found" };
+        }
+
+        logger.info("regenerateThumbnail: starting", { courseId, style });
+
+        const courseModules = await db
+          .select({ moduleId: courseModulesTable.moduleId })
+          .from(courseModulesTable)
+          .where(eq(courseModulesTable.courseId, courseId));
+
+        const moduleIds = courseModules.map((m) => m.moduleId);
+
+        let topics: string[] = [];
+        if (moduleIds.length > 0) {
+          const moduleItems = await db
+            .select({
+              contentType: moduleItemsTable.contentType,
+              contentId: moduleItemsTable.contentId,
+            })
+            .from(moduleItemsTable)
+            .where(inArray(moduleItemsTable.moduleId, moduleIds));
+
+          const videoIds = moduleItems
+            .filter((i) => i.contentType === "video")
+            .map((i) => i.contentId);
+
+          if (videoIds.length > 0) {
+            const videos = await db
+              .select({ title: videosTable.title })
+              .from(videosTable)
+              .where(inArray(videosTable.id, videoIds))
+              .limit(5);
+            topics = videos.map((v) => v.title);
+          }
+        }
+
+        if (topics.length === 0) {
+          topics = [course.title];
+        }
+
+        const STYLE_DESCRIPTIONS: Record<string, string> = {
+          default: "",
+          minimal: "Use a minimalist aesthetic with clean lines, simple shapes, and plenty of negative space. Limited color palette.",
+          professional: "Corporate and polished look with structured composition, subtle gradients, and business-appropriate imagery.",
+          colorful: "Vibrant and saturated colors, playful gradients, energetic composition with multiple accent colors.",
+          futuristic: "Sci-fi inspired with neon accents, holographic effects, dark backgrounds with glowing elements.",
+          realistic: "Photorealistic 3D rendering with natural lighting, detailed textures, and lifelike materials.",
+          abstract: "Non-representational shapes, artistic interpretation, bold geometric patterns and fluid forms.",
+          vintage: "Retro aesthetic with muted colors, film grain texture, nostalgic 70s-80s visual style.",
+          playful: "Fun and whimsical with rounded shapes, bright colors, cartoon-like elements and friendly vibe.",
+          dark: "Dark mode aesthetic with deep backgrounds, subtle highlights, moody atmosphere.",
+          light: "Bright and airy with white backgrounds, soft shadows, clean and fresh appearance.",
+        };
+
+        const styleDescription = style ? STYLE_DESCRIPTIONS[style] || "" : "";
+
+        let imagePrompt = THUMBNAIL_GENERATION_PROMPT
+          .replace("{{title}}", course.title)
+          .replace("{{description}}", course.shortDescription || "")
+          .replace("{{topics}}", topics.join(", "));
+
+        if (styleDescription) {
+          imagePrompt += `\n\nSTYLE REQUIREMENT: ${styleDescription}`;
+        }
+
+        try {
+          const imageResult = await generateText({
+            model: aiGateway(AI_MODELS.IMAGE_GENERATION),
+            prompt: imagePrompt,
+          });
+
+          const imageFile = imageResult.files?.[0];
+          if (!imageFile || imageFile.mimeType !== "image") {
+            logger.error("regenerateThumbnail: no image generated");
+            return { type: "error" as const, error: "Failed to generate thumbnail image" };
+          }
+
+          const thumbnailKey = await uploadBase64ToS3({
+            base64: imageFile.base64,
+            contentType: imageFile.mediaType,
+            folder: "course-thumbnails",
+          });
+
+          await db
+            .update(coursesTable)
+            .set({ thumbnail: thumbnailKey })
+            .where(eq(coursesTable.id, courseId));
+
+          logger.info("regenerateThumbnail: completed", { courseId, thumbnailKey, style });
+
+          return {
+            type: "thumbnail_regenerated" as const,
+            courseId,
+            courseTitle: course.title,
+            thumbnailUrl: getPresignedUrl(thumbnailKey),
+            style: style || "default",
+          };
+        } catch (error) {
+          logger.error("regenerateThumbnail: failed", {
+            courseId,
+            error: error instanceof Error ? error.message : String(error),
+          });
+          return {
+            type: "error" as const,
+            error: "Failed to generate thumbnail. Please try again.",
+          };
+        }
       },
     }),
   };

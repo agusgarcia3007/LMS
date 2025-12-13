@@ -70,7 +70,9 @@ export const createCourseSchema = z.object({
   moduleIds: z.array(z.string()).describe("IDs of modules to include (from createModule results)"),
   categoryIds: z.array(z.string()).optional().describe("Category IDs for the course from listCategories"),
   price: z.number().optional().describe("Course price in USD cents (0 = free). Example: $50 = 5000"),
+  currency: z.string().optional().describe("Currency code (USD, EUR, etc). Defaults to USD"),
   customThumbnailKey: z.string().optional().describe("S3 key for custom thumbnail if user provided one"),
+  previewVideoUrl: z.string().url().optional().describe("URL for course preview video"),
 });
 
 export type SearchContentParams = z.infer<typeof searchContentSchema>;
@@ -117,6 +119,7 @@ export const updateCourseSchema = z.object({
   level: z.enum(["beginner", "intermediate", "advanced"]).optional().describe("Course difficulty level"),
   price: z.number().min(0).optional().describe("Course price in USD cents (0 = free). Example: $50 = 5000"),
   originalPrice: z.number().min(0).nullable().optional().describe("Original price for showing discount"),
+  currency: z.string().optional().describe("Currency code (USD, EUR, etc)"),
   tags: z.array(z.string()).optional().describe("Course tags for categorization"),
   features: z.array(z.string()).optional().describe("What's included in the course"),
   requirements: z.array(z.string()).optional().describe("Course requirements/prerequisites"),
@@ -125,6 +128,8 @@ export const updateCourseSchema = z.object({
   instructorId: z.string().uuid().nullable().optional().describe("Instructor ID from listInstructors (null to remove)"),
   language: z.string().optional().describe("Language code (e.g., 'es', 'en', 'pt')"),
   includeCertificate: z.boolean().optional().describe("Whether to include certificate on completion"),
+  thumbnail: z.string().nullable().optional().describe("S3 key for course thumbnail image (from uploaded image, null to remove)"),
+  previewVideoUrl: z.string().url().nullable().optional().describe("URL for course preview video (null to remove)"),
 });
 
 export const updateCourseModulesSchema = z.object({
@@ -158,6 +163,25 @@ export const unpublishCourseSchema = z.object({
 export const deleteCourseSchema = z.object({
   courseId: z.string().uuid().describe("The UUID of the course to delete"),
   confirmed: z.boolean().describe("Must be true to delete. This is PERMANENT and cannot be undone."),
+});
+
+export const thumbnailStyleEnum = z.enum([
+  "default",
+  "minimal",
+  "professional",
+  "colorful",
+  "futuristic",
+  "realistic",
+  "abstract",
+  "vintage",
+  "playful",
+  "dark",
+  "light",
+]);
+
+export const regenerateThumbnailSchema = z.object({
+  courseId: z.string().uuid().describe("The UUID of the course to regenerate thumbnail for"),
+  style: thumbnailStyleEnum.optional().describe("Visual style for the thumbnail"),
 });
 
 export const listInstructorsSchema = z.object({
@@ -310,6 +334,7 @@ export type UpdateModuleItemsParams = z.infer<typeof updateModuleItemsSchema>;
 export type PublishCourseParams = z.infer<typeof publishCourseSchema>;
 export type UnpublishCourseParams = z.infer<typeof unpublishCourseSchema>;
 export type DeleteCourseParams = z.infer<typeof deleteCourseSchema>;
+export type RegenerateThumbnailParams = z.infer<typeof regenerateThumbnailSchema>;
 export type ListInstructorsParams = z.infer<typeof listInstructorsSchema>;
 
 export type CreateCategoryParams = z.infer<typeof createCategorySchema>;

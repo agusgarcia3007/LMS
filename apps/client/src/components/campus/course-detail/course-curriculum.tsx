@@ -8,7 +8,9 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PreviewContentDialog } from "./preview-content-dialog";
 import { useCampusModuleItems } from "@/services/campus/queries";
+import { cn } from "@/lib/utils";
 import type { CampusCourseDetail, CampusCourseModule, CampusModuleItem } from "@/services/campus/service";
 
 type CourseCurriculumProps = {
@@ -38,10 +40,12 @@ function ModuleSection({
   module,
   index,
   isExpanded,
+  onPreviewClick,
 }: {
   module: CampusCourseModule;
   index: number;
   isExpanded: boolean;
+  onPreviewClick: (item: CampusModuleItem) => void;
 }) {
   const { t } = useTranslation();
   const { data, isLoading } = useCampusModuleItems(isExpanded ? module.id : null);
@@ -80,7 +84,23 @@ function ModuleSection({
               return (
                 <div
                   key={item.id}
-                  className="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-muted/30"
+                  className={cn(
+                    "flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-muted/30",
+                    item.isPreview && "cursor-pointer"
+                  )}
+                  onClick={item.isPreview ? () => onPreviewClick(item) : undefined}
+                  role={item.isPreview ? "button" : undefined}
+                  tabIndex={item.isPreview ? 0 : undefined}
+                  onKeyDown={
+                    item.isPreview
+                      ? (e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            onPreviewClick(item);
+                          }
+                        }
+                      : undefined
+                  }
                 >
                   <Icon className="size-4 shrink-0 text-muted-foreground" />
                   <span className="flex-1">{item.title}</span>
@@ -110,6 +130,7 @@ export function CourseCurriculum({ course }: CourseCurriculumProps) {
   const [expandedModules, setExpandedModules] = useState<string[]>(
     course.modules[0]?.id ? [course.modules[0].id] : []
   );
+  const [previewItem, setPreviewItem] = useState<CampusModuleItem | null>(null);
 
   if (totalModules === 0) {
     return (
@@ -146,10 +167,17 @@ export function CourseCurriculum({ course }: CourseCurriculumProps) {
               module={module}
               index={index}
               isExpanded={expandedModules.includes(module.id)}
+              onPreviewClick={setPreviewItem}
             />
           ))}
         </Accordion>
       </div>
+
+      <PreviewContentDialog
+        item={previewItem}
+        open={!!previewItem}
+        onOpenChange={(open) => !open && setPreviewItem(null)}
+      />
     </div>
   );
 }

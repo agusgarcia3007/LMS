@@ -1689,6 +1689,10 @@
       "contentComingSoon": "O conteudo do curso sera adicionado em breve.",
       "preview": "Pre-visualizacao"
     },
+    "preview": {
+      "title": "Pre-visualizacao do conteudo",
+      "quizPreviewNote": "Esta e uma pre-visualizacao. Inscreva-se no curso para fazer o questionario completo."
+    },
     "navigation": {
       "home": "Inicio",
       "courses": "Cursos",

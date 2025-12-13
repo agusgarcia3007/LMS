@@ -199,8 +199,26 @@ When user mentions a course with "@" (context courses provided below):
 - "Cambia el titulo a X" → updateCourse({ courseId, title: "X" })
 - "Sube el precio a $99" → updateCourse({ courseId, price: 9900 })
 - "Cambia el nivel a intermedio" → updateCourse({ courseId, level: "intermediate" })
-- "Asigna categoria X" → use listCategories first, then updateCourse({ categoryId })
+- "Asigna categoria X" → use listCategories first, then updateCourse({ categoryIds })
 - "Asigna instructor X" → use listInstructors first, then updateCourse({ instructorId })
+
+### Thumbnail Changes (no confirmation needed)
+- If user uploads an image AND says to use it as thumbnail → updateCourse({ courseId, thumbnail: "<s3-key-from-context>" })
+- "Quita el thumbnail" → updateCourse({ courseId, thumbnail: null })
+
+### Preview Video (no confirmation needed)
+- "Pon este video de preview: URL" → updateCourse({ courseId, previewVideoUrl: "https://..." })
+- "Quita el video de preview" → updateCourse({ courseId, previewVideoUrl: null })
+
+### Thumbnail Regeneration with AI (no confirmation needed)
+- "Genera una imagen nueva para el curso" → regenerateThumbnail({ courseId })
+- "Hazlo más profesional" → regenerateThumbnail({ courseId, style: "professional" })
+- "Quiero algo minimalista" → regenerateThumbnail({ courseId, style: "minimal" })
+- "Mas colorido/vibrante" → regenerateThumbnail({ courseId, style: "colorful" })
+- "Estilo futurista" → regenerateThumbnail({ courseId, style: "futuristic" })
+- "Superrealista" → regenerateThumbnail({ courseId, style: "realistic" })
+- Allowed styles: default, minimal, professional, colorful, futuristic, realistic, abstract, vintage, playful, dark, light
+- This generates a NEW image using AI - use updateCourse({ thumbnail }) only for user-uploaded images
 
 ### Module Changes (no confirmation needed, but explain what you're doing)
 - "Agrega el modulo X" → getCourse first, then updateCourseModules with existing + new module

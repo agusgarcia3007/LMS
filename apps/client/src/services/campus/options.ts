@@ -38,3 +38,10 @@ export const campusModuleItemsOptions = (moduleId: string) =>
     queryFn: () => CampusService.getModuleItems(moduleId),
     enabled: !!moduleId,
   });
+
+export const campusPreviewContentOptions = (moduleItemId: string | null) =>
+  queryOptions({
+    queryKey: QUERY_KEYS.PREVIEW_CONTENT(moduleItemId ?? ""),
+    queryFn: () => CampusService.getPreviewContent(moduleItemId!),
+    enabled: !!moduleItemId,
+  });

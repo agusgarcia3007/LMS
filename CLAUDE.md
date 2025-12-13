@@ -117,6 +117,22 @@ Use `parseListParams` and `buildWhereClause` from `@/lib/filters`:
 | Date range | `createdAt=2025-01-01,2025-01-31` | `gte() AND lte()` |
 | Search | `search=john` | `ilike()` on searchable fields |
 
+## AI Prompts Security
+
+Never inject user input directly into prompts. Always use:
+- Predefined enum values for style/type parameters
+- Structured data passed as separate variables
+- Whitelist validation for any text that goes into prompts
+
+```typescript
+// BAD - prompt injection vulnerability
+const prompt = `Generate image with style: ${userInput}`;
+
+// GOOD - use enum values only
+const ALLOWED_STYLES = ["minimal", "professional", "colorful"] as const;
+const style = ALLOWED_STYLES.includes(input) ? input : "default";
+```
+
 ## AI Video Analysis
 
 Generates title and description from video content using FFmpeg and Groq.

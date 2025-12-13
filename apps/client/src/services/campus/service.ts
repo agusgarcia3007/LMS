@@ -81,6 +81,42 @@ export type CampusModuleItem = {
   mimeType?: string | null;
 };
 
+export type CampusPreviewContent =
+  | {
+      type: "video";
+      id: string;
+      title: string;
+      description: string | null;
+      url: string | null;
+      duration: number;
+    }
+  | {
+      type: "document";
+      id: string;
+      title: string;
+      description: string | null;
+      url: string | null;
+      mimeType: string | null;
+      fileName: string | null;
+    }
+  | {
+      type: "quiz";
+      id: string;
+      title: string;
+      description: string | null;
+      questions: Array<{
+        id: string;
+        type: string;
+        questionText: string;
+        order: number;
+        options: Array<{
+          id: string;
+          optionText: string;
+          order: number;
+        }>;
+      }>;
+    };
+
 export type CampusCourseModule = {
   id: string;
   title: string;
@@ -128,6 +164,7 @@ export const QUERY_KEYS = {
   COURSES_LIST: (params: CoursesListParams) => ["campus", "courses", "list", params],
   COURSE: (slug: string) => ["campus", "courses", slug],
   MODULE_ITEMS: (moduleId: string) => ["campus", "modules", moduleId, "items"],
+  PREVIEW_CONTENT: (moduleItemId: string) => ["campus", "preview", moduleItemId, "content"],
   CATEGORIES: ["campus", "categories"],
   STATS: ["campus", "stats"],
 } as const;
@@ -177,6 +214,13 @@ export const CampusService = {
   async getModuleItems(moduleId: string) {
     const { data } = await publicHttp.get<{ items: CampusModuleItem[] }>(
       `/campus/modules/${moduleId}/items`
+    );
+    return data;
+  },
+
+  async getPreviewContent(moduleItemId: string) {
+    const { data } = await publicHttp.get<CampusPreviewContent>(
+      `/campus/preview/${moduleItemId}/content`
     );
     return data;
   },

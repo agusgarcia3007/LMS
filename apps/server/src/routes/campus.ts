@@ -16,6 +16,8 @@ import {
   videosTable,
   documentsTable,
   quizzesTable,
+  quizQuestionsTable,
+  quizOptionsTable,
 } from "@/db/schema";
 import { eq, and, ilike, count, inArray, sql } from "drizzle-orm";
 
@@ -544,5 +546,166 @@ export const campusRoutes = new Elysia({ name: "campus" })
       }),
     {
       detail: { tags: ["Campus"], summary: "Get module items" },
+    }
+  )
+  .get(
+    "/preview/:moduleItemId/content",
+    (ctx) =>
+      withHandler(ctx, async () => {
+        if (!ctx.tenant) {
+          throw new AppError(ErrorCode.TENANT_NOT_FOUND, "Tenant not found", 404);
+        }
+
+        const [item] = await db
+          .select({
+            id: moduleItemsTable.id,
+            contentType: moduleItemsTable.contentType,
+            contentId: moduleItemsTable.contentId,
+            isPreview: moduleItemsTable.isPreview,
+          })
+          .from(moduleItemsTable)
+          .innerJoin(modulesTable, eq(moduleItemsTable.moduleId, modulesTable.id))
+          .where(
+            and(
+              eq(moduleItemsTable.id, ctx.params.moduleItemId),
+              eq(modulesTable.tenantId, ctx.tenant.id)
+            )
+          )
+          .limit(1);
+
+        if (!item) {
+          throw new AppError(ErrorCode.NOT_FOUND, "Item not found", 404);
+        }
+
+        if (!item.isPreview) {
+          throw new AppError(ErrorCode.FORBIDDEN, "Content not available for preview", 403);
+        }
+
+        if (item.contentType === "video") {
+          const [video] = await db
+            .select({
+              id: videosTable.id,
+              title: videosTable.title,
+              description: videosTable.description,
+              videoKey: videosTable.videoKey,
+              duration: videosTable.duration,
+            })
+            .from(videosTable)
+            .where(eq(videosTable.id, item.contentId))
+            .limit(1);
+
+          if (!video) {
+            throw new AppError(ErrorCode.NOT_FOUND, "Video not found", 404);
+          }
+
+          return {
+            type: "video" as const,
+            id: video.id,
+            title: video.title,
+            description: video.description,
+            url: video.videoKey ? getPresignedUrl(video.videoKey) : null,
+            duration: video.duration,
+          };
+        }
+
+        if (item.contentType === "document") {
+          const [document] = await db
+            .select({
+              id: documentsTable.id,
+              title: documentsTable.title,
+              description: documentsTable.description,
+              fileKey: documentsTable.fileKey,
+              mimeType: documentsTable.mimeType,
+              fileName: documentsTable.fileName,
+            })
+            .from(documentsTable)
+            .where(eq(documentsTable.id, item.contentId))
+            .limit(1);
+
+          if (!document) {
+            throw new AppError(ErrorCode.NOT_FOUND, "Document not found", 404);
+          }
+
+          return {
+            type: "document" as const,
+            id: document.id,
+            title: document.title,
+            description: document.description,
+            url: document.fileKey ? getPresignedUrl(document.fileKey) : null,
+            mimeType: document.mimeType,
+            fileName: document.fileName,
+          };
+        }
+
+        if (item.contentType === "quiz") {
+          const [quiz] = await db
+            .select({
+              id: quizzesTable.id,
+              title: quizzesTable.title,
+              description: quizzesTable.description,
+            })
+            .from(quizzesTable)
+            .where(eq(quizzesTable.id, item.contentId))
+            .limit(1);
+
+          if (!quiz) {
+            throw new AppError(ErrorCode.NOT_FOUND, "Quiz not found", 404);
+          }
+
+          const questions = await db
+            .select({
+              id: quizQuestionsTable.id,
+              type: quizQuestionsTable.type,
+              questionText: quizQuestionsTable.questionText,
+              order: quizQuestionsTable.order,
+            })
+            .from(quizQuestionsTable)
+            .where(eq(quizQuestionsTable.quizId, quiz.id))
+            .orderBy(quizQuestionsTable.order);
+
+          const questionIds = questions.map((q) => q.id);
+          const options =
+            questionIds.length > 0
+              ? await db
+                  .select({
+                    id: quizOptionsTable.id,
+                    questionId: quizOptionsTable.questionId,
+                    optionText: quizOptionsTable.optionText,
+                    order: quizOptionsTable.order,
+                  })
+                  .from(quizOptionsTable)
+                  .where(inArray(quizOptionsTable.questionId, questionIds))
+                  .orderBy(quizOptionsTable.order)
+              : [];
+
+          const optionsByQuestion = new Map<
+            string,
+            Array<{ id: string; optionText: string; order: number }>
+          >();
+          for (const opt of options) {
+            const existing = optionsByQuestion.get(opt.questionId) ?? [];
+            existing.push({ id: opt.id, optionText: opt.optionText, order: opt.order });
+            optionsByQuestion.set(opt.questionId, existing);
+          }
+
+          return {
+            type: "quiz" as const,
+            id: quiz.id,
+            title: quiz.title,
+            description: quiz.description,
+            questions: questions.map((q) => ({
+              id: q.id,
+              type: q.type,
+              questionText: q.questionText,
+              order: q.order,
+              options: optionsByQuestion.get(q.id) ?? [],
+            })),
+          };
+        }
+
+        throw new AppError(ErrorCode.BAD_REQUEST, "Invalid content type", 400);
+      }),
+    {
+      detail: { tags: ["Campus"], summary: "Get preview content for a module item" },
     }
   );

@@ -1754,6 +1754,10 @@
       "contentComingSoon": "El contenido del curso se agregara proximamente.",
       "preview": "Vista previa"
     },
+    "preview": {
+      "title": "Vista previa del contenido",
+      "quizPreviewNote": "Esta es una vista previa. Inscribete en el curso para realizar el cuestionario completo."
+    },
     "navigation": {
       "home": "Inicio",
       "courses": "Cursos",
