@@ -1,8 +1,8 @@
 import { useMemo, useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Ellipsis, Calendar } from "lucide-react";
+import { Ellipsis, Calendar, ExternalLink } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -21,7 +21,11 @@ import { DataTable, DeleteDialog } from "@/components/data-table";
 import { EditTenantDialog } from "@/components/backoffice/edit-tenant-dialog";
 import { useDataTableState } from "@/hooks/use-data-table-state";
 import { createSeoMeta } from "@/lib/seo";
-import { useGetTenantsList, useDeleteTenant, useUpdateTenant } from "@/services/tenants";
+import {
+  useGetTenantsList,
+  useDeleteTenant,
+  useUpdateTenant,
+} from "@/services/tenants";
 import type { Tenant } from "@/services/tenants/service";
 
 export const Route = createFileRoute("/backoffice/tenants")({
@@ -103,10 +107,15 @@ function BackofficeTenants() {
         accessorKey: "name",
         id: "name",
         header: ({ column }) => (
-          <DataGridColumnHeader title={t("backoffice.tenants.columns.name")} column={column} />
+          <DataGridColumnHeader
+            title={t("backoffice.tenants.columns.name")}
+            column={column}
+          />
         ),
         cell: ({ row }) => (
-          <span className="font-medium text-foreground">{row.original.name}</span>
+          <span className="font-medium text-foreground">
+            {row.original.name}
+          </span>
         ),
         size: 250,
         enableSorting: true,
@@ -119,7 +128,10 @@ function BackofficeTenants() {
         accessorKey: "slug",
         id: "slug",
         header: ({ column }) => (
-          <DataGridColumnHeader title={t("backoffice.tenants.columns.slug")} column={column} />
+          <DataGridColumnHeader
+            title={t("backoffice.tenants.columns.slug")}
+            column={column}
+          />
         ),
         cell: ({ row }) => (
           <code className="text-sm text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
@@ -137,7 +149,10 @@ function BackofficeTenants() {
         accessorKey: "usersCount",
         id: "usersCount",
         header: ({ column }) => (
-          <DataGridColumnHeader title={t("backoffice.tenants.columns.usersCount")} column={column} />
+          <DataGridColumnHeader
+            title={t("backoffice.tenants.columns.usersCount")}
+            column={column}
+          />
         ),
         cell: ({ row }) => (
           <span className="text-muted-foreground">
@@ -155,13 +170,21 @@ function BackofficeTenants() {
         accessorKey: "status",
         id: "status",
         header: ({ column }) => (
-          <DataGridColumnHeader title={t("backoffice.tenants.columns.status")} column={column} />
+          <DataGridColumnHeader
+            title={t("backoffice.tenants.columns.status")}
+            column={column}
+          />
         ),
         cell: ({ row }) => {
           const status = row.original.status;
-          const variant = status === "active" ? "default" : status === "suspended" ? "secondary" : "destructive";
+          const variant =
+            status === "active"
+              ? "primary"
+              : status === "suspended"
+              ? "secondary"
+              : "destructive";
           return (
-            <Badge variant={variant}>
+            <Badge variant={variant as "primary" | "secondary" | "destructive"}>
               {t(`backoffice.tenants.status.${status}`)}
             </Badge>
           );
@@ -177,7 +200,10 @@ function BackofficeTenants() {
         accessorKey: "createdAt",
         id: "createdAt",
         header: ({ column }) => (
-          <DataGridColumnHeader title={t("backoffice.tenants.columns.createdAt")} column={column} />
+          <DataGridColumnHeader
+            title={t("backoffice.tenants.columns.createdAt")}
+            column={column}
+          />
         ),
         cell: ({ row }) => (
           <span className="text-muted-foreground">
@@ -202,6 +228,15 @@ function BackofficeTenants() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent side="bottom" align="end">
+              <DropdownMenuItem asChild>
+                <Link
+                  to="/$tenantSlug"
+                  params={{ tenantSlug: row.original.slug }}
+                >
+                  <ExternalLink className="size-4" />
+                  {t("common.adminDashboard")}
+                </Link>
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setEditTenant(row.original)}>
                 {t("common.edit")}
               </DropdownMenuItem>
@@ -241,7 +276,9 @@ function BackofficeTenants() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold">{t("backoffice.tenants.title")}</h1>
-        <p className="text-muted-foreground">{t("backoffice.tenants.description")}</p>
+        <p className="text-muted-foreground">
+          {t("backoffice.tenants.description")}
+        </p>
       </div>
 
       <DataTable

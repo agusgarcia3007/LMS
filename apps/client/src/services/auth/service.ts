@@ -71,7 +71,7 @@ export const AuthService = {
   async logout() {
     const refreshToken = getRefreshToken();
     if (refreshToken) {
-      await http.post("/auth/logout", { refreshToken });
+      await http.post("/auth/logout", { refreshToken }).catch(() => {});
     }
     clearTokens();
   },
@@ -93,9 +93,12 @@ export const AuthService = {
   },
 
   async verifyEmail(token: string) {
-    const { data } = await http.post<{ message: string }>("/auth/verify-email", {
-      token,
-    });
+    const { data } = await http.post<{ message: string }>(
+      "/auth/verify-email",
+      {
+        token,
+      }
+    );
     return data;
   },
 

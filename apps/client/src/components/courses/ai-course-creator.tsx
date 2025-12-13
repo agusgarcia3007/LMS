@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useParams } from "@tanstack/react-router";
-import { BookOpen, Check, ChevronDown, ImageIcon, Paperclip, RotateCcw, Sparkles, User, X } from "lucide-react";
+import { BookOpen, Check, CheckCircle, ChevronDown, ImageIcon, Paperclip, RotateCcw, Sparkles, User, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -26,13 +26,6 @@ import {
 } from "@/components/ai-elements/prompt-input";
 import { Suggestions, Suggestion } from "@/components/ai-elements/suggestion";
 import { Loader } from "@/components/ai-elements/loader";
-import {
-  Tool,
-  ToolHeader,
-  ToolContent,
-  ToolInput,
-  ToolOutput,
-} from "@/components/ai-elements/tool";
 import { CoursePreviewCard } from "./course-preview-card";
 import { CourseMentionPopover } from "@/components/ai-elements/course-mention-popover";
 import { useAICourseChat, type ChatMessage, type ToolInvocation, type ContextCourse, type ChatAttachment } from "@/hooks/use-ai-course-chat";
@@ -41,36 +34,6 @@ import { useVideosList } from "@/services/videos";
 import { useDocumentsList } from "@/services/documents";
 import { useQuizzesList } from "@/services/quizzes";
 import { cn } from "@/lib/utils";
-
-type TimelineItem =
-  | { type: "message"; data: ChatMessage }
-  | { type: "tool"; data: ToolInvocation };
-
-const TOOL_LABELS: Record<string, string> = {
-  searchVideos: "Buscando videos",
-  searchDocuments: "Buscando documentos",
-  searchQuizzes: "Buscando quizzes",
-  searchContent: "Buscando contenido",
-  createQuiz: "Creando quiz",
-  createModule: "Creando modulo",
-  generateCoursePreview: "Generando vista previa",
-  createCourse: "Creando curso",
-  getCourse: "Obteniendo detalles del curso",
-  updateCourse: "Actualizando curso",
-  updateCourseModules: "Actualizando modulos",
-  updateModuleItems: "Actualizando contenido del modulo",
-  publishCourse: "Publicando curso",
-  unpublishCourse: "Despublicando curso",
-  deleteCourse: "Eliminando curso",
-  listCategories: "Listando categorias",
-  listInstructors: "Listando instructores",
-};
-
-function getToolState(invocation: ToolInvocation): "input-available" | "output-available" | "output-error" {
-  if (invocation.state === "pending") return "input-available";
-  if (invocation.state === "error") return "output-error";
-  return "output-available";
-}
 
 function UserBubble({ content, index, courses, attachments }: { content: string; index: number; courses?: ContextCourse[]; attachments?: ChatAttachment[] }) {
   return (
@@ -135,25 +98,23 @@ function AssistantBubble({ content, index }: { content: string; index: number })
   );
 }
 
-function ToolCard({ invocation, index }: { invocation: ToolInvocation; index: number }) {
+function ToolIndicator({ toolInvocations }: { toolInvocations: ToolInvocation[] }) {
+  if (toolInvocations.length === 0) return null;
+
+  const allCompleted = toolInvocations.every((t) => t.state === "completed");
+
   return (
-    <div
-      className="ml-9 min-w-0 animate-in fade-in-0 slide-in-from-bottom-1"
-      style={{ animationDelay: `${index * 50 + 100}ms`, animationFillMode: "backwards" }}
-    >
-      <Tool className="border-border/50 bg-muted/30 shadow-sm">
-        <ToolHeader
-          title={TOOL_LABELS[invocation.toolName] || invocation.toolName}
-          type="tool-invocation"
-          state={getToolState(invocation)}
-        />
-        <ToolContent>
-          <ToolInput input={invocation.args} />
-          {invocation.state === "completed" && invocation.result !== undefined ? (
-            <ToolOutput output={invocation.result} errorText={undefined} />
-          ) : null}
-        </ToolContent>
-      </Tool>
+    <div className="flex items-center gap-1.5 text-xs text-muted-foreground ml-9">
+      {allCompleted ? (
+        <CheckCircle className="size-3 text-green-600" />
+      ) : (
+        <Loader size={12} />
+      )}
+      <span>
+        {allCompleted
+          ? `Usó ${toolInvocations.length} herramienta${toolInvocations.length > 1 ? "s" : ""}`
+          : `Usando ${toolInvocations.length} herramienta${toolInvocations.length > 1 ? "s" : ""}...`}
+      </span>
     </div>
   );
 }
@@ -249,13 +210,9 @@ export function AICourseCreator({
     }
   }, [isGeneratingThumbnail, courseCreated, onGeneratingThumbnailChange]);
 
-  const timeline = useMemo<TimelineItem[]>(() => {
-    const items: TimelineItem[] = [
-      ...messages.map((m) => ({ type: "message" as const, data: m })),
-      ...toolInvocations.map((t) => ({ type: "tool" as const, data: t })),
-    ];
-    return items.sort((a, b) => a.data.timestamp - b.data.timestamp);
-  }, [messages, toolInvocations]);
+  const sortedMessages = useMemo(() => {
+    return [...messages].sort((a, b) => a.timestamp - b.timestamp);
+  }, [messages]);
 
   const handleSendMessage = async (message: { text: string; files?: { url?: string; mediaType?: string }[] }) => {
     if (!message.text.trim() && (!message.files || message.files.length === 0)) return;
@@ -405,32 +362,25 @@ export function AICourseCreator({
           ) : (
             <Conversation className="flex-1">
               <ConversationContent className="gap-4 p-4">
-                {timeline.map((item, index) =>
-                  item.type === "message" ? (
-                    item.data.role === "user" ? (
-                      <UserBubble
-                        key={item.data.id}
-                        content={item.data.content}
-                        index={index}
-                        courses={item.data.contextCourses}
-                        attachments={item.data.attachments}
-                      />
-                    ) : (
-                      <AssistantBubble
-                        key={item.data.id}
-                        content={item.data.content}
-                        index={index}
-                      />
-                    )
+                {sortedMessages.map((message, index) =>
+                  message.role === "user" ? (
+                    <UserBubble
+                      key={message.id}
+                      content={message.content}
+                      index={index}
+                      courses={message.contextCourses}
+                      attachments={message.attachments}
+                    />
                   ) : (
-                    <ToolCard
-                      key={item.data.id}
-                      invocation={item.data}
+                    <AssistantBubble
+                      key={message.id}
+                      content={message.content}
                       index={index}
                     />
                   )
                 )}
-                {isStreaming && !coursePreview && (
+                <ToolIndicator toolInvocations={toolInvocations} />
+                {isStreaming && toolInvocations.length === 0 && !coursePreview && (
                   <LoadingBubble />
                 )}
                 {coursePreview && (

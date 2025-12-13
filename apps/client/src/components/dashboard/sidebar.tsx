@@ -15,6 +15,7 @@ import {
   Package,
   Palette,
   Settings,
+  Shield,
   UserCircle,
   Users,
   Video,
@@ -256,7 +257,9 @@ export function DashboardSidebar({ tenant, user }: DashboardSidebarProps) {
                                 >
                                   <Link
                                     to={subItem.url}
-                                    params={{ tenantSlug: tenantSlug as string }}
+                                    params={{
+                                      tenantSlug: tenantSlug as string,
+                                    }}
                                   >
                                     <subItem.icon />
                                     <span>{subItem.title}</span>
@@ -319,11 +322,19 @@ export function DashboardSidebar({ tenant, user }: DashboardSidebarProps) {
                 sideOffset={4}
               >
                 <DropdownMenuItem asChild>
-                  <Link to="/">
+                  <Link to="/" search={{ campus: undefined }}>
                     <Home />
                     {t("common.backToHome")}
                   </Link>
                 </DropdownMenuItem>
+                {user.role === "superadmin" && (
+                  <DropdownMenuItem asChild>
+                    <Link to="/backoffice">
+                      <Shield />
+                      {t("common.backoffice")}
+                    </Link>
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem onClick={() => logout()} disabled={isPending}>
                   <LogOut />
                   {t("common.logOut")}

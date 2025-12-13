@@ -7,6 +7,7 @@ import {
   ChevronsUpDown,
   HardDrive,
   Home,
+  LayoutDashboard,
   LogOut,
   Mail,
   Shield,
@@ -199,9 +200,15 @@ export function BackofficeSidebar({ user }: BackofficeSidebarProps) {
                 sideOffset={4}
               >
                 <DropdownMenuItem asChild>
-                  <Link to="/">
+                  <Link to="/" search={{ campus: undefined }}>
                     <Home />
                     {t("common.backToHome")}
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/backoffice/tenants">
+                    <LayoutDashboard />
+                    {t("common.adminDashboard")}
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => logout()} disabled={isPending}>

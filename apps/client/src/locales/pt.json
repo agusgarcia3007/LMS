@@ -44,7 +44,9 @@
     "more": "mais",
     "fullscreen": "Tela cheia",
     "exitFullscreen": "Sair da tela cheia",
-    "confirm": "Confirmar"
+    "confirm": "Confirmar",
+    "backoffice": "Backoffice",
+    "adminDashboard": "Painel de Admin"
   },
   "dataTable": {
     "search": "Buscar...",

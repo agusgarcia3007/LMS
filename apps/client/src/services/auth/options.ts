@@ -50,8 +50,9 @@ export const useLogoutOptions = () => {
   const queryClient = useQueryClient();
   return mutationOptions({
     mutationFn: AuthService.logout,
-    onSuccess: () => {
+    onSettled: () => {
       queryClient.clear();
+      window.location.href = "/login";
     },
   });
 };
