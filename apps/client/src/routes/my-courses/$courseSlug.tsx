@@ -67,9 +67,11 @@ export const Route = createFileRoute("/my-courses/$courseSlug")({
     };
   },
   head: ({ loaderData }) => {
+    const tenantName = loaderData?.tenant?.name || "LearnBase";
+
     if (!loaderData?.course) {
       return {
-        meta: [{ title: "Course Not Found | LearnBase" }],
+        meta: [{ title: `Course Not Found | ${tenantName}` }],
       };
     }
 
@@ -77,6 +79,7 @@ export const Route = createFileRoute("/my-courses/$courseSlug")({
     return createSeoMeta({
       title: course.title,
       description: course.description,
+      siteName: tenantName,
     });
   },
   component: LearnPageWrapper,

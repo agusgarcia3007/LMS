@@ -12,6 +12,8 @@ import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
 import { loginSchema, type LoginInput } from "@/lib/schemas/auth";
 import { createSeoMeta } from "@/lib/seo";
+import { getTenantFromRequest } from "@/lib/tenant.server";
+import { getCampusTenantServer } from "@/services/campus/server";
 import { useLogin } from "@/services/auth/mutations";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { getRedirectPath, clearRedirectPath } from "@/lib/http";
@@ -20,12 +22,24 @@ import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 
 export const Route = createFileRoute("/__auth/login")({
-  head: () =>
-    createSeoMeta({
+  loader: async () => {
+    const tenantInfo = await getTenantFromRequest({ data: {} });
+    const tenant = tenantInfo.slug
+      ? await getCampusTenantServer({ data: { slug: tenantInfo.slug } }).then(
+          (r) => r?.tenant
+        )
+      : null;
+    return { tenant };
+  },
+  head: ({ loaderData }) => {
+    const tenantName = loaderData?.tenant?.name || "LearnBase";
+    return createSeoMeta({
       title: "Sign In",
-      description: "Sign in to your LearnBase account",
+      description: `Sign in to your ${tenantName} account`,
+      siteName: tenantName,
       noindex: true,
-    }),
+    });
+  },
   component: LoginPage,
 });
 

@@ -12,6 +12,8 @@ import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
 import { signupSchema, type SignupInput } from "@/lib/schemas/auth";
 import { createSeoMeta } from "@/lib/seo";
+import { getTenantFromRequest } from "@/lib/tenant.server";
+import { getCampusTenantServer } from "@/services/campus/server";
 import { useSignup } from "@/services/auth/mutations";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
@@ -19,12 +21,24 @@ import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 
 export const Route = createFileRoute("/__auth/signup")({
-  head: () =>
-    createSeoMeta({
+  loader: async () => {
+    const tenantInfo = await getTenantFromRequest({ data: {} });
+    const tenant = tenantInfo.slug
+      ? await getCampusTenantServer({ data: { slug: tenantInfo.slug } }).then(
+          (r) => r?.tenant
+        )
+      : null;
+    return { tenant };
+  },
+  head: ({ loaderData }) => {
+    const tenantName = loaderData?.tenant?.name || "LearnBase";
+    return createSeoMeta({
       title: "Sign Up",
-      description: "Create your LearnBase account",
+      description: `Create your ${tenantName} account`,
+      siteName: tenantName,
       noindex: true,
-    }),
+    });
+  },
   component: SignupPage,
 });
 

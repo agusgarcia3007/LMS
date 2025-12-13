@@ -14,6 +14,8 @@ import {
   type ResetPasswordInput,
 } from "@/lib/schemas/auth";
 import { createSeoMeta } from "@/lib/seo";
+import { getTenantFromRequest } from "@/lib/tenant.server";
+import { getCampusTenantServer } from "@/services/campus/server";
 import { useResetPassword } from "@/services/auth/mutations";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createFileRoute, Link } from "@tanstack/react-router";
@@ -26,12 +28,24 @@ const searchSchema = z.object({
 });
 
 export const Route = createFileRoute("/__auth/reset-password")({
-  head: () =>
-    createSeoMeta({
+  loader: async () => {
+    const tenantInfo = await getTenantFromRequest({ data: {} });
+    const tenant = tenantInfo.slug
+      ? await getCampusTenantServer({ data: { slug: tenantInfo.slug } }).then(
+          (r) => r?.tenant
+        )
+      : null;
+    return { tenant };
+  },
+  head: ({ loaderData }) => {
+    const tenantName = loaderData?.tenant?.name || "LearnBase";
+    return createSeoMeta({
       title: "Reset Password",
-      description: "Set a new password for your LearnBase account",
+      description: `Set a new password for your ${tenantName} account`,
+      siteName: tenantName,
       noindex: true,
-    }),
+    });
+  },
   component: ResetPasswordPage,
   validateSearch: searchSchema,
 });

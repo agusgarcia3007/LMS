@@ -14,6 +14,8 @@ import {
   type ForgotPasswordInput,
 } from "@/lib/schemas/auth";
 import { createSeoMeta } from "@/lib/seo";
+import { getTenantFromRequest } from "@/lib/tenant.server";
+import { getCampusTenantServer } from "@/services/campus/server";
 import { useForgotPassword } from "@/services/auth/mutations";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createFileRoute, Link } from "@tanstack/react-router";
@@ -21,12 +23,24 @@ import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 
 export const Route = createFileRoute("/__auth/forgot-password")({
-  head: () =>
-    createSeoMeta({
+  loader: async () => {
+    const tenantInfo = await getTenantFromRequest({ data: {} });
+    const tenant = tenantInfo.slug
+      ? await getCampusTenantServer({ data: { slug: tenantInfo.slug } }).then(
+          (r) => r?.tenant
+        )
+      : null;
+    return { tenant };
+  },
+  head: ({ loaderData }) => {
+    const tenantName = loaderData?.tenant?.name || "LearnBase";
+    return createSeoMeta({
       title: "Forgot Password",
-      description: "Reset your LearnBase account password",
+      description: `Reset your ${tenantName} account password`,
+      siteName: tenantName,
       noindex: true,
-    }),
+    });
+  },
   component: ForgotPasswordPage,
 });
 

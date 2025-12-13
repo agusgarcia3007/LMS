@@ -23,6 +23,8 @@ import {
   type UpdateProfileInput,
 } from "@/lib/schemas/profile";
 import { createSeoMeta } from "@/lib/seo";
+import { getTenantFromRequest } from "@/lib/tenant.server";
+import { getCampusTenantServer } from "@/services/campus/server";
 import { useGetProfile } from "@/services/profile/queries";
 import { useUpdateProfile } from "@/services/profile/mutations";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -33,12 +35,24 @@ import { useEffect } from "react";
 
 export const Route = createFileRoute("/profile")({
   ssr: false,
-  head: () =>
-    createSeoMeta({
+  loader: async () => {
+    const tenantInfo = await getTenantFromRequest({ data: {} });
+    const tenant = tenantInfo.slug
+      ? await getCampusTenantServer({ data: { slug: tenantInfo.slug } }).then(
+          (r) => r?.tenant
+        )
+      : null;
+    return { tenant };
+  },
+  head: ({ loaderData }) => {
+    const tenantName = loaderData?.tenant?.name || "LearnBase";
+    return createSeoMeta({
       title: "Profile",
-      description: "Manage your LearnBase profile settings",
+      description: `Manage your ${tenantName} profile settings`,
+      siteName: tenantName,
       noindex: true,
-    }),
+    });
+  },
   component: ProfilePage,
 });
 
