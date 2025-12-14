@@ -56,7 +56,13 @@ export function VideoContent({
 
   useEffect(() => {
     const video = videoRef.current;
-    if (!video || !initialTime || hasSetInitialTime.current || hasUserSeeked.current) return;
+    if (
+      !video ||
+      !initialTime ||
+      hasSetInitialTime.current ||
+      hasUserSeeked.current
+    )
+      return;
 
     const setTime = () => {
       if (video.readyState >= 1 && initialTime > 0) {
@@ -143,7 +149,7 @@ export function VideoContent({
         {subtitles.map((track) => (
           <track
             key={track.language}
-            kind="subtitles"
+            kind="captions"
             srcLang={track.language}
             label={track.label}
             src={track.vttUrl}
