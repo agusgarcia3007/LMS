@@ -15,3 +15,12 @@ export function useVideoSubtitles(videoId: string) {
     },
   });
 }
+
+export function useSubtitleVtt(videoId: string, language: string | null) {
+  return useQuery({
+    queryKey: QUERY_KEYS.SUBTITLE_VTT(videoId, language ?? ""),
+    queryFn: () => SubtitlesService.getVttByLanguage(videoId, language!),
+    enabled: !!videoId && !!language,
+    staleTime: 1000 * 60 * 5,
+  });
+}

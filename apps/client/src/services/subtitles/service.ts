@@ -1,27 +1,25 @@
 import { http } from "@/lib/http";
 
-export type SubtitleLanguage = "en" | "es" | "pt";
 export type SubtitleStatus = "pending" | "processing" | "completed" | "failed";
 
 export type Subtitle = {
   id: string;
-  language: SubtitleLanguage;
+  language: string;
   label: string;
   isOriginal: boolean;
   status: SubtitleStatus;
-  vttUrl: string | null;
   errorMessage: string | null;
   createdAt: string;
 };
 
-export const LANGUAGE_LABELS: Record<SubtitleLanguage, string> = {
-  en: "English",
-  es: "Español",
-  pt: "Português",
-};
-
 export const QUERY_KEYS = {
   SUBTITLES: (videoId: string) => ["subtitles", videoId],
+  SUBTITLE_VTT: (videoId: string, language: string) => [
+    "subtitles",
+    videoId,
+    "vtt",
+    language,
+  ],
 } as const;
 
 export const SubtitlesService = {
@@ -32,7 +30,7 @@ export const SubtitlesService = {
     return data;
   },
 
-  async generate(videoId: string, sourceLanguage?: SubtitleLanguage) {
+  async generate(videoId: string, sourceLanguage?: string) {
     const { data } = await http.post<{ subtitleId: string; status: string }>(
       `/ai/videos/${videoId}/subtitles/generate`,
       sourceLanguage ? { sourceLanguage } : undefined
@@ -40,7 +38,7 @@ export const SubtitlesService = {
     return data;
   },
 
-  async translate(videoId: string, targetLanguage: SubtitleLanguage) {
+  async translate(videoId: string, targetLanguage: string) {
     const { data } = await http.post<{ subtitleId: string; status: string }>(
       `/ai/videos/${videoId}/subtitles/translate`,
       { targetLanguage }
@@ -51,6 +49,13 @@ export const SubtitlesService = {
   async getVtt(subtitleId: string) {
     const { data } = await http.get<{ vttUrl?: string; vtt?: string }>(
       `/ai/subtitles/${subtitleId}/vtt`
+    );
+    return data;
+  },
+
+  async getVttByLanguage(videoId: string, language: string) {
+    const { data } = await http.get<{ vttUrl: string }>(
+      `/ai/videos/${videoId}/subtitles/${language}/vtt`
     );
     return data;
   },

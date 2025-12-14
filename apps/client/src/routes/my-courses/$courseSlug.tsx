@@ -22,7 +22,7 @@ import { AIChatSidebar } from "@/components/learn/ai-chat-sidebar";
 import { CourseCompletedView } from "@/components/learn/course-completed-view";
 import { ItemNavigation } from "@/components/learn";
 import { MobileModulesList } from "@/components/learn/mobile-modules-list";
-import { VideoContent } from "@/components/campus/content-viewer/video-content";
+import { VideoContentWithSubtitles } from "@/components/campus/content-viewer/video-content-with-subtitles";
 import { DocumentContent } from "@/components/campus/content-viewer/document-content";
 import { QuizPlayer } from "@/components/campus/quiz/quiz-player";
 import {
@@ -33,7 +33,6 @@ import {
   type ModuleProgressData,
 } from "@/services/learn";
 import { useVideoSubtitles } from "@/services/subtitles";
-import type { SubtitleTrack } from "@/components/campus/content-viewer/video-content";
 import { useVideoProgress } from "@/hooks/use-video-progress";
 import { useTheme } from "@/components/ui/theme-provider";
 import { computeThemeStyles } from "@/lib/theme.server";
@@ -138,14 +137,13 @@ function LearnPage({ tenant }: LearnPageProps) {
   const videoId = contentData?.type === "video" ? contentData.id : "";
   const { data: subtitlesData } = useVideoSubtitles(videoId);
 
-  const subtitleTracks: SubtitleTrack[] = useMemo(() => {
+  const availableSubtitles = useMemo(() => {
     if (!subtitlesData?.subtitles) return [];
     return subtitlesData.subtitles
-      .filter((s) => s.status === "completed" && s.vttUrl)
+      .filter((s) => s.status === "completed")
       .map((s) => ({
         language: s.language,
         label: s.label,
-        vttUrl: s.vttUrl!,
       }));
   }, [subtitlesData?.subtitles]);
 
@@ -309,7 +307,8 @@ function LearnPage({ tenant }: LearnPageProps) {
                     <div className="bg-muted aspect-video animate-pulse rounded-xl" />
                   ) : contentData?.type === "video" ? (
                     <>
-                      <VideoContent
+                      <VideoContentWithSubtitles
+                        videoId={videoId}
                         src={contentData.url ?? ""}
                         initialTime={contentData.videoProgress}
                         onTimeUpdate={handleVideoTimeUpdate}
@@ -317,7 +316,7 @@ function LearnPage({ tenant }: LearnPageProps) {
                         onSeeked={handleSeeked}
                         onComplete={handleComplete}
                         onVideoRefReady={setVideoElement}
-                        subtitles={subtitleTracks}
+                        availableSubtitles={availableSubtitles}
                         className="overflow-hidden rounded-xl shadow-lg"
                       />
                       <div className="space-y-2">

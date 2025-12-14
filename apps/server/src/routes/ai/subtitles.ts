@@ -6,7 +6,6 @@ import { db } from "@/db";
 import {
   videosTable,
   videoSubtitlesTable,
-  type SubtitleLanguage,
   type SelectVideoSubtitle,
 } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
@@ -15,28 +14,31 @@ import { translateSubtitleSegments } from "@/lib/ai/subtitle-translation";
 import { generateVTT } from "@/lib/ai/vtt-generator";
 import { uploadBase64ToS3, getPresignedUrl, deleteFromS3 } from "@/lib/upload";
 import { logger } from "@/lib/logger";
-
-const LANGUAGE_LABELS: Record<SubtitleLanguage, string> = {
-  en: "English",
-  es: "Español",
-  pt: "Português",
-};
+import {
+  isValidLanguageCode,
+  getLanguageLabel,
+  type SubtitleLanguageCode,
+} from "shared";
 
 async function processSubtitleGeneration(
   videoId: string,
   videoKey: string,
   subtitleId: string,
   tenantId: string,
-  sourceLanguage?: SubtitleLanguage
+  sourceLanguage?: string
 ) {
   try {
     const videoUrl = getPresignedUrl(videoKey);
-    const { segments, language: detectedLanguage } = await transcribeWithTimestamps(videoUrl);
+    const { segments, language: detectedLanguage } =
+      await transcribeWithTimestamps(videoUrl);
     const language = sourceLanguage ?? detectedLanguage;
 
     const vtt = generateVTT(segments);
     const vttKey = await uploadBase64ToS3({
-      base64: `data:text/vtt;charset=utf-8;base64,${Buffer.from(vtt, "utf-8").toString("base64")}`,
+      base64: `data:text/vtt;charset=utf-8;base64,${Buffer.from(
+        vtt,
+        "utf-8"
+      ).toString("base64")}`,
       folder: "subtitles",
       userId: tenantId,
     });
@@ -51,7 +53,11 @@ async function processSubtitleGeneration(
       })
       .where(eq(videoSubtitlesTable.id, subtitleId));
 
-    logger.info("Subtitle generation completed", { videoId, subtitleId, language });
+    logger.info("Subtitle generation completed", {
+      videoId,
+      subtitleId,
+      language,
+    });
   } catch (error) {
     logger.error("Subtitle generation failed", { videoId, subtitleId, error });
     await db
@@ -66,7 +72,7 @@ async function processSubtitleGeneration(
 
 async function processSubtitleTranslation(
   original: SelectVideoSubtitle,
-  targetLanguage: SubtitleLanguage,
+  targetLanguage: string,
   translationId: string,
   tenantId: string
 ) {
@@ -79,7 +85,10 @@ async function processSubtitleTranslation(
 
     const vtt = generateVTT(translatedSegments);
     const vttKey = await uploadBase64ToS3({
-      base64: `data:text/vtt;charset=utf-8;base64,${Buffer.from(vtt, "utf-8").toString("base64")}`,
+      base64: `data:text/vtt;charset=utf-8;base64,${Buffer.from(
+        vtt,
+        "utf-8"
+      ).toString("base64")}`,
       folder: "subtitles",
       userId: tenantId,
     });
@@ -190,7 +199,14 @@ export const subtitlesRoutes = new Elysia({ name: "ai-subtitles" })
           );
         }
 
-        const sourceLanguage = ctx.body?.sourceLanguage as SubtitleLanguage | undefined;
+        const sourceLanguage = ctx.body?.sourceLanguage;
+        if (sourceLanguage && !isValidLanguageCode(sourceLanguage)) {
+          throw new AppError(
+            ErrorCode.BAD_REQUEST,
+            "Invalid language code",
+            400
+          );
+        }
         let subtitleId: string;
 
         if (existing.length > 0) {
@@ -229,9 +245,7 @@ export const subtitlesRoutes = new Elysia({ name: "ai-subtitles" })
       params: t.Object({ videoId: t.String({ format: "uuid" }) }),
       body: t.Optional(
         t.Object({
-          sourceLanguage: t.Optional(
-            t.Union([t.Literal("en"), t.Literal("es"), t.Literal("pt")])
-          ),
+          sourceLanguage: t.Optional(t.String()),
         })
       ),
       detail: {
@@ -270,6 +284,14 @@ export const subtitlesRoutes = new Elysia({ name: "ai-subtitles" })
         }
 
         const { targetLanguage } = ctx.body;
+
+        if (!isValidLanguageCode(targetLanguage)) {
+          throw new AppError(
+            ErrorCode.BAD_REQUEST,
+            "Invalid language code",
+            400
+          );
+        }
 
         const [original] = await db
           .select()
@@ -316,7 +338,7 @@ export const subtitlesRoutes = new Elysia({ name: "ai-subtitles" })
         ) {
           throw new AppError(
             ErrorCode.CONFLICT,
-            `Translation to ${LANGUAGE_LABELS[targetLanguage]} already exists`,
+            `Translation to ${getLanguageLabel(targetLanguage)} already exists`,
             409
           );
         }
@@ -368,11 +390,7 @@ export const subtitlesRoutes = new Elysia({ name: "ai-subtitles" })
     {
       params: t.Object({ videoId: t.String({ format: "uuid" }) }),
       body: t.Object({
-        targetLanguage: t.Union([
-          t.Literal("en"),
-          t.Literal("es"),
-          t.Literal("pt"),
-        ]),
+        targetLanguage: t.String(),
       }),
       detail: {
         tags: ["AI"],
@@ -394,26 +412,63 @@ export const subtitlesRoutes = new Elysia({ name: "ai-subtitles" })
             language: videoSubtitlesTable.language,
             isOriginal: videoSubtitlesTable.isOriginal,
             status: videoSubtitlesTable.status,
-            vttKey: videoSubtitlesTable.vttKey,
             errorMessage: videoSubtitlesTable.errorMessage,
             createdAt: videoSubtitlesTable.createdAt,
           })
           .from(videoSubtitlesTable)
           .where(eq(videoSubtitlesTable.videoId, ctx.params.videoId));
 
-        const subtitlesWithUrls = subtitles.map((s) => ({
+        const subtitlesWithLabels = subtitles.map((s) => ({
           ...s,
-          label: LANGUAGE_LABELS[s.language],
-          vttUrl: s.vttKey ? getPresignedUrl(s.vttKey) : null,
+          label: getLanguageLabel(s.language),
         }));
 
-        return { subtitles: subtitlesWithUrls };
+        return { subtitles: subtitlesWithLabels };
       }),
     {
       params: t.Object({ videoId: t.String({ format: "uuid" }) }),
       detail: {
         tags: ["AI"],
         summary: "Get all subtitles for a video",
+      },
+    }
+  )
+  .get(
+    "/videos/:videoId/subtitles/:language/vtt",
+    (ctx) =>
+      withHandler(ctx, async () => {
+        if (!ctx.user) {
+          throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
+        }
+
+        const { videoId, language } = ctx.params;
+
+        const [subtitle] = await db
+          .select()
+          .from(videoSubtitlesTable)
+          .where(
+            and(
+              eq(videoSubtitlesTable.videoId, videoId),
+              eq(videoSubtitlesTable.language, language),
+              eq(videoSubtitlesTable.status, "completed")
+            )
+          )
+          .limit(1);
+
+        if (!subtitle?.vttKey) {
+          throw new AppError(ErrorCode.NOT_FOUND, "Subtitle not found", 404);
+        }
+
+        return { vttUrl: getPresignedUrl(subtitle.vttKey) };
+      }),
+    {
+      params: t.Object({
+        videoId: t.String({ format: "uuid" }),
+        language: t.String(),
+      }),
+      detail: {
+        tags: ["AI"],
+        summary: "Get VTT URL for a specific language",
       },
     }
   )

@@ -1625,6 +1625,7 @@
     "translate": "Translate",
     "original": "Original",
     "noSubtitles": "No subtitles generated yet",
+    "off": "Off",
     "status": {
       "pending": "Pending",
       "processing": "Processing...",

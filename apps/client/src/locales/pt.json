@@ -1934,6 +1934,7 @@
     "translate": "Traduzir",
     "original": "Original",
     "noSubtitles": "Nenhuma legenda gerada ainda",
+    "off": "Desativado",
     "status": {
       "pending": "Pendente",
       "processing": "Processando...",

@@ -2,20 +2,15 @@ import { generateText } from "ai";
 import { groq } from "./groq";
 import { AI_MODELS } from "./models";
 import { logger } from "../logger";
-import type { SubtitleSegment, SubtitleLanguage } from "@/db/schema";
+import type { SubtitleSegment } from "@/db/schema";
+import { getLanguageLabel } from "shared";
 
 const BATCH_SIZE = 20;
 
-const LANGUAGE_NAMES: Record<SubtitleLanguage, string> = {
-  en: "English",
-  es: "Spanish",
-  pt: "Portuguese",
-};
-
 export async function translateSubtitleSegments(
   segments: SubtitleSegment[],
-  sourceLanguage: SubtitleLanguage,
-  targetLanguage: SubtitleLanguage
+  sourceLanguage: string,
+  targetLanguage: string
 ): Promise<SubtitleSegment[]> {
   if (sourceLanguage === targetLanguage) {
     return segments;
@@ -66,12 +61,9 @@ export async function translateSubtitleSegments(
   return translatedSegments;
 }
 
-function buildTranslationPrompt(
-  source: SubtitleLanguage,
-  target: SubtitleLanguage
-): string {
+function buildTranslationPrompt(source: string, target: string): string {
   return `You are a professional subtitle translator.
-Translate the following subtitle segments from ${LANGUAGE_NAMES[source]} to ${LANGUAGE_NAMES[target]}.
+Translate the following subtitle segments from ${getLanguageLabel(source)} to ${getLanguageLabel(target)}.
 
 RULES:
 - Preserve the [index] markers exactly as provided

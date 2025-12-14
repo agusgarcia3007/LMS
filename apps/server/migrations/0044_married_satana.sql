@@ -1,0 +1,1 @@
+ALTER TABLE "video_subtitles" ALTER COLUMN "language" SET DATA TYPE text;

@@ -7,8 +7,9 @@ import Groq from "groq-sdk";
 import { env } from "../env";
 import { logger } from "../logger";
 import { AppError, ErrorCode } from "../errors";
-import type { SubtitleSegment, SubtitleLanguage } from "@/db/schema";
+import type { SubtitleSegment } from "@/db/schema";
 import { AI_MODELS } from "./models";
+import { isValidLanguageCode } from "shared";
 
 const SPEED_FACTOR = 2.0;
 const FFMPEG_TIMEOUT_MS = 180_000;
@@ -16,7 +17,7 @@ const FFMPEG_TIMEOUT_MS = 180_000;
 type TimestampedTranscription = {
   text: string;
   segments: SubtitleSegment[];
-  language: SubtitleLanguage;
+  language: string;
 };
 
 type GroqSegment = {
@@ -120,11 +121,44 @@ export async function transcribeWithTimestamps(
   };
 }
 
-function normalizeLanguage(language: string | undefined): SubtitleLanguage {
+function normalizeLanguage(language: string | undefined): string {
   const lang = language?.toLowerCase() || "en";
 
-  if (lang === "es" || lang === "spanish") return "es";
-  if (lang === "pt" || lang === "portuguese") return "pt";
+  if (isValidLanguageCode(lang)) {
+    return lang;
+  }
 
-  return "en";
+  const languageMap: Record<string, string> = {
+    english: "en",
+    spanish: "es",
+    portuguese: "pt",
+    french: "fr",
+    german: "de",
+    italian: "it",
+    japanese: "ja",
+    korean: "ko",
+    chinese: "zh",
+    arabic: "ar",
+    russian: "ru",
+    dutch: "nl",
+    polish: "pl",
+    turkish: "tr",
+    hindi: "hi",
+    swedish: "sv",
+    norwegian: "no",
+    danish: "da",
+    finnish: "fi",
+    greek: "el",
+    hebrew: "he",
+    thai: "th",
+    vietnamese: "vi",
+    indonesian: "id",
+    malay: "ms",
+    czech: "cs",
+    romanian: "ro",
+    hungarian: "hu",
+    ukrainian: "uk",
+  };
+
+  return languageMap[lang] || "en";
 }

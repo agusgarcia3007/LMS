@@ -20,18 +20,13 @@ import {
   useTranslateSubtitles,
   useDeleteSubtitle,
 } from "@/services/subtitles/mutations";
-import {
-  LANGUAGE_LABELS,
-  type SubtitleLanguage,
-} from "@/services/subtitles/service";
+import { LANGUAGE_OPTIONS, getLanguageLabel } from "shared";
 import { Loader2, Check, AlertCircle, Languages, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type SubtitleManagerProps = {
   videoId: string;
 };
-
-const ALL_LANGUAGES: SubtitleLanguage[] = ["en", "es", "pt"];
 
 export function SubtitleManager({ videoId }: SubtitleManagerProps) {
   const { t } = useTranslation();
@@ -48,17 +43,17 @@ export function SubtitleManager({ videoId }: SubtitleManagerProps) {
   const isGenerating =
     original?.status === "processing" || original?.status === "pending";
 
-  const availableTranslations = ALL_LANGUAGES.filter(
+  const availableTranslations = LANGUAGE_OPTIONS.filter(
     (lang) =>
-      !subtitles.some((s) => s.language === lang && s.status !== "failed")
+      !subtitles.some((s) => s.language === lang.value && s.status !== "failed")
   );
 
-  const handleGenerateWithLanguage = (language: SubtitleLanguage) => {
+  const handleGenerateWithLanguage = (language: string) => {
     generateMutation.mutate(language);
     setGenerateOpen(false);
   };
 
-  const handleTranslate = (language: SubtitleLanguage) => {
+  const handleTranslate = (language: string) => {
     translateMutation.mutate(language);
     setTranslateOpen(false);
   };
@@ -94,12 +89,13 @@ export function SubtitleManager({ videoId }: SubtitleManagerProps) {
                 <CommandList>
                   <CommandEmpty>{t("subtitles.noResults")}</CommandEmpty>
                   <CommandGroup>
-                    {ALL_LANGUAGES.map((lang) => (
+                    {LANGUAGE_OPTIONS.map((lang) => (
                       <CommandItem
-                        key={lang}
-                        onSelect={() => handleGenerateWithLanguage(lang)}
+                        key={lang.value}
+                        value={lang.label}
+                        onSelect={() => handleGenerateWithLanguage(lang.value)}
                       >
-                        {LANGUAGE_LABELS[lang]}
+                        {lang.label}
                       </CommandItem>
                     ))}
                   </CommandGroup>
@@ -136,7 +132,7 @@ export function SubtitleManager({ videoId }: SubtitleManagerProps) {
             >
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium">
-                  {LANGUAGE_LABELS[subtitle.language]}
+                  {getLanguageLabel(subtitle.language)}
                 </span>
                 {subtitle.isOriginal && (
                   <span className="rounded bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
@@ -200,10 +196,11 @@ export function SubtitleManager({ videoId }: SubtitleManagerProps) {
                 <CommandGroup>
                   {availableTranslations.map((lang) => (
                     <CommandItem
-                      key={lang}
-                      onSelect={() => handleTranslate(lang)}
+                      key={lang.value}
+                      value={lang.label}
+                      onSelect={() => handleTranslate(lang.value)}
                     >
-                      {LANGUAGE_LABELS[lang]}
+                      {lang.label}
                     </CommandItem>
                   ))}
                 </CommandGroup>

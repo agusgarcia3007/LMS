@@ -11,23 +11,25 @@ import {
   VideoPlayerTimeDisplay,
   VideoPlayerVolumeRange,
   VideoPlayerFullscreenButton,
-  VideoPlayerCaptionsMenu,
-  VideoPlayerCaptionsMenuButton,
 } from "@/components/kibo-ui/video-player";
+import { SubtitleSelector } from "./subtitle-selector";
 import { cn } from "@/lib/utils";
 
 export type SubtitleTrack = {
   language: string;
   label: string;
-  vttUrl: string;
+  vttUrl?: string;
 };
 
 type VideoContentProps = {
   src: string;
   poster?: string;
   initialTime?: number;
-  subtitles?: SubtitleTrack[];
-  defaultSubtitleLang?: string;
+  availableSubtitles?: SubtitleTrack[];
+  loadedSubtitle?: SubtitleTrack | null;
+  isLoadingSubtitle?: boolean;
+  onSubtitleSelect?: (language: string | null) => void;
+  selectedSubtitleLang?: string | null;
   onComplete?: () => void;
   onTimeUpdate?: (currentTime: number, duration: number) => void;
   onPause?: (currentTime: number) => void;
@@ -40,8 +42,11 @@ export function VideoContent({
   src,
   poster,
   initialTime,
-  subtitles = [],
-  defaultSubtitleLang,
+  availableSubtitles = [],
+  loadedSubtitle,
+  isLoadingSubtitle,
+  onSubtitleSelect,
+  selectedSubtitleLang,
   onComplete,
   onTimeUpdate,
   onPause,
@@ -131,7 +136,7 @@ export function VideoContent({
 
   return (
     <VideoPlayer
-      defaultSubtitles={subtitles.length > 0 || undefined}
+      defaultSubtitles={!!loadedSubtitle || undefined}
       className={cn("aspect-video w-full rounded-lg", className)}
     >
       <VideoPlayerContent
@@ -146,16 +151,16 @@ export function VideoContent({
         onEnded={handleEnded}
         onSeeked={handleSeeked}
       >
-        {subtitles.map((track) => (
+        {loadedSubtitle?.vttUrl && (
           <track
-            key={track.language}
+            key={loadedSubtitle.language}
             kind="captions"
-            srcLang={track.language}
-            label={track.label}
-            src={track.vttUrl}
-            default={track.language === defaultSubtitleLang}
+            srcLang={loadedSubtitle.language}
+            label={loadedSubtitle.label}
+            src={loadedSubtitle.vttUrl}
+            default
           />
-        ))}
+        )}
       </VideoPlayerContent>
       <VideoPlayerControlBar>
         <VideoPlayerPlayButton />
@@ -165,11 +170,13 @@ export function VideoContent({
         <VideoPlayerTimeDisplay showDuration />
         <VideoPlayerVolumeRange className="hidden md:flex" />
         <VideoPlayerMuteButton />
-        {subtitles.length > 0 && (
-          <>
-            <VideoPlayerCaptionsMenu />
-            <VideoPlayerCaptionsMenuButton />
-          </>
+        {availableSubtitles.length > 0 && (
+          <SubtitleSelector
+            availableSubtitles={availableSubtitles}
+            selectedLanguage={selectedSubtitleLang ?? null}
+            isLoading={isLoadingSubtitle}
+            onSelect={onSubtitleSelect}
+          />
         )}
         <VideoPlayerFullscreenButton />
       </VideoPlayerControlBar>

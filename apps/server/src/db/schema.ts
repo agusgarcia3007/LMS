@@ -361,7 +361,7 @@ export const videoSubtitlesTable = pgTable(
     tenantId: uuid("tenant_id")
       .notNull()
       .references(() => tenantsTable.id, { onDelete: "cascade" }),
-    language: subtitleLanguageEnum("language").notNull(),
+    language: text("language").notNull(),
     isOriginal: boolean("is_original").notNull().default(false),
     vttKey: text("vtt_key"),
     segments: jsonb("segments").$type<SubtitleSegment[]>(),
@@ -851,5 +851,4 @@ export type TenantFeatures = NonNullable<SelectTenant["features"]>;
 
 export type InsertVideoSubtitle = typeof videoSubtitlesTable.$inferInsert;
 export type SelectVideoSubtitle = typeof videoSubtitlesTable.$inferSelect;
-export type SubtitleLanguage = (typeof subtitleLanguageEnum.enumValues)[number];
 export type SubtitleStatus = (typeof subtitleStatusEnum.enumValues)[number];
