@@ -5,7 +5,8 @@ export function useGenerateSubtitles(videoId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: () => SubtitlesService.generate(videoId),
+    mutationFn: (sourceLanguage?: SubtitleLanguage) =>
+      SubtitlesService.generate(videoId, sourceLanguage),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.SUBTITLES(videoId) });
     },

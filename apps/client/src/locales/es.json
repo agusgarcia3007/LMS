@@ -1910,6 +1910,7 @@
   "subtitles": {
     "title": "Subtitulos",
     "generate": "Generar Subtitulos",
+    "selectLanguage": "Selecciona el idioma del video",
     "translateTo": "Traducir a",
     "original": "Original",
     "noSubtitles": "Aun no se han generado subtitulos",

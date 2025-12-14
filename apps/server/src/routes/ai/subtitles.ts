@@ -26,11 +26,13 @@ async function processSubtitleGeneration(
   videoId: string,
   videoKey: string,
   subtitleId: string,
-  tenantId: string
+  tenantId: string,
+  sourceLanguage?: SubtitleLanguage
 ) {
   try {
     const videoUrl = getPresignedUrl(videoKey);
-    const { segments, language } = await transcribeWithTimestamps(videoUrl);
+    const { segments, language: detectedLanguage } = await transcribeWithTimestamps(videoUrl);
+    const language = sourceLanguage ?? detectedLanguage;
 
     const vtt = generateVTT(segments);
     const vttKey = await uploadBase64ToS3({
@@ -188,6 +190,7 @@ export const subtitlesRoutes = new Elysia({ name: "ai-subtitles" })
           );
         }
 
+        const sourceLanguage = ctx.body?.sourceLanguage as SubtitleLanguage | undefined;
         let subtitleId: string;
 
         if (existing.length > 0) {
@@ -202,7 +205,7 @@ export const subtitlesRoutes = new Elysia({ name: "ai-subtitles" })
             .values({
               videoId: video.id,
               tenantId: ctx.user.tenantId,
-              language: "en",
+              language: sourceLanguage ?? "en",
               isOriginal: true,
               status: "processing",
             })
@@ -214,7 +217,8 @@ export const subtitlesRoutes = new Elysia({ name: "ai-subtitles" })
           video.id,
           video.videoKey,
           subtitleId,
-          ctx.user.tenantId
+          ctx.user.tenantId,
+          sourceLanguage
         ).catch((err) =>
           logger.error("Background subtitle generation failed", { err })
         );
@@ -223,6 +227,13 @@ export const subtitlesRoutes = new Elysia({ name: "ai-subtitles" })
       }),
     {
       params: t.Object({ videoId: t.String({ format: "uuid" }) }),
+      body: t.Optional(
+        t.Object({
+          sourceLanguage: t.Optional(
+            t.Union([t.Literal("en"), t.Literal("es"), t.Literal("pt")])
+          ),
+        })
+      ),
       detail: {
         tags: ["AI"],
         summary: "Generate subtitles for a video",

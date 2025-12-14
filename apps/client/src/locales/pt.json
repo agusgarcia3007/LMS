@@ -1927,6 +1927,7 @@
   "subtitles": {
     "title": "Legendas",
     "generate": "Gerar Legendas",
+    "selectLanguage": "Selecione o idioma do video",
     "translateTo": "Traduzir para",
     "original": "Original",
     "noSubtitles": "Nenhuma legenda gerada ainda",

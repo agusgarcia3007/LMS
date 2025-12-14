@@ -1618,6 +1618,7 @@
   "subtitles": {
     "title": "Subtitles",
     "generate": "Generate Subtitles",
+    "selectLanguage": "Select video language",
     "translateTo": "Translate to",
     "original": "Original",
     "noSubtitles": "No subtitles generated yet",

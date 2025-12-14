@@ -32,9 +32,10 @@ export const SubtitlesService = {
     return data;
   },
 
-  async generate(videoId: string) {
+  async generate(videoId: string, sourceLanguage?: SubtitleLanguage) {
     const { data } = await http.post<{ subtitleId: string; status: string }>(
-      `/ai/videos/${videoId}/subtitles/generate`
+      `/ai/videos/${videoId}/subtitles/generate`,
+      sourceLanguage ? { sourceLanguage } : undefined
     );
     return data;
   },
