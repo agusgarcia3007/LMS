@@ -153,11 +153,11 @@ export function VideoContent({
       </VideoPlayerContent>
       <VideoPlayerControlBar>
         <VideoPlayerPlayButton />
-        <VideoPlayerSeekBackwardButton />
-        <VideoPlayerSeekForwardButton />
+        <VideoPlayerSeekBackwardButton className="hidden md:flex" />
+        <VideoPlayerSeekForwardButton className="hidden md:flex" />
         <VideoPlayerTimeRange />
         <VideoPlayerTimeDisplay showDuration />
-        <VideoPlayerVolumeRange />
+        <VideoPlayerVolumeRange className="hidden md:flex" />
         <VideoPlayerMuteButton />
         {subtitles.length > 0 && (
           <>

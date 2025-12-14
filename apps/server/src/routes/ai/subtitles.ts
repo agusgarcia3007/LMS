@@ -13,7 +13,7 @@ import { eq, and } from "drizzle-orm";
 import { transcribeWithTimestamps } from "@/lib/ai/transcription-timestamps";
 import { translateSubtitleSegments } from "@/lib/ai/subtitle-translation";
 import { generateVTT } from "@/lib/ai/vtt-generator";
-import { uploadBase64ToS3, getPresignedUrl } from "@/lib/upload";
+import { uploadBase64ToS3, getPresignedUrl, deleteFromS3 } from "@/lib/upload";
 import { logger } from "@/lib/logger";
 
 const LANGUAGE_LABELS: Record<SubtitleLanguage, string> = {
@@ -451,6 +451,73 @@ export const subtitlesRoutes = new Elysia({ name: "ai-subtitles" })
       detail: {
         tags: ["AI"],
         summary: "Get VTT file for a specific subtitle",
+      },
+    }
+  )
+  .delete(
+    "/subtitles/:subtitleId",
+    (ctx) =>
+      withHandler(ctx, async () => {
+        if (!ctx.user) {
+          throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
+        }
+
+        if (!ctx.user.tenantId) {
+          throw new AppError(
+            ErrorCode.TENANT_NOT_FOUND,
+            "User has no tenant",
+            404
+          );
+        }
+
+        const canManage =
+          ctx.userRole === "owner" ||
+          ctx.userRole === "admin" ||
+          ctx.userRole === "superadmin";
+
+        if (!canManage) {
+          throw new AppError(
+            ErrorCode.FORBIDDEN,
+            "Only owners and admins can delete subtitles",
+            403
+          );
+        }
+
+        const [subtitle] = await db
+          .select()
+          .from(videoSubtitlesTable)
+          .where(
+            and(
+              eq(videoSubtitlesTable.id, ctx.params.subtitleId),
+              eq(videoSubtitlesTable.tenantId, ctx.user.tenantId)
+            )
+          )
+          .limit(1);
+
+        if (!subtitle) {
+          throw new AppError(ErrorCode.NOT_FOUND, "Subtitle not found", 404);
+        }
+
+        if (subtitle.vttKey) {
+          await deleteFromS3(subtitle.vttKey);
+        }
+
+        await db
+          .delete(videoSubtitlesTable)
+          .where(eq(videoSubtitlesTable.id, ctx.params.subtitleId));
+
+        logger.info("Subtitle deleted", {
+          subtitleId: ctx.params.subtitleId,
+          language: subtitle.language,
+        });
+
+        return { success: true };
+      }),
+    {
+      params: t.Object({ subtitleId: t.String({ format: "uuid" }) }),
+      detail: {
+        tags: ["AI"],
+        summary: "Delete a subtitle",
       },
     }
   );

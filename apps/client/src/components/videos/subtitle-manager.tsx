@@ -18,12 +18,13 @@ import { useVideoSubtitles } from "@/services/subtitles/queries";
 import {
   useGenerateSubtitles,
   useTranslateSubtitles,
+  useDeleteSubtitle,
 } from "@/services/subtitles/mutations";
 import {
   LANGUAGE_LABELS,
   type SubtitleLanguage,
 } from "@/services/subtitles/service";
-import { Loader2, Check, AlertCircle, Languages } from "lucide-react";
+import { Loader2, Check, AlertCircle, Languages, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type SubtitleManagerProps = {
@@ -34,10 +35,12 @@ const ALL_LANGUAGES: SubtitleLanguage[] = ["en", "es", "pt"];
 
 export function SubtitleManager({ videoId }: SubtitleManagerProps) {
   const { t } = useTranslation();
-  const [open, setOpen] = useState(false);
+  const [generateOpen, setGenerateOpen] = useState(false);
+  const [translateOpen, setTranslateOpen] = useState(false);
   const { data, isLoading } = useVideoSubtitles(videoId);
   const generateMutation = useGenerateSubtitles(videoId);
   const translateMutation = useTranslateSubtitles(videoId);
+  const deleteMutation = useDeleteSubtitle(videoId);
 
   const subtitles = data?.subtitles || [];
   const original = subtitles.find((s) => s.isOriginal);
@@ -52,7 +55,12 @@ export function SubtitleManager({ videoId }: SubtitleManagerProps) {
 
   const handleGenerateWithLanguage = (language: SubtitleLanguage) => {
     generateMutation.mutate(language);
-    setOpen(false);
+    setGenerateOpen(false);
+  };
+
+  const handleTranslate = (language: SubtitleLanguage) => {
+    translateMutation.mutate(language);
+    setTranslateOpen(false);
   };
 
   if (isLoading) {
@@ -69,7 +77,7 @@ export function SubtitleManager({ videoId }: SubtitleManagerProps) {
       <div className="flex items-center justify-between">
         <h4 className="text-sm font-medium">{t("subtitles.title")}</h4>
         {!hasOriginal && !isGenerating && (
-          <Popover open={open} onOpenChange={setOpen}>
+          <Popover open={generateOpen} onOpenChange={setGenerateOpen}>
             <PopoverTrigger asChild>
               <Button
                 size="sm"
@@ -136,10 +144,27 @@ export function SubtitleManager({ videoId }: SubtitleManagerProps) {
                   </span>
                 )}
               </div>
-              <StatusBadge
-                status={subtitle.status}
-                errorMessage={subtitle.errorMessage}
-              />
+              <div className="flex items-center gap-2">
+                <StatusBadge
+                  status={subtitle.status}
+                  errorMessage={subtitle.errorMessage}
+                />
+                {(subtitle.status === "completed" || subtitle.status === "failed") && (
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                    onClick={() => deleteMutation.mutate(subtitle.id)}
+                    disabled={deleteMutation.isPending}
+                  >
+                    {deleteMutation.isPending ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Trash2 className="h-4 w-4" />
+                    )}
+                  </Button>
+                )}
+              </div>
             </div>
           ))}
         </div>
@@ -152,26 +177,40 @@ export function SubtitleManager({ videoId }: SubtitleManagerProps) {
       )}
 
       {hasOriginal && availableTranslations.length > 0 && (
-        <div className="flex flex-wrap gap-2 pt-2">
-          <span className="text-sm text-muted-foreground">
-            {t("subtitles.translateTo")}:
-          </span>
-          {availableTranslations.map((lang) => (
+        <Popover open={translateOpen} onOpenChange={setTranslateOpen}>
+          <PopoverTrigger asChild>
             <Button
-              key={lang}
               size="sm"
-              variant="ghost"
-              className="h-7 px-2"
-              onClick={() => translateMutation.mutate(lang)}
+              variant="outline"
               disabled={translateMutation.isPending}
             >
               {translateMutation.isPending ? (
-                <Loader2 className="mr-1 h-3 w-3 animate-spin" />
-              ) : null}
-              {LANGUAGE_LABELS[lang]}
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Languages className="mr-2 h-4 w-4" />
+              )}
+              {t("subtitles.translate")}
             </Button>
-          ))}
-        </div>
+          </PopoverTrigger>
+          <PopoverContent className="w-[200px] p-0" align="start">
+            <Command>
+              <CommandInput placeholder={t("subtitles.searchLanguage")} />
+              <CommandList>
+                <CommandEmpty>{t("subtitles.noResults")}</CommandEmpty>
+                <CommandGroup>
+                  {availableTranslations.map((lang) => (
+                    <CommandItem
+                      key={lang}
+                      onSelect={() => handleTranslate(lang)}
+                    >
+                      {LANGUAGE_LABELS[lang]}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
       )}
     </div>
   );

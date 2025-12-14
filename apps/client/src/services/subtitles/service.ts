@@ -54,4 +54,11 @@ export const SubtitlesService = {
     );
     return data;
   },
+
+  async delete(subtitleId: string) {
+    const { data } = await http.delete<{ success: boolean }>(
+      `/ai/subtitles/${subtitleId}`
+    );
+    return data;
+  },
 } as const;

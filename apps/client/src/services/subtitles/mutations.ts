@@ -24,3 +24,14 @@ export function useTranslateSubtitles(videoId: string) {
     },
   });
 }
+
+export function useDeleteSubtitle(videoId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (subtitleId: string) => SubtitlesService.delete(subtitleId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.SUBTITLES(videoId) });
+    },
+  });
+}

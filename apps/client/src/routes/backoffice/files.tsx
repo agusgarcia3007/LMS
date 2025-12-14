@@ -58,7 +58,7 @@ function getFileIcon(name: string) {
   if (["mp4", "webm", "mov", "avi", "mkv"].includes(ext)) return Video;
   if (["jpg", "jpeg", "png", "gif", "webp", "svg", "ico"].includes(ext))
     return Image;
-  if (["pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "txt"].includes(ext))
+  if (["pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "txt", "vtt", "srt"].includes(ext))
     return FileText;
   return File;
 }
