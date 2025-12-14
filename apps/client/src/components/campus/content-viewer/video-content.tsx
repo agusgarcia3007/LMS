@@ -11,7 +11,8 @@ import {
   VideoPlayerTimeDisplay,
   VideoPlayerVolumeRange,
   VideoPlayerFullscreenButton,
-  VideoPlayerCaptionsButton,
+  VideoPlayerCaptionsMenu,
+  VideoPlayerCaptionsMenuButton,
 } from "@/components/kibo-ui/video-player";
 import { cn } from "@/lib/utils";
 
@@ -155,7 +156,12 @@ export function VideoContent({
         <VideoPlayerTimeDisplay showDuration />
         <VideoPlayerVolumeRange />
         <VideoPlayerMuteButton />
-        {subtitles.length > 0 && <VideoPlayerCaptionsButton />}
+        {subtitles.length > 0 && (
+          <>
+            <VideoPlayerCaptionsMenu />
+            <VideoPlayerCaptionsMenuButton />
+          </>
+        )}
         <VideoPlayerFullscreenButton />
       </VideoPlayerControlBar>
     </VideoPlayer>

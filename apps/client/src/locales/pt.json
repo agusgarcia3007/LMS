@@ -1928,6 +1928,8 @@
     "title": "Legendas",
     "generate": "Gerar Legendas",
     "selectLanguage": "Selecione o idioma do video",
+    "searchLanguage": "Buscar idioma...",
+    "noResults": "Idioma nao encontrado",
     "translateTo": "Traduzir para",
     "original": "Original",
     "noSubtitles": "Nenhuma legenda gerada ainda",

@@ -1,6 +1,19 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandInput,
+  CommandList,
+  CommandEmpty,
+  CommandGroup,
+  CommandItem,
+} from "@/components/ui/command";
 import { useVideoSubtitles } from "@/services/subtitles/queries";
 import {
   useGenerateSubtitles,
@@ -10,7 +23,7 @@ import {
   LANGUAGE_LABELS,
   type SubtitleLanguage,
 } from "@/services/subtitles/service";
-import { Loader2, Check, AlertCircle, Languages, ChevronLeft } from "lucide-react";
+import { Loader2, Check, AlertCircle, Languages } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type SubtitleManagerProps = {
@@ -21,7 +34,7 @@ const ALL_LANGUAGES: SubtitleLanguage[] = ["en", "es", "pt"];
 
 export function SubtitleManager({ videoId }: SubtitleManagerProps) {
   const { t } = useTranslation();
-  const [showLanguageSelect, setShowLanguageSelect] = useState(false);
+  const [open, setOpen] = useState(false);
   const { data, isLoading } = useVideoSubtitles(videoId);
   const generateMutation = useGenerateSubtitles(videoId);
   const translateMutation = useTranslateSubtitles(videoId);
@@ -38,9 +51,8 @@ export function SubtitleManager({ videoId }: SubtitleManagerProps) {
   );
 
   const handleGenerateWithLanguage = (language: SubtitleLanguage) => {
-    generateMutation.mutate(language, {
-      onSuccess: () => setShowLanguageSelect(false),
-    });
+    generateMutation.mutate(language);
+    setOpen(false);
   };
 
   if (isLoading) {
@@ -56,49 +68,50 @@ export function SubtitleManager({ videoId }: SubtitleManagerProps) {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h4 className="text-sm font-medium">{t("subtitles.title")}</h4>
-        {!hasOriginal && !isGenerating && !showLanguageSelect && (
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => setShowLanguageSelect(true)}
-            disabled={generateMutation.isPending}
-          >
-            <Languages className="mr-2 h-4 w-4" />
-            {t("subtitles.generate")}
-          </Button>
+        {!hasOriginal && !isGenerating && (
+          <Popover open={open} onOpenChange={setOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={generateMutation.isPending}
+              >
+                <Languages className="mr-2 h-4 w-4" />
+                {t("subtitles.generate")}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[200px] p-0" align="end">
+              <Command>
+                <CommandInput placeholder={t("subtitles.searchLanguage")} />
+                <CommandList>
+                  <CommandEmpty>{t("subtitles.noResults")}</CommandEmpty>
+                  <CommandGroup>
+                    {ALL_LANGUAGES.map((lang) => (
+                      <CommandItem
+                        key={lang}
+                        onSelect={() => handleGenerateWithLanguage(lang)}
+                      >
+                        {LANGUAGE_LABELS[lang]}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
         )}
       </div>
 
-      {showLanguageSelect && !hasOriginal && !isGenerating && (
-        <div className="rounded-lg border bg-muted/30 p-4">
-          <div className="mb-3 flex items-center gap-2">
-            <Button
-              size="sm"
-              variant="ghost"
-              className="h-7 w-7 p-0"
-              onClick={() => setShowLanguageSelect(false)}
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <span className="text-sm font-medium">
-              {t("subtitles.selectLanguage")}
-            </span>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {ALL_LANGUAGES.map((lang) => (
-              <Button
-                key={lang}
-                size="sm"
-                variant="secondary"
-                onClick={() => handleGenerateWithLanguage(lang)}
-                disabled={generateMutation.isPending}
-              >
-                {generateMutation.isPending ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : null}
-                {LANGUAGE_LABELS[lang]}
-              </Button>
-            ))}
+      {isGenerating && !original && (
+        <div className="space-y-2">
+          <div className="relative flex items-center justify-between rounded-md border p-3 overflow-hidden">
+            <div className="flex items-center gap-2">
+              <Languages className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm text-muted-foreground">
+                {t("subtitles.status.processing")}
+              </span>
+            </div>
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-muted/50 to-transparent animate-shimmer" />
           </div>
         </div>
       )}

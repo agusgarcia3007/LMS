@@ -11,6 +11,10 @@ import {
   MediaTimeRange,
   MediaVolumeRange,
 } from "media-chrome/react";
+import {
+  MediaCaptionsMenu,
+  MediaCaptionsMenuButton,
+} from "media-chrome/react/menu";
 import type { ComponentProps, CSSProperties } from "react";
 import { cn } from "@/lib/utils";
 
@@ -144,4 +148,34 @@ export const VideoPlayerCaptionsButton = ({
   ...props
 }: VideoPlayerCaptionsButtonProps) => (
   <MediaCaptionsButton className={cn("p-2.5", className)} {...props} />
+);
+
+export type VideoPlayerCaptionsMenuProps = ComponentProps<
+  typeof MediaCaptionsMenu
+>;
+
+export const VideoPlayerCaptionsMenu = ({
+  className,
+  ...props
+}: VideoPlayerCaptionsMenuProps) => (
+  <MediaCaptionsMenu
+    hidden
+    anchor="auto"
+    className={cn(
+      "rounded-md border border-border bg-popover text-popover-foreground shadow-md",
+      className
+    )}
+    {...props}
+  />
+);
+
+export type VideoPlayerCaptionsMenuButtonProps = ComponentProps<
+  typeof MediaCaptionsMenuButton
+>;
+
+export const VideoPlayerCaptionsMenuButton = ({
+  className,
+  ...props
+}: VideoPlayerCaptionsMenuButtonProps) => (
+  <MediaCaptionsMenuButton className={cn("p-2.5", className)} {...props} />
 );

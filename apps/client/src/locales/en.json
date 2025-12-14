@@ -1619,6 +1619,8 @@
     "title": "Subtitles",
     "generate": "Generate Subtitles",
     "selectLanguage": "Select video language",
+    "searchLanguage": "Search language...",
+    "noResults": "No language found",
     "translateTo": "Translate to",
     "original": "Original",
     "noSubtitles": "No subtitles generated yet",

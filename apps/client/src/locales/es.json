@@ -1911,6 +1911,8 @@
     "title": "Subtitulos",
     "generate": "Generar Subtitulos",
     "selectLanguage": "Selecciona el idioma del video",
+    "searchLanguage": "Buscar idioma...",
+    "noResults": "Idioma no encontrado",
     "translateTo": "Traducir a",
     "original": "Original",
     "noSubtitles": "Aun no se han generado subtitulos",
