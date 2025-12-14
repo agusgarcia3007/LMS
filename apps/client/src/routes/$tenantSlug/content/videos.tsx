@@ -13,7 +13,9 @@ import { Button } from "@/components/ui/button";
 import { DataGridColumnHeader } from "@/components/ui/data-grid";
 import {
   Dialog,
+  DialogBody,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -464,90 +466,92 @@ function VideosPage() {
             </DialogTitle>
           </DialogHeader>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="title"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("videos.form.title")}</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("videos.form.description")}</FormLabel>
-                    <FormControl>
-                      <Textarea {...field} rows={3} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button
-                type="button"
-                variant="outline"
-                disabled={!hasVideo || analyzeVideoMutation.isPending}
-                isLoading={analyzeVideoMutation.isPending}
-                onClick={handleAnalyzeVideo}
-                className="w-full"
-              >
-                <Sparkles className="size-4" />
-                {t("ai.analyzeVideo")}
-              </Button>
-              <FormField
-                control={form.control}
-                name="status"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("videos.form.status")}</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      value={field.value}
-                    >
+            <form onSubmit={form.handleSubmit(handleSubmit)} className="contents">
+              <DialogBody className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="title"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("videos.form.title")}</FormLabel>
                       <FormControl>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
+                        <Input {...field} />
                       </FormControl>
-                      <SelectContent>
-                        <SelectItem value="draft">
-                          {t("videos.statuses.draft")}
-                        </SelectItem>
-                        <SelectItem value="published">
-                          {t("videos.statuses.published")}
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormItem>
-                <FormLabel>{t("videos.form.video")}</FormLabel>
-                <VideoUpload
-                  value={editVideo ? editVideo.videoUrl : pendingVideoUrl}
-                  onChange={() => {}}
-                  onUpload={editVideo ? handleUploadVideo : handleUploadVideoStandalone}
-                  onDelete={editVideo ? handleDeleteVideoFile : handleDeletePendingVideo}
-                  isUploading={editVideo ? uploadMutation.isPending : uploadStandaloneMutation.isPending}
-                  isDeleting={deleteFileMutation.isPending}
-                  maxSize={250 * 1024 * 1024}
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-              </FormItem>
-              {editVideo?.videoKey && (
-                <div className="rounded-lg border p-4">
-                  <SubtitleManager videoId={editVideo.id} />
-                </div>
-              )}
-              <div className="flex justify-end gap-2">
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("videos.form.description")}</FormLabel>
+                      <FormControl>
+                        <Textarea {...field} rows={3} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={!hasVideo || analyzeVideoMutation.isPending}
+                  isLoading={analyzeVideoMutation.isPending}
+                  onClick={handleAnalyzeVideo}
+                  className="w-full"
+                >
+                  <Sparkles className="size-4" />
+                  {t("ai.analyzeVideo")}
+                </Button>
+                <FormField
+                  control={form.control}
+                  name="status"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("videos.form.status")}</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="draft">
+                            {t("videos.statuses.draft")}
+                          </SelectItem>
+                          <SelectItem value="published">
+                            {t("videos.statuses.published")}
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormItem>
+                  <FormLabel>{t("videos.form.video")}</FormLabel>
+                  <VideoUpload
+                    value={editVideo ? editVideo.videoUrl : pendingVideoUrl}
+                    onChange={() => {}}
+                    onUpload={editVideo ? handleUploadVideo : handleUploadVideoStandalone}
+                    onDelete={editVideo ? handleDeleteVideoFile : handleDeletePendingVideo}
+                    isUploading={editVideo ? uploadMutation.isPending : uploadStandaloneMutation.isPending}
+                    isDeleting={deleteFileMutation.isPending}
+                    maxSize={250 * 1024 * 1024}
+                  />
+                </FormItem>
+                {editVideo?.videoKey && (
+                  <div className="rounded-lg border p-4">
+                    <SubtitleManager videoId={editVideo.id} />
+                  </div>
+                )}
+              </DialogBody>
+              <DialogFooter>
                 <Button
                   type="button"
                   variant="outline"
@@ -558,7 +562,7 @@ function VideosPage() {
                 <Button type="submit" isLoading={isPending}>
                   {editVideo ? t("common.save") : t("common.create")}
                 </Button>
-              </div>
+              </DialogFooter>
             </form>
           </Form>
         </DialogContent>

@@ -52,6 +52,7 @@ export const useLogoutOptions = () => {
     mutationFn: AuthService.logout,
     onSettled: () => {
       queryClient.clear();
+       
       window.location.href = "/login";
     },
   });

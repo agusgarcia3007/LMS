@@ -90,7 +90,7 @@ async function fetchDocumentAsFile(
 
 export function AIChatSidebar({
   courseId,
-  courseTitle,
+  courseTitle: _courseTitle,
   itemId,
   itemTitle,
   itemType,

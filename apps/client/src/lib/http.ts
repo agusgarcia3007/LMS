@@ -1,7 +1,11 @@
-import axios from "axios";
+import axios, { type InternalAxiosRequestConfig } from "axios";
 import { AuthService } from "@/services/auth/service";
 import { getTenantFromHost, getResolvedSlug } from "@/lib/tenant";
 import { isClient } from "@/lib/utils";
+
+interface RequestConfigWithRetry extends InternalAxiosRequestConfig {
+  _retry?: boolean;
+}
 
 const TOKEN_KEY = "accessToken";
 const REFRESH_TOKEN_KEY = "refreshToken";
@@ -58,10 +62,10 @@ http.interceptors.request.use((config) => {
 http.interceptors.response.use(
   (response) => response,
   async (error) => {
-    const originalRequest = error.config;
+    const originalRequest = error.config as RequestConfigWithRetry | undefined;
 
-    if (error.response?.status === 401 && !(originalRequest as any)._retry) {
-      (originalRequest as any)._retry = true;
+    if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
+      originalRequest._retry = true;
 
       if (!isRefreshing) {
         isRefreshing = true;

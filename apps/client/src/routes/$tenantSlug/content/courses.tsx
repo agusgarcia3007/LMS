@@ -110,7 +110,9 @@ function CoursesPage() {
 
   useEffect(() => {
     if (searchParams.edit && courseToEdit?.course && !editorOpen) {
+       
       setEditCourse(courseToEdit.course as Course);
+       
       setEditorOpen(true);
     }
   }, [searchParams.edit, courseToEdit, editorOpen]);
@@ -118,12 +120,6 @@ function CoursesPage() {
   const handleOpenCreate = useCallback(() => {
     setEditCourse(null);
     setAiPreview(null);
-    setEditorOpen(true);
-  }, []);
-
-  const handleAICreateCourse = useCallback((preview: CoursePreview) => {
-    setEditCourse(null);
-    setAiPreview(preview);
     setEditorOpen(true);
   }, []);
 
@@ -458,7 +454,7 @@ function CoursesPage() {
         enableHiding: false,
       },
     ],
-    [t, handleOpenEdit, handleViewOnCampus, generatingThumbnailCourseId]
+    [t, handleOpenEdit, handleViewOnCampus, generatingThumbnailCourseId, formatPrice]
   );
 
   const filterFields = useMemo<FilterFieldConfig[]>(

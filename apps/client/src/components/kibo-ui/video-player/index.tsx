@@ -34,20 +34,12 @@ const variables = {
   "--media-range-track-background": "var(--border)",
 } as CSSProperties;
 
-export const VideoPlayer = ({
-  style,
-  className,
-  ...props
-}: VideoPlayerProps) => (
+export const VideoPlayer = ({ style, ...props }: VideoPlayerProps) => (
   <MediaController
     style={{
       ...variables,
       ...style,
     }}
-    className={cn(
-      "[--media-button-icon-width:24px] [--media-button-icon-height:24px] md:[--media-button-icon-width:20px] md:[--media-button-icon-height:20px]",
-      className
-    )}
     {...props}
   />
 );
@@ -64,7 +56,7 @@ export const VideoPlayerTimeRange = ({
   className,
   ...props
 }: VideoPlayerTimeRangeProps) => (
-  <MediaTimeRange className={cn("p-3 md:p-2.5", className)} {...props} />
+  <MediaTimeRange className={cn("p-2.5", className)} {...props} />
 );
 
 export type VideoPlayerTimeDisplayProps = ComponentProps<
@@ -75,7 +67,7 @@ export const VideoPlayerTimeDisplay = ({
   className,
   ...props
 }: VideoPlayerTimeDisplayProps) => (
-  <MediaTimeDisplay className={cn("p-3 md:p-2.5", className)} {...props} />
+  <MediaTimeDisplay className={cn("p-2.5", className)} {...props} />
 );
 
 export type VideoPlayerVolumeRangeProps = ComponentProps<
@@ -86,7 +78,7 @@ export const VideoPlayerVolumeRange = ({
   className,
   ...props
 }: VideoPlayerVolumeRangeProps) => (
-  <MediaVolumeRange className={cn("p-3 md:p-2.5", className)} {...props} />
+  <MediaVolumeRange className={cn("p-2.5", className)} {...props} />
 );
 
 export type VideoPlayerPlayButtonProps = ComponentProps<typeof MediaPlayButton>;
@@ -95,7 +87,7 @@ export const VideoPlayerPlayButton = ({
   className,
   ...props
 }: VideoPlayerPlayButtonProps) => (
-  <MediaPlayButton className={cn("p-3 md:p-2.5", className)} {...props} />
+  <MediaPlayButton className={cn("p-2.5", className)} {...props} />
 );
 
 export type VideoPlayerSeekBackwardButtonProps = ComponentProps<
@@ -106,7 +98,7 @@ export const VideoPlayerSeekBackwardButton = ({
   className,
   ...props
 }: VideoPlayerSeekBackwardButtonProps) => (
-  <MediaSeekBackwardButton className={cn("p-3 md:p-2.5", className)} {...props} />
+  <MediaSeekBackwardButton className={cn("p-2.5", className)} {...props} />
 );
 
 export type VideoPlayerSeekForwardButtonProps = ComponentProps<
@@ -117,7 +109,7 @@ export const VideoPlayerSeekForwardButton = ({
   className,
   ...props
 }: VideoPlayerSeekForwardButtonProps) => (
-  <MediaSeekForwardButton className={cn("p-3 md:p-2.5", className)} {...props} />
+  <MediaSeekForwardButton className={cn("p-2.5", className)} {...props} />
 );
 
 export type VideoPlayerMuteButtonProps = ComponentProps<typeof MediaMuteButton>;
@@ -126,7 +118,7 @@ export const VideoPlayerMuteButton = ({
   className,
   ...props
 }: VideoPlayerMuteButtonProps) => (
-  <MediaMuteButton className={cn("p-3 md:p-2.5", className)} {...props} />
+  <MediaMuteButton className={cn("p-2.5", className)} {...props} />
 );
 
 export type VideoPlayerContentProps = ComponentProps<"video">;
@@ -146,7 +138,7 @@ export const VideoPlayerFullscreenButton = ({
   className,
   ...props
 }: VideoPlayerFullscreenButtonProps) => (
-  <MediaFullscreenButton className={cn("p-3 md:p-2.5", className)} {...props} />
+  <MediaFullscreenButton className={cn("p-2.5", className)} {...props} />
 );
 
 export type VideoPlayerCaptionsButtonProps = ComponentProps<
@@ -157,7 +149,7 @@ export const VideoPlayerCaptionsButton = ({
   className,
   ...props
 }: VideoPlayerCaptionsButtonProps) => (
-  <MediaCaptionsButton className={cn("p-3 md:p-2.5", className)} {...props} />
+  <MediaCaptionsButton className={cn("p-2.5", className)} {...props} />
 );
 
 export type VideoPlayerCaptionsMenuProps = ComponentProps<
@@ -187,5 +179,5 @@ export const VideoPlayerCaptionsMenuButton = ({
   className,
   ...props
 }: VideoPlayerCaptionsMenuButtonProps) => (
-  <MediaCaptionsMenuButton className={cn("p-3 md:p-2.5", className)} {...props} />
+  <MediaCaptionsMenuButton className={cn("p-2.5", className)} {...props} />
 );

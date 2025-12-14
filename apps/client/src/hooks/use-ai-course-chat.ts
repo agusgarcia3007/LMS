@@ -260,7 +260,7 @@ export function useAICourseChat() {
                 matchedToolName === "generateCoursePreview" &&
                 event.output?.type === "course_preview"
               ) {
-                const { type: _, ...preview } = event.output;
+                const { type: _type, ...preview } = event.output;
                 setCoursePreview(preview as CoursePreview);
               }
 

@@ -407,6 +407,7 @@ function LearnPage({ tenant }: LearnPageProps) {
             itemId={currentItemId}
             itemTitle={contentData.title}
             itemType={contentData.type}
+             
             currentTime={currentVideoTimeRef.current}
             videoElement={videoElement}
             documentUrl={

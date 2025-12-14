@@ -62,6 +62,7 @@ export function QuestionFormDialog({
   const [explanation, setExplanation] = useState("");
   const [options, setOptions] = useState<OptionInput[]>([]);
 
+   
   useEffect(() => {
     if (open) {
       if (question) {
@@ -86,6 +87,7 @@ export function QuestionFormDialog({
       }
     }
   }, [open, question]);
+   
 
 
   const handleAddOption = () => {

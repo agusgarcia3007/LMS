@@ -288,7 +288,7 @@ function FilesPage() {
         size: 100,
       },
     ],
-    [t]
+    [t, handleNavigate]
   );
 
   return (

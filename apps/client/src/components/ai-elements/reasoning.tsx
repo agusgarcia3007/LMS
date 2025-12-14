@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 "use client";
 
 import { useControllableState } from "@radix-ui/react-use-controllable-state";
@@ -69,6 +70,7 @@ export const Reasoning = memo(
     useEffect(() => {
       if (isStreaming) {
         if (startTime === null) {
+           
           setStartTime(Date.now());
         }
       } else if (startTime !== null) {

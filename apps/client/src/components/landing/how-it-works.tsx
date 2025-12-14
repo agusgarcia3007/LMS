@@ -1,6 +1,5 @@
 import { useTranslation } from "react-i18next";
 import { Upload, Wand2, Rocket } from "lucide-react";
-import SplitText from "@/components/SplitText";
 import BlurText from "@/components/BlurText";
 
 const steps = [

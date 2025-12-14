@@ -314,7 +314,7 @@ function TenantUsersPage() {
         enableHiding: false,
       },
     ],
-    [t]
+    [t, getRoleBadge]
   );
 
   const filterFields = useMemo<FilterFieldConfig[]>(

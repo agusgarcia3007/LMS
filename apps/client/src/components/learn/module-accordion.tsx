@@ -103,8 +103,10 @@ export function ModuleAccordion({
 
   useEffect(() => {
     if (currentModuleId && !expandedModules.includes(currentModuleId)) {
+       
       setExpandedModules((prev) => [...prev, currentModuleId]);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- Only run when currentModuleId changes
   }, [currentModuleId]);
 
   return (

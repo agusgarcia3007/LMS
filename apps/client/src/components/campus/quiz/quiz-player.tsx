@@ -24,10 +24,8 @@ export function QuizPlayer({ quizId, onComplete, isCompleted }: QuizPlayerProps)
 
   const [answers, setAnswers] = useState<Answer[]>([]);
   const [submitted, setSubmitted] = useState(false);
-  const [currentIndex, setCurrentIndex] = useState(0);
 
   const questions = data?.questions || [];
-  const currentQuestion = questions[currentIndex];
 
   const handleSelectOption = (questionId: string, optionId: string) => {
     if (submitted) return;
@@ -84,7 +82,7 @@ export function QuizPlayer({ quizId, onComplete, isCompleted }: QuizPlayerProps)
     if (!submitted) return null;
 
     let correct = 0;
-    let total = questions.length;
+    const total = questions.length;
 
     questions.forEach((question) => {
       const answer = getAnswerForQuestion(question.id);

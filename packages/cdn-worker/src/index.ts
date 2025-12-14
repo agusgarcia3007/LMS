@@ -1,10 +1,43 @@
 import { Hono } from "hono";
-import { cors } from "hono/cors";
 import { getS3Object, type Env } from "./s3";
 
 const app = new Hono<{ Bindings: Env }>();
 
-app.use("/*", cors());
+const EXTENSION_CONTENT_TYPES: Record<string, string> = {
+  vtt: "text/vtt",
+  srt: "text/plain",
+  mp4: "video/mp4",
+  webm: "video/webm",
+  mp3: "audio/mpeg",
+  jpg: "image/jpeg",
+  jpeg: "image/jpeg",
+  png: "image/png",
+  webp: "image/webp",
+  gif: "image/gif",
+  svg: "image/svg+xml",
+  pdf: "application/pdf",
+};
+
+function getContentType(key: string, s3ContentType: string | null): string {
+  const ext = key.split(".").pop()?.toLowerCase();
+  if (ext && EXTENSION_CONTENT_TYPES[ext]) {
+    return EXTENSION_CONTENT_TYPES[ext];
+  }
+  return s3ContentType || "application/octet-stream";
+}
+
+function addCorsHeaders(headers: Headers): void {
+  headers.set("Access-Control-Allow-Origin", "*");
+  headers.set("Access-Control-Allow-Methods", "GET, HEAD, OPTIONS");
+  headers.set("Access-Control-Allow-Headers", "Range");
+  headers.set("Access-Control-Expose-Headers", "Content-Length, Content-Range");
+}
+
+app.options("/*", (c) => {
+  const headers = new Headers();
+  addCorsHeaders(headers);
+  return new Response(null, { status: 204, headers });
+});
 
 app.get("/*", async (c) => {
   const key = c.req.path.slice(1);
@@ -18,7 +51,12 @@ app.get("/*", async (c) => {
 
   const cachedResponse = await cache.match(cacheKey);
   if (cachedResponse) {
-    return cachedResponse;
+    const headers = new Headers(cachedResponse.headers);
+    addCorsHeaders(headers);
+    return new Response(cachedResponse.body, {
+      status: cachedResponse.status,
+      headers,
+    });
   }
 
   const rangeHeader = c.req.header("range");
@@ -29,11 +67,11 @@ app.get("/*", async (c) => {
   }
 
   const headers = new Headers({
-    "Content-Type":
-      s3Response.headers.get("Content-Type") || "application/octet-stream",
+    "Content-Type": getContentType(key, s3Response.headers.get("Content-Type")),
     "Cache-Control": "public, max-age=31536000, immutable",
     "Accept-Ranges": "bytes",
   });
+  addCorsHeaders(headers);
 
   const contentLength = s3Response.headers.get("Content-Length");
   if (contentLength) {

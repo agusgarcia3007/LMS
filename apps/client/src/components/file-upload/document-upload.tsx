@@ -29,7 +29,7 @@ function fileToBase64(file: File): Promise<string> {
   });
 }
 
-function getFileIcon(mimeType: string | null | undefined) {
+function getFileIcon(_mimeType: string | null | undefined) {
   return FileText;
 }
 

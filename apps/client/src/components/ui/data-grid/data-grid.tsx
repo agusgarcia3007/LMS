@@ -1,8 +1,10 @@
+/* eslint-disable react-refresh/only-export-components */
 import { createContext, type ReactNode, useContext } from 'react';
 import { cn } from '@/lib/utils';
 import type { ColumnFiltersState, RowData, SortingState, Table } from '@tanstack/react-table';
 
 declare module '@tanstack/react-table' {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   interface ColumnMeta<TData extends RowData, TValue> {
     headerTitle?: string;
     headerClassName?: string;

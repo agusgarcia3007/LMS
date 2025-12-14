@@ -3,7 +3,7 @@ import {
   Check,
   FileText,
   Heart,
-  Infinity,
+  Infinity as InfinityIcon,
   Layers,
   Play,
   Share2,
@@ -166,7 +166,7 @@ export function CourseSidebar({ course }: CourseSidebarProps) {
               <span>{t("campus.courseDetail.downloadableResources")}</span>
             </li>
             <li className="flex items-center gap-2.5">
-              <Infinity className="size-4 shrink-0" />
+              <InfinityIcon className="size-4 shrink-0" />
               <span>{t("campus.courseDetail.lifetimeAccess")}</span>
             </li>
             <li className="flex items-center gap-2.5">

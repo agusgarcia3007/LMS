@@ -38,11 +38,11 @@ import {
   useUpdateModule,
   useUpdateModuleItems,
 } from "@/services/modules";
-import type { Module, ContentType, ModuleItem } from "@/services/modules";
+import type { Module, ContentType } from "@/services/modules";
 import { useGenerateModule } from "@/services/ai";
-import { useVideosList, type Video as VideoType } from "@/services/videos";
-import { useDocumentsList, type Document } from "@/services/documents";
-import { useQuizzesList, type Quiz } from "@/services/quizzes";
+import { useVideosList } from "@/services/videos";
+import { useDocumentsList } from "@/services/documents";
+import { useQuizzesList } from "@/services/quizzes";
 
 const schema = z.object({
   title: z.string().min(1, "Title is required"),

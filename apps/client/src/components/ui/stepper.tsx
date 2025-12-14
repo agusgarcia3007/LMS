@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 'use client';
 
 import * as React from 'react';
@@ -123,7 +124,7 @@ function Stepper({
       triggerNodes,
       indicators,
     }),
-    [currentStep, handleSetActiveStep, children, orientation, registerTrigger, triggerNodes],
+    [currentStep, handleSetActiveStep, children, orientation, registerTrigger, triggerNodes, focusNext, focusPrev, focusFirst, focusLast, indicators],
   );
 
   return (
@@ -202,12 +203,14 @@ function StepperTrigger({ asChild = false, className, children, tabIndex, ...pro
     if (btnRef.current) {
       registerTrigger(btnRef.current);
     }
-  }, [btnRef.current]);
+     
+  }, [registerTrigger]);
 
   // Find our index among triggers for navigation
   const myIdx = React.useMemo(
     () => triggerNodes.findIndex((n: HTMLButtonElement) => n === btnRef.current),
-    [triggerNodes, btnRef.current],
+     
+    [triggerNodes],
   );
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {

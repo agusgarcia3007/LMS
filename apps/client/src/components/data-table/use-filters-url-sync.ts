@@ -62,6 +62,7 @@ export function useFiltersUrlSync({
     [filterParams]
   );
 
+   
   const urlFilters = useMemo((): Filter[] => {
     if (!filterFields) return [];
 
@@ -115,12 +116,14 @@ export function useFiltersUrlSync({
   useEffect(() => {
     if (isInitialMount.current) {
       isInitialMount.current = false;
+       
       setLocalFilters(urlFilters);
       prevUrlFiltersRef.current = urlFilters;
       return;
     }
 
     if (!areFiltersEqual(prevUrlFiltersRef.current, urlFilters)) {
+       
       setLocalFilters(urlFilters);
       prevUrlFiltersRef.current = urlFilters;
     }

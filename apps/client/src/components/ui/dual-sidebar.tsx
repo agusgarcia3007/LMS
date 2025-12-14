@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import * as React from "react";
 import { PanelLeftIcon, PanelRightIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";

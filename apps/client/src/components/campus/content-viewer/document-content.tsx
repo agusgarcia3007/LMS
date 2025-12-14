@@ -37,6 +37,7 @@ export function DocumentContent({
   useEffect(() => {
     if (autoComplete && onComplete && !hasAutoCompleted.current) {
       hasAutoCompleted.current = true;
+       
       setIsCompleted(true);
       onComplete();
     }
@@ -44,6 +45,7 @@ export function DocumentContent({
 
   useEffect(() => {
     hasAutoCompleted.current = false;
+     
     setIsCompleted(false);
   }, [src]);
 

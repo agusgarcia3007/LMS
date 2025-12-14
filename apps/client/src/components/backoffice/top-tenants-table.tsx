@@ -17,7 +17,6 @@ function TenantRow({
   index: number;
   maxUsers: number;
 }) {
-  const { t } = useTranslation();
   const progressWidth = maxUsers > 0 ? (tenant.usersCount / maxUsers) * 100 : 0;
 
   return (

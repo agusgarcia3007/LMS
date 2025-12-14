@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 "use client";
 
 import Color from "color";
@@ -308,7 +309,7 @@ export type ColorPickerOutputProps = ComponentProps<typeof SelectTrigger>;
 const formats = ["hex", "rgb", "css", "hsl"];
 
 export const ColorPickerOutput = ({
-  className,
+  className: _className,
   ...props
 }: ColorPickerOutputProps) => {
   const { mode, setMode } = useColorPicker();
