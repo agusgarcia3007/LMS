@@ -73,8 +73,8 @@ export const connectRoutes = new Elysia()
 
       const accountLink = await stripe.accountLinks.create({
         account: accountId,
-        refresh_url: `${env.CLIENT_URL}/${ctx.tenant.slug}/settings/payments?refresh=true`,
-        return_url: `${env.CLIENT_URL}/${ctx.tenant.slug}/settings/payments?success=true`,
+        refresh_url: `${env.CLIENT_URL}/${ctx.tenant.slug}/connect?refresh=true`,
+        return_url: `${env.CLIENT_URL}/${ctx.tenant.slug}/connect?success=true`,
         type: "account_onboarding",
         collection_options: {
           fields: "eventually_due",
@@ -103,8 +103,8 @@ export const connectRoutes = new Elysia()
 
       const accountLink = await stripe.accountLinks.create({
         account: ctx.tenant.stripeConnectAccountId,
-        refresh_url: `${env.CLIENT_URL}/${ctx.tenant.slug}/settings/payments?refresh=true`,
-        return_url: `${env.CLIENT_URL}/${ctx.tenant.slug}/settings/payments?success=true`,
+        refresh_url: `${env.CLIENT_URL}/${ctx.tenant.slug}/connect?refresh=true`,
+        return_url: `${env.CLIENT_URL}/${ctx.tenant.slug}/connect?success=true`,
         type: "account_onboarding",
         collection_options: {
           fields: "eventually_due",
