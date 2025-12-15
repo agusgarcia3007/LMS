@@ -53,12 +53,16 @@ function LoginPage() {
     defaultValues: { email: "", password: "" },
   });
 
+  const { tenant } = Route.useLoaderData();
+
   function onSubmit(data: LoginInput) {
     login(data, {
       onSuccess: (response) => {
         const { user } = response;
         if (user.role === "owner" && user.tenantId === null) {
           navigate({ to: "/create-tenant" });
+        } else if (tenant && user.tenantId) {
+          navigate({ to: "/$tenantSlug", params: { tenantSlug: tenant.slug } });
         } else {
           const redirectPath = getRedirectPath();
           clearRedirectPath();

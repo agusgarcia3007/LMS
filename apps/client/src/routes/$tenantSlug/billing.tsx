@@ -9,12 +9,11 @@ import {
 } from "@/services/billing";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { formatPrice } from "@/lib/format";
 import {
   Check,
   CreditCard,
-  Loader2,
-  Sparkles,
   X,
   Users,
   BookOpen,
@@ -39,30 +38,16 @@ export const Route = createFileRoute("/$tenantSlug/billing")({
 function FeatureItem({
   icon: Icon,
   label,
-  highlighted = false,
 }: {
   icon: typeof Users;
   label: string;
-  highlighted?: boolean;
 }) {
   return (
     <li className="flex items-center gap-3">
-      <div
-        className={cn(
-          "flex size-8 items-center justify-center rounded-lg",
-          highlighted
-            ? "bg-primary/10 ring-1 ring-primary/20"
-            : "bg-muted/50 ring-1 ring-border/50"
-        )}
-      >
-        <Icon
-          className={cn(
-            "size-4",
-            highlighted ? "text-primary" : "text-muted-foreground"
-          )}
-        />
+      <div className="flex size-8 items-center justify-center rounded-lg bg-muted">
+        <Icon className="size-4 text-muted-foreground" />
       </div>
-      <span className="text-sm font-medium">{label}</span>
+      <span className="text-sm">{label}</span>
     </li>
   );
 }
@@ -71,16 +56,16 @@ function FeatureRow({ included, label }: { included: boolean; label: string }) {
   return (
     <li
       className={cn(
-        "flex items-center gap-2.5 py-1 transition-opacity",
+        "flex items-center gap-2.5 py-1",
         !included && "opacity-50"
       )}
     >
       {included ? (
-        <div className="flex size-5 items-center justify-center rounded-full bg-emerald-500/10 ring-1 ring-emerald-500/20">
-          <Check className="size-3 text-emerald-500" />
+        <div className="flex size-5 items-center justify-center rounded-full bg-primary/10">
+          <Check className="size-3 text-primary" />
         </div>
       ) : (
-        <div className="flex size-5 items-center justify-center rounded-full bg-muted ring-1 ring-border/50">
+        <div className="flex size-5 items-center justify-center rounded-full bg-muted">
           <X className="size-3 text-muted-foreground" />
         </div>
       )}
@@ -118,26 +103,13 @@ function PlanCard({
   return (
     <div
       className={cn(
-        "group relative flex flex-col overflow-hidden rounded-3xl border-0 bg-gradient-to-b from-card to-card/80 shadow-lg shadow-black/5 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl dark:shadow-black/20",
-        isRecommended && "ring-2 ring-primary shadow-primary/10",
-        isCurrentPlan && !isRecommended && "ring-2 ring-emerald-500/50"
+        "relative flex flex-col rounded-xl border bg-card",
+        (isRecommended || isCurrentPlan) && "border-primary"
       )}
     >
-      <div
-        className={cn(
-          "absolute inset-x-0 top-0 h-1",
-          isRecommended
-            ? "bg-gradient-to-r from-primary via-primary to-primary/60"
-            : isCurrentPlan
-              ? "bg-gradient-to-r from-emerald-500 via-emerald-500 to-emerald-500/60"
-              : "bg-gradient-to-r from-border via-border/80 to-border"
-        )}
-      />
-
       {isRecommended && (
-        <div className="absolute -top-0.5 left-1/2 z-10 -translate-x-1/2 translate-y-3">
-          <Badge className="gap-1.5 bg-primary px-4 py-1 text-primary-foreground shadow-lg shadow-primary/30">
-            <Sparkles className="size-3.5" />
+        <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+          <Badge className="bg-primary text-primary-foreground">
             {t("billing.plans.recommended")}
           </Badge>
         </div>
@@ -145,15 +117,15 @@ function PlanCard({
 
       <div
         className={cn(
-          "border-b border-border/50 px-6 pb-6 pt-8 text-center",
-          isRecommended && "pt-12"
+          "border-b px-6 pb-6 pt-6 text-center",
+          isRecommended && "pt-8"
         )}
       >
-        <h3 className="text-xl font-semibold text-foreground">
+        <h3 className="text-xl font-semibold">
           {t(`billing.plans.${plan.id}`)}
         </h3>
         <div className="mt-4 flex items-baseline justify-center gap-1">
-          <span className="text-5xl font-bold tracking-tight text-foreground">
+          <span className="text-4xl font-bold">
             {formatPrice(plan.monthlyPrice, "USD")}
           </span>
           <span className="text-sm text-muted-foreground">
@@ -161,14 +133,7 @@ function PlanCard({
           </span>
         </div>
         {isCurrentPlan && (
-          <Badge
-            variant="outline"
-            className="mt-4 gap-1.5 border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-          >
-            <span className="relative flex size-2">
-              <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative inline-flex size-2 rounded-full bg-emerald-500" />
-            </span>
+          <Badge variant="outline" className="mt-4 border-primary text-primary">
             {t("billing.currentPlan")}
           </Badge>
         )}
@@ -183,7 +148,6 @@ function PlanCard({
                 ? t("billing.features.maxStudents", { count: plan.maxStudents })
                 : t("billing.features.unlimitedStudents")
             }
-            highlighted
           />
           <FeatureItem
             icon={BookOpen}
@@ -192,30 +156,26 @@ function PlanCard({
                 ? t("billing.features.maxCourses", { count: plan.maxCourses })
                 : t("billing.features.unlimitedCourses")
             }
-            highlighted
           />
           <FeatureItem
             icon={HardDrive}
             label={t("billing.features.storage", { size: plan.storageGb })}
-            highlighted
           />
           <FeatureItem
             icon={Cpu}
             label={t("billing.features.ai", {
               type: t(`billing.aiTypes.${plan.aiGeneration}`),
             })}
-            highlighted
           />
           <FeatureItem
             icon={Percent}
             label={t("billing.features.commission", {
               rate: plan.commissionRate,
             })}
-            highlighted
           />
         </ul>
 
-        <div className="my-5 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+        <div className="my-5 h-px bg-border" />
 
         <ul className="flex-1 space-y-2">
           <FeatureRow
@@ -244,7 +204,7 @@ function PlanCard({
           {isCurrentPlan && hasSubscription ? (
             <Button
               variant="outline"
-              className="w-full gap-2 border-border/60 transition-all duration-300 hover:border-primary/50 hover:bg-primary/5"
+              className="w-full gap-2"
               onClick={onManage}
               isLoading={isLoading}
             >
@@ -257,18 +217,13 @@ function PlanCard({
             </Button>
           ) : (
             <Button
-              className={cn(
-                "group/btn w-full gap-2 transition-all duration-300",
-                isRecommended
-                  ? "bg-gradient-to-r from-primary to-primary/90 shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30"
-                  : "bg-secondary hover:bg-secondary/80"
-              )}
+              className="w-full gap-2"
               variant={isRecommended ? "default" : "secondary"}
               onClick={onSelect}
               isLoading={isLoading}
             >
               {t("billing.selectPlan")}
-              <ArrowRight className="size-4 transition-transform group-hover/btn:translate-x-1" />
+              <ArrowRight className="size-4" />
             </Button>
           )}
         </div>
@@ -280,66 +235,60 @@ function PlanCard({
 function StatusBadge({ status }: { status: string }) {
   const { t } = useTranslation();
 
-  const variants: Record<
-    string,
-    { bg: string; text: string; dot: string; ring: string }
-  > = {
-    active: {
-      bg: "bg-emerald-500/10",
-      text: "text-emerald-600 dark:text-emerald-400",
-      dot: "bg-emerald-500",
-      ring: "border-emerald-500/30",
-    },
-    trialing: {
-      bg: "bg-blue-500/10",
-      text: "text-blue-600 dark:text-blue-400",
-      dot: "bg-blue-500",
-      ring: "border-blue-500/30",
-    },
-    past_due: {
-      bg: "bg-amber-500/10",
-      text: "text-amber-600 dark:text-amber-400",
-      dot: "bg-amber-500",
-      ring: "border-amber-500/30",
-    },
-    canceled: {
-      bg: "bg-red-500/10",
-      text: "text-red-600 dark:text-red-400",
-      dot: "bg-red-500",
-      ring: "border-red-500/30",
-    },
-    unpaid: {
-      bg: "bg-red-500/10",
-      text: "text-red-600 dark:text-red-400",
-      dot: "bg-red-500",
-      ring: "border-red-500/30",
-    },
-  };
-
-  const variant = variants[status] || variants.active;
+  const isNegative = status === "past_due" || status === "canceled" || status === "unpaid";
 
   return (
     <Badge
+      variant="outline"
       className={cn(
-        "gap-1.5 border shadow-sm",
-        variant.bg,
-        variant.text,
-        variant.ring
+        "gap-1.5",
+        isNegative
+          ? "border-destructive/50 text-destructive"
+          : "border-primary/50 text-primary"
       )}
     >
-      <span className="relative flex size-2">
-        <span
-          className={cn(
-            "absolute inline-flex size-full animate-ping rounded-full opacity-75",
-            variant.dot
-          )}
-        />
-        <span
-          className={cn("relative inline-flex size-2 rounded-full", variant.dot)}
-        />
-      </span>
+      <span
+        className={cn(
+          "size-2 rounded-full",
+          isNegative ? "bg-destructive" : "bg-primary"
+        )}
+      />
       {t(`billing.status.${status}`)}
     </Badge>
+  );
+}
+
+function BillingPageSkeleton() {
+  return (
+    <div className="space-y-8">
+      <div className="flex items-center gap-4">
+        <Skeleton className="size-12 rounded-xl" />
+        <div className="space-y-2">
+          <Skeleton className="h-8 w-32" />
+          <Skeleton className="h-4 w-48" />
+        </div>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-3">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="rounded-xl border bg-card p-6">
+            <div className="space-y-4 text-center">
+              <Skeleton className="mx-auto h-6 w-24" />
+              <Skeleton className="mx-auto h-10 w-20" />
+            </div>
+            <div className="mt-6 space-y-3">
+              {[1, 2, 3, 4, 5].map((j) => (
+                <div key={j} className="flex items-center gap-3">
+                  <Skeleton className="size-8 rounded-lg" />
+                  <Skeleton className="h-4 flex-1" />
+                </div>
+              ))}
+            </div>
+            <Skeleton className="mt-6 h-10 w-full" />
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -370,14 +319,7 @@ function BillingPage() {
   };
 
   if (isLoadingSubscription || isLoadingPlans) {
-    return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <div className="relative">
-          <div className="absolute inset-0 rounded-full bg-primary/20 blur-xl" />
-          <Loader2 className="relative size-10 animate-spin text-primary" />
-        </div>
-      </div>
-    );
+    return <BillingPageSkeleton />;
   }
 
   const currentPlan = subscription?.plan;
@@ -387,24 +329,17 @@ function BillingPage() {
 
   return (
     <div className="space-y-8">
-      <div className="relative overflow-hidden rounded-3xl border border-border/50 bg-gradient-to-br from-muted/50 via-background to-background p-8 md:p-10">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent" />
-        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
-
-        <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-4">
-            <div className="flex size-12 items-center justify-center rounded-2xl bg-primary/10 ring-1 ring-primary/20">
-              <CreditCard className="size-6 text-primary" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight md:text-3xl">
-                {t("billing.title")}
-              </h1>
-              <p className="text-muted-foreground">{t("billing.description")}</p>
-            </div>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-4">
+          <div className="flex size-12 items-center justify-center rounded-xl bg-primary/10">
+            <CreditCard className="size-6 text-primary" />
           </div>
-          {status && <StatusBadge status={status} />}
+          <div>
+            <h1 className="text-2xl font-bold">{t("billing.title")}</h1>
+            <p className="text-muted-foreground">{t("billing.description")}</p>
+          </div>
         </div>
+        {status && <StatusBadge status={status} />}
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">

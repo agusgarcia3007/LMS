@@ -1,6 +1,6 @@
 import { Elysia, t } from "elysia";
 import { authPlugin, invalidateUserCache } from "@/plugins/auth";
-import { tenantPlugin } from "@/plugins/tenant";
+import { tenantPlugin, invalidateTenantCache } from "@/plugins/tenant";
 import { jwtPlugin } from "@/plugins/jwt";
 import { AppError, ErrorCode } from "@/lib/errors";
 import { sendEmail } from "@/lib/utils";
@@ -413,7 +413,21 @@ export const usersRoutes = new Elysia()
           throw new AppError(ErrorCode.USER_NOT_FOUND, "User not found", 404);
         }
 
-        await db.delete(usersTable).where(eq(usersTable.id, ctx.params.id));
+        if (existingUser.role === "owner" && existingUser.tenantId) {
+          const [tenant] = await db
+            .select({ slug: tenantsTable.slug })
+            .from(tenantsTable)
+            .where(eq(tenantsTable.id, existingUser.tenantId))
+            .limit(1);
+
+          await db.delete(tenantsTable).where(eq(tenantsTable.id, existingUser.tenantId));
+
+          if (tenant) {
+            invalidateTenantCache(tenant.slug);
+          }
+        } else {
+          await db.delete(usersTable).where(eq(usersTable.id, ctx.params.id));
+        }
 
         invalidateUserCache(ctx.params.id);
 

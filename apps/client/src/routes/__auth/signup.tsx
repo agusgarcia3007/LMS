@@ -54,6 +54,7 @@ function SignupPage() {
   });
 
   const { i18n } = useTranslation();
+  const { tenant } = Route.useLoaderData();
 
   function onSubmit(data: SignupInput) {
     signup(
@@ -63,7 +64,15 @@ function SignupPage() {
         password: data.password,
         locale: i18n.language,
       },
-      { onSuccess: () => navigate({ to: "/create-tenant" }) }
+      {
+        onSuccess: () => {
+          if (tenant) {
+            navigate({ to: "/$tenantSlug", params: { tenantSlug: tenant.slug } });
+          } else {
+            navigate({ to: "/create-tenant" });
+          }
+        },
+      }
     );
   }
 

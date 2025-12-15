@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Check, Copy } from "lucide-react";
+import { toast } from "sonner";
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -36,14 +38,26 @@ export function DeleteDialog({
 }: DeleteDialogProps) {
   const { t } = useTranslation();
   const [inputValue, setInputValue] = useState("");
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    if (!open) {
+      setInputValue("");
+      setCopied(false);
+    }
+  }, [open]);
 
   const isConfirmDisabled = inputValue !== confirmValue || isPending;
 
   const handleOpenChange = (open: boolean) => {
-    if (!open) {
-      setInputValue("");
-    }
     onOpenChange(open);
+  };
+
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(confirmValue);
+    setCopied(true);
+    toast.success(t("common.copied"));
+    setTimeout(() => setCopied(false), 2000);
   };
 
   const handleConfirm = () => {
@@ -61,9 +75,27 @@ export function DeleteDialog({
         </AlertDialogHeader>
 
         <div className="space-y-2 py-2">
-          <Label htmlFor="confirm-input">
-            {confirmLabel ?? t("common.typeToConfirm", { value: confirmValue })}
-          </Label>
+          <div className="flex items-center gap-1.5">
+            <Label htmlFor="confirm-input">
+              {confirmLabel ?? t("common.typeToConfirm")}
+            </Label>
+            <code className="bg-muted rounded px-1.5 py-0.5 text-sm font-mono">
+              {confirmValue}
+            </code>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6"
+              onClick={handleCopy}
+            >
+              {copied ? (
+                <Check className="h-3.5 w-3.5 text-green-500" />
+              ) : (
+                <Copy className="h-3.5 w-3.5" />
+              )}
+            </Button>
+          </div>
           <Input
             id="confirm-input"
             value={inputValue}
