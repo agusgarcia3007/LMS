@@ -45,7 +45,13 @@ const app = new Elysia()
       )} ${statusCode}`
     );
   })
-  .get("/", () => ({ message: "Learnbase API", version: "1.0.0" }));
+  .get("/", () => ({ message: "Learnbase API", version: "1.0.0" }))
+  .get("/favicon.ico", async () => {
+    const favicon = Bun.file("./public/favicon.ico");
+    return new Response(favicon, {
+      headers: { "Content-Type": "image/x-icon", "Cache-Control": "public, max-age=31536000" },
+    });
+  });
 
 ROUTES.forEach(({ path, route }) => {
   app.group(path, (app) => app.use(route));
