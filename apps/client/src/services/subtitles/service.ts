@@ -1,19 +1,8 @@
 import { http } from "@/lib/http";
-
-export type SubtitleStatus = "pending" | "processing" | "completed" | "failed";
-
-export type Subtitle = {
-  id: string;
-  language: string;
-  label: string;
-  isOriginal: boolean;
-  status: SubtitleStatus;
-  errorMessage: string | null;
-  createdAt: string;
-};
+import type { Subtitle } from "@/services/videos/service";
 
 export const QUERY_KEYS = {
-  SUBTITLES: (videoId: string) => ["subtitles", videoId],
+  VIDEO_SUBTITLES: (videoId: string) => ["subtitles", "video", videoId],
   SUBTITLE_VTT: (videoId: string, language: string) => [
     "subtitles",
     videoId,
@@ -23,7 +12,7 @@ export const QUERY_KEYS = {
 } as const;
 
 export const SubtitlesService = {
-  async list(videoId: string) {
+  async getByVideo(videoId: string) {
     const { data } = await http.get<{ subtitles: Subtitle[] }>(
       `/ai/videos/${videoId}/subtitles`
     );

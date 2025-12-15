@@ -14,12 +14,14 @@ import {
   enrollmentsTable,
   itemProgressTable,
   videosTable,
+  videoSubtitlesTable,
   documentsTable,
   quizzesTable,
   quizQuestionsTable,
   quizOptionsTable,
   instructorsTable,
 } from "@/db/schema";
+import { getLanguageLabel } from "@/lib/languages";
 import { eq, and, count, inArray, asc, sql, ne, notInArray } from "drizzle-orm";
 
 type ItemProgressStatus = "not_started" | "in_progress" | "completed";

@@ -8,7 +8,7 @@ import {
   videoSubtitlesTable,
   type SelectVideoSubtitle,
 } from "@/db/schema";
-import { eq, and } from "drizzle-orm";
+import { eq, and, desc } from "drizzle-orm";
 import { transcribeWithTimestamps } from "@/lib/ai/transcription-timestamps";
 import { translateSubtitleSegments } from "@/lib/ai/subtitle-translation";
 import { generateVTT } from "@/lib/ai/vtt-generator";
@@ -399,41 +399,6 @@ export const subtitlesRoutes = new Elysia({ name: "ai-subtitles" })
     }
   )
   .get(
-    "/videos/:videoId/subtitles",
-    (ctx) =>
-      withHandler(ctx, async () => {
-        if (!ctx.user) {
-          throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
-        }
-
-        const subtitles = await db
-          .select({
-            id: videoSubtitlesTable.id,
-            language: videoSubtitlesTable.language,
-            isOriginal: videoSubtitlesTable.isOriginal,
-            status: videoSubtitlesTable.status,
-            errorMessage: videoSubtitlesTable.errorMessage,
-            createdAt: videoSubtitlesTable.createdAt,
-          })
-          .from(videoSubtitlesTable)
-          .where(eq(videoSubtitlesTable.videoId, ctx.params.videoId));
-
-        const subtitlesWithLabels = subtitles.map((s) => ({
-          ...s,
-          label: getLanguageLabel(s.language),
-        }));
-
-        return { subtitles: subtitlesWithLabels };
-      }),
-    {
-      params: t.Object({ videoId: t.String({ format: "uuid" }) }),
-      detail: {
-        tags: ["AI"],
-        summary: "Get all subtitles for a video",
-      },
-    }
-  )
-  .get(
     "/videos/:videoId/subtitles/:language/vtt",
     (ctx) =>
       withHandler(ctx, async () => {
@@ -506,6 +471,44 @@ export const subtitlesRoutes = new Elysia({ name: "ai-subtitles" })
       detail: {
         tags: ["AI"],
         summary: "Get VTT file for a specific subtitle",
+      },
+    }
+  )
+  .get(
+    "/videos/:videoId/subtitles",
+    (ctx) =>
+      withHandler(ctx, async () => {
+        if (!ctx.user) {
+          throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
+        }
+
+        const subtitles = await db
+          .select()
+          .from(videoSubtitlesTable)
+          .where(eq(videoSubtitlesTable.videoId, ctx.params.videoId))
+          .orderBy(
+            desc(videoSubtitlesTable.isOriginal),
+            videoSubtitlesTable.createdAt
+          );
+
+        return {
+          subtitles: subtitles.map((s) => ({
+            id: s.id,
+            language: s.language,
+            label: getLanguageLabel(s.language as SubtitleLanguageCode),
+            isOriginal: s.isOriginal,
+            status: s.status,
+            vttUrl: s.status === "completed" && s.vttKey ? getPresignedUrl(s.vttKey) : null,
+            errorMessage: s.errorMessage,
+            createdAt: s.createdAt.toISOString(),
+          })),
+        };
+      }),
+    {
+      params: t.Object({ videoId: t.String({ format: "uuid" }) }),
+      detail: {
+        tags: ["AI"],
+        summary: "List subtitles for a video",
       },
     }
   )

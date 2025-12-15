@@ -2,6 +2,19 @@ import { http } from "@/lib/http";
 
 export type ContentStatus = "draft" | "published";
 
+export type SubtitleStatus = "pending" | "processing" | "completed" | "failed";
+
+export type Subtitle = {
+  id: string;
+  language: string;
+  label: string;
+  isOriginal: boolean;
+  status: SubtitleStatus;
+  vttUrl: string | null;
+  errorMessage: string | null;
+  createdAt: string;
+};
+
 export type Video = {
   id: string;
   tenantId: string;

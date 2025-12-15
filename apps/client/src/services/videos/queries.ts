@@ -5,4 +5,12 @@ import { videosListOptions, videoOptions } from "./options";
 export const useVideosList = (params?: VideoListParams) =>
   useQuery(videosListOptions(params));
 
-export const useVideo = (id: string) => useQuery(videoOptions(id));
+type UseVideoOptions = {
+  refetchInterval?: number | false;
+};
+
+export const useVideo = (id: string, options?: UseVideoOptions) =>
+  useQuery({
+    ...videoOptions(id),
+    refetchInterval: options?.refetchInterval,
+  });

@@ -62,6 +62,14 @@ export type CourseStructure = {
   resumeItemId: string | null;
 };
 
+export type VideoSubtitle = {
+  id: string;
+  language: string;
+  label: string;
+  isOriginal: boolean;
+  status: string;
+};
+
 export type VideoContent = {
   type: "video";
   id: string;
@@ -70,6 +78,7 @@ export type VideoContent = {
   url: string | null;
   duration: number;
   videoProgress: number;
+  subtitles: VideoSubtitle[];
 };
 
 export type DocumentContent = {

@@ -7,8 +7,10 @@ import {
   videosTable,
   contentStatusEnum,
   moduleItemsTable,
+  videoSubtitlesTable,
   type SelectVideo,
 } from "@/db/schema";
+import { getLanguageLabel } from "@/lib/languages";
 import { count, eq, and, desc } from "drizzle-orm";
 import {
   parseListParams,

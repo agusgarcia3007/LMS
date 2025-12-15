@@ -75,7 +75,6 @@ export function SubtitleManager({ videoId }: SubtitleManagerProps) {
           <Popover open={generateOpen} onOpenChange={setGenerateOpen}>
             <PopoverTrigger asChild>
               <Button
-                type="button"
                 size="sm"
                 variant="outline"
                 disabled={generateMutation.isPending}
@@ -87,7 +86,7 @@ export function SubtitleManager({ videoId }: SubtitleManagerProps) {
             <PopoverContent className="w-[200px] p-0" align="end">
               <Command>
                 <CommandInput placeholder={t("subtitles.searchLanguage")} />
-                <CommandList>
+                <CommandList className="max-h-[200px]">
                   <CommandEmpty>{t("subtitles.noResults")}</CommandEmpty>
                   <CommandGroup>
                     {LANGUAGE_OPTIONS.map((lang) => (
@@ -149,7 +148,6 @@ export function SubtitleManager({ videoId }: SubtitleManagerProps) {
                 />
                 {(subtitle.status === "completed" || subtitle.status === "failed") && (
                   <Button
-                    type="button"
                     size="icon"
                     variant="ghost"
                     className="h-7 w-7 text-muted-foreground hover:text-destructive"
@@ -179,7 +177,6 @@ export function SubtitleManager({ videoId }: SubtitleManagerProps) {
         <Popover open={translateOpen} onOpenChange={setTranslateOpen}>
           <PopoverTrigger asChild>
             <Button
-              type="button"
               size="sm"
               variant="outline"
               disabled={translateMutation.isPending}
@@ -195,7 +192,7 @@ export function SubtitleManager({ videoId }: SubtitleManagerProps) {
           <PopoverContent className="w-[200px] p-0" align="start">
             <Command>
               <CommandInput placeholder={t("subtitles.searchLanguage")} />
-              <CommandList>
+              <CommandList className="max-h-[200px]">
                 <CommandEmpty>{t("subtitles.noResults")}</CommandEmpty>
                 <CommandGroup>
                   {availableTranslations.map((lang) => (

@@ -8,7 +8,7 @@ export function useGenerateSubtitles(videoId: string) {
     mutationFn: (sourceLanguage?: string) =>
       SubtitlesService.generate(videoId, sourceLanguage),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.SUBTITLES(videoId) });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.VIDEO_SUBTITLES(videoId) });
     },
   });
 }
@@ -20,7 +20,7 @@ export function useTranslateSubtitles(videoId: string) {
     mutationFn: (targetLanguage: string) =>
       SubtitlesService.translate(videoId, targetLanguage),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.SUBTITLES(videoId) });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.VIDEO_SUBTITLES(videoId) });
     },
   });
 }
@@ -31,7 +31,7 @@ export function useDeleteSubtitle(videoId: string) {
   return useMutation({
     mutationFn: (subtitleId: string) => SubtitlesService.delete(subtitleId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.SUBTITLES(videoId) });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.VIDEO_SUBTITLES(videoId) });
     },
   });
 }
