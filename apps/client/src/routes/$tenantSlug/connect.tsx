@@ -14,7 +14,6 @@ import {
   CheckCircle2,
   Clock,
   ExternalLink,
-  Loader2,
   XCircle,
   Landmark,
   Banknote,
@@ -22,6 +21,7 @@ import {
   Zap,
   AlertTriangle,
 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const Route = createFileRoute("/$tenantSlug/connect")({
   head: () =>
@@ -160,10 +160,32 @@ function ConnectPage() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <div className="relative">
-          <div className="absolute inset-0 rounded-full bg-primary/20 blur-xl" />
-          <Loader2 className="relative size-10 animate-spin text-primary" />
+      <div className="space-y-8">
+        <div className="relative overflow-hidden rounded-3xl border border-border/50 bg-gradient-to-br from-primary/5 via-background to-background p-8 md:p-10">
+          <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-3">
+              <Skeleton className="size-12 rounded-2xl" />
+              <div className="space-y-2">
+                <Skeleton className="h-8 w-48" />
+                <Skeleton className="h-4 w-64" />
+              </div>
+            </div>
+            <Skeleton className="h-6 w-24" />
+          </div>
+        </div>
+
+        <div className="relative overflow-hidden rounded-3xl border border-border/50 bg-gradient-to-b from-card to-card/80 p-8 md:p-12">
+          <div className="mx-auto max-w-2xl text-center">
+            <Skeleton className="mx-auto size-24 rounded-full" />
+            <Skeleton className="mx-auto mt-8 h-8 w-64" />
+            <Skeleton className="mx-auto mt-4 h-4 w-80" />
+            <div className="mt-8 grid gap-4 sm:grid-cols-3">
+              {[1, 2, 3].map((i) => (
+                <Skeleton key={i} className="h-12 rounded-xl" />
+              ))}
+            </div>
+            <Skeleton className="mx-auto mt-10 h-12 w-48" />
+          </div>
         </div>
       </div>
     );

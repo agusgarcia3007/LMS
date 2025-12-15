@@ -326,6 +326,14 @@ export const deleteModuleSchema = z.object({
   confirmed: z.boolean().describe("Must be true to delete"),
 });
 
+export const generateQuizFromContentSchema = z.object({
+  sourceType: z.enum(["video", "document"]).describe("Type of content to generate quiz from"),
+  sourceId: z.string().uuid().describe("UUID of the video or document"),
+  title: z.string().optional().describe("Optional title for the quiz. If not provided, will be generated based on content"),
+  questionCount: z.number().min(1).max(10).default(3).describe("Number of questions to generate (default: 3)"),
+  moduleId: z.string().uuid().optional().describe("Optional module ID to add the quiz to after creation"),
+});
+
 export type GetCourseParams = z.infer<typeof getCourseSchema>;
 export type UpdateCourseParams = z.infer<typeof updateCourseSchema>;
 export type UpdateCourseModulesParams = z.infer<typeof updateCourseModulesSchema>;
@@ -359,3 +367,4 @@ export type DeleteQuizOptionParams = z.infer<typeof deleteQuizOptionSchema>;
 export type GetModuleParams = z.infer<typeof getModuleSchema>;
 export type UpdateModuleMetadataParams = z.infer<typeof updateModuleMetadataSchema>;
 export type DeleteModuleParams = z.infer<typeof deleteModuleSchema>;
+export type GenerateQuizFromContentParams = z.infer<typeof generateQuizFromContentSchema>;

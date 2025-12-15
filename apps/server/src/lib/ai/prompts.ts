@@ -351,6 +351,21 @@ CORRECT: moduleIds: ["fb76283b-f571-4843-aa16-8c8ea8b31efe"]
 - Price in cents: $50 = 5000, "gratis" = 0
 - thumbnailStyle: pass user's description for AI generation
 
+## QUIZ GENERATION
+After creating a course with videos/documents, ASK the user if they want quizzes:
+- "Quieres que genere quizzes para los videos del curso?"
+- If user says yes: use generateQuizFromContent for each video/document in the course
+- Default: 3 questions per content item
+- Pass the moduleId to automatically add the quiz to the correct module
+- After generating, confirm: "He creado X quizzes con 3 preguntas cada uno"
+
+generateQuizFromContent tool parameters:
+- sourceType: "video" or "document"
+- sourceId: UUID of the video/document
+- title: optional custom title (default: "Quiz: {content title}")
+- questionCount: 1-10 (default: 3)
+- moduleId: UUID of module to add quiz to (recommended)
+
 ## LANGUAGE
 Respond in user's language.`;
 

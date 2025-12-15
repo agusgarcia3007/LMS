@@ -1,10 +1,18 @@
-import { tool } from "ai";
+import { tool, generateText } from "ai";
 import { db } from "@/db";
-import { quizzesTable, quizQuestionsTable, quizOptionsTable } from "@/db/schema";
+import { quizzesTable, quizQuestionsTable, quizOptionsTable, videosTable, documentsTable, moduleItemsTable } from "@/db/schema";
 import { eq, and, desc, sql, isNotNull, gt, inArray } from "drizzle-orm";
 import { cosineDistance } from "drizzle-orm";
 import { logger } from "@/lib/logger";
 import { generateEmbedding } from "../embeddings";
+import { transcribeVideo } from "../transcript";
+import { extractTextFromDocument } from "../document-extract";
+import { getLangfuseClient } from "../langfuse";
+import { promptKeys } from "../prompts";
+import { buildQuizPromptVariables, parseGeneratedQuestions } from "../quiz-generation";
+import { groq } from "../groq";
+import { AI_MODELS } from "../models";
+import { getPresignedUrl } from "@/lib/upload";
 import {
   createQuizSchema,
   getQuizSchema,
@@ -17,6 +25,7 @@ import {
   addQuizOptionSchema,
   updateQuizOptionSchema,
   deleteQuizOptionSchema,
+  generateQuizFromContentSchema,
 } from "./schemas";
 import { SIMILARITY_THRESHOLDS, type ToolContext } from "./utils";
 
@@ -469,6 +478,218 @@ export function createQuizTools(ctx: ToolContext) {
 
         logger.info("deleteQuizOption executed", { optionId });
         return { type: "option_deleted" as const, optionId };
+      },
+    }),
+
+    generateQuizFromContent: tool({
+      description: "Generate a quiz with AI-generated questions based on a video transcript or document content. Use this when user wants quizzes for their course content. The quiz will be created and optionally added to a module.",
+      inputSchema: generateQuizFromContentSchema,
+      execute: async ({ sourceType, sourceId, title, questionCount = 3, moduleId }) => {
+        logger.info("generateQuizFromContent started", {
+          sourceType,
+          sourceId,
+          questionCount,
+          moduleId,
+        });
+
+        let content: string;
+        let contentTitle: string;
+
+        if (sourceType === "video") {
+          const [video] = await db
+            .select({
+              id: videosTable.id,
+              title: videosTable.title,
+              videoKey: videosTable.videoKey,
+              transcript: videosTable.transcript,
+            })
+            .from(videosTable)
+            .where(
+              and(
+                eq(videosTable.id, sourceId),
+                eq(videosTable.tenantId, tenantId)
+              )
+            )
+            .limit(1);
+
+          if (!video) {
+            return { type: "error" as const, error: "Video not found" };
+          }
+
+          if (!video.videoKey) {
+            return { type: "error" as const, error: "Video has no file uploaded" };
+          }
+
+          contentTitle = video.title;
+
+          if (video.transcript) {
+            content = video.transcript;
+            logger.info("Using existing transcript", { videoId: video.id });
+          } else {
+            const videoUrl = getPresignedUrl(video.videoKey);
+            logger.info("Transcribing video for quiz generation", { videoId: video.id });
+            content = await transcribeVideo(videoUrl);
+
+            await db
+              .update(videosTable)
+              .set({ transcript: content })
+              .where(eq(videosTable.id, video.id));
+          }
+        } else {
+          const [document] = await db
+            .select({
+              id: documentsTable.id,
+              title: documentsTable.title,
+              fileKey: documentsTable.fileKey,
+              mimeType: documentsTable.mimeType,
+            })
+            .from(documentsTable)
+            .where(
+              and(
+                eq(documentsTable.id, sourceId),
+                eq(documentsTable.tenantId, tenantId)
+              )
+            )
+            .limit(1);
+
+          if (!document) {
+            return { type: "error" as const, error: "Document not found" };
+          }
+
+          if (!document.fileKey) {
+            return { type: "error" as const, error: "Document has no file uploaded" };
+          }
+
+          contentTitle = document.title;
+          const documentUrl = getPresignedUrl(document.fileKey);
+          logger.info("Extracting text from document for quiz generation", { documentId: document.id });
+          content = await extractTextFromDocument(
+            documentUrl,
+            document.mimeType || "application/pdf"
+          );
+        }
+
+        if (!content || content.length < 100) {
+          return {
+            type: "error" as const,
+            error: "Content is too short to generate questions",
+          };
+        }
+
+        const langfuse = getLangfuseClient();
+        const quizPromptData = await langfuse.prompt.get(
+          promptKeys.QUIZ_GENERATION_PROMPT
+        );
+
+        const promptVariables = buildQuizPromptVariables(content, questionCount, []);
+        const prompt = quizPromptData.compile(promptVariables);
+
+        logger.info("Generating quiz questions with AI", {
+          sourceType,
+          sourceId,
+          contentLength: content.length,
+          questionCount,
+        });
+
+        const { text: responseText } = await generateText({
+          model: groq(AI_MODELS.QUIZ_GENERATION),
+          prompt,
+          maxOutputTokens: 4000,
+          temperature: 0.7,
+        });
+
+        if (!responseText) {
+          return {
+            type: "error" as const,
+            error: "Failed to generate questions from AI",
+          };
+        }
+
+        const questions = parseGeneratedQuestions(responseText).slice(0, questionCount);
+
+        if (questions.length === 0) {
+          return {
+            type: "error" as const,
+            error: "AI generated no valid questions",
+          };
+        }
+
+        const quizTitle = title || `Quiz: ${contentTitle}`;
+        const quizText = `${quizTitle}`.trim();
+        const embedding = await generateEmbedding(quizText);
+
+        const [quiz] = await db
+          .insert(quizzesTable)
+          .values({
+            tenantId,
+            title: quizTitle,
+            description: `Auto-generated quiz based on ${sourceType}: ${contentTitle}`,
+            status: "published",
+            embedding,
+          })
+          .returning();
+
+        for (let i = 0; i < questions.length; i++) {
+          const q = questions[i];
+          const [question] = await db
+            .insert(quizQuestionsTable)
+            .values({
+              quizId: quiz.id,
+              tenantId,
+              type: q.type === "multiple_select" ? "multiple_choice" : q.type,
+              questionText: q.questionText,
+              explanation: q.explanation ?? null,
+              order: i,
+            })
+            .returning();
+
+          for (let j = 0; j < q.options.length; j++) {
+            const opt = q.options[j];
+            await db.insert(quizOptionsTable).values({
+              questionId: question.id,
+              optionText: opt.optionText,
+              isCorrect: opt.isCorrect,
+              order: j,
+            });
+          }
+        }
+
+        let addedToModule = false;
+
+        if (moduleId) {
+          const [maxOrder] = await db
+            .select({ maxOrder: moduleItemsTable.order })
+            .from(moduleItemsTable)
+            .where(eq(moduleItemsTable.moduleId, moduleId))
+            .orderBy(desc(moduleItemsTable.order))
+            .limit(1);
+
+          await db.insert(moduleItemsTable).values({
+            moduleId,
+            contentType: "quiz",
+            contentId: quiz.id,
+            order: (maxOrder?.maxOrder ?? -1) + 1,
+            isPreview: false,
+          });
+
+          addedToModule = true;
+          logger.info("Quiz added to module", { quizId: quiz.id, moduleId });
+        }
+
+        logger.info("generateQuizFromContent completed", {
+          quizId: quiz.id,
+          questionsCount: questions.length,
+          addedToModule,
+        });
+
+        return {
+          type: "quiz_generated" as const,
+          quizId: quiz.id,
+          title: quiz.title,
+          questionsCount: questions.length,
+          addedToModule,
+          moduleId: addedToModule ? moduleId : undefined,
+        };
       },
     }),
   };

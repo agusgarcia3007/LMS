@@ -194,22 +194,7 @@ export const chatCreatorRoutes = new Elysia({ name: "ai-chat-creator" })
         messages: formattedMessages,
         tools,
         stopWhen: (event) => {
-          if (event.steps.length >= 20) return true;
-
-          const hasCreateCourse = event.steps.some((s) =>
-            s.toolCalls?.some((tc) => tc.toolName === "createCourse")
-          );
-
-          if (!hasCreateCourse) return false;
-
-          const lastCreateCourseStep = [...event.steps]
-            .reverse()
-            .find((s) => s.toolCalls?.some((tc) => tc.toolName === "createCourse"));
-
-          if (!lastCreateCourseStep) return false;
-
-          const lastIndex = event.steps.indexOf(lastCreateCourseStep);
-          return event.steps.length > lastIndex + 1;
+          return event.steps.length >= 20;
         },
         onStepFinish: (step) => {
           logger.info("AI chat step finished", {
