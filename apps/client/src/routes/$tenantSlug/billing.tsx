@@ -1,29 +1,32 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useTranslation } from "react-i18next";
-import { createSeoMeta } from "@/lib/seo";
-import {
-  useSubscription,
-  usePlans,
-  useCreateSubscription,
-  useCreatePortalSession,
-} from "@/services/billing";
-import { Button } from "@/components/ui/button";
+import { PricingOverlay } from "@/components/pricing-overlay";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
-import { formatPrice } from "@/lib/format";
-import {
-  Check,
-  CreditCard,
-  X,
-  Users,
-  BookOpen,
-  HardDrive,
-  Cpu,
-  Percent,
-  ArrowRight,
-} from "lucide-react";
+import { formatBytes } from "@/lib/format";
+import { createSeoMeta } from "@/lib/seo";
 import { cn } from "@/lib/utils";
-import type { PlanInfo, TenantPlan } from "@/services/billing/service";
+import {
+  useCreatePortalSession,
+  useCreateSubscription,
+  usePlans,
+  useSubscription,
+} from "@/services/billing";
+import type {
+  SubscriptionResponse,
+  TenantPlan,
+} from "@/services/billing/service";
+import { createFileRoute } from "@tanstack/react-router";
+import {
+  BookOpen,
+  CreditCard,
+  ExternalLink,
+  HardDrive,
+  Percent,
+  Users,
+} from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export const Route = createFileRoute("/$tenantSlug/billing")({
   head: () =>
@@ -35,207 +38,11 @@ export const Route = createFileRoute("/$tenantSlug/billing")({
   component: BillingPage,
 });
 
-function FeatureItem({
-  icon: Icon,
-  label,
-}: {
-  icon: typeof Users;
-  label: string;
-}) {
-  return (
-    <li className="flex items-center gap-3">
-      <div className="flex size-8 items-center justify-center rounded-lg bg-muted">
-        <Icon className="size-4 text-muted-foreground" />
-      </div>
-      <span className="text-sm">{label}</span>
-    </li>
-  );
-}
-
-function FeatureRow({ included, label }: { included: boolean; label: string }) {
-  return (
-    <li
-      className={cn(
-        "flex items-center gap-2.5 py-1",
-        !included && "opacity-50"
-      )}
-    >
-      {included ? (
-        <div className="flex size-5 items-center justify-center rounded-full bg-primary/10">
-          <Check className="size-3 text-primary" />
-        </div>
-      ) : (
-        <div className="flex size-5 items-center justify-center rounded-full bg-muted">
-          <X className="size-3 text-muted-foreground" />
-        </div>
-      )}
-      <span
-        className={cn(
-          "text-sm",
-          included ? "text-foreground" : "text-muted-foreground line-through"
-        )}
-      >
-        {label}
-      </span>
-    </li>
-  );
-}
-
-function PlanCard({
-  plan,
-  isCurrentPlan,
-  isRecommended,
-  onSelect,
-  onManage,
-  isLoading,
-  hasSubscription,
-  t,
-}: {
-  plan: PlanInfo;
-  isCurrentPlan: boolean;
-  isRecommended: boolean;
-  onSelect: () => void;
-  onManage: () => void;
-  isLoading: boolean;
-  hasSubscription: boolean;
-  t: (key: string, options?: Record<string, unknown>) => string;
-}) {
-  return (
-    <div
-      className={cn(
-        "relative flex flex-col rounded-xl border bg-card",
-        (isRecommended || isCurrentPlan) && "border-primary"
-      )}
-    >
-      {isRecommended && (
-        <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-          <Badge className="bg-primary text-primary-foreground">
-            {t("billing.plans.recommended")}
-          </Badge>
-        </div>
-      )}
-
-      <div
-        className={cn(
-          "border-b px-6 pb-6 pt-6 text-center",
-          isRecommended && "pt-8"
-        )}
-      >
-        <h3 className="text-xl font-semibold">
-          {t(`billing.plans.${plan.id}`)}
-        </h3>
-        <div className="mt-4 flex items-baseline justify-center gap-1">
-          <span className="text-4xl font-bold">
-            {formatPrice(plan.monthlyPrice, "USD")}
-          </span>
-          <span className="text-sm text-muted-foreground">
-            {t("billing.perMonth")}
-          </span>
-        </div>
-        {isCurrentPlan && (
-          <Badge variant="outline" className="mt-4 border-primary text-primary">
-            {t("billing.currentPlan")}
-          </Badge>
-        )}
-      </div>
-
-      <div className="flex flex-1 flex-col p-6">
-        <ul className="space-y-3">
-          <FeatureItem
-            icon={Users}
-            label={
-              plan.maxStudents
-                ? t("billing.features.maxStudents", { count: plan.maxStudents })
-                : t("billing.features.unlimitedStudents")
-            }
-          />
-          <FeatureItem
-            icon={BookOpen}
-            label={
-              plan.maxCourses
-                ? t("billing.features.maxCourses", { count: plan.maxCourses })
-                : t("billing.features.unlimitedCourses")
-            }
-          />
-          <FeatureItem
-            icon={HardDrive}
-            label={t("billing.features.storage", { size: plan.storageGb })}
-          />
-          <FeatureItem
-            icon={Cpu}
-            label={t("billing.features.ai", {
-              type: t(`billing.aiTypes.${plan.aiGeneration}`),
-            })}
-          />
-          <FeatureItem
-            icon={Percent}
-            label={t("billing.features.commission", {
-              rate: plan.commissionRate,
-            })}
-          />
-        </ul>
-
-        <div className="my-5 h-px bg-border" />
-
-        <ul className="flex-1 space-y-2">
-          <FeatureRow
-            included={plan.certificates}
-            label={t("billing.features.certificates")}
-          />
-          <FeatureRow
-            included={plan.customDomain}
-            label={t("billing.features.customDomain")}
-          />
-          <FeatureRow
-            included={plan.analytics}
-            label={t("billing.features.analytics")}
-          />
-          <FeatureRow
-            included={plan.prioritySupport}
-            label={t("billing.features.prioritySupport")}
-          />
-          <FeatureRow
-            included={plan.whiteLabel}
-            label={t("billing.features.whiteLabel")}
-          />
-        </ul>
-
-        <div className="mt-6">
-          {isCurrentPlan && hasSubscription ? (
-            <Button
-              variant="outline"
-              className="w-full gap-2"
-              onClick={onManage}
-              isLoading={isLoading}
-            >
-              <CreditCard className="size-4" />
-              {t("billing.manageBilling")}
-            </Button>
-          ) : isCurrentPlan ? (
-            <Button variant="outline" className="w-full" disabled>
-              {t("billing.currentPlan")}
-            </Button>
-          ) : (
-            <Button
-              className="w-full gap-2"
-              variant={isRecommended ? "default" : "secondary"}
-              onClick={onSelect}
-              isLoading={isLoading}
-            >
-              {t("billing.selectPlan")}
-              <ArrowRight className="size-4" />
-            </Button>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function StatusBadge({ status }: { status: string }) {
   const { t } = useTranslation();
 
-  const isNegative = status === "past_due" || status === "canceled" || status === "unpaid";
+  const isNegative =
+    status === "past_due" || status === "canceled" || status === "unpaid";
 
   return (
     <Badge
@@ -258,6 +65,118 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
+function UsageCard({
+  icon: Icon,
+  title,
+  used,
+  limit,
+  formatValue,
+}: {
+  icon: typeof HardDrive;
+  title: string;
+  used: number;
+  limit: number | null;
+  formatValue?: (value: number) => string;
+}) {
+  const { t } = useTranslation();
+  const percentage = limit ? Math.min((used / limit) * 100, 100) : 0;
+  const format = formatValue || ((v: number) => v.toString());
+
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-sm font-medium">{title}</CardTitle>
+        <Icon className="size-4 text-muted-foreground" />
+      </CardHeader>
+      <CardContent>
+        <div className="text-2xl font-bold">
+          {format(used)}
+          {limit && (
+            <span className="text-sm font-normal text-muted-foreground">
+              {" "}
+              / {format(limit)}
+            </span>
+          )}
+        </div>
+        {limit && (
+          <Progress
+            value={percentage}
+            className="mt-3 h-2"
+            aria-label={t("billing.usage.progress", {
+              percentage: Math.round(percentage),
+            })}
+          />
+        )}
+        {!limit && (
+          <p className="text-xs text-muted-foreground mt-1">
+            {t("billing.usage.unlimited")}
+          </p>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function CurrentPlanCard({
+  subscription,
+  onManageBilling,
+  isLoading,
+}: {
+  subscription: SubscriptionResponse;
+  onManageBilling: () => void;
+  isLoading: boolean;
+}) {
+  const { t } = useTranslation();
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-3">
+            <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10">
+              <CreditCard className="size-5 text-primary" />
+            </div>
+            <div>
+              <span className="text-lg">
+                {subscription.plan
+                  ? t(`billing.plans.${subscription.plan}`)
+                  : t("billing.noPlan")}
+              </span>
+              {subscription.subscriptionStatus && (
+                <div className="mt-1">
+                  <StatusBadge status={subscription.subscriptionStatus} />
+                </div>
+              )}
+            </div>
+          </CardTitle>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Percent className="size-4" />
+          <span>
+            {t("billing.features.commission", {
+              rate: subscription.commissionRate,
+            })}
+          </span>
+        </div>
+
+        {subscription.stripeCustomerId && (
+          <Button
+            variant="outline"
+            className="w-full gap-2"
+            onClick={onManageBilling}
+            isLoading={isLoading}
+          >
+            <ExternalLink className="size-4" />
+            {t("billing.manageBilling")}
+          </Button>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 function BillingPageSkeleton() {
   return (
     <div className="space-y-8">
@@ -269,31 +188,87 @@ function BillingPageSkeleton() {
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-3">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="rounded-xl border bg-card p-6">
-            <div className="space-y-4 text-center">
-              <Skeleton className="mx-auto h-6 w-24" />
-              <Skeleton className="mx-auto h-10 w-20" />
-            </div>
-            <div className="mt-6 space-y-3">
-              {[1, 2, 3, 4, 5].map((j) => (
-                <div key={j} className="flex items-center gap-3">
-                  <Skeleton className="size-8 rounded-lg" />
-                  <Skeleton className="h-4 flex-1" />
-                </div>
-              ))}
-            </div>
-            <Skeleton className="mt-6 h-10 w-full" />
-          </div>
+          <Card key={i}>
+            <CardHeader className="pb-2">
+              <Skeleton className="h-4 w-24" />
+            </CardHeader>
+            <CardContent>
+              <Skeleton className="h-8 w-32" />
+              <Skeleton className="mt-3 h-2 w-full" />
+            </CardContent>
+          </Card>
         ))}
       </div>
+
+      <Card>
+        <CardHeader>
+          <Skeleton className="h-6 w-48" />
+        </CardHeader>
+        <CardContent>
+          <Skeleton className="h-10 w-full" />
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function BillingContent({
+  subscription,
+  onManageBilling,
+  isLoadingPortal,
+}: {
+  subscription: SubscriptionResponse;
+  onManageBilling: () => void;
+  isLoadingPortal: boolean;
+}) {
+  const { t } = useTranslation();
+
+  return (
+    <div className="space-y-8">
+      <div className="flex items-center gap-4">
+        <div className="flex size-12 items-center justify-center rounded-xl bg-primary/10">
+          <CreditCard className="size-6 text-primary" />
+        </div>
+        <div>
+          <h1 className="text-2xl font-bold">{t("billing.title")}</h1>
+          <p className="text-muted-foreground">{t("billing.description")}</p>
+        </div>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-3">
+        <UsageCard
+          icon={HardDrive}
+          title={t("billing.usage.storage")}
+          used={subscription.storageUsedBytes}
+          limit={subscription.storageLimitBytes}
+          formatValue={formatBytes}
+        />
+        <UsageCard
+          icon={Users}
+          title={t("billing.usage.students")}
+          used={0}
+          limit={null}
+        />
+        <UsageCard
+          icon={BookOpen}
+          title={t("billing.usage.courses")}
+          used={0}
+          limit={null}
+        />
+      </div>
+
+      <CurrentPlanCard
+        subscription={subscription}
+        onManageBilling={onManageBilling}
+        isLoading={isLoadingPortal}
+      />
     </div>
   );
 }
 
 function BillingPage() {
-  const { t } = useTranslation();
   const { data: subscription, isLoading: isLoadingSubscription } =
     useSubscription();
   const { data: plansData, isLoading: isLoadingPlans } = usePlans();
@@ -322,46 +297,24 @@ function BillingPage() {
     return <BillingPageSkeleton />;
   }
 
-  const currentPlan = subscription?.plan;
-  const status = subscription?.subscriptionStatus;
-  const hasSubscription = Boolean(subscription?.stripeCustomerId);
+  const showPricingOverlay = !subscription?.hasSubscription;
   const plans = plansData?.plans ?? [];
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-4">
-          <div className="flex size-12 items-center justify-center rounded-xl bg-primary/10">
-            <CreditCard className="size-6 text-primary" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold">{t("billing.title")}</h1>
-            <p className="text-muted-foreground">{t("billing.description")}</p>
-          </div>
-        </div>
-        {status && <StatusBadge status={status} />}
-      </div>
+    <>
+      <BillingContent
+        subscription={subscription!}
+        onManageBilling={handleManageBilling}
+        isLoadingPortal={isOpeningPortal}
+      />
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        {plans.map((plan) => {
-          const isCurrentPlan = hasSubscription && currentPlan === plan.id;
-          const isRecommended = plan.id === "growth";
-
-          return (
-            <PlanCard
-              key={plan.id}
-              plan={plan}
-              isCurrentPlan={isCurrentPlan}
-              isRecommended={isRecommended}
-              onSelect={() => handleSelectPlan(plan.id as TenantPlan)}
-              onManage={handleManageBilling}
-              isLoading={isCreating || isOpeningPortal}
-              hasSubscription={hasSubscription}
-              t={t}
-            />
-          );
-        })}
-      </div>
-    </div>
+      {showPricingOverlay && (
+        <PricingOverlay
+          plans={plans}
+          onSelectPlan={handleSelectPlan}
+          isLoading={isCreating}
+        />
+      )}
+    </>
   );
 }

@@ -58,7 +58,18 @@
       "recommended": "Recommended"
     },
     "noPlan": "No subscription",
-    "noPlanDescription": "Choose a plan to get started"
+    "noPlanDescription": "Choose a plan to get started",
+    "overlay": {
+      "title": "Choose your plan",
+      "description": "Select the plan that best fits your needs and start building your academy today"
+    },
+    "usage": {
+      "storage": "Storage",
+      "students": "Students",
+      "courses": "Courses",
+      "progress": "{{percentage}}% used",
+      "unlimited": "Unlimited"
+    }
   },
   "connect": {
     "title": "Payments",

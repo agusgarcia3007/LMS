@@ -58,7 +58,18 @@
       "recommended": "Recomendado"
     },
     "noPlan": "Sem assinatura",
-    "noPlanDescription": "Escolha um plano para comecar"
+    "noPlanDescription": "Escolha um plano para comecar",
+    "overlay": {
+      "title": "Escolha seu plano",
+      "description": "Selecione o plano que melhor se adapta as suas necessidades e comece a construir sua academia hoje"
+    },
+    "usage": {
+      "storage": "Armazenamento",
+      "students": "Alunos",
+      "courses": "Cursos",
+      "progress": "{{percentage}}% usado",
+      "unlimited": "Ilimitado"
+    }
   },
   "connect": {
     "title": "Pagamentos",

@@ -58,7 +58,18 @@
       "recommended": "Recomendado"
     },
     "noPlan": "Sin suscripcion",
-    "noPlanDescription": "Elige un plan para comenzar"
+    "noPlanDescription": "Elige un plan para comenzar",
+    "overlay": {
+      "title": "Elige tu plan",
+      "description": "Selecciona el plan que mejor se adapte a tus necesidades y comienza a construir tu academia hoy"
+    },
+    "usage": {
+      "storage": "Almacenamiento",
+      "students": "Estudiantes",
+      "courses": "Cursos",
+      "progress": "{{percentage}}% usado",
+      "unlimited": "Ilimitado"
+    }
   },
   "connect": {
     "title": "Pagos",
