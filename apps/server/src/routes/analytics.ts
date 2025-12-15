@@ -67,7 +67,7 @@ async function processPageView(
   }
 }
 
-export const analyticsRoutes = new Elysia({ prefix: "/analytics" })
+export const analyticsRoutes = new Elysia({ name: "analytics" })
   .post(
     "/track",
     (ctx) => {

@@ -23,7 +23,7 @@ import { waitlistRoutes } from "./waitlist";
 
 export const ROUTES = [
   { path: "", name: "seo-routes", route: seoRoutes },
-  { path: "", name: "analytics-routes", route: analyticsRoutes },
+  { path: "/analytics", name: "analytics-routes", route: analyticsRoutes },
   { path: "/admin/enrollments", name: "admin-enrollments-routes", route: adminEnrollmentsRoutes },
   { path: "/ai", name: "ai-routes", route: aiRoutes },
   { path: "/auth", name: "auth-routes", route: authRoutes },
