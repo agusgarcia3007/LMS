@@ -208,11 +208,11 @@ function ConfigurationPage() {
     });
   };
 
-  const handleSignatureUpload = async (base64: string) => {
+  const handleSignatureUpload = async (file: File) => {
     if (!tenant) return "";
     const result = await uploadSignatureMutation.mutateAsync({
       id: tenant.id,
-      signature: base64,
+      file,
     });
     setSignatureUrl(result.signatureUrl);
     return result.signatureUrl;

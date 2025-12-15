@@ -5,12 +5,12 @@ import { getTenantFromHost, getResolvedSlug } from "@/lib/tenant";
 import { ensureValidToken } from "@/lib/http";
 import { QUERY_KEYS as COURSES_QUERY_KEYS } from "@/services/courses/service";
 import { AIService } from "@/services/ai/service";
+import { UploadsService } from "@/services/uploads/service";
 import { i18n } from "@/i18n";
 
 export type ChatAttachment = {
   type: "image";
-  data: string;
-  mimeType: string;
+  key: string;
 };
 
 export type ContextCourse = {
@@ -73,13 +73,22 @@ async function generateAndUploadThumbnail(courseId: string) {
   }
 }
 
-function fileToBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
+async function uploadFileToS3(file: File): Promise<string> {
+  const { uploadUrl, key } = await UploadsService.getPresignedUrl({
+    folder: "chat-images",
+    fileName: file.name,
+    contentType: file.type,
   });
+
+  await fetch(uploadUrl, {
+    method: "PUT",
+    body: file,
+    headers: {
+      "Content-Type": file.type,
+    },
+  });
+
+  return key;
 }
 
 export function useAICourseChat() {
@@ -101,8 +110,7 @@ export function useAICourseChat() {
       ? await Promise.all(
           files.map(async (file) => ({
             type: "image" as const,
-            data: await fileToBase64(file),
-            mimeType: file.type,
+            key: await uploadFileToS3(file),
           }))
         )
       : undefined;

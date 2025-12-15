@@ -102,8 +102,8 @@ export const useDeleteTenantOptions = () => {
 
 export const useUploadLogoOptions = (tenantSlug: string) =>
   useUploadMutation({
-    mutationFn: ({ id, logo }: { id: string; logo: string }) =>
-      TenantsService.uploadLogo(id, logo),
+    mutationFn: ({ id, file }: { id: string; file: File }) =>
+      TenantsService.uploadLogo(id, file),
     invalidateKeys: () => [QUERY_KEYS.TENANTS, QUERY_KEYS.TENANT(tenantSlug)],
     successMessage: "dashboard.site.configuration.logo.uploaded",
   });
@@ -158,8 +158,8 @@ export const useRemoveDomainOptions = (tenantSlug: string) => {
 
 export const useUploadSignatureOptions = (tenantSlug: string) =>
   useUploadMutation({
-    mutationFn: ({ id, signature }: { id: string; signature: string }) =>
-      TenantsService.uploadSignature(id, signature),
+    mutationFn: ({ id, file }: { id: string; file: File }) =>
+      TenantsService.uploadSignature(id, file),
     invalidateKeys: () => [QUERY_KEYS.TENANTS, QUERY_KEYS.TENANT(tenantSlug)],
     successMessage: "dashboard.site.configuration.certificates.signatureUploaded",
   });

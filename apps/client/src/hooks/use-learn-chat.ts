@@ -1,15 +1,13 @@
 import { i18n } from "@/i18n";
 import { ensureValidToken } from "@/lib/http";
 import { getResolvedSlug, getTenantFromHost } from "@/lib/tenant";
+import { UploadsService } from "@/services/uploads/service";
 import { useCallback, useRef, useState } from "react";
 import { toast } from "sonner";
 
-export type ChatAttachment = {
-  type: "image" | "file";
-  data: string;
-  mimeType: string;
-  fileName?: string;
-};
+export type ChatAttachment =
+  | { type: "image"; key: string }
+  | { type: "file"; data: string; mimeType: string; fileName?: string };
 
 export type ChatMessage = {
   id: string;
@@ -43,6 +41,37 @@ function fileToBase64(file: File): Promise<string> {
     reader.onerror = reject;
     reader.readAsDataURL(file);
   });
+}
+
+async function uploadImageToS3(file: File): Promise<string> {
+  const { uploadUrl, key } = await UploadsService.getPresignedUrl({
+    folder: "learn-chat-images",
+    fileName: file.name,
+    contentType: file.type,
+  });
+
+  await fetch(uploadUrl, {
+    method: "PUT",
+    body: file,
+    headers: {
+      "Content-Type": file.type,
+    },
+  });
+
+  return key;
+}
+
+async function processFile(file: File): Promise<ChatAttachment> {
+  if (file.type.startsWith("image/")) {
+    const key = await uploadImageToS3(file);
+    return { type: "image", key };
+  }
+  return {
+    type: "file",
+    data: await fileToBase64(file),
+    mimeType: file.type,
+    fileName: file.name,
+  };
 }
 
 export function useLearnChat() {
@@ -81,30 +110,12 @@ export function useLearnChat() {
       }
 
       const processedAttachments: ChatAttachment[] | undefined = files?.length
-        ? await Promise.all(
-            files.map(async (file) => ({
-              type: file.type.startsWith("image/")
-                ? ("image" as const)
-                : ("file" as const),
-              data: await fileToBase64(file),
-              mimeType: file.type,
-              fileName: file.name,
-            }))
-          )
+        ? await Promise.all(files.map(processFile))
         : undefined;
 
       const processedContextFiles: ChatAttachment[] | undefined =
         contextFiles?.length
-          ? await Promise.all(
-              contextFiles.map(async (file) => ({
-                type: file.type.startsWith("image/")
-                  ? ("image" as const)
-                  : ("file" as const),
-                data: await fileToBase64(file),
-                mimeType: file.type,
-                fileName: file.name,
-              }))
-            )
+          ? await Promise.all(contextFiles.map(processFile))
           : undefined;
 
       const userMessage: ChatMessage = {

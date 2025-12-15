@@ -76,15 +76,7 @@ export const chatCreatorRoutes = new Elysia({ name: "ai-chat-creator" })
 
       for (const m of messages) {
         if (m.attachments?.length) {
-          const imageKeys = await Promise.all(
-            m.attachments.map((att) =>
-              uploadBase64ToS3({
-                base64: att.data,
-                folder: "chat-images",
-                userId,
-              })
-            )
-          );
+          const imageKeys = m.attachments.map((att) => att.key);
           processedMessages.push({
             role: m.role as "user" | "assistant",
             content: m.content,
@@ -248,8 +240,7 @@ export const chatCreatorRoutes = new Elysia({ name: "ai-chat-creator" })
               t.Array(
                 t.Object({
                   type: t.Literal("image"),
-                  data: t.String(),
-                  mimeType: t.String(),
+                  key: t.String(),
                 })
               )
             ),

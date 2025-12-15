@@ -153,7 +153,8 @@
     "exitFullscreen": "Exit fullscreen",
     "backoffice": "Backoffice",
     "adminDashboard": "Admin Dashboard",
-    "remove": "Remove"
+    "remove": "Remove",
+    "uploading": "Uploading"
   },
   "dataTable": {
     "search": "Search...",

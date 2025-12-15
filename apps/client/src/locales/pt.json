@@ -154,7 +154,8 @@
     "confirm": "Confirmar",
     "backoffice": "Backoffice",
     "adminDashboard": "Painel de Admin",
-    "remove": "Remover"
+    "remove": "Remover",
+    "uploading": "Enviando"
   },
   "dataTable": {
     "search": "Buscar...",

@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useFormContext, useWatch } from "react-hook-form";
-import { Sparkles, Sun, Moon } from "lucide-react";
+import { Sparkles, Sun, Moon, ImageIcon, Upload, X, Loader2 } from "lucide-react";
 
 import {
   FormControl,
@@ -13,7 +13,9 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { ImageUpload } from "@/components/file-upload/image-upload";
+import { Image } from "@/components/ui/image";
+import { formatBytes, useFileUpload } from "@/hooks/use-file-upload";
+import { cn } from "@/lib/utils";
 
 import { ThemeSelector } from "@/components/tenant-configuration/theme-selector";
 import { THEME_PRESETS } from "@/components/tenant-configuration/schema";
@@ -107,7 +109,7 @@ function createPartialTheme(overrides: Partial<CustomTheme>): CustomTheme {
 type AppearanceTabProps = {
   logoUrl: string | null;
   onLogoChange: (url: string | null) => void;
-  onLogoUpload: (base64: string) => Promise<string>;
+  onLogoUpload: (file: File) => Promise<string>;
   onLogoDelete: () => Promise<void>;
   isUploadingLogo: boolean;
   isDeletingLogo: boolean;
@@ -127,6 +129,49 @@ export function AppearanceTab({
   const form = useFormContext<CustomizationFormData>();
   const [aiModalOpen, setAiModalOpen] = useState(false);
   const [previewMode, setPreviewMode] = useState<"light" | "dark">("light");
+  const [localPreview, setLocalPreview] = useState<string | null>(null);
+
+  const handleFilesAdded = useCallback(
+    async (files: { file: File | { url: string } }[]) => {
+      const file = files[0]?.file;
+      if (file instanceof File) {
+        const preview = URL.createObjectURL(file);
+        setLocalPreview(preview);
+        const url = await onLogoUpload(file);
+        onLogoChange(url);
+        setLocalPreview(null);
+        URL.revokeObjectURL(preview);
+      }
+    },
+    [onLogoUpload, onLogoChange]
+  );
+
+  const [
+    { isDragging, errors: logoErrors },
+    {
+      handleDragEnter,
+      handleDragLeave,
+      handleDragOver,
+      handleDrop,
+      openFileDialog,
+      getInputProps,
+    },
+  ] = useFileUpload({
+    maxFiles: 1,
+    maxSize: 2 * 1024 * 1024,
+    accept: "image/*",
+    multiple: false,
+    onFilesAdded: handleFilesAdded,
+  });
+
+  const handleLogoDelete = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    await onLogoDelete();
+    onLogoChange(null);
+  };
+
+  const isLogoLoading = isUploadingLogo || isDeletingLogo;
+  const displayLogo = localPreview || logoUrl;
 
   const handleThemeChange = (theme: CustomizationFormData["theme"]) => {
     form.setValue("theme", theme);
@@ -167,16 +212,79 @@ export function AppearanceTab({
           <p className="text-sm font-medium">
             {t("dashboard.site.customization.appearance.logo")}
           </p>
-          <ImageUpload
-            value={logoUrl}
-            onChange={onLogoChange}
-            onUpload={onLogoUpload}
-            onDelete={onLogoDelete}
-            aspectRatio="1/1"
-            maxSize={2 * 1024 * 1024}
-            isUploading={isUploadingLogo}
-            isDeleting={isDeletingLogo}
-          />
+          {displayLogo ? (
+            <div className="relative">
+              <div className="relative aspect-square overflow-hidden rounded-lg border">
+                <Image
+                  src={displayLogo}
+                  alt="Logo"
+                  layout="fullWidth"
+                  className="h-full w-full object-cover"
+                />
+                {isLogoLoading && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-background/80">
+                    <Loader2 className="size-6 animate-spin text-muted-foreground" />
+                  </div>
+                )}
+              </div>
+              {!isLogoLoading && (
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  onClick={handleLogoDelete}
+                  className="absolute -right-2 -top-2 size-7 rounded-full bg-destructive/10 text-destructive hover:bg-destructive/20"
+                >
+                  <X className="size-4" />
+                </Button>
+              )}
+            </div>
+          ) : (
+            <div className="flex flex-col gap-2">
+              <div
+                className={cn(
+                  "relative aspect-square cursor-pointer overflow-hidden rounded-lg border-2 border-dashed transition-colors",
+                  isDragging
+                    ? "border-primary bg-primary/5"
+                    : "border-muted-foreground/25 hover:border-muted-foreground/50",
+                  isLogoLoading && "pointer-events-none opacity-50"
+                )}
+                onDragEnter={handleDragEnter}
+                onDragLeave={handleDragLeave}
+                onDragOver={handleDragOver}
+                onDrop={handleDrop}
+                onClick={openFileDialog}
+              >
+                <input {...getInputProps()} className="sr-only" disabled={isLogoLoading} />
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 p-4">
+                  {isLogoLoading ? (
+                    <Loader2 className="size-8 animate-spin text-muted-foreground" />
+                  ) : (
+                    <>
+                      <div className="rounded-full bg-muted p-3">
+                        {isDragging ? (
+                          <Upload className="size-6 text-primary" />
+                        ) : (
+                          <ImageIcon className="size-6 text-muted-foreground" />
+                        )}
+                      </div>
+                      <div className="text-center">
+                        <p className="text-sm font-medium">
+                          {isDragging ? t("common.dropHere") : t("common.dragOrClick")}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {t("common.maxFileSize", { size: formatBytes(2 * 1024 * 1024) })}
+                        </p>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+              {logoErrors.length > 0 && (
+                <p className="text-sm text-destructive">{logoErrors[0]}</p>
+              )}
+            </div>
+          )}
           <p className="text-xs text-muted-foreground">
             {t("dashboard.site.customization.appearance.logoAndFaviconHelp")}
           </p>

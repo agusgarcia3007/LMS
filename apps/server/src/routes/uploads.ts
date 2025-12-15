@@ -9,6 +9,8 @@ const folderEnum = t.Union([
   t.Literal("courses"),
   t.Literal("courses/videos"),
   t.Literal("documents"),
+  t.Literal("chat-images"),
+  t.Literal("learn-chat-images"),
 ]);
 
 export const uploadsRoutes = new Elysia()

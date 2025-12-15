@@ -24,7 +24,7 @@ import {
   createLearnAssistantTools,
   type LearnContext,
 } from "@/lib/ai/tools/learn";
-import { getPresignedUrl, uploadBase64ToS3 } from "@/lib/upload";
+import { getPresignedUrl } from "@/lib/upload";
 import { logger } from "@/lib/logger";
 
 export const chatLearnRoutes = new Elysia({ name: "ai-chat-learn" })
@@ -350,22 +350,17 @@ export const chatLearnRoutes = new Elysia({ name: "ai-chat-learn" })
 
       for (const m of messages) {
         if (m.attachments?.length) {
-          const attachments: ProcessedAttachment[] = await Promise.all(
-            m.attachments.map(async (att) => {
+          const attachments: ProcessedAttachment[] = m.attachments.map(
+            (att) => {
               if (att.type === "image") {
-                const key = await uploadBase64ToS3({
-                  base64: att.data,
-                  folder: "learn-chat-images",
-                  userId,
-                });
-                return { type: "image" as const, key };
+                return { type: "image" as const, key: att.key };
               }
               return {
                 type: "file" as const,
                 data: att.data,
                 mediaType: att.mimeType,
               };
-            })
+            }
           );
           processedMessages.push({
             role: m.role as "user" | "assistant",
@@ -451,12 +446,18 @@ export const chatLearnRoutes = new Elysia({ name: "ai-chat-learn" })
             content: t.String(),
             attachments: t.Optional(
               t.Array(
-                t.Object({
-                  type: t.Union([t.Literal("image"), t.Literal("file")]),
-                  data: t.String(),
-                  mimeType: t.String(),
-                  fileName: t.Optional(t.String()),
-                })
+                t.Union([
+                  t.Object({
+                    type: t.Literal("image"),
+                    key: t.String(),
+                  }),
+                  t.Object({
+                    type: t.Literal("file"),
+                    data: t.String(),
+                    mimeType: t.String(),
+                    fileName: t.Optional(t.String()),
+                  }),
+                ])
               )
             ),
           })

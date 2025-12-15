@@ -5,7 +5,9 @@ export type UploadFolder =
   | "videos"
   | "courses"
   | "courses/videos"
-  | "documents";
+  | "documents"
+  | "chat-images"
+  | "learn-chat-images";
 
 export type PresignRequest = {
   folder: UploadFolder;

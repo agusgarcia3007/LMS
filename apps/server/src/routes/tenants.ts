@@ -14,7 +14,12 @@ import {
   certificatesTable,
 } from "@/db/schema";
 import { count, eq, sql, and, ne, gte, desc } from "drizzle-orm";
-import { uploadBase64ToS3, getPresignedUrl, deleteFromS3 } from "@/lib/upload";
+import {
+  uploadBase64ToS3,
+  uploadFileToS3,
+  getPresignedUrl,
+  deleteFromS3,
+} from "@/lib/upload";
 import {
   createCustomHostname,
   deleteCustomHostname,
@@ -1045,29 +1050,21 @@ export const tenantsRoutes = new Elysia()
           throw new AppError(ErrorCode.TENANT_NOT_FOUND, "Tenant not found", 404);
         }
 
-        if (!ctx.body.logo.startsWith("data:image/")) {
-          throw new AppError(ErrorCode.BAD_REQUEST, "Logo must be an image", 400);
-        }
+        const file = ctx.body.logo;
 
-        const [, logoKey, faviconKey] = await Promise.all([
-          existingTenant.logo
-            ? deleteFromS3(existingTenant.logo)
+        await Promise.all([
+          existingTenant.logo ? deleteFromS3(existingTenant.logo) : Promise.resolve(),
+          existingTenant.favicon && existingTenant.favicon !== existingTenant.logo
+            ? deleteFromS3(existingTenant.favicon)
             : Promise.resolve(),
-          uploadBase64ToS3({
-            base64: ctx.body.logo,
-            folder: "logos",
-            userId: ctx.params.id,
-          }),
-          uploadBase64ToS3({
-            base64: ctx.body.logo,
-            folder: "favicons",
-            userId: ctx.params.id,
-          }),
         ]);
 
-        if (existingTenant.favicon) {
-          await deleteFromS3(existingTenant.favicon);
-        }
+        const logoKey = await uploadFileToS3({
+          file,
+          folder: "logos",
+          userId: ctx.params.id,
+        });
+        const faviconKey = logoKey;
 
         const [updatedTenant] = await db
           .update(tenantsTable)
@@ -1088,7 +1085,7 @@ export const tenantsRoutes = new Elysia()
         id: t.String({ format: "uuid" }),
       }),
       body: t.Object({
-        logo: t.String(),
+        logo: t.File({ type: "image/*", maxSize: 5 * 1024 * 1024 }),
       }),
       detail: {
         tags: ["Tenants"],
@@ -1169,20 +1166,18 @@ export const tenantsRoutes = new Elysia()
           throw new AppError(ErrorCode.TENANT_NOT_FOUND, "Tenant not found", 404);
         }
 
-        if (!ctx.body.signature.startsWith("data:image/")) {
-          throw new AppError(ErrorCode.BAD_REQUEST, "Signature must be an image", 400);
-        }
-
+        const file = ctx.body.signature;
         const oldKey = existingTenant.certificateSettings?.signatureImageKey;
 
-        const [, signatureKey] = await Promise.all([
-          oldKey ? deleteFromS3(oldKey) : Promise.resolve(),
-          uploadBase64ToS3({
-            base64: ctx.body.signature,
-            folder: "signatures",
-            userId: ctx.params.id,
-          }),
-        ]);
+        if (oldKey) {
+          await deleteFromS3(oldKey);
+        }
+
+        const signatureKey = await uploadFileToS3({
+          file,
+          folder: "signatures",
+          userId: ctx.params.id,
+        });
 
         const newSettings = {
           ...existingTenant.certificateSettings,
@@ -1208,7 +1203,7 @@ export const tenantsRoutes = new Elysia()
         id: t.String({ format: "uuid" }),
       }),
       body: t.Object({
-        signature: t.String(),
+        signature: t.File({ type: "image/*", maxSize: 2 * 1024 * 1024 }),
       }),
       detail: {
         tags: ["Tenants"],

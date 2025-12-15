@@ -332,10 +332,12 @@ export const TenantsService = {
     return data;
   },
 
-  async uploadLogo(id: string, logo: string) {
+  async uploadLogo(id: string, file: File) {
+    const formData = new FormData();
+    formData.append("logo", file);
     const { data } = await http.post<UploadLogoResponse>(
       `/tenants/${id}/logo`,
-      { logo }
+      formData
     );
     return data;
   },
@@ -383,10 +385,12 @@ export const TenantsService = {
     return data;
   },
 
-  async uploadSignature(id: string, signature: string) {
+  async uploadSignature(id: string, file: File) {
+    const formData = new FormData();
+    formData.append("signature", file);
     const { data } = await http.post<UploadSignatureResponse>(
       `/tenants/${id}/certificate-signature`,
-      { signature }
+      formData
     );
     return data;
   },

@@ -106,11 +106,11 @@ function CustomizationPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tenant?.id, customThemeKey]);
 
-  const handleLogoUpload = async (base64: string) => {
+  const handleLogoUpload = async (file: File) => {
     if (!tenant) return "";
     const result = await uploadLogoMutation.mutateAsync({
       id: tenant.id,
-      logo: base64,
+      file,
     });
     setLogoUrl(result.logoUrl);
     return result.logoUrl;
