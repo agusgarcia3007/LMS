@@ -224,7 +224,7 @@ export const webhooksRoutes = new Elysia()
 
     let event: Stripe.Event;
     try {
-      event = stripe.webhooks.constructEvent(
+      event = await stripe.webhooks.constructEventAsync(
         rawBody,
         signature,
         env.STRIPE_WEBHOOK_SECRET
@@ -278,7 +278,7 @@ export const webhooksRoutes = new Elysia()
 
     let event: Stripe.Event;
     try {
-      event = stripe.webhooks.constructEvent(
+      event = await stripe.webhooks.constructEventAsync(
         rawBody,
         signature,
         env.STRIPE_CONNECT_WEBHOOK_SECRET
