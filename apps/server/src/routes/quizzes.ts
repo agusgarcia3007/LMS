@@ -1,7 +1,6 @@
 import { Elysia, t } from "elysia";
 import { authPlugin } from "@/plugins/auth";
 import { AppError, ErrorCode } from "@/lib/errors";
-import { withHandler } from "@/lib/handler";
 import { db } from "@/db";
 import {
   quizzesTable,
@@ -49,8 +48,7 @@ export const quizzesRoutes = new Elysia()
   .use(authPlugin)
   .get(
     "/",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -137,7 +135,7 @@ export const quizzesRoutes = new Elysia()
           quizzes,
           pagination: calculatePagination(total, params.page, params.limit),
         };
-      }),
+    },
     {
       query: t.Object({
         page: t.Optional(t.String()),
@@ -155,8 +153,7 @@ export const quizzesRoutes = new Elysia()
   )
   .get(
     "/:id",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -181,7 +178,7 @@ export const quizzesRoutes = new Elysia()
         }
 
         return { quiz };
-      }),
+    },
     {
       params: t.Object({
         id: t.String({ format: "uuid" }),
@@ -194,8 +191,7 @@ export const quizzesRoutes = new Elysia()
   )
   .post(
     "/",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -230,7 +226,7 @@ export const quizzesRoutes = new Elysia()
         updateQuizEmbedding(quiz.id, quiz.title, quiz.description ?? null).catch(() => {});
 
         return { quiz };
-      }),
+    },
     {
       body: t.Object({
         title: t.String({ minLength: 1 }),
@@ -245,8 +241,7 @@ export const quizzesRoutes = new Elysia()
   )
   .put(
     "/:id",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -303,7 +298,7 @@ export const quizzesRoutes = new Elysia()
         }
 
         return { quiz: updatedQuiz };
-      }),
+    },
     {
       params: t.Object({
         id: t.String({ format: "uuid" }),
@@ -321,8 +316,7 @@ export const quizzesRoutes = new Elysia()
   )
   .delete(
     "/bulk",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -376,7 +370,7 @@ export const quizzesRoutes = new Elysia()
         await db.delete(quizzesTable).where(inArray(quizzesTable.id, ids));
 
         return { success: true, deleted: ids.length };
-      }),
+    },
     {
       body: t.Object({
         ids: t.Array(t.String({ format: "uuid" })),
@@ -389,8 +383,7 @@ export const quizzesRoutes = new Elysia()
   )
   .delete(
     "/:id",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -439,7 +432,7 @@ export const quizzesRoutes = new Elysia()
         await db.delete(quizzesTable).where(eq(quizzesTable.id, ctx.params.id));
 
         return { success: true };
-      }),
+    },
     {
       params: t.Object({
         id: t.String({ format: "uuid" }),
@@ -452,8 +445,7 @@ export const quizzesRoutes = new Elysia()
   )
   .get(
     "/:id/questions",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -513,7 +505,7 @@ export const quizzesRoutes = new Elysia()
         }));
 
         return { questions: questionsWithOptions };
-      }),
+    },
     {
       params: t.Object({
         id: t.String({ format: "uuid" }),
@@ -526,8 +518,7 @@ export const quizzesRoutes = new Elysia()
   )
   .post(
     "/:id/questions",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -601,7 +592,7 @@ export const quizzesRoutes = new Elysia()
         }
 
         return { question: { ...question, options } };
-      }),
+    },
     {
       params: t.Object({
         id: t.String({ format: "uuid" }),
@@ -629,8 +620,7 @@ export const quizzesRoutes = new Elysia()
   )
   .put(
     "/questions/:id",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -688,7 +678,7 @@ export const quizzesRoutes = new Elysia()
           .orderBy(asc(quizOptionsTable.order));
 
         return { question: { ...updatedQuestion, options } };
-      }),
+    },
     {
       params: t.Object({
         id: t.String({ format: "uuid" }),
@@ -711,8 +701,7 @@ export const quizzesRoutes = new Elysia()
   )
   .delete(
     "/questions/:id",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -754,7 +743,7 @@ export const quizzesRoutes = new Elysia()
           .where(eq(quizQuestionsTable.id, ctx.params.id));
 
         return { success: true };
-      }),
+    },
     {
       params: t.Object({
         id: t.String({ format: "uuid" }),
@@ -767,8 +756,7 @@ export const quizzesRoutes = new Elysia()
   )
   .put(
     "/:id/questions/reorder",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -819,7 +807,7 @@ export const quizzesRoutes = new Elysia()
         }
 
         return { success: true };
-      }),
+    },
     {
       params: t.Object({
         id: t.String({ format: "uuid" }),
@@ -835,8 +823,7 @@ export const quizzesRoutes = new Elysia()
   )
   .post(
     "/questions/:id/options",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -892,7 +879,7 @@ export const quizzesRoutes = new Elysia()
           .returning();
 
         return { option };
-      }),
+    },
     {
       params: t.Object({
         id: t.String({ format: "uuid" }),
@@ -909,8 +896,7 @@ export const quizzesRoutes = new Elysia()
   )
   .put(
     "/options/:id",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -967,7 +953,7 @@ export const quizzesRoutes = new Elysia()
           .returning();
 
         return { option: updatedOption };
-      }),
+    },
     {
       params: t.Object({
         id: t.String({ format: "uuid" }),
@@ -985,8 +971,7 @@ export const quizzesRoutes = new Elysia()
   )
   .delete(
     "/options/:id",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -1034,7 +1019,7 @@ export const quizzesRoutes = new Elysia()
           .where(eq(quizOptionsTable.id, ctx.params.id));
 
         return { success: true };
-      }),
+    },
     {
       params: t.Object({
         id: t.String({ format: "uuid" }),

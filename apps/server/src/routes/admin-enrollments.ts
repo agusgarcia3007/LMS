@@ -2,7 +2,6 @@ import { Elysia, t } from "elysia";
 import { authPlugin } from "@/plugins/auth";
 import { tenantPlugin } from "@/plugins/tenant";
 import { AppError, ErrorCode } from "@/lib/errors";
-import { withHandler } from "@/lib/handler";
 import { db } from "@/db";
 import {
   enrollmentsTable,
@@ -32,8 +31,7 @@ export const adminEnrollmentsRoutes = new Elysia({ name: "admin-enrollments" })
   .use(authPlugin)
   .get(
     "/",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -176,7 +174,7 @@ export const adminEnrollmentsRoutes = new Elysia({ name: "admin-enrollments" })
           })),
           pagination: calculatePagination(total, page, limit),
         };
-      }),
+      },
     {
       query: t.Object({
         page: t.Optional(t.String()),
@@ -195,8 +193,7 @@ export const adminEnrollmentsRoutes = new Elysia({ name: "admin-enrollments" })
   )
   .get(
     "/:id",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -317,7 +314,7 @@ export const adminEnrollmentsRoutes = new Elysia({ name: "admin-enrollments" })
             })),
           },
         };
-      }),
+      },
     {
       params: t.Object({
         id: t.String({ format: "uuid" }),
@@ -330,8 +327,7 @@ export const adminEnrollmentsRoutes = new Elysia({ name: "admin-enrollments" })
   )
   .post(
     "/",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -408,7 +404,7 @@ export const adminEnrollmentsRoutes = new Elysia({ name: "admin-enrollments" })
         }
 
         return { enrollment };
-      }),
+      },
     {
       body: t.Object({
         userId: t.String({ format: "uuid" }),
@@ -422,8 +418,7 @@ export const adminEnrollmentsRoutes = new Elysia({ name: "admin-enrollments" })
   )
   .post(
     "/bulk",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -534,7 +529,7 @@ export const adminEnrollmentsRoutes = new Elysia({ name: "admin-enrollments" })
           .returning();
 
         return { created: enrollments.length };
-      }),
+      },
     {
       body: t.Object({
         userIds: t.Optional(
@@ -554,8 +549,7 @@ export const adminEnrollmentsRoutes = new Elysia({ name: "admin-enrollments" })
   )
   .patch(
     "/:id/status",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -605,7 +599,7 @@ export const adminEnrollmentsRoutes = new Elysia({ name: "admin-enrollments" })
           .returning();
 
         return { enrollment: updated };
-      }),
+      },
     {
       params: t.Object({
         id: t.String({ format: "uuid" }),
@@ -621,8 +615,7 @@ export const adminEnrollmentsRoutes = new Elysia({ name: "admin-enrollments" })
   )
   .get(
     "/export",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -698,7 +691,7 @@ export const adminEnrollmentsRoutes = new Elysia({ name: "admin-enrollments" })
             "Content-Disposition": `attachment; filename="enrollments-${new Date().toISOString().split("T")[0]}.csv"`,
           },
         });
-      }),
+      },
     {
       detail: {
         tags: ["Admin Enrollments"],

@@ -5,7 +5,7 @@ import { eq } from "drizzle-orm";
 import { Cache } from "@/lib/cache";
 import { env } from "@/lib/env";
 
-const TENANT_CACHE_TTL = 5 * 60 * 1000;
+const TENANT_CACHE_TTL = 30 * 60 * 1000;
 const tenantCache = new Cache<SelectTenant>(TENANT_CACHE_TTL, 500);
 const customDomainCache = new Cache<SelectTenant>(TENANT_CACHE_TTL, 500);
 

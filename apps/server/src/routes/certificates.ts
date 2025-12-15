@@ -1,7 +1,6 @@
 import { Elysia, t } from "elysia";
 import { authPlugin } from "@/plugins/auth";
 import { AppError, ErrorCode } from "@/lib/errors";
-import { withHandler } from "@/lib/handler";
 import { db } from "@/db";
 import {
   certificatesTable,
@@ -33,8 +32,7 @@ export const certificatesRoutes = new Elysia({ name: "certificates" })
   .use(authPlugin)
   .get(
     "/",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -99,15 +97,14 @@ export const certificatesRoutes = new Elysia({ name: "certificates" })
             },
           })),
         };
-      }),
+      },
     {
       detail: { tags: ["Certificates"], summary: "List user certificates" },
     }
   )
   .get(
     "/:enrollmentId",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -164,7 +161,7 @@ export const certificatesRoutes = new Elysia({ name: "certificates" })
               : `${env.CLIENT_URL}/verify/${certificate.verificationCode}`,
           },
         };
-      }),
+      },
     {
       params: t.Object({
         enrollmentId: t.String({ format: "uuid" }),
@@ -177,8 +174,7 @@ export const certificatesRoutes = new Elysia({ name: "certificates" })
   )
   .post(
     "/:enrollmentId/email",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -243,7 +239,7 @@ export const certificatesRoutes = new Elysia({ name: "certificates" })
         });
 
         return { success: true };
-      }),
+      },
     {
       params: t.Object({
         enrollmentId: t.String({ format: "uuid" }),
@@ -256,8 +252,7 @@ export const certificatesRoutes = new Elysia({ name: "certificates" })
   )
   .get(
     "/verify/:code",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         const [certificate] = await db
           .select({
             id: certificatesTable.id,
@@ -303,7 +298,7 @@ export const certificatesRoutes = new Elysia({ name: "certificates" })
             },
           },
         };
-      }),
+      },
     {
       params: t.Object({
         code: t.String({ minLength: 8, maxLength: 8 }),
@@ -316,8 +311,7 @@ export const certificatesRoutes = new Elysia({ name: "certificates" })
   )
   .post(
     "/preview",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -363,7 +357,7 @@ export const certificatesRoutes = new Elysia({ name: "certificates" })
         });
 
         return { imageUrl: imageDataUrl };
-      }),
+      },
     {
       body: t.Object({
         locale: t.Optional(t.String()),
@@ -376,8 +370,7 @@ export const certificatesRoutes = new Elysia({ name: "certificates" })
   )
   .post(
     "/:enrollmentId/regenerate",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -428,7 +421,7 @@ export const certificatesRoutes = new Elysia({ name: "certificates" })
           success: true,
           imageUrl: result.imageKey ? getPresignedUrl(result.imageKey) : null,
         };
-      }),
+      },
     {
       params: t.Object({
         enrollmentId: t.String({ format: "uuid" }),
@@ -441,8 +434,7 @@ export const certificatesRoutes = new Elysia({ name: "certificates" })
   )
   .post(
     "/regenerate-all",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -485,7 +477,7 @@ export const certificatesRoutes = new Elysia({ name: "certificates" })
           regenerated: successCount,
           failed: failCount,
         };
-      }),
+      },
     {
       detail: {
         tags: ["Certificates"],

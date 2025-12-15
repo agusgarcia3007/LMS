@@ -3,7 +3,6 @@ import { authPlugin, invalidateUserCache } from "@/plugins/auth";
 import { tenantPlugin } from "@/plugins/tenant";
 import { jwtPlugin } from "@/plugins/jwt";
 import { AppError, ErrorCode } from "@/lib/errors";
-import { withHandler } from "@/lib/handler";
 import { sendEmail } from "@/lib/utils";
 import { getInvitationEmailHtml } from "@/lib/email-templates";
 import { CLIENT_URL } from "@/lib/constants";
@@ -56,8 +55,7 @@ export const usersRoutes = new Elysia()
   .use(jwtPlugin)
   .get(
     "/",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -147,7 +145,7 @@ export const usersRoutes = new Elysia()
           })),
           pagination: calculatePagination(total, params.page, params.limit),
         };
-      }),
+    },
     {
       query: t.Object({
         page: t.Optional(t.String()),
@@ -166,8 +164,7 @@ export const usersRoutes = new Elysia()
   )
   .get(
     "/tenant",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -258,7 +255,7 @@ export const usersRoutes = new Elysia()
           })),
           pagination: calculatePagination(total, params.page, params.limit),
         };
-      }),
+    },
     {
       query: t.Object({
         page: t.Optional(t.String()),
@@ -276,8 +273,7 @@ export const usersRoutes = new Elysia()
   )
   .get(
     "/:id",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -301,7 +297,7 @@ export const usersRoutes = new Elysia()
         }
 
         return { user: excludePassword(user) };
-      }),
+    },
     {
       params: t.Object({
         id: t.String({ format: "uuid" }),
@@ -314,8 +310,7 @@ export const usersRoutes = new Elysia()
   )
   .put(
     "/:id",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -369,7 +364,7 @@ export const usersRoutes = new Elysia()
         invalidateUserCache(ctx.params.id);
 
         return { user: excludePassword(updatedUser) };
-      }),
+    },
     {
       params: t.Object({
         id: t.String({ format: "uuid" }),
@@ -387,8 +382,7 @@ export const usersRoutes = new Elysia()
   )
   .delete(
     "/:id",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -424,7 +418,7 @@ export const usersRoutes = new Elysia()
         invalidateUserCache(ctx.params.id);
 
         return { success: true };
-      }),
+    },
     {
       params: t.Object({
         id: t.String({ format: "uuid" }),
@@ -437,8 +431,7 @@ export const usersRoutes = new Elysia()
   )
   .put(
     "/tenant/:id",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -506,7 +499,7 @@ export const usersRoutes = new Elysia()
         invalidateUserCache(ctx.params.id);
 
         return { user: excludePassword(updatedUser) };
-      }),
+    },
     {
       params: t.Object({
         id: t.String({ format: "uuid" }),
@@ -523,8 +516,7 @@ export const usersRoutes = new Elysia()
   )
   .post(
     "/tenant/invite",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -608,7 +600,7 @@ export const usersRoutes = new Elysia()
         });
 
         return { user: excludePassword(newUser) };
-      }),
+    },
     {
       body: t.Object({
         email: t.String({ format: "email" }),
@@ -623,8 +615,7 @@ export const usersRoutes = new Elysia()
   )
   .delete(
     "/tenant/bulk",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -682,7 +673,7 @@ export const usersRoutes = new Elysia()
         validIds.forEach((id) => invalidateUserCache(id));
 
         return { deleted: validIds.length };
-      }),
+    },
     {
       body: t.Object({
         ids: t.Array(t.String({ format: "uuid" }), { minItems: 1, maxItems: 100 }),
@@ -695,8 +686,7 @@ export const usersRoutes = new Elysia()
   )
   .put(
     "/tenant/bulk/role",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -757,7 +747,7 @@ export const usersRoutes = new Elysia()
         validIds.forEach((id) => invalidateUserCache(id));
 
         return { updated: validIds.length };
-      }),
+    },
     {
       body: t.Object({
         ids: t.Array(t.String({ format: "uuid" }), { minItems: 1, maxItems: 100 }),
@@ -771,8 +761,7 @@ export const usersRoutes = new Elysia()
   )
   .get(
     "/tenant/export",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -829,7 +818,7 @@ export const usersRoutes = new Elysia()
             "Content-Disposition": `attachment; filename="users-${new Date().toISOString().split("T")[0]}.csv"`,
           },
         });
-      }),
+    },
     {
       detail: {
         tags: ["Users"],

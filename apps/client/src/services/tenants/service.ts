@@ -144,6 +144,11 @@ export type Tenant = {
   maxStorageBytes: string | null;
   features: TenantFeatures | null;
   status: TenantStatus;
+  plan: "starter" | "growth" | "scale";
+  subscriptionStatus: "trialing" | "active" | "past_due" | "canceled" | "unpaid" | null;
+  trialEndsAt: string | null;
+  commissionRate: number;
+  chargesEnabled: boolean;
   createdAt: string;
   updatedAt: string;
   usersCount?: number;

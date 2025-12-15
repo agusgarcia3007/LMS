@@ -1,5 +1,4 @@
 import { Elysia, t } from "elysia";
-import { withHandler } from "@/lib/handler";
 import { logger } from "@/lib/logger";
 import { db } from "@/db";
 import {
@@ -12,6 +11,10 @@ import { Cache } from "@/lib/cache";
 
 const CACHE_TTL = 5 * 60 * 1000;
 const tenantCache = new Cache<string>(CACHE_TTL, 1000);
+
+export function invalidateAnalyticsTenantCache(slug: string): void {
+  tenantCache.delete(slug);
+}
 
 async function getTenantId(slug: string): Promise<string | null> {
   const cached = tenantCache.get(slug);
@@ -106,8 +109,7 @@ export const analyticsRoutes = new Elysia({ name: "analytics" })
   )
   .get(
     "/tenants/:tenantId/visitors",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         const { tenantId } = ctx.params;
         const period = (ctx.query.period as string) || "30d";
 
@@ -178,7 +180,7 @@ export const analyticsRoutes = new Elysia({ name: "analytics" })
           dailyVisitors,
           topPages,
         };
-      }),
+      },
     {
       params: t.Object({
         tenantId: t.String({ format: "uuid" }),

@@ -1,7 +1,6 @@
 import { Elysia, t } from "elysia";
 import { authPlugin } from "@/plugins/auth";
 import { AppError, ErrorCode } from "@/lib/errors";
-import { withHandler } from "@/lib/handler";
 import { db } from "@/db";
 import {
   categoriesTable,
@@ -39,8 +38,7 @@ export const categoriesRoutes = new Elysia()
   .use(authPlugin)
   .get(
     "/",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -127,7 +125,7 @@ export const categoriesRoutes = new Elysia()
           categories: categoriesWithCounts,
           pagination: calculatePagination(total, params.page, params.limit),
         };
-      }),
+      },
     {
       query: t.Object({
         page: t.Optional(t.String()),
@@ -144,8 +142,7 @@ export const categoriesRoutes = new Elysia()
   )
   .get(
     "/:id",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -180,7 +177,7 @@ export const categoriesRoutes = new Elysia()
             coursesCount: coursesCount.count,
           },
         };
-      }),
+      },
     {
       params: t.Object({
         id: t.String({ format: "uuid" }),
@@ -193,8 +190,7 @@ export const categoriesRoutes = new Elysia()
   )
   .post(
     "/",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -246,7 +242,7 @@ export const categoriesRoutes = new Elysia()
           .returning();
 
         return { category: { ...category, coursesCount: 0 } };
-      }),
+      },
     {
       body: t.Object({
         name: t.String({ minLength: 1 }),
@@ -261,8 +257,7 @@ export const categoriesRoutes = new Elysia()
   )
   .put(
     "/:id",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -320,7 +315,7 @@ export const categoriesRoutes = new Elysia()
         return {
           category: { ...updatedCategory, coursesCount: coursesCount.count },
         };
-      }),
+      },
     {
       params: t.Object({
         id: t.String({ format: "uuid" }),
@@ -339,8 +334,7 @@ export const categoriesRoutes = new Elysia()
   )
   .delete(
     "/:id",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -382,7 +376,7 @@ export const categoriesRoutes = new Elysia()
           .where(eq(categoriesTable.id, ctx.params.id));
 
         return { success: true };
-      }),
+      },
     {
       params: t.Object({
         id: t.String({ format: "uuid" }),

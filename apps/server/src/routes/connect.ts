@@ -1,8 +1,7 @@
 import { Elysia, t } from "elysia";
 import { authPlugin } from "@/plugins/auth";
-import { tenantPlugin } from "@/plugins/tenant";
+import { tenantPlugin, invalidateTenantCache } from "@/plugins/tenant";
 import { AppError, ErrorCode } from "@/lib/errors";
-import { withHandler } from "@/lib/handler";
 import { db } from "@/db";
 import { tenantsTable } from "@/db/schema";
 import { eq } from "drizzle-orm";
@@ -12,8 +11,7 @@ import { env } from "@/lib/env";
 export const connectRoutes = new Elysia()
   .use(authPlugin)
   .use(tenantPlugin)
-  .get("/status", (ctx) =>
-    withHandler(ctx, async () => {
+  .get("/status", async (ctx) => {
       if (!ctx.user || !ctx.tenant) {
         throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
       }
@@ -28,10 +26,9 @@ export const connectRoutes = new Elysia()
         payoutsEnabled: ctx.tenant.payoutsEnabled ?? false,
         accountId: ctx.tenant.stripeConnectAccountId,
       };
-    })
+    }
   )
-  .post("/onboard", (ctx) =>
-    withHandler(ctx, async () => {
+  .post("/onboard", async (ctx) => {
       if (!ctx.user || !ctx.tenant) {
         throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
       }
@@ -70,6 +67,8 @@ export const connectRoutes = new Elysia()
             stripeConnectStatus: "pending",
           })
           .where(eq(tenantsTable.id, ctx.tenant.id));
+
+        invalidateTenantCache(ctx.tenant.slug);
       }
 
       const accountLink = await stripe.accountLinks.create({
@@ -83,10 +82,9 @@ export const connectRoutes = new Elysia()
       });
 
       return { onboardingUrl: accountLink.url };
-    })
+    }
   )
-  .post("/refresh", (ctx) =>
-    withHandler(ctx, async () => {
+  .post("/refresh", async (ctx) => {
       if (!ctx.user || !ctx.tenant) {
         throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
       }
@@ -114,10 +112,9 @@ export const connectRoutes = new Elysia()
       });
 
       return { onboardingUrl: accountLink.url };
-    })
+    }
   )
-  .get("/dashboard", (ctx) =>
-    withHandler(ctx, async () => {
+  .get("/dashboard", async (ctx) => {
       if (!ctx.user || !ctx.tenant) {
         throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
       }
@@ -139,5 +136,5 @@ export const connectRoutes = new Elysia()
       );
 
       return { dashboardUrl: loginLink.url };
-    })
+    }
   );

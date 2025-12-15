@@ -2,7 +2,6 @@ import { Elysia, t } from "elysia";
 import { authPlugin } from "@/plugins/auth";
 import { tenantPlugin } from "@/plugins/tenant";
 import { AppError, ErrorCode } from "@/lib/errors";
-import { withHandler } from "@/lib/handler";
 import { db } from "@/db";
 import {
   coursesTable,
@@ -20,8 +19,7 @@ export const checkoutRoutes = new Elysia()
   .use(tenantPlugin)
   .post(
     "/session",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user || !ctx.tenant) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -193,7 +191,7 @@ export const checkoutRoutes = new Elysia()
           checkoutUrl: session.url,
           sessionId: session.id,
         };
-      }),
+      },
     {
       body: t.Object({
         courseIds: t.Array(t.String()),
@@ -202,8 +200,7 @@ export const checkoutRoutes = new Elysia()
   )
   .get(
     "/session/:sessionId",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user || !ctx.tenant) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -227,7 +224,7 @@ export const checkoutRoutes = new Elysia()
           status: session.status,
           paymentStatus: session.payment_status,
         };
-      }),
+      },
     {
       params: t.Object({
         sessionId: t.String(),

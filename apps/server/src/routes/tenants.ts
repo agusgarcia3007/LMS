@@ -2,7 +2,6 @@ import { Elysia, t } from "elysia";
 import { authPlugin, invalidateUserCache, type UserWithoutPassword } from "@/plugins/auth";
 import { invalidateTenantCache, invalidateCustomDomainCache } from "@/plugins/tenant";
 import { AppError, ErrorCode } from "@/lib/errors";
-import { withHandler } from "@/lib/handler";
 import { db } from "@/db";
 import {
   tenantsTable,
@@ -98,8 +97,7 @@ export const tenantsRoutes = new Elysia()
   .use(authPlugin)
   .post(
     "/",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         checkCanCreateTenant(ctx.user, ctx.userRole);
 
         if (RESERVED_SLUGS.includes(ctx.body.slug)) {
@@ -107,10 +105,18 @@ export const tenantsRoutes = new Elysia()
         }
 
         const result = await db.transaction(async (tx) => {
-          // Use INSERT ON CONFLICT to avoid separate SELECT query
+          // 7-day trial period for new tenants
+          const trialEndsAt = new Date();
+          trialEndsAt.setDate(trialEndsAt.getDate() + 7);
+
           const [tenant] = await tx
             .insert(tenantsTable)
-            .values({ slug: ctx.body.slug, name: ctx.body.name })
+            .values({
+              slug: ctx.body.slug,
+              name: ctx.body.name,
+              subscriptionStatus: "trialing",
+              trialEndsAt,
+            })
             .onConflictDoNothing({ target: tenantsTable.slug })
             .returning();
 
@@ -138,7 +144,7 @@ export const tenantsRoutes = new Elysia()
         }
 
         return result;
-      }),
+    },
     {
       body: t.Object({
         slug: t.String({ minLength: 1, pattern: "^[a-z0-9-]+$" }),
@@ -152,8 +158,7 @@ export const tenantsRoutes = new Elysia()
   )
   .get(
     "/",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -239,7 +244,7 @@ export const tenantsRoutes = new Elysia()
           tenants,
           pagination: calculatePagination(total, params.page, params.limit),
         };
-      }),
+    },
     {
       query: t.Object({
         page: t.Optional(t.String()),
@@ -256,8 +261,7 @@ export const tenantsRoutes = new Elysia()
   )
   .get(
     "/by-slug/:slug",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -281,7 +285,7 @@ export const tenantsRoutes = new Elysia()
         }
 
         throw new AppError(ErrorCode.FORBIDDEN, "Access denied", 403);
-      }),
+    },
     {
       params: t.Object({
         slug: t.String(),
@@ -294,8 +298,7 @@ export const tenantsRoutes = new Elysia()
   )
   .get(
     "/:id/stats",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -388,7 +391,7 @@ export const tenantsRoutes = new Elysia()
             newEnrollments30d: enrollmentsChangeResult[0].count,
           },
         };
-      }),
+    },
     {
       params: t.Object({
         id: t.String({ format: "uuid" }),
@@ -401,8 +404,7 @@ export const tenantsRoutes = new Elysia()
   )
   .get(
     "/:id/onboarding",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -462,7 +464,7 @@ export const tenantsRoutes = new Elysia()
             course: courseCount.count > 0,
           },
         };
-      }),
+    },
     {
       params: t.Object({
         id: t.String({ format: "uuid" }),
@@ -475,8 +477,7 @@ export const tenantsRoutes = new Elysia()
   )
   .get(
     "/:id/stats/trends",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -531,7 +532,7 @@ export const tenantsRoutes = new Elysia()
             period,
           },
         };
-      }),
+    },
     {
       params: t.Object({
         id: t.String({ format: "uuid" }),
@@ -551,8 +552,7 @@ export const tenantsRoutes = new Elysia()
   )
   .get(
     "/:id/stats/top-courses",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -592,7 +592,7 @@ export const tenantsRoutes = new Elysia()
           .limit(limit);
 
         return { courses };
-      }),
+    },
     {
       params: t.Object({
         id: t.String({ format: "uuid" }),
@@ -608,8 +608,7 @@ export const tenantsRoutes = new Elysia()
   )
   .get(
     "/:id/stats/activity",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -704,7 +703,7 @@ export const tenantsRoutes = new Elysia()
           .slice(0, limit);
 
         return { activities: allActivities };
-      }),
+    },
     {
       params: t.Object({
         id: t.String({ format: "uuid" }),
@@ -720,8 +719,7 @@ export const tenantsRoutes = new Elysia()
   )
   .put(
     "/:id",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -815,7 +813,7 @@ export const tenantsRoutes = new Elysia()
         }
 
         return { tenant: transformTenant(updatedTenant) };
-      }),
+    },
     {
       params: t.Object({
         id: t.String({ format: "uuid" }),
@@ -990,8 +988,7 @@ export const tenantsRoutes = new Elysia()
   )
   .delete(
     "/:id",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -1019,7 +1016,7 @@ export const tenantsRoutes = new Elysia()
         invalidateTenantCache(existingTenant.slug);
 
         return { success: true };
-      }),
+    },
     {
       params: t.Object({
         id: t.String({ format: "uuid" }),
@@ -1032,8 +1029,7 @@ export const tenantsRoutes = new Elysia()
   )
   .post(
     "/:id/logo",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -1092,7 +1088,7 @@ export const tenantsRoutes = new Elysia()
           logoUrl: getPresignedUrl(logoKey),
           tenant: transformTenant(updatedTenant),
         };
-      }),
+    },
     {
       params: t.Object({
         id: t.String({ format: "uuid" }),
@@ -1108,8 +1104,7 @@ export const tenantsRoutes = new Elysia()
   )
   .delete(
     "/:id/logo",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -1145,7 +1140,7 @@ export const tenantsRoutes = new Elysia()
         invalidateTenantCache(existingTenant.slug);
 
         return { tenant: transformTenant(updatedTenant) };
-      }),
+    },
     {
       params: t.Object({
         id: t.String({ format: "uuid" }),
@@ -1158,8 +1153,7 @@ export const tenantsRoutes = new Elysia()
   )
   .post(
     "/:id/certificate-signature",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -1214,7 +1208,7 @@ export const tenantsRoutes = new Elysia()
           signatureUrl: getPresignedUrl(signatureKey),
           tenant: transformTenant(updatedTenant),
         };
-      }),
+    },
     {
       params: t.Object({
         id: t.String({ format: "uuid" }),
@@ -1230,8 +1224,7 @@ export const tenantsRoutes = new Elysia()
   )
   .delete(
     "/:id/certificate-signature",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -1271,7 +1264,7 @@ export const tenantsRoutes = new Elysia()
         invalidateTenantCache(existingTenant.slug);
 
         return { tenant: transformTenant(updatedTenant) };
-      }),
+    },
     {
       params: t.Object({
         id: t.String({ format: "uuid" }),
@@ -1284,8 +1277,7 @@ export const tenantsRoutes = new Elysia()
   )
   .put(
     "/:id/domain",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -1376,7 +1368,7 @@ export const tenantsRoutes = new Elysia()
           tenant: transformTenant(updatedTenant),
           cnameTarget: getCnameTarget(),
         };
-      }),
+    },
     {
       params: t.Object({
         id: t.String({ format: "uuid" }),
@@ -1392,8 +1384,7 @@ export const tenantsRoutes = new Elysia()
   )
   .get(
     "/:id/domain/verify",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -1428,7 +1419,7 @@ export const tenantsRoutes = new Elysia()
           sslStatus: cfHostname.ssl.status,
           cnameTarget: getCnameTarget(),
         };
-      }),
+    },
     {
       params: t.Object({
         id: t.String({ format: "uuid" }),
@@ -1441,8 +1432,7 @@ export const tenantsRoutes = new Elysia()
   )
   .delete(
     "/:id/domain",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -1485,7 +1475,7 @@ export const tenantsRoutes = new Elysia()
         invalidateTenantCache(existingTenant.slug);
 
         return { tenant: transformTenant(updatedTenant) };
-      }),
+    },
     {
       params: t.Object({
         id: t.String({ format: "uuid" }),

@@ -1,7 +1,6 @@
 import { Elysia, t } from "elysia";
 import { authPlugin } from "@/plugins/auth";
 import { AppError, ErrorCode } from "@/lib/errors";
-import { withHandler } from "@/lib/handler";
 import { db } from "@/db";
 import {
   videosTable,
@@ -122,34 +121,33 @@ export const subtitlesRoutes = new Elysia({ name: "ai-subtitles" })
   .use(authPlugin)
   .post(
     "/videos/:videoId/subtitles/generate",
-    (ctx) =>
-      withHandler(ctx, async () => {
-        if (!ctx.user) {
-          throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
-        }
+    async (ctx) => {
+      if (!ctx.user) {
+        throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
+      }
 
-        if (!ctx.user.tenantId) {
-          throw new AppError(
-            ErrorCode.TENANT_NOT_FOUND,
-            "User has no tenant",
-            404
-          );
-        }
+      if (!ctx.user.tenantId) {
+        throw new AppError(
+          ErrorCode.TENANT_NOT_FOUND,
+          "User has no tenant",
+          404
+        );
+      }
 
-        const canManage =
-          ctx.userRole === "owner" ||
-          ctx.userRole === "admin" ||
-          ctx.userRole === "superadmin";
+      const canManage =
+        ctx.userRole === "owner" ||
+        ctx.userRole === "admin" ||
+        ctx.userRole === "superadmin";
 
-        if (!canManage) {
-          throw new AppError(
-            ErrorCode.FORBIDDEN,
-            "Only owners and admins can generate subtitles",
-            403
-          );
-        }
+      if (!canManage) {
+        throw new AppError(
+          ErrorCode.FORBIDDEN,
+          "Only owners and admins can generate subtitles",
+          403
+        );
+      }
 
-        const [video] = await db
+      const [video] = await db
           .select()
           .from(videosTable)
           .where(
@@ -229,18 +227,18 @@ export const subtitlesRoutes = new Elysia({ name: "ai-subtitles" })
           subtitleId = subtitle.id;
         }
 
-        processSubtitleGeneration(
-          video.id,
-          video.videoKey,
-          subtitleId,
-          ctx.user.tenantId,
-          sourceLanguage
-        ).catch((err) =>
-          logger.error("Background subtitle generation failed", { err })
-        );
+      processSubtitleGeneration(
+        video.id,
+        video.videoKey,
+        subtitleId,
+        ctx.user.tenantId,
+        sourceLanguage
+      ).catch((err) =>
+        logger.error("Background subtitle generation failed", { err })
+      );
 
-        return { subtitleId, status: "processing" };
-      }),
+      return { subtitleId, status: "processing" };
+    },
     {
       params: t.Object({ videoId: t.String({ format: "uuid" }) }),
       body: t.Optional(
@@ -256,34 +254,33 @@ export const subtitlesRoutes = new Elysia({ name: "ai-subtitles" })
   )
   .post(
     "/videos/:videoId/subtitles/translate",
-    (ctx) =>
-      withHandler(ctx, async () => {
-        if (!ctx.user) {
-          throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
-        }
+    async (ctx) => {
+      if (!ctx.user) {
+        throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
+      }
 
-        if (!ctx.user.tenantId) {
-          throw new AppError(
-            ErrorCode.TENANT_NOT_FOUND,
-            "User has no tenant",
-            404
-          );
-        }
+      if (!ctx.user.tenantId) {
+        throw new AppError(
+          ErrorCode.TENANT_NOT_FOUND,
+          "User has no tenant",
+          404
+        );
+      }
 
-        const canManage =
-          ctx.userRole === "owner" ||
-          ctx.userRole === "admin" ||
-          ctx.userRole === "superadmin";
+      const canManage =
+        ctx.userRole === "owner" ||
+        ctx.userRole === "admin" ||
+        ctx.userRole === "superadmin";
 
-        if (!canManage) {
-          throw new AppError(
-            ErrorCode.FORBIDDEN,
-            "Only owners and admins can translate subtitles",
-            403
-          );
-        }
+      if (!canManage) {
+        throw new AppError(
+          ErrorCode.FORBIDDEN,
+          "Only owners and admins can translate subtitles",
+          403
+        );
+      }
 
-        const { targetLanguage } = ctx.body;
+      const { targetLanguage } = ctx.body;
 
         if (!isValidLanguageCode(targetLanguage)) {
           throw new AppError(
@@ -376,17 +373,17 @@ export const subtitlesRoutes = new Elysia({ name: "ai-subtitles" })
           translationId = translation.id;
         }
 
-        processSubtitleTranslation(
-          original,
-          targetLanguage,
-          translationId,
-          ctx.user.tenantId
-        ).catch((err) =>
-          logger.error("Background subtitle translation failed", { err })
-        );
+      processSubtitleTranslation(
+        original,
+        targetLanguage,
+        translationId,
+        ctx.user.tenantId
+      ).catch((err) =>
+        logger.error("Background subtitle translation failed", { err })
+      );
 
-        return { subtitleId: translationId, status: "processing" };
-      }),
+      return { subtitleId: translationId, status: "processing" };
+    },
     {
       params: t.Object({ videoId: t.String({ format: "uuid" }) }),
       body: t.Object({
@@ -400,32 +397,31 @@ export const subtitlesRoutes = new Elysia({ name: "ai-subtitles" })
   )
   .get(
     "/videos/:videoId/subtitles/:language/vtt",
-    (ctx) =>
-      withHandler(ctx, async () => {
-        if (!ctx.user) {
-          throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
-        }
+    async (ctx) => {
+      if (!ctx.user) {
+        throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
+      }
 
-        const { videoId, language } = ctx.params;
+      const { videoId, language } = ctx.params;
 
-        const [subtitle] = await db
-          .select()
-          .from(videoSubtitlesTable)
-          .where(
-            and(
-              eq(videoSubtitlesTable.videoId, videoId),
-              eq(videoSubtitlesTable.language, language),
-              eq(videoSubtitlesTable.status, "completed")
-            )
+      const [subtitle] = await db
+        .select()
+        .from(videoSubtitlesTable)
+        .where(
+          and(
+            eq(videoSubtitlesTable.videoId, videoId),
+            eq(videoSubtitlesTable.language, language),
+            eq(videoSubtitlesTable.status, "completed")
           )
-          .limit(1);
+        )
+        .limit(1);
 
-        if (!subtitle?.vttKey) {
-          throw new AppError(ErrorCode.NOT_FOUND, "Subtitle not found", 404);
-        }
+      if (!subtitle?.vttKey) {
+        throw new AppError(ErrorCode.NOT_FOUND, "Subtitle not found", 404);
+      }
 
-        return { vttUrl: getPresignedUrl(subtitle.vttKey) };
-      }),
+      return { vttUrl: getPresignedUrl(subtitle.vttKey) };
+    },
     {
       params: t.Object({
         videoId: t.String({ format: "uuid" }),
@@ -439,33 +435,32 @@ export const subtitlesRoutes = new Elysia({ name: "ai-subtitles" })
   )
   .get(
     "/subtitles/:subtitleId/vtt",
-    (ctx) =>
-      withHandler(ctx, async () => {
-        if (!ctx.user) {
-          throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
-        }
+    async (ctx) => {
+      if (!ctx.user) {
+        throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
+      }
 
-        const [subtitle] = await db
-          .select()
-          .from(videoSubtitlesTable)
-          .where(eq(videoSubtitlesTable.id, ctx.params.subtitleId))
-          .limit(1);
+      const [subtitle] = await db
+        .select()
+        .from(videoSubtitlesTable)
+        .where(eq(videoSubtitlesTable.id, ctx.params.subtitleId))
+        .limit(1);
 
-        if (!subtitle) {
-          throw new AppError(ErrorCode.NOT_FOUND, "Subtitle not found", 404);
-        }
+      if (!subtitle) {
+        throw new AppError(ErrorCode.NOT_FOUND, "Subtitle not found", 404);
+      }
 
-        if (subtitle.vttKey) {
-          return { vttUrl: getPresignedUrl(subtitle.vttKey) };
-        }
+      if (subtitle.vttKey) {
+        return { vttUrl: getPresignedUrl(subtitle.vttKey) };
+      }
 
-        if (subtitle.segments) {
-          const vtt = generateVTT(subtitle.segments);
-          return { vtt };
-        }
+      if (subtitle.segments) {
+        const vtt = generateVTT(subtitle.segments);
+        return { vtt };
+      }
 
-        throw new AppError(ErrorCode.NOT_FOUND, "VTT not available", 404);
-      }),
+      throw new AppError(ErrorCode.NOT_FOUND, "VTT not available", 404);
+    },
     {
       params: t.Object({ subtitleId: t.String({ format: "uuid" }) }),
       detail: {
@@ -476,34 +471,33 @@ export const subtitlesRoutes = new Elysia({ name: "ai-subtitles" })
   )
   .get(
     "/videos/:videoId/subtitles",
-    (ctx) =>
-      withHandler(ctx, async () => {
-        if (!ctx.user) {
-          throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
-        }
+    async (ctx) => {
+      if (!ctx.user) {
+        throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
+      }
 
-        const subtitles = await db
-          .select()
-          .from(videoSubtitlesTable)
-          .where(eq(videoSubtitlesTable.videoId, ctx.params.videoId))
-          .orderBy(
-            desc(videoSubtitlesTable.isOriginal),
-            videoSubtitlesTable.createdAt
-          );
+      const subtitles = await db
+        .select()
+        .from(videoSubtitlesTable)
+        .where(eq(videoSubtitlesTable.videoId, ctx.params.videoId))
+        .orderBy(
+          desc(videoSubtitlesTable.isOriginal),
+          videoSubtitlesTable.createdAt
+        );
 
-        return {
-          subtitles: subtitles.map((s) => ({
-            id: s.id,
-            language: s.language,
-            label: getLanguageLabel(s.language as SubtitleLanguageCode),
-            isOriginal: s.isOriginal,
-            status: s.status,
-            vttUrl: s.status === "completed" && s.vttKey ? getPresignedUrl(s.vttKey) : null,
-            errorMessage: s.errorMessage,
-            createdAt: s.createdAt.toISOString(),
-          })),
-        };
-      }),
+      return {
+        subtitles: subtitles.map((s) => ({
+          id: s.id,
+          language: s.language,
+          label: getLanguageLabel(s.language as SubtitleLanguageCode),
+          isOriginal: s.isOriginal,
+          status: s.status,
+          vttUrl: s.status === "completed" && s.vttKey ? getPresignedUrl(s.vttKey) : null,
+          errorMessage: s.errorMessage,
+          createdAt: s.createdAt.toISOString(),
+        })),
+      };
+    },
     {
       params: t.Object({ videoId: t.String({ format: "uuid" }) }),
       detail: {
@@ -514,63 +508,62 @@ export const subtitlesRoutes = new Elysia({ name: "ai-subtitles" })
   )
   .delete(
     "/subtitles/:subtitleId",
-    (ctx) =>
-      withHandler(ctx, async () => {
-        if (!ctx.user) {
-          throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
-        }
+    async (ctx) => {
+      if (!ctx.user) {
+        throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
+      }
 
-        if (!ctx.user.tenantId) {
-          throw new AppError(
-            ErrorCode.TENANT_NOT_FOUND,
-            "User has no tenant",
-            404
-          );
-        }
+      if (!ctx.user.tenantId) {
+        throw new AppError(
+          ErrorCode.TENANT_NOT_FOUND,
+          "User has no tenant",
+          404
+        );
+      }
 
-        const canManage =
-          ctx.userRole === "owner" ||
-          ctx.userRole === "admin" ||
-          ctx.userRole === "superadmin";
+      const canManage =
+        ctx.userRole === "owner" ||
+        ctx.userRole === "admin" ||
+        ctx.userRole === "superadmin";
 
-        if (!canManage) {
-          throw new AppError(
-            ErrorCode.FORBIDDEN,
-            "Only owners and admins can delete subtitles",
-            403
-          );
-        }
+      if (!canManage) {
+        throw new AppError(
+          ErrorCode.FORBIDDEN,
+          "Only owners and admins can delete subtitles",
+          403
+        );
+      }
 
-        const [subtitle] = await db
-          .select()
-          .from(videoSubtitlesTable)
-          .where(
-            and(
-              eq(videoSubtitlesTable.id, ctx.params.subtitleId),
-              eq(videoSubtitlesTable.tenantId, ctx.user.tenantId)
-            )
+      const [subtitle] = await db
+        .select()
+        .from(videoSubtitlesTable)
+        .where(
+          and(
+            eq(videoSubtitlesTable.id, ctx.params.subtitleId),
+            eq(videoSubtitlesTable.tenantId, ctx.user.tenantId)
           )
-          .limit(1);
+        )
+        .limit(1);
 
-        if (!subtitle) {
-          throw new AppError(ErrorCode.NOT_FOUND, "Subtitle not found", 404);
-        }
+      if (!subtitle) {
+        throw new AppError(ErrorCode.NOT_FOUND, "Subtitle not found", 404);
+      }
 
-        if (subtitle.vttKey) {
-          await deleteFromS3(subtitle.vttKey);
-        }
+      if (subtitle.vttKey) {
+        await deleteFromS3(subtitle.vttKey);
+      }
 
-        await db
-          .delete(videoSubtitlesTable)
-          .where(eq(videoSubtitlesTable.id, ctx.params.subtitleId));
+      await db
+        .delete(videoSubtitlesTable)
+        .where(eq(videoSubtitlesTable.id, ctx.params.subtitleId));
 
-        logger.info("Subtitle deleted", {
-          subtitleId: ctx.params.subtitleId,
-          language: subtitle.language,
-        });
+      logger.info("Subtitle deleted", {
+        subtitleId: ctx.params.subtitleId,
+        language: subtitle.language,
+      });
 
-        return { success: true };
-      }),
+      return { success: true };
+    },
     {
       params: t.Object({ subtitleId: t.String({ format: "uuid" }) }),
       detail: {

@@ -1,7 +1,7 @@
 import { Elysia, t } from "elysia";
 import { authPlugin } from "@/plugins/auth";
+import { invalidateTenantCache } from "@/plugins/tenant";
 import { AppError, ErrorCode } from "@/lib/errors";
-import { withHandler } from "@/lib/handler";
 import { db } from "@/db";
 import {
   tenantsTable,
@@ -84,8 +84,7 @@ export const backofficeRoutes = new Elysia()
   .use(authPlugin)
   .get(
     "/stats",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         requireSuperadmin(ctx);
 
         const now = new Date();
@@ -220,7 +219,7 @@ export const backofficeRoutes = new Elysia()
             },
           },
         };
-      }),
+      },
     {
       detail: {
         tags: ["Backoffice"],
@@ -230,8 +229,7 @@ export const backofficeRoutes = new Elysia()
   )
   .get(
     "/stats/trends",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         requireSuperadmin(ctx);
 
         const period = (ctx.query.period as string) || "30d";
@@ -286,7 +284,7 @@ export const backofficeRoutes = new Elysia()
             period,
           },
         };
-      }),
+      },
     {
       query: t.Object({
         period: t.Optional(t.String()),
@@ -299,8 +297,7 @@ export const backofficeRoutes = new Elysia()
   )
   .get(
     "/stats/top-courses",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         requireSuperadmin(ctx);
 
         const limit = Number(ctx.query.limit) || 5;
@@ -336,7 +333,7 @@ export const backofficeRoutes = new Elysia()
             revenue: course.revenue / 100,
           })),
         };
-      }),
+      },
     {
       query: t.Object({
         limit: t.Optional(t.String()),
@@ -349,8 +346,7 @@ export const backofficeRoutes = new Elysia()
   )
   .get(
     "/stats/top-tenants",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         requireSuperadmin(ctx);
 
         const limit = Number(ctx.query.limit) || 5;
@@ -394,7 +390,7 @@ export const backofficeRoutes = new Elysia()
             enrollmentsCount: tenant.enrollmentsCount,
           })),
         };
-      }),
+      },
     {
       query: t.Object({
         limit: t.Optional(t.String()),
@@ -407,8 +403,7 @@ export const backofficeRoutes = new Elysia()
   )
   .get(
     "/enrollments",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         requireSuperadmin(ctx);
 
         const params = parseListParams(ctx.query);
@@ -510,7 +505,7 @@ export const backofficeRoutes = new Elysia()
           })),
           pagination: calculatePagination(total, params.page, params.limit),
         };
-      }),
+      },
     {
       query: t.Object({
         page: t.Optional(t.String()),
@@ -529,8 +524,7 @@ export const backofficeRoutes = new Elysia()
   )
   .get(
     "/certificates",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         requireSuperadmin(ctx);
 
         const params = parseListParams(ctx.query);
@@ -614,7 +608,7 @@ export const backofficeRoutes = new Elysia()
           certificates: certificatesWithUrls,
           pagination: calculatePagination(total, params.page, params.limit),
         };
-      }),
+      },
     {
       query: t.Object({
         page: t.Optional(t.String()),
@@ -632,8 +626,7 @@ export const backofficeRoutes = new Elysia()
   )
   .get(
     "/files",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         requireSuperadmin(ctx);
 
         const tenantId = ctx.query.tenantId;
@@ -835,7 +828,7 @@ export const backofficeRoutes = new Elysia()
         };
 
         return { files: results, summary };
-      }),
+      },
     {
       query: t.Object({
         tenantId: t.String(),
@@ -849,8 +842,7 @@ export const backofficeRoutes = new Elysia()
   )
   .post(
     "/files/upload",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         requireSuperadmin(ctx);
 
         const { base64, key } = ctx.body;
@@ -872,7 +864,7 @@ export const backofficeRoutes = new Elysia()
         const url = getPresignedUrl(key);
 
         return { key, url };
-      }),
+      },
     {
       body: t.Object({
         base64: t.String({ minLength: 1 }),
@@ -886,8 +878,7 @@ export const backofficeRoutes = new Elysia()
   )
   .get(
     "/files/browse",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         requireSuperadmin(ctx);
 
         const prefix = ctx.query.prefix || "";
@@ -920,7 +911,7 @@ export const backofficeRoutes = new Elysia()
           isTruncated: response.isTruncated,
           nextToken: response.nextContinuationToken,
         };
-      }),
+      },
     {
       query: t.Object({
         prefix: t.Optional(t.String()),
@@ -933,8 +924,7 @@ export const backofficeRoutes = new Elysia()
   )
   .get(
     "/tenants",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         requireSuperadmin(ctx);
 
         const tenants = await db
@@ -961,7 +951,7 @@ export const backofficeRoutes = new Elysia()
           .orderBy(desc(tenantsTable.createdAt));
 
         return { tenants };
-      }),
+      },
     {
       detail: {
         tags: ["Backoffice"],
@@ -971,8 +961,7 @@ export const backofficeRoutes = new Elysia()
   )
   .put(
     "/tenants/:id",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         requireSuperadmin(ctx);
 
         const [existingTenant] = await db
@@ -1009,8 +998,10 @@ export const backofficeRoutes = new Elysia()
           .where(eq(tenantsTable.id, ctx.params.id))
           .returning();
 
+        invalidateTenantCache(updatedTenant.slug);
+
         return { tenant: updatedTenant };
-      }),
+      },
     {
       params: t.Object({
         id: t.String(),
@@ -1046,8 +1037,7 @@ export const backofficeRoutes = new Elysia()
   )
   .get(
     "/waitlist",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         requireSuperadmin(ctx);
 
         const params = parseListParams(ctx.query);
@@ -1097,7 +1087,7 @@ export const backofficeRoutes = new Elysia()
           waitlist,
           pagination: calculatePagination(total, params.page, params.limit),
         };
-      }),
+      },
     {
       query: t.Object({
         page: t.Optional(t.String()),
@@ -1114,8 +1104,7 @@ export const backofficeRoutes = new Elysia()
   )
   .delete(
     "/waitlist/:id",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         requireSuperadmin(ctx);
 
         const [deleted] = await db
@@ -1128,7 +1117,7 @@ export const backofficeRoutes = new Elysia()
         }
 
         return { success: true };
-      }),
+      },
     {
       params: t.Object({
         id: t.String({ format: "uuid" }),

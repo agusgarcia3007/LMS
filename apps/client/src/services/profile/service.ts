@@ -8,6 +8,7 @@ export type User = {
   role: "superadmin" | "owner" | "admin" | "student";
   tenantId: string | null;
   avatar: string | null;
+  emailVerified: boolean;
   createdAt: string;
   updatedAt: string;
 };

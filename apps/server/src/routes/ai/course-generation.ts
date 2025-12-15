@@ -1,7 +1,6 @@
 import { Elysia, t } from "elysia";
 import { authPlugin } from "@/plugins/auth";
 import { AppError, ErrorCode } from "@/lib/errors";
-import { withHandler } from "@/lib/handler";
 import { db } from "@/db";
 import {
   withUserContext,
@@ -31,34 +30,33 @@ export const courseGenerationRoutes = new Elysia({ name: "ai-course-generation" 
   .use(authPlugin)
   .post(
     "/courses/generate",
-    (ctx) =>
-      withHandler(ctx, async () => {
-        if (!ctx.user) {
-          throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
-        }
+    async (ctx) => {
+      if (!ctx.user) {
+        throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
+      }
 
-        if (!ctx.user.tenantId) {
-          throw new AppError(
-            ErrorCode.TENANT_NOT_FOUND,
-            "User has no tenant",
-            404
-          );
-        }
+      if (!ctx.user.tenantId) {
+        throw new AppError(
+          ErrorCode.TENANT_NOT_FOUND,
+          "User has no tenant",
+          404
+        );
+      }
 
-        const canManage =
-          ctx.userRole === "owner" ||
-          ctx.userRole === "admin" ||
-          ctx.userRole === "superadmin";
+      const canManage =
+        ctx.userRole === "owner" ||
+        ctx.userRole === "admin" ||
+        ctx.userRole === "superadmin";
 
-        if (!canManage) {
-          throw new AppError(
-            ErrorCode.FORBIDDEN,
-            "Only owners and admins can generate course content",
-            403
-          );
-        }
+      if (!canManage) {
+        throw new AppError(
+          ErrorCode.FORBIDDEN,
+          "Only owners and admins can generate course content",
+          403
+        );
+      }
 
-        const { moduleIds } = ctx.body;
+      const { moduleIds } = ctx.body;
 
         const moduleItems = await db
           .select({
@@ -221,12 +219,12 @@ export const courseGenerationRoutes = new Elysia({ name: "ai-course-generation" 
               );
             }
 
-            return { ...courseContent, thumbnail };
-          }
-        );
+          return { ...courseContent, thumbnail };
+        }
+      );
 
-        return result;
-      }),
+      return result;
+    },
     {
       body: t.Object({
         moduleIds: t.Array(t.String({ format: "uuid" }), { minItems: 1 }),

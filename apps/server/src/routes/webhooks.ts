@@ -11,6 +11,7 @@ import {
 import { eq, and, inArray } from "drizzle-orm";
 import { stripe, getPlanFromPriceId, getCommissionRate } from "@/lib/stripe";
 import { env } from "@/lib/env";
+import { invalidateTenantCache } from "@/plugins/tenant";
 import type Stripe from "stripe";
 import type { TenantPlan, SubscriptionStatus } from "@/db/schema";
 
@@ -64,6 +65,8 @@ async function handleSubscriptionEvent(event: Stripe.Event) {
       eventData: subscription as unknown as Record<string, unknown>,
     });
   });
+
+  invalidateTenantCache(tenant.slug);
 }
 
 async function handleSubscriptionDeleted(event: Stripe.Event) {
@@ -99,6 +102,8 @@ async function handleSubscriptionDeleted(event: Stripe.Event) {
       eventData: subscription as unknown as Record<string, unknown>,
     });
   });
+
+  invalidateTenantCache(tenant.slug);
 }
 
 async function handleAccountUpdated(event: Stripe.Event) {
@@ -132,6 +137,8 @@ async function handleAccountUpdated(event: Stripe.Event) {
       stripeConnectStatus: connectStatus,
     })
     .where(eq(tenantsTable.id, tenant.id));
+
+  invalidateTenantCache(tenant.slug);
 }
 
 async function handleCheckoutCompleted(event: Stripe.Event) {

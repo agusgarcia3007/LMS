@@ -12,9 +12,26 @@ import { getCampusUrl, setResolvedSlug } from "@/lib/tenant";
 import { profileOptions } from "@/services/profile/options";
 import { tenantOptions } from "@/services/tenants/options";
 
+function hasValidSubscription(tenant: {
+  subscriptionStatus: string | null;
+  trialEndsAt: string | null;
+}): boolean {
+  if (tenant.subscriptionStatus === "active") {
+    return true;
+  }
+  if (
+    tenant.subscriptionStatus === "trialing" &&
+    tenant.trialEndsAt &&
+    new Date(tenant.trialEndsAt) > new Date()
+  ) {
+    return true;
+  }
+  return false;
+}
+
 export const Route = createFileRoute("/$tenantSlug")({
   ssr: false,
-  beforeLoad: async ({ context, params }) => {
+  beforeLoad: async ({ context, params, location }) => {
     setResolvedSlug(params.tenantSlug);
 
     const { queryClient } = context;
@@ -24,7 +41,6 @@ export const Route = createFileRoute("/$tenantSlug")({
       throw redirect({ to: "/login" });
     }
 
-    // Fetch profile and tenant data in parallel for better performance
     const [profileData, tenantData] = await Promise.all([
       queryClient.ensureQueryData(profileOptions()),
       queryClient.ensureQueryData(tenantOptions(params.tenantSlug)),
@@ -37,17 +53,25 @@ export const Route = createFileRoute("/$tenantSlug")({
     const { user } = profileData;
 
     if (user.role !== "owner" && user.role !== "superadmin") {
-      throw redirect({ to: "/" });
+      throw redirect({ to: "/", search: { campus: undefined } });
     }
 
     if (!tenantData?.tenant) {
-      throw redirect({ to: "/" });
+      throw redirect({ to: "/", search: { campus: undefined } });
     }
 
     const { tenant } = tenantData;
 
     if (user.role === "owner" && user.tenantId !== tenant.id) {
-      throw redirect({ to: "/" });
+      throw redirect({ to: "/", search: { campus: undefined } });
+    }
+
+    const isBillingRoute = location.pathname.includes("/billing");
+    if (!isBillingRoute && user.role === "owner" && !hasValidSubscription(tenant)) {
+      throw redirect({
+        to: "/$tenantSlug/billing",
+        params: { tenantSlug: params.tenantSlug },
+      });
     }
 
     return { user, tenant };

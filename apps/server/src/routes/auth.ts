@@ -3,7 +3,6 @@ import { usersTable, refreshTokensTable } from "@/db/schema";
 import { CLIENT_URL } from "@/lib/constants";
 import { getWelcomeVerificationEmailHtml } from "@/lib/email-templates";
 import { AppError, ErrorCode } from "@/lib/errors";
-import { withHandler } from "@/lib/handler";
 import { sendEmail } from "@/lib/utils";
 import { authPlugin, invalidateUserCache } from "@/plugins/auth";
 import { jwtPlugin } from "@/plugins/jwt";
@@ -15,8 +14,7 @@ export const authRoutes = new Elysia().use(jwtPlugin).use(tenantPlugin);
 
 authRoutes.post(
   "/signup",
-  (ctx) =>
-    withHandler(ctx, async () => {
+  async (ctx) => {
       // Parent app signup (no tenant) → owner
       // Tenant signup (with tenant) → student
       const isParentAppSignup = !ctx.tenant;
@@ -100,7 +98,7 @@ authRoutes.post(
       const { password: _, ...userWithoutPassword } = user;
 
       return { user: userWithoutPassword, accessToken, refreshToken };
-    }),
+    },
   {
     body: t.Object({
       email: t.String({ format: "email" }),
@@ -114,8 +112,7 @@ authRoutes.post(
 
 authRoutes.post(
   "/login",
-  (ctx) =>
-    withHandler(ctx, async () => {
+  async (ctx) => {
       let [user] = await db
         .select()
         .from(usersTable)
@@ -185,7 +182,7 @@ authRoutes.post(
       const { password: _, ...userWithoutPassword } = user;
 
       return { user: userWithoutPassword, accessToken, refreshToken };
-    }),
+    },
   {
     body: t.Object({
       email: t.String({ format: "email" }),
@@ -197,8 +194,7 @@ authRoutes.post(
 
 authRoutes.post(
   "/refresh",
-  (ctx) =>
-    withHandler(ctx, async () => {
+  async (ctx) => {
       const payload = await ctx.refreshJwt.verify(ctx.body.refreshToken);
 
       if (!payload || typeof payload.sub !== "string") {
@@ -255,7 +251,7 @@ authRoutes.post(
       });
 
       return { accessToken };
-    }),
+    },
   {
     body: t.Object({ refreshToken: t.String() }),
     detail: { tags: ["Auth"], summary: "Refresh access token" },
@@ -264,8 +260,7 @@ authRoutes.post(
 
 authRoutes.post(
   "/forgot-password",
-  (ctx) =>
-    withHandler(ctx, async () => {
+  async (ctx) => {
       const [user] = await db
         .select()
         .from(usersTable)
@@ -294,7 +289,7 @@ authRoutes.post(
       });
 
       return { message: "If the email exists, a reset link has been sent" };
-    }),
+    },
   {
     body: t.Object({
       email: t.String({ format: "email" }),
@@ -305,8 +300,7 @@ authRoutes.post(
 
 authRoutes.post(
   "/reset-password",
-  (ctx) =>
-    withHandler(ctx, async () => {
+  async (ctx) => {
       const payload = await ctx.resetJwt.verify(ctx.body.token);
 
       if (!payload || typeof payload.sub !== "string") {
@@ -339,7 +333,7 @@ authRoutes.post(
       invalidateUserCache(user.id);
 
       return { message: "Password has been reset successfully" };
-    }),
+    },
   {
     body: t.Object({
       token: t.String(),
@@ -351,15 +345,14 @@ authRoutes.post(
 
 authRoutes.post(
   "/logout",
-  (ctx) =>
-    withHandler(ctx, async () => {
+  async (ctx) => {
       // Delete refresh token from DB to revoke it
       await db
         .delete(refreshTokensTable)
         .where(eq(refreshTokensTable.token, ctx.body.refreshToken));
 
       return { message: "Logged out successfully" };
-    }),
+    },
   {
     body: t.Object({ refreshToken: t.String() }),
     detail: { tags: ["Auth"], summary: "Logout and revoke refresh token" },
@@ -368,8 +361,7 @@ authRoutes.post(
 
 authRoutes.post(
   "/verify-email",
-  (ctx) =>
-    withHandler(ctx, async () => {
+  async (ctx) => {
       const [user] = await db
         .select()
         .from(usersTable)
@@ -415,7 +407,7 @@ authRoutes.post(
       invalidateUserCache(user.id);
 
       return { message: "Email verified successfully" };
-    }),
+    },
   {
     body: t.Object({ token: t.String() }),
     detail: { tags: ["Auth"], summary: "Verify email with token" },
@@ -426,8 +418,7 @@ authRoutes
   .use(authPlugin)
   .post(
     "/resend-verification",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -476,7 +467,7 @@ authRoutes
         invalidateUserCache(ctx.user.id);
 
         return { message: "Verification email sent" };
-      }),
+      },
     {
       detail: { tags: ["Auth"], summary: "Resend verification email" },
     }

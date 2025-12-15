@@ -32,7 +32,7 @@ publicHttp.interceptors.request.use((config) => {
   }
 
   const tenantInfo = getTenantFromHost();
-  const tenantSlug = tenantInfo.slug || (tenantInfo.isCustomDomain ? getResolvedSlug() : null);
+  const tenantSlug = tenantInfo.slug || getResolvedSlug();
   if (tenantSlug) {
     config.headers["X-Tenant-Slug"] = tenantSlug;
   }
@@ -51,7 +51,7 @@ http.interceptors.request.use((config) => {
   }
 
   const tenantInfo = getTenantFromHost();
-  const tenantSlug = tenantInfo.slug || (tenantInfo.isCustomDomain ? getResolvedSlug() : null);
+  const tenantSlug = tenantInfo.slug || getResolvedSlug();
   if (tenantSlug) {
     config.headers["X-Tenant-Slug"] = tenantSlug;
   }

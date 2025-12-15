@@ -1,6 +1,5 @@
 import { Elysia, t } from "elysia";
 import { tenantPlugin } from "@/plugins/tenant";
-import { withHandler } from "@/lib/handler";
 import { AppError, ErrorCode } from "@/lib/errors";
 import { db } from "@/db";
 import { getPresignedUrl } from "@/lib/upload";
@@ -24,8 +23,7 @@ import { eq, and, ilike, count, inArray, sql } from "drizzle-orm";
 export const campusRoutes = new Elysia({ name: "campus" })
   .get(
     "/resolve",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         const { hostname } = ctx.query;
         if (!hostname) {
           throw new AppError(ErrorCode.BAD_REQUEST, "Hostname is required", 400);
@@ -66,7 +64,7 @@ export const campusRoutes = new Elysia({ name: "campus" })
             aiAssistantSettings: tenant.aiAssistantSettings,
           },
         };
-      }),
+      },
     {
       query: t.Object({
         hostname: t.String(),
@@ -78,8 +76,7 @@ export const campusRoutes = new Elysia({ name: "campus" })
     }
   )
   .use(tenantPlugin)
-  .get("/tenant", (ctx) =>
-    withHandler(ctx, async () => {
+  .get("/tenant", async (ctx) => {
       if (!ctx.tenant) {
         throw new AppError(ErrorCode.TENANT_NOT_FOUND, "Tenant not found", 404);
       }
@@ -108,15 +105,14 @@ export const campusRoutes = new Elysia({ name: "campus" })
           aiAssistantSettings: ctx.tenant.aiAssistantSettings,
         },
       };
-    }),
+    },
     {
       detail: { tags: ["Campus"], summary: "Get current tenant" },
     }
   )
   .get(
     "/courses",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.tenant) {
           throw new AppError(ErrorCode.TENANT_NOT_FOUND, "Tenant not found", 404);
         }
@@ -278,7 +274,7 @@ export const campusRoutes = new Elysia({ name: "campus" })
             totalPages: Math.ceil(total / limitNum),
           },
         };
-      }),
+      },
     {
       query: t.Object({
         category: t.Optional(t.String()),
@@ -292,8 +288,7 @@ export const campusRoutes = new Elysia({ name: "campus" })
   )
   .get(
     "/courses/:slug",
-    (ctx) =>
-    withHandler(ctx, async () => {
+    async (ctx) => {
       if (!ctx.tenant) {
         throw new AppError(ErrorCode.TENANT_NOT_FOUND, "Tenant not found", 404);
       }
@@ -392,15 +387,14 @@ export const campusRoutes = new Elysia({ name: "campus" })
           modules,
         },
       };
-    }),
+    },
     {
       detail: { tags: ["Campus"], summary: "Get course by slug" },
     }
   )
   .get(
     "/categories",
-    (ctx) =>
-    withHandler(ctx, async () => {
+    async (ctx) => {
       if (!ctx.tenant) {
         throw new AppError(ErrorCode.TENANT_NOT_FOUND, "Tenant not found", 404);
       }
@@ -419,15 +413,14 @@ export const campusRoutes = new Elysia({ name: "campus" })
           description: c.description,
         })),
       };
-    }),
+    },
     {
       detail: { tags: ["Campus"], summary: "List categories" },
     }
   )
   .get(
     "/stats",
-    (ctx) =>
-    withHandler(ctx, async () => {
+    async (ctx) => {
       if (!ctx.tenant) {
         throw new AppError(ErrorCode.TENANT_NOT_FOUND, "Tenant not found", 404);
       }
@@ -454,15 +447,14 @@ export const campusRoutes = new Elysia({ name: "campus" })
           categories: categoriesCount.count,
         },
       };
-    }),
+    },
     {
       detail: { tags: ["Campus"], summary: "Get tenant stats" },
     }
   )
   .get(
     "/modules/:moduleId/items",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.tenant) {
           throw new AppError(ErrorCode.TENANT_NOT_FOUND, "Tenant not found", 404);
         }
@@ -543,15 +535,14 @@ export const campusRoutes = new Elysia({ name: "campus" })
           .filter((item): item is NonNullable<typeof item> => item !== null);
 
         return { items };
-      }),
+      },
     {
       detail: { tags: ["Campus"], summary: "Get module items" },
     }
   )
   .get(
     "/preview/:moduleItemId/content",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.tenant) {
           throw new AppError(ErrorCode.TENANT_NOT_FOUND, "Tenant not found", 404);
         }
@@ -704,7 +695,7 @@ export const campusRoutes = new Elysia({ name: "campus" })
         }
 
         throw new AppError(ErrorCode.BAD_REQUEST, "Invalid content type", 400);
-      }),
+      },
     {
       detail: { tags: ["Campus"], summary: "Get preview content for a module item" },
     }

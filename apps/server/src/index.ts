@@ -11,7 +11,11 @@ import { logger } from "./lib/logger";
 import { parseDuration } from "./lib/utils";
 import { ROUTES } from "./routes";
 
-const app = new Elysia()
+const app = new Elysia({
+  aot: true,
+  precompile: true,
+  nativeStaticResponse: true,
+})
   .use(errorHandler)
   .use(cors(getCorsConfig()))
   .use(rateLimit({ max: 100, duration: 60_000 }))
@@ -36,16 +40,20 @@ const app = new Elysia()
   )
   .derive(() => ({ startTime: performance.now() }))
   .onAfterResponse(({ request, startTime, set }) => {
-    const duration = (performance.now() - startTime).toFixed(2);
+    const duration = performance.now() - startTime;
     const statusCode = set.status;
 
-    logger.info(
-      `${request.method} ${request.url} ${parseDuration(
-        +duration
-      )} ${statusCode}`
-    );
+    if (duration > 1000) {
+      logger.warn(
+        `SLOW ${request.method} ${request.url} ${parseDuration(duration)} ${statusCode}`
+      );
+    } else {
+      logger.info(
+        `${request.method} ${request.url} ${parseDuration(duration)} ${statusCode}`
+      );
+    }
   })
-  .get("/", () => ({ message: "Learnbase API", version: "1.0.0" }))
+  .get("/", { message: "Learnbase API", version: "1.0.0" })
   .get("/favicon.ico", async () => {
     const favicon = Bun.file("./public/favicon.ico");
     return new Response(favicon, {

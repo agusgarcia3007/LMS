@@ -1,7 +1,6 @@
 import { Elysia, t } from "elysia";
 import { authPlugin, invalidateUserCache } from "@/plugins/auth";
 import { AppError, ErrorCode } from "@/lib/errors";
-import { withHandler } from "@/lib/handler";
 import { db } from "@/db";
 import { tenantsTable, usersTable } from "@/db/schema";
 import { eq } from "drizzle-orm";
@@ -22,8 +21,7 @@ function withAvatarUrl<T extends { avatar: string | null }>(
 // Get profile
 profileRoutes.get(
   "/",
-  (ctx) =>
-    withHandler(ctx, async () => {
+  async (ctx) => {
       if (!ctx.user) {
         throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
       }
@@ -39,7 +37,7 @@ profileRoutes.get(
       }
 
       return { user: withAvatarUrl(ctx.user), tenant };
-    }),
+  },
   {
     detail: { tags: ["Profile"], summary: "Get current user profile" },
   }
@@ -48,8 +46,7 @@ profileRoutes.get(
 // Update profile (name and locale)
 profileRoutes.put(
   "/",
-  (ctx) =>
-    withHandler(ctx, async () => {
+  async (ctx) => {
       if (!ctx.user) {
         throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
       }
@@ -68,7 +65,7 @@ profileRoutes.put(
 
       const { password: _, ...userWithoutPassword } = updated;
       return { user: withAvatarUrl(userWithoutPassword) };
-    }),
+  },
   {
     body: t.Object({
       name: t.Optional(t.String({ minLength: 1 })),
@@ -81,8 +78,7 @@ profileRoutes.put(
 // Upload avatar
 profileRoutes.post(
   "/avatar",
-  (ctx) =>
-    withHandler(ctx, async () => {
+  async (ctx) => {
       if (!ctx.user) {
         throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
       }
@@ -111,7 +107,7 @@ profileRoutes.post(
 
       const { password: _, ...userWithoutPassword } = updated;
       return { user: withAvatarUrl(userWithoutPassword) };
-    }),
+  },
   {
     body: t.Object({
       avatar: t.String(),
@@ -123,8 +119,7 @@ profileRoutes.post(
 // Delete avatar
 profileRoutes.delete(
   "/avatar",
-  (ctx) =>
-    withHandler(ctx, async () => {
+  async (ctx) => {
       if (!ctx.user) {
         throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
       }
@@ -143,7 +138,7 @@ profileRoutes.delete(
 
       const { password: _, ...userWithoutPassword } = updated;
       return { user: withAvatarUrl(userWithoutPassword) };
-    }),
+  },
   {
     detail: { tags: ["Profile"], summary: "Delete avatar" },
   }

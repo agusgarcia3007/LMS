@@ -2,7 +2,6 @@ import { Elysia, t } from "elysia";
 import { authPlugin } from "@/plugins/auth";
 import { guardPlugin } from "@/plugins/guards";
 import { AppError, ErrorCode } from "@/lib/errors";
-import { withHandler } from "@/lib/handler";
 import { db } from "@/db";
 import {
   videosTable,
@@ -60,23 +59,22 @@ export const videosRoutes = new Elysia()
   .use(guardPlugin)
   .post(
     "/upload",
-    (ctx) =>
-      withHandler(ctx, async () => {
-        if (!ctx.body.video.startsWith("data:video/")) {
-          throw new AppError(ErrorCode.BAD_REQUEST, "File must be a video", 400);
-        }
+    async (ctx) => {
+      if (!ctx.body.video.startsWith("data:video/")) {
+        throw new AppError(ErrorCode.BAD_REQUEST, "File must be a video", 400);
+      }
 
-        const videoKey = await uploadBase64ToS3({
-          base64: ctx.body.video,
-          folder: "videos",
-          userId: ctx.user!.tenantId!,
-        });
+      const videoKey = await uploadBase64ToS3({
+        base64: ctx.body.video,
+        folder: "videos",
+        userId: ctx.user!.tenantId!,
+      });
 
-        return {
-          videoKey,
-          videoUrl: getPresignedUrl(videoKey),
-        };
-      }),
+      return {
+        videoKey,
+        videoUrl: getPresignedUrl(videoKey),
+      };
+    },
     {
       body: t.Object({
         video: t.String(),
@@ -92,54 +90,53 @@ export const videosRoutes = new Elysia()
   )
   .get(
     "/",
-    (ctx) =>
-      withHandler(ctx, async () => {
-        const params = parseListParams(ctx.query);
-        const baseWhereClause = buildWhereClause(
-          params,
-          videoFieldMap,
-          videoSearchableFields,
-          videoDateFields
-        );
+    async (ctx) => {
+      const params = parseListParams(ctx.query);
+      const baseWhereClause = buildWhereClause(
+        params,
+        videoFieldMap,
+        videoSearchableFields,
+        videoDateFields
+      );
 
-        const tenantFilter = eq(videosTable.tenantId, ctx.user!.tenantId!);
+      const tenantFilter = eq(videosTable.tenantId, ctx.user!.tenantId!);
 
-        const whereClause = baseWhereClause
-          ? and(baseWhereClause, tenantFilter)
-          : tenantFilter;
+      const whereClause = baseWhereClause
+        ? and(baseWhereClause, tenantFilter)
+        : tenantFilter;
 
-        const sortColumn = getSortColumn(params.sort, videoFieldMap, {
-          field: "createdAt",
-          order: "desc",
-        });
-        const { limit, offset } = getPaginationParams(params.page, params.limit);
+      const sortColumn = getSortColumn(params.sort, videoFieldMap, {
+        field: "createdAt",
+        order: "desc",
+      });
+      const { limit, offset } = getPaginationParams(params.page, params.limit);
 
-        const baseQuery = db
-          .select()
-          .from(videosTable);
+      const baseQuery = db
+        .select()
+        .from(videosTable);
 
-        let query = baseQuery.$dynamic();
-        query = query.where(whereClause);
-        if (sortColumn) {
-          query = query.orderBy(sortColumn);
-        }
-        query = query.limit(limit).offset(offset);
+      let query = baseQuery.$dynamic();
+      query = query.where(whereClause);
+      if (sortColumn) {
+        query = query.orderBy(sortColumn);
+      }
+      query = query.limit(limit).offset(offset);
 
-        const countQuery = db
-          .select({ count: count() })
-          .from(videosTable)
-          .where(whereClause);
+      const countQuery = db
+        .select({ count: count() })
+        .from(videosTable)
+        .where(whereClause);
 
-        const [videos, [{ count: total }]] = await Promise.all([
-          query,
-          countQuery,
-        ]);
+      const [videos, [{ count: total }]] = await Promise.all([
+        query,
+        countQuery,
+      ]);
 
-        return {
-          videos: videos.map(withUrl),
-          pagination: calculatePagination(total, params.page, params.limit),
-        };
-      }),
+      return {
+        videos: videos.map(withUrl),
+        pagination: calculatePagination(total, params.page, params.limit),
+      };
+    },
     {
       query: t.Object({
         page: t.Optional(t.String()),
@@ -160,25 +157,24 @@ export const videosRoutes = new Elysia()
   )
   .get(
     "/:id",
-    (ctx) =>
-      withHandler(ctx, async () => {
-        const [video] = await db
-          .select()
-          .from(videosTable)
-          .where(
-            and(
-              eq(videosTable.id, ctx.params.id),
-              eq(videosTable.tenantId, ctx.user!.tenantId!)
-            )
+    async (ctx) => {
+      const [video] = await db
+        .select()
+        .from(videosTable)
+        .where(
+          and(
+            eq(videosTable.id, ctx.params.id),
+            eq(videosTable.tenantId, ctx.user!.tenantId!)
           )
-          .limit(1);
+        )
+        .limit(1);
 
-        if (!video) {
-          throw new AppError(ErrorCode.NOT_FOUND, "Video not found", 404);
-        }
+      if (!video) {
+        throw new AppError(ErrorCode.NOT_FOUND, "Video not found", 404);
+      }
 
-        return { video: withUrl(video) };
-      }),
+      return { video: withUrl(video) };
+    },
     {
       params: t.Object({
         id: t.String({ format: "uuid" }),
@@ -193,28 +189,27 @@ export const videosRoutes = new Elysia()
   )
   .post(
     "/",
-    (ctx) =>
-      withHandler(ctx, async () => {
-        const [video] = await db
-          .insert(videosTable)
-          .values({
-            tenantId: ctx.user!.tenantId!,
-            title: ctx.body.title,
-            description: ctx.body.description,
-            videoKey: ctx.body.videoKey,
-            duration: ctx.body.duration ?? 0,
-            status: ctx.body.status ?? "draft",
-          })
-          .returning();
+    async (ctx) => {
+      const [video] = await db
+        .insert(videosTable)
+        .values({
+          tenantId: ctx.user!.tenantId!,
+          title: ctx.body.title,
+          description: ctx.body.description,
+          videoKey: ctx.body.videoKey,
+          duration: ctx.body.duration ?? 0,
+          status: ctx.body.status ?? "draft",
+        })
+        .returning();
 
-        updateVideoEmbedding(video.id, video.title, video.description ?? null).catch(() => {});
+      updateVideoEmbedding(video.id, video.title, video.description ?? null).catch(() => {});
 
-        if (ctx.body.videoKey) {
-          updateVideoTranscript(video.id, ctx.body.videoKey).catch(() => {});
-        }
+      if (ctx.body.videoKey) {
+        updateVideoTranscript(video.id, ctx.body.videoKey).catch(() => {});
+      }
 
-        return { video: withUrl(video) };
-      }),
+      return { video: withUrl(video) };
+    },
     {
       body: t.Object({
         title: t.String({ minLength: 1 }),
@@ -234,54 +229,53 @@ export const videosRoutes = new Elysia()
   )
   .put(
     "/:id",
-    (ctx) =>
-      withHandler(ctx, async () => {
-        const [existingVideo] = await db
-          .select()
-          .from(videosTable)
-          .where(
-            and(
-              eq(videosTable.id, ctx.params.id),
-              eq(videosTable.tenantId, ctx.user!.tenantId!)
-            )
+    async (ctx) => {
+      const [existingVideo] = await db
+        .select()
+        .from(videosTable)
+        .where(
+          and(
+            eq(videosTable.id, ctx.params.id),
+            eq(videosTable.tenantId, ctx.user!.tenantId!)
           )
-          .limit(1);
+        )
+        .limit(1);
 
-        if (!existingVideo) {
-          throw new AppError(ErrorCode.NOT_FOUND, "Video not found", 404);
-        }
+      if (!existingVideo) {
+        throw new AppError(ErrorCode.NOT_FOUND, "Video not found", 404);
+      }
 
-        if (ctx.body.videoKey !== undefined && existingVideo.videoKey && ctx.body.videoKey !== existingVideo.videoKey) {
-          await deleteFromS3(existingVideo.videoKey);
-        }
+      if (ctx.body.videoKey !== undefined && existingVideo.videoKey && ctx.body.videoKey !== existingVideo.videoKey) {
+        await deleteFromS3(existingVideo.videoKey);
+      }
 
-        const updateData: Partial<SelectVideo> = {};
-        if (ctx.body.title !== undefined) updateData.title = ctx.body.title;
-        if (ctx.body.description !== undefined) updateData.description = ctx.body.description;
-        if (ctx.body.videoKey !== undefined) updateData.videoKey = ctx.body.videoKey;
-        if (ctx.body.duration !== undefined) updateData.duration = ctx.body.duration;
-        if (ctx.body.status !== undefined) updateData.status = ctx.body.status;
+      const updateData: Partial<SelectVideo> = {};
+      if (ctx.body.title !== undefined) updateData.title = ctx.body.title;
+      if (ctx.body.description !== undefined) updateData.description = ctx.body.description;
+      if (ctx.body.videoKey !== undefined) updateData.videoKey = ctx.body.videoKey;
+      if (ctx.body.duration !== undefined) updateData.duration = ctx.body.duration;
+      if (ctx.body.status !== undefined) updateData.status = ctx.body.status;
 
-        const [updatedVideo] = await db
-          .update(videosTable)
-          .set(updateData)
-          .where(eq(videosTable.id, ctx.params.id))
-          .returning();
+      const [updatedVideo] = await db
+        .update(videosTable)
+        .set(updateData)
+        .where(eq(videosTable.id, ctx.params.id))
+        .returning();
 
-        if (ctx.body.title !== undefined || ctx.body.description !== undefined) {
-          updateVideoEmbedding(
-            updatedVideo.id,
-            updatedVideo.title,
-            updatedVideo.description ?? null
-          ).catch(() => {});
-        }
+      if (ctx.body.title !== undefined || ctx.body.description !== undefined) {
+        updateVideoEmbedding(
+          updatedVideo.id,
+          updatedVideo.title,
+          updatedVideo.description ?? null
+        ).catch(() => {});
+      }
 
-        if (ctx.body.videoKey && ctx.body.videoKey !== existingVideo.videoKey) {
-          updateVideoTranscript(updatedVideo.id, ctx.body.videoKey).catch(() => {});
-        }
+      if (ctx.body.videoKey && ctx.body.videoKey !== existingVideo.videoKey) {
+        updateVideoTranscript(updatedVideo.id, ctx.body.videoKey).catch(() => {});
+      }
 
-        return { video: withUrl(updatedVideo) };
-      }),
+      return { video: withUrl(updatedVideo) };
+    },
     {
       params: t.Object({
         id: t.String({ format: "uuid" }),
@@ -304,39 +298,38 @@ export const videosRoutes = new Elysia()
   )
   .delete(
     "/:id",
-    (ctx) =>
-      withHandler(ctx, async () => {
-        const [existingVideo] = await db
-          .select()
-          .from(videosTable)
-          .where(
-            and(
-              eq(videosTable.id, ctx.params.id),
-              eq(videosTable.tenantId, ctx.user!.tenantId!)
-            )
+    async (ctx) => {
+      const [existingVideo] = await db
+        .select()
+        .from(videosTable)
+        .where(
+          and(
+            eq(videosTable.id, ctx.params.id),
+            eq(videosTable.tenantId, ctx.user!.tenantId!)
           )
-          .limit(1);
+        )
+        .limit(1);
 
-        if (!existingVideo) {
-          throw new AppError(ErrorCode.NOT_FOUND, "Video not found", 404);
-        }
+      if (!existingVideo) {
+        throw new AppError(ErrorCode.NOT_FOUND, "Video not found", 404);
+      }
 
-        await db
-          .delete(moduleItemsTable)
-          .where(
-            and(
-              eq(moduleItemsTable.contentType, "video"),
-              eq(moduleItemsTable.contentId, ctx.params.id)
-            )
-          );
+      await db
+        .delete(moduleItemsTable)
+        .where(
+          and(
+            eq(moduleItemsTable.contentType, "video"),
+            eq(moduleItemsTable.contentId, ctx.params.id)
+          )
+        );
 
-        await Promise.all([
-          existingVideo.videoKey ? deleteFromS3(existingVideo.videoKey) : Promise.resolve(),
-          db.delete(videosTable).where(eq(videosTable.id, ctx.params.id)),
-        ]);
+      await Promise.all([
+        existingVideo.videoKey ? deleteFromS3(existingVideo.videoKey) : Promise.resolve(),
+        db.delete(videosTable).where(eq(videosTable.id, ctx.params.id)),
+      ]);
 
-        return { success: true };
-      }),
+      return { success: true };
+    },
     {
       params: t.Object({
         id: t.String({ format: "uuid" }),
@@ -352,51 +345,50 @@ export const videosRoutes = new Elysia()
   )
   .post(
     "/:id/video",
-    (ctx) =>
-      withHandler(ctx, async () => {
-        const [existingVideo] = await db
-          .select()
-          .from(videosTable)
-          .where(
-            and(
-              eq(videosTable.id, ctx.params.id),
-              eq(videosTable.tenantId, ctx.user!.tenantId!)
-            )
+    async (ctx) => {
+      const [existingVideo] = await db
+        .select()
+        .from(videosTable)
+        .where(
+          and(
+            eq(videosTable.id, ctx.params.id),
+            eq(videosTable.tenantId, ctx.user!.tenantId!)
           )
-          .limit(1);
+        )
+        .limit(1);
 
-        if (!existingVideo) {
-          throw new AppError(ErrorCode.NOT_FOUND, "Video not found", 404);
-        }
+      if (!existingVideo) {
+        throw new AppError(ErrorCode.NOT_FOUND, "Video not found", 404);
+      }
 
-        if (!ctx.body.video.startsWith("data:video/")) {
-          throw new AppError(ErrorCode.BAD_REQUEST, "File must be a video", 400);
-        }
+      if (!ctx.body.video.startsWith("data:video/")) {
+        throw new AppError(ErrorCode.BAD_REQUEST, "File must be a video", 400);
+      }
 
-        const [, videoKey] = await Promise.all([
-          existingVideo.videoKey ? deleteFromS3(existingVideo.videoKey) : Promise.resolve(),
-          uploadBase64ToS3({
-            base64: ctx.body.video,
-            folder: "videos",
-            userId: ctx.user!.tenantId!,
-          }),
-        ]);
+      const [, videoKey] = await Promise.all([
+        existingVideo.videoKey ? deleteFromS3(existingVideo.videoKey) : Promise.resolve(),
+        uploadBase64ToS3({
+          base64: ctx.body.video,
+          folder: "videos",
+          userId: ctx.user!.tenantId!,
+        }),
+      ]);
 
-        const updateData: Partial<SelectVideo> = { videoKey };
-        if (ctx.body.duration !== undefined) {
-          updateData.duration = ctx.body.duration;
-        }
+      const updateData: Partial<SelectVideo> = { videoKey };
+      if (ctx.body.duration !== undefined) {
+        updateData.duration = ctx.body.duration;
+      }
 
-        const [updatedVideo] = await db
-          .update(videosTable)
-          .set(updateData)
-          .where(eq(videosTable.id, ctx.params.id))
-          .returning();
+      const [updatedVideo] = await db
+        .update(videosTable)
+        .set(updateData)
+        .where(eq(videosTable.id, ctx.params.id))
+        .returning();
 
-        updateVideoTranscript(updatedVideo.id, videoKey).catch(() => {});
+      updateVideoTranscript(updatedVideo.id, videoKey).catch(() => {});
 
-        return { video: withUrl(updatedVideo) };
-      }),
+      return { video: withUrl(updatedVideo) };
+    },
     {
       params: t.Object({
         id: t.String({ format: "uuid" }),
@@ -416,34 +408,33 @@ export const videosRoutes = new Elysia()
   )
   .delete(
     "/:id/video",
-    (ctx) =>
-      withHandler(ctx, async () => {
-        const [existingVideo] = await db
-          .select()
-          .from(videosTable)
-          .where(
-            and(
-              eq(videosTable.id, ctx.params.id),
-              eq(videosTable.tenantId, ctx.user!.tenantId!)
-            )
+    async (ctx) => {
+      const [existingVideo] = await db
+        .select()
+        .from(videosTable)
+        .where(
+          and(
+            eq(videosTable.id, ctx.params.id),
+            eq(videosTable.tenantId, ctx.user!.tenantId!)
           )
-          .limit(1);
+        )
+        .limit(1);
 
-        if (!existingVideo) {
-          throw new AppError(ErrorCode.NOT_FOUND, "Video not found", 404);
-        }
+      if (!existingVideo) {
+        throw new AppError(ErrorCode.NOT_FOUND, "Video not found", 404);
+      }
 
-        const [, [updatedVideo]] = await Promise.all([
-          existingVideo.videoKey ? deleteFromS3(existingVideo.videoKey) : Promise.resolve(),
-          db
-            .update(videosTable)
-            .set({ videoKey: null, duration: 0 })
-            .where(eq(videosTable.id, ctx.params.id))
-            .returning(),
-        ]);
+      const [, [updatedVideo]] = await Promise.all([
+        existingVideo.videoKey ? deleteFromS3(existingVideo.videoKey) : Promise.resolve(),
+        db
+          .update(videosTable)
+          .set({ videoKey: null, duration: 0 })
+          .where(eq(videosTable.id, ctx.params.id))
+          .returning(),
+      ]);
 
-        return { video: withUrl(updatedVideo) };
-      }),
+      return { video: withUrl(updatedVideo) };
+    },
     {
       params: t.Object({
         id: t.String({ format: "uuid" }),

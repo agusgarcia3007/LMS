@@ -2,7 +2,6 @@ import { Elysia, t } from "elysia";
 import { authPlugin } from "@/plugins/auth";
 import { guardPlugin } from "@/plugins/guards";
 import { AppError, ErrorCode } from "@/lib/errors";
-import { withHandler } from "@/lib/handler";
 import { db } from "@/db";
 import {
   coursesTable,
@@ -50,9 +49,8 @@ export const coursesRoutes = new Elysia()
   .use(guardPlugin)
   .get(
     "/",
-    (ctx) =>
-      withHandler(ctx, async () => {
-        const params = parseListParams(ctx.query);
+    async (ctx) => {
+      const params = parseListParams(ctx.query);
         const baseWhereClause = buildWhereClause(
           params,
           courseFieldMap,
@@ -162,11 +160,11 @@ export const coursesRoutes = new Elysia()
           modulesCount: modulesCount ?? 0,
         }));
 
-        return {
-          courses,
-          pagination: calculatePagination(total, params.page, params.limit),
-        };
-      }),
+      return {
+        courses,
+        pagination: calculatePagination(total, params.page, params.limit),
+      };
+    },
     {
       query: t.Object({
         page: t.Optional(t.String()),
@@ -189,9 +187,8 @@ export const coursesRoutes = new Elysia()
   )
   .get(
     "/:id",
-    (ctx) =>
-      withHandler(ctx, async () => {
-        const [result] = await db
+    async (ctx) => {
+      const [result] = await db
           .select({
             course: coursesTable,
             instructor: instructorsTable,
@@ -264,18 +261,18 @@ export const coursesRoutes = new Elysia()
           },
         }));
 
-        return {
-          course: {
-            ...result.course,
-            thumbnail: result.course.thumbnail ? getPresignedUrl(result.course.thumbnail) : null,
-            previewVideoUrl: result.course.previewVideoUrl ? getPresignedUrl(result.course.previewVideoUrl) : null,
-            instructor: result.instructor?.id ? result.instructor : null,
-            categories: courseCategories,
-            modules: modulesWithItemsCount,
-            modulesCount: courseModules.length,
-          },
-        };
-      }),
+      return {
+        course: {
+          ...result.course,
+          thumbnail: result.course.thumbnail ? getPresignedUrl(result.course.thumbnail) : null,
+          previewVideoUrl: result.course.previewVideoUrl ? getPresignedUrl(result.course.previewVideoUrl) : null,
+          instructor: result.instructor?.id ? result.instructor : null,
+          categories: courseCategories,
+          modules: modulesWithItemsCount,
+          modulesCount: courseModules.length,
+        },
+      };
+    },
     {
       params: t.Object({
         id: t.String({ format: "uuid" }),
@@ -290,9 +287,8 @@ export const coursesRoutes = new Elysia()
   )
   .post(
     "/",
-    (ctx) =>
-      withHandler(ctx, async () => {
-        const [maxOrder] = await db
+    async (ctx) => {
+      const [maxOrder] = await db
           .select({ maxOrder: coursesTable.order })
           .from(coursesTable)
           .where(eq(coursesTable.tenantId, ctx.user!.tenantId!))
@@ -348,8 +344,8 @@ export const coursesRoutes = new Elysia()
             .where(inArray(categoriesTable.id, ctx.body.categoryIds));
         }
 
-        return { course: { ...course, categories, modulesCount: 0, modules: [] } };
-      }),
+      return { course: { ...course, categories, modulesCount: 0, modules: [] } };
+    },
     {
       body: t.Object({
         title: t.String({ minLength: 1 }),
@@ -389,8 +385,7 @@ export const coursesRoutes = new Elysia()
   )
   .put(
     "/:id",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         const [existingCourse] = await db
           .select()
           .from(coursesTable)
@@ -477,7 +472,7 @@ export const coursesRoutes = new Elysia()
             modulesCount: modulesCount.count,
           },
         };
-      }),
+    },
     {
       params: t.Object({
         id: t.String({ format: "uuid" }),
@@ -523,8 +518,7 @@ export const coursesRoutes = new Elysia()
   )
   .delete(
     "/:id",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         const [existingCourse] = await db
           .select()
           .from(coursesTable)
@@ -543,7 +537,7 @@ export const coursesRoutes = new Elysia()
         await db.delete(coursesTable).where(eq(coursesTable.id, ctx.params.id));
 
         return { success: true };
-      }),
+    },
     {
       params: t.Object({
         id: t.String({ format: "uuid" }),
@@ -559,8 +553,7 @@ export const coursesRoutes = new Elysia()
   )
   .put(
     "/:id/modules",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         const [existingCourse] = await db
           .select()
           .from(coursesTable)
@@ -611,7 +604,7 @@ export const coursesRoutes = new Elysia()
             modulesCount: courseModules.length,
           },
         };
-      }),
+    },
     {
       params: t.Object({
         id: t.String({ format: "uuid" }),
@@ -635,8 +628,7 @@ export const coursesRoutes = new Elysia()
   )
   .post(
     "/:id/thumbnail",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         const [existingCourse] = await db
           .select()
           .from(coursesTable)
@@ -676,7 +668,7 @@ export const coursesRoutes = new Elysia()
           thumbnailUrl: getPresignedUrl(thumbnailKey),
           course: updatedCourse,
         };
-      }),
+    },
     {
       params: t.Object({
         id: t.String({ format: "uuid" }),
@@ -695,8 +687,7 @@ export const coursesRoutes = new Elysia()
   )
   .delete(
     "/:id/thumbnail",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         const [existingCourse] = await db
           .select()
           .from(coursesTable)
@@ -723,7 +714,7 @@ export const coursesRoutes = new Elysia()
           .returning();
 
         return { course: updatedCourse };
-      }),
+    },
     {
       params: t.Object({
         id: t.String({ format: "uuid" }),
@@ -739,8 +730,7 @@ export const coursesRoutes = new Elysia()
   )
   .post(
     "/:id/video",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         const [existingCourse] = await db
           .select()
           .from(coursesTable)
@@ -780,7 +770,7 @@ export const coursesRoutes = new Elysia()
           videoUrl: getPresignedUrl(videoKey),
           course: updatedCourse,
         };
-      }),
+    },
     {
       params: t.Object({
         id: t.String({ format: "uuid" }),
@@ -799,8 +789,7 @@ export const coursesRoutes = new Elysia()
   )
   .delete(
     "/:id/video",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         const [existingCourse] = await db
           .select()
           .from(coursesTable)
@@ -827,7 +816,7 @@ export const coursesRoutes = new Elysia()
           .returning();
 
         return { course: updatedCourse };
-      }),
+    },
     {
       params: t.Object({
         id: t.String({ format: "uuid" }),

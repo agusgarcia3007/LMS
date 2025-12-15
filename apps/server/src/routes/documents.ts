@@ -1,7 +1,6 @@
 import { Elysia, t } from "elysia";
 import { authPlugin } from "@/plugins/auth";
 import { AppError, ErrorCode } from "@/lib/errors";
-import { withHandler } from "@/lib/handler";
 import { db } from "@/db";
 import {
   documentsTable,
@@ -64,8 +63,7 @@ export const documentsRoutes = new Elysia()
   .use(authPlugin)
   .post(
     "/upload",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -109,7 +107,7 @@ export const documentsRoutes = new Elysia()
           fileSize: ctx.body.fileSize,
           mimeType: mimeTypeMatch[1],
         };
-      }),
+    },
     {
       body: t.Object({
         file: t.String(),
@@ -124,8 +122,7 @@ export const documentsRoutes = new Elysia()
   )
   .get(
     "/",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -192,7 +189,7 @@ export const documentsRoutes = new Elysia()
           documents: documents.map(withUrl),
           pagination: calculatePagination(total, params.page, params.limit),
         };
-      }),
+    },
     {
       query: t.Object({
         page: t.Optional(t.String()),
@@ -210,8 +207,7 @@ export const documentsRoutes = new Elysia()
   )
   .get(
     "/:id",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -236,7 +232,7 @@ export const documentsRoutes = new Elysia()
         }
 
         return { document: withUrl(document) };
-      }),
+    },
     {
       params: t.Object({
         id: t.String({ format: "uuid" }),
@@ -249,8 +245,7 @@ export const documentsRoutes = new Elysia()
   )
   .post(
     "/",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -289,7 +284,7 @@ export const documentsRoutes = new Elysia()
         updateDocumentEmbedding(document.id, document.title, document.description ?? null).catch(() => {});
 
         return { document: withUrl(document) };
-      }),
+    },
     {
       body: t.Object({
         title: t.String({ minLength: 1 }),
@@ -308,8 +303,7 @@ export const documentsRoutes = new Elysia()
   )
   .put(
     "/:id",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -374,7 +368,7 @@ export const documentsRoutes = new Elysia()
         }
 
         return { document: withUrl(updatedDocument) };
-      }),
+    },
     {
       params: t.Object({
         id: t.String({ format: "uuid" }),
@@ -396,8 +390,7 @@ export const documentsRoutes = new Elysia()
   )
   .delete(
     "/:id",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -449,7 +442,7 @@ export const documentsRoutes = new Elysia()
         ]);
 
         return { success: true };
-      }),
+    },
     {
       params: t.Object({
         id: t.String({ format: "uuid" }),
@@ -462,8 +455,7 @@ export const documentsRoutes = new Elysia()
   )
   .post(
     "/:id/file",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -530,7 +522,7 @@ export const documentsRoutes = new Elysia()
           .returning();
 
         return { document: withUrl(updatedDocument) };
-      }),
+    },
     {
       params: t.Object({
         id: t.String({ format: "uuid" }),
@@ -548,8 +540,7 @@ export const documentsRoutes = new Elysia()
   )
   .delete(
     "/:id/file",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -596,7 +587,7 @@ export const documentsRoutes = new Elysia()
         ]);
 
         return { document: withUrl(updatedDocument) };
-      }),
+    },
     {
       params: t.Object({
         id: t.String({ format: "uuid" }),

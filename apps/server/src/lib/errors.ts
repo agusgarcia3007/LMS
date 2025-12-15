@@ -29,6 +29,9 @@ export const ErrorCode = {
   FOREIGN_KEY_VIOLATION: "FOREIGN_KEY_VIOLATION",
   DATABASE_ERROR: "DATABASE_ERROR",
 
+  // Payment errors
+  PAYMENT_REQUIRED: "PAYMENT_REQUIRED",
+
   // System errors
   VALIDATION_ERROR: "VALIDATION_ERROR",
   INTERNAL_SERVER_ERROR: "INTERNAL_SERVER_ERROR",
@@ -58,10 +61,17 @@ export class AppError extends Error {
 
 export const errorHandler = new Elysia({ name: "error-handler" }).onError(
   { as: "global" },
-  ({ error, set, code }) => {
-    logger.error("Error occurred", {
-      name: error instanceof Error ? error.name : "Unknown",
-      message: error instanceof Error ? error.message : String(error),
+  ({ error, set, code, path }) => {
+    logger.error(`[${path}] Error`, {
+      error:
+        error instanceof Error
+          ? {
+              name: error.name,
+              message: error.message,
+              stack: error.stack,
+              cause: error.cause,
+            }
+          : error,
       code,
     });
 

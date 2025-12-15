@@ -2,7 +2,6 @@ import { Elysia, t } from "elysia";
 import { authPlugin } from "@/plugins/auth";
 import { tenantPlugin } from "@/plugins/tenant";
 import { AppError, ErrorCode } from "@/lib/errors";
-import { withHandler } from "@/lib/handler";
 import { db } from "@/db";
 import { getPresignedUrl } from "@/lib/upload";
 import {
@@ -18,8 +17,7 @@ const publicCartRoutes = new Elysia()
   .use(tenantPlugin)
   .post(
     "/preview",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.tenant) {
           throw new AppError(ErrorCode.TENANT_NOT_FOUND, "Tenant not found", 404);
         }
@@ -125,7 +123,7 @@ const publicCartRoutes = new Elysia()
             currency: items[0]?.course.currency ?? "USD",
           },
         };
-      }),
+      },
     {
       body: t.Object({
         courseIds: t.Array(t.String({ format: "uuid" })),
@@ -139,8 +137,7 @@ export const cartRoutes = new Elysia()
   .use(authPlugin)
   .get(
     "/",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -231,15 +228,14 @@ export const cartRoutes = new Elysia()
           currency: items[0]?.course.currency ?? "USD",
         },
       };
-    }),
+    },
     {
       detail: { tags: ["Cart"], summary: "Get cart items" },
     }
   )
   .post(
     "/",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -278,7 +274,7 @@ export const cartRoutes = new Elysia()
         }
 
         return { item: cartItem };
-      }),
+      },
     {
       body: t.Object({
         courseId: t.String({ format: "uuid" }),
@@ -288,8 +284,7 @@ export const cartRoutes = new Elysia()
   )
   .delete(
     "/:courseId",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -313,7 +308,7 @@ export const cartRoutes = new Elysia()
         }
 
         return { success: true };
-      }),
+      },
     {
       params: t.Object({
         courseId: t.String({ format: "uuid" }),
@@ -323,8 +318,7 @@ export const cartRoutes = new Elysia()
   )
   .delete(
     "/",
-    (ctx) =>
-    withHandler(ctx, async () => {
+    async (ctx) => {
       if (!ctx.user) {
         throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
       }
@@ -342,15 +336,14 @@ export const cartRoutes = new Elysia()
         );
 
       return { success: true };
-    }),
+    },
     {
       detail: { tags: ["Cart"], summary: "Clear cart" },
     }
   )
   .post(
     "/merge",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -392,7 +385,7 @@ export const cartRoutes = new Elysia()
           .returning();
 
         return { merged: inserted.length };
-      }),
+      },
     {
       body: t.Object({
         courseIds: t.Array(t.String({ format: "uuid" })),

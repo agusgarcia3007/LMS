@@ -2,7 +2,6 @@ import { Elysia, t } from "elysia";
 import { authPlugin } from "@/plugins/auth";
 import { guardPlugin } from "@/plugins/guards";
 import { AppError, ErrorCode } from "@/lib/errors";
-import { withHandler } from "@/lib/handler";
 import { db } from "@/db";
 import {
   modulesTable,
@@ -89,8 +88,7 @@ export const modulesRoutes = new Elysia()
   .use(guardPlugin)
   .get(
     "/",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         const params = parseListParams(ctx.query);
         const baseWhereClause = buildWhereClause(
           params,
@@ -145,7 +143,7 @@ export const modulesRoutes = new Elysia()
           modules: modulesWithCounts,
           pagination: calculatePagination(total, params.page, params.limit),
         };
-      }),
+    },
     {
       query: t.Object({
         page: t.Optional(t.String()),
@@ -166,8 +164,7 @@ export const modulesRoutes = new Elysia()
   )
   .get(
     "/:id",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         const rows = await db
           .select({
             module: modulesTable,
@@ -250,7 +247,7 @@ export const modulesRoutes = new Elysia()
         };
 
         return { module: moduleWithItems };
-      }),
+    },
     {
       params: t.Object({
         id: t.String({ format: "uuid" }),
@@ -265,8 +262,7 @@ export const modulesRoutes = new Elysia()
   )
   .post(
     "/",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         const [maxOrder] = await db
           .select({ maxOrder: modulesTable.order })
           .from(modulesTable)
@@ -290,7 +286,7 @@ export const modulesRoutes = new Elysia()
         updateModuleEmbedding(module.id, module.title, module.description);
 
         return { module: { ...module, itemsCount: 0, items: [] } };
-      }),
+    },
     {
       body: t.Object({
         title: t.String({ minLength: 1 }),
@@ -310,8 +306,7 @@ export const modulesRoutes = new Elysia()
   )
   .put(
     "/:id",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         const [existingModule] = await db
           .select()
           .from(modulesTable)
@@ -349,7 +344,7 @@ export const modulesRoutes = new Elysia()
           .where(eq(moduleItemsTable.moduleId, ctx.params.id));
 
         return { module: { ...updatedModule, itemsCount: itemsCount.count } };
-      }),
+    },
     {
       params: t.Object({
         id: t.String({ format: "uuid" }),
@@ -373,8 +368,7 @@ export const modulesRoutes = new Elysia()
   )
   .delete(
     "/bulk",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         const { ids } = ctx.body;
 
         if (ids.length === 0) {
@@ -398,7 +392,7 @@ export const modulesRoutes = new Elysia()
         await db.delete(modulesTable).where(inArray(modulesTable.id, ids));
 
         return { success: true, deleted: ids.length };
-      }),
+    },
     {
       body: t.Object({
         ids: t.Array(t.String({ format: "uuid" })),
@@ -414,8 +408,7 @@ export const modulesRoutes = new Elysia()
   )
   .delete(
     "/:id",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         const [existingModule] = await db
           .select()
           .from(modulesTable)
@@ -434,7 +427,7 @@ export const modulesRoutes = new Elysia()
         await db.delete(modulesTable).where(eq(modulesTable.id, ctx.params.id));
 
         return { success: true };
-      }),
+    },
     {
       params: t.Object({
         id: t.String({ format: "uuid" }),
@@ -450,8 +443,7 @@ export const modulesRoutes = new Elysia()
   )
   .put(
     "/:id/items",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         const [existingModule] = await db
           .select()
           .from(modulesTable)
@@ -549,7 +541,7 @@ export const modulesRoutes = new Elysia()
         };
 
         return { module: moduleWithItems };
-      }),
+    },
     {
       params: t.Object({
         id: t.String({ format: "uuid" }),

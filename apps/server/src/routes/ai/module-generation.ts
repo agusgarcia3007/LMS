@@ -1,7 +1,6 @@
 import { Elysia, t } from "elysia";
 import { authPlugin } from "@/plugins/auth";
 import { AppError, ErrorCode } from "@/lib/errors";
-import { withHandler } from "@/lib/handler";
 import { db } from "@/db";
 import { withUserContext, createTelemetryConfig } from "@/lib/ai/telemetry";
 import { videosTable, documentsTable, quizzesTable } from "@/db/schema";
@@ -26,34 +25,33 @@ export const moduleGenerationRoutes = new Elysia({ name: "ai-module-generation" 
   .use(authPlugin)
   .post(
     "/modules/generate",
-    (ctx) =>
-      withHandler(ctx, async () => {
-        if (!ctx.user) {
-          throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
-        }
+    async (ctx) => {
+      if (!ctx.user) {
+        throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
+      }
 
-        if (!ctx.user.tenantId) {
-          throw new AppError(
-            ErrorCode.TENANT_NOT_FOUND,
-            "User has no tenant",
-            404
-          );
-        }
+      if (!ctx.user.tenantId) {
+        throw new AppError(
+          ErrorCode.TENANT_NOT_FOUND,
+          "User has no tenant",
+          404
+        );
+      }
 
-        const canManage =
-          ctx.userRole === "owner" ||
-          ctx.userRole === "admin" ||
-          ctx.userRole === "superadmin";
+      const canManage =
+        ctx.userRole === "owner" ||
+        ctx.userRole === "admin" ||
+        ctx.userRole === "superadmin";
 
-        if (!canManage) {
-          throw new AppError(
-            ErrorCode.FORBIDDEN,
-            "Only owners and admins can generate module content",
-            403
-          );
-        }
+      if (!canManage) {
+        throw new AppError(
+          ErrorCode.FORBIDDEN,
+          "Only owners and admins can generate module content",
+          403
+        );
+      }
 
-        const { items } = ctx.body;
+      const { items } = ctx.body;
 
         if (items.length === 0) {
           throw new AppError(
@@ -179,12 +177,12 @@ export const moduleGenerationRoutes = new Elysia({ name: "ai-module-generation" 
               );
             }
 
-            return parseGeneratedModule(text);
-          }
-        );
+          return parseGeneratedModule(text);
+        }
+      );
 
-        return result;
-      }),
+      return result;
+    },
     {
       body: t.Object({
         items: t.Array(

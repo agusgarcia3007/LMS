@@ -1,7 +1,6 @@
 import { Elysia, t } from "elysia";
 import { authPlugin } from "@/plugins/auth";
 import { AppError, ErrorCode } from "@/lib/errors";
-import { withHandler } from "@/lib/handler";
 import { db } from "@/db";
 import {
   withUserContext,
@@ -32,35 +31,34 @@ export const contentAnalysisRoutes = new Elysia({ name: "ai-content-analysis" })
   .use(authPlugin)
   .post(
     "/videos/analyze",
-    (ctx) =>
-      withHandler(ctx, async () => {
-        if (!ctx.user) {
-          throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
-        }
+    async (ctx) => {
+      if (!ctx.user) {
+        throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
+      }
 
-        if (!ctx.user.tenantId) {
-          throw new AppError(
-            ErrorCode.TENANT_NOT_FOUND,
-            "User has no tenant",
-            404
-          );
-        }
+      if (!ctx.user.tenantId) {
+        throw new AppError(
+          ErrorCode.TENANT_NOT_FOUND,
+          "User has no tenant",
+          404
+        );
+      }
 
-        const canManage =
-          ctx.userRole === "owner" ||
-          ctx.userRole === "admin" ||
-          ctx.userRole === "superadmin";
+      const canManage =
+        ctx.userRole === "owner" ||
+        ctx.userRole === "admin" ||
+        ctx.userRole === "superadmin";
 
-        if (!canManage) {
-          throw new AppError(
-            ErrorCode.FORBIDDEN,
-            "Only owners and admins can analyze videos",
-            403
-          );
-        }
+      if (!canManage) {
+        throw new AppError(
+          ErrorCode.FORBIDDEN,
+          "Only owners and admins can analyze videos",
+          403
+        );
+      }
 
-        const { videoKey } = ctx.body;
-        const videoUrl = getPresignedUrl(videoKey);
+      const { videoKey } = ctx.body;
+      const videoUrl = getPresignedUrl(videoKey);
 
         logger.info("Starting video analysis", { videoKey });
 
@@ -119,22 +117,22 @@ export const contentAnalysisRoutes = new Elysia({ name: "ai-content-analysis" })
           description: string;
         };
 
-        const { videoId } = ctx.body;
-        if (videoId) {
-          await db
-            .update(videosTable)
-            .set({ transcript })
-            .where(
-              and(
-                eq(videosTable.id, videoId),
-                eq(videosTable.tenantId, ctx.user.tenantId)
-              )
-            );
-          logger.info("Transcript saved to video", { videoId });
-        }
+      const { videoId } = ctx.body;
+      if (videoId) {
+        await db
+          .update(videosTable)
+          .set({ transcript })
+          .where(
+            and(
+              eq(videosTable.id, videoId),
+              eq(videosTable.tenantId, ctx.user.tenantId)
+            )
+          );
+        logger.info("Transcript saved to video", { videoId });
+      }
 
-        return { title, description };
-      }),
+      return { title, description };
+    },
     {
       body: t.Object({
         videoKey: t.String(),
@@ -149,34 +147,33 @@ export const contentAnalysisRoutes = new Elysia({ name: "ai-content-analysis" })
   )
   .post(
     "/quizzes/:quizId/generate",
-    (ctx) =>
-      withHandler(ctx, async () => {
-        if (!ctx.user) {
-          throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
-        }
+    async (ctx) => {
+      if (!ctx.user) {
+        throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
+      }
 
-        if (!ctx.user.tenantId) {
-          throw new AppError(
-            ErrorCode.TENANT_NOT_FOUND,
-            "User has no tenant",
-            404
-          );
-        }
+      if (!ctx.user.tenantId) {
+        throw new AppError(
+          ErrorCode.TENANT_NOT_FOUND,
+          "User has no tenant",
+          404
+        );
+      }
 
-        const canManage =
-          ctx.userRole === "owner" ||
-          ctx.userRole === "admin" ||
-          ctx.userRole === "superadmin";
+      const canManage =
+        ctx.userRole === "owner" ||
+        ctx.userRole === "admin" ||
+        ctx.userRole === "superadmin";
 
-        if (!canManage) {
-          throw new AppError(
-            ErrorCode.FORBIDDEN,
-            "Only owners and admins can generate quiz questions",
-            403
-          );
-        }
+      if (!canManage) {
+        throw new AppError(
+          ErrorCode.FORBIDDEN,
+          "Only owners and admins can generate quiz questions",
+          403
+        );
+      }
 
-        const { sourceType, sourceId, count } = ctx.body;
+      const { sourceType, sourceId, count } = ctx.body;
 
         if (count < 1 || count > 10) {
           throw new AppError(
@@ -334,12 +331,12 @@ export const contentAnalysisRoutes = new Elysia({ name: "ai-content-analysis" })
               );
             }
 
-            return parseGeneratedQuestions(responseText).slice(0, count);
-          }
-        );
+          return parseGeneratedQuestions(responseText).slice(0, count);
+        }
+      );
 
-        return { questions };
-      }),
+      return { questions };
+    },
     {
       params: t.Object({
         quizId: t.String({ format: "uuid" }),

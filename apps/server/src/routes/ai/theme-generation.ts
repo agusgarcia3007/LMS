@@ -1,7 +1,6 @@
 import { Elysia, t } from "elysia";
 import { authPlugin } from "@/plugins/auth";
 import { AppError, ErrorCode } from "@/lib/errors";
-import { withHandler } from "@/lib/handler";
 import {
   withUserContext,
   createTelemetryConfig,
@@ -348,34 +347,33 @@ export const themeGenerationRoutes = new Elysia({ name: "ai-theme-generation" })
   .use(authPlugin)
   .post(
     "/themes/generate",
-    (ctx) =>
-      withHandler(ctx, async () => {
-        if (!ctx.user) {
-          throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
-        }
+    async (ctx) => {
+      if (!ctx.user) {
+        throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
+      }
 
-        if (!ctx.user.tenantId) {
-          throw new AppError(
-            ErrorCode.TENANT_NOT_FOUND,
-            "User has no tenant",
-            404
-          );
-        }
+      if (!ctx.user.tenantId) {
+        throw new AppError(
+          ErrorCode.TENANT_NOT_FOUND,
+          "User has no tenant",
+          404
+        );
+      }
 
-        const canManage =
-          ctx.userRole === "owner" ||
-          ctx.userRole === "admin" ||
-          ctx.userRole === "superadmin";
+      const canManage =
+        ctx.userRole === "owner" ||
+        ctx.userRole === "admin" ||
+        ctx.userRole === "superadmin";
 
-        if (!canManage) {
-          throw new AppError(
-            ErrorCode.FORBIDDEN,
-            "Only owners and admins can generate themes",
-            403
-          );
-        }
+      if (!canManage) {
+        throw new AppError(
+          ErrorCode.FORBIDDEN,
+          "Only owners and admins can generate themes",
+          403
+        );
+      }
 
-        const { primaryColor, style } = ctx.body;
+      const { primaryColor, style } = ctx.body;
 
         const normalizedStyle = style?.toLowerCase().trim() || "";
         const styleConfig = styleConfigs[normalizedStyle] || styleConfigs.modern;
@@ -418,12 +416,12 @@ export const themeGenerationRoutes = new Elysia({ name: "ai-theme-generation" })
               generationTime: `${generationTime}ms`,
             });
 
-            return object;
-          }
-        );
+          return object;
+        }
+      );
 
-        return { theme };
-      }),
+      return { theme };
+    },
     {
       body: t.Object({
         primaryColor: t.Optional(t.String()),

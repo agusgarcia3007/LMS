@@ -1,8 +1,7 @@
 import { Elysia, t } from "elysia";
 import { authPlugin } from "@/plugins/auth";
-import { tenantPlugin } from "@/plugins/tenant";
+import { tenantPlugin, invalidateTenantCache } from "@/plugins/tenant";
 import { AppError, ErrorCode } from "@/lib/errors";
-import { withHandler } from "@/lib/handler";
 import { db } from "@/db";
 import { tenantsTable } from "@/db/schema";
 import { eq } from "drizzle-orm";
@@ -18,8 +17,7 @@ import type { TenantPlan } from "@/db/schema";
 export const billingRoutes = new Elysia()
   .use(authPlugin)
   .use(tenantPlugin)
-  .get("/subscription", (ctx) =>
-    withHandler(ctx, async () => {
+  .get("/subscription", async (ctx) => {
       if (!ctx.user || !ctx.tenant) {
         throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
       }
@@ -36,12 +34,11 @@ export const billingRoutes = new Elysia()
         stripeCustomerId: ctx.tenant.stripeCustomerId,
         hasSubscription: Boolean(ctx.tenant.stripeSubscriptionId),
       };
-    })
+    }
   )
   .post(
     "/subscription",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user || !ctx.tenant) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -81,6 +78,8 @@ export const billingRoutes = new Elysia()
               billingEmail: ctx.tenant.billingEmail ?? ctx.user.email,
             })
             .where(eq(tenantsTable.id, ctx.tenant.id));
+
+          invalidateTenantCache(ctx.tenant.slug);
         }
 
         const session = await stripe.checkout.sessions.create({
@@ -109,7 +108,7 @@ export const billingRoutes = new Elysia()
         });
 
         return { checkoutUrl: session.url };
-      }),
+      },
     {
       body: t.Object({
         plan: t.Union([
@@ -120,8 +119,7 @@ export const billingRoutes = new Elysia()
       }),
     }
   )
-  .post("/portal", (ctx) =>
-    withHandler(ctx, async () => {
+  .post("/portal", async (ctx) => {
       if (!ctx.user || !ctx.tenant) {
         throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
       }
@@ -144,10 +142,9 @@ export const billingRoutes = new Elysia()
       });
 
       return { portalUrl: session.url };
-    })
+    }
   )
-  .post("/subscription/cancel", (ctx) =>
-    withHandler(ctx, async () => {
+  .post("/subscription/cancel", async (ctx) => {
       if (!ctx.user || !ctx.tenant) {
         throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
       }
@@ -169,10 +166,9 @@ export const billingRoutes = new Elysia()
       });
 
       return { success: true };
-    })
+    }
   )
-  .get("/plans", (ctx) =>
-    withHandler(ctx, async () => {
+  .get("/plans", async (ctx) => {
       return {
         plans: Object.entries(PLAN_CONFIG).map(([key, config]) => ({
           id: key,
@@ -183,5 +179,5 @@ export const billingRoutes = new Elysia()
           aiGeneration: config.aiGeneration,
         })),
       };
-    })
+    }
   );

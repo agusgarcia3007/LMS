@@ -1,7 +1,6 @@
 import { Elysia, t } from "elysia";
 import { authPlugin } from "@/plugins/auth";
 import { AppError, ErrorCode } from "@/lib/errors";
-import { withHandler } from "@/lib/handler";
 import { db } from "@/db";
 import { getPresignedUrl } from "@/lib/upload";
 import { generateAndStoreCertificate } from "@/lib/certificate";
@@ -132,8 +131,7 @@ export const learnRoutes = new Elysia({ name: "learn" })
   .use(authPlugin)
   .get(
     "/courses/:courseSlug/structure",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -223,7 +221,7 @@ export const learnRoutes = new Elysia({ name: "learn" })
           modules,
           resumeItemId,
         };
-      }),
+    },
     {
       params: t.Object({
         courseSlug: t.String(),
@@ -236,8 +234,7 @@ export const learnRoutes = new Elysia({ name: "learn" })
   )
   .get(
     "/courses/:courseSlug/progress",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -337,7 +334,7 @@ export const learnRoutes = new Elysia({ name: "learn" })
           moduleProgress,
           itemIds: allItemIds.map((i) => ({ id: i.id, moduleId: i.moduleId })),
         };
-      }),
+    },
     {
       params: t.Object({
         courseSlug: t.String(),
@@ -350,8 +347,7 @@ export const learnRoutes = new Elysia({ name: "learn" })
   )
   .get(
     "/modules/:moduleId/items",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -503,7 +499,7 @@ export const learnRoutes = new Elysia({ name: "learn" })
         });
 
         return { items };
-      }),
+    },
     {
       params: t.Object({
         moduleId: t.String({ format: "uuid" }),
@@ -516,8 +512,7 @@ export const learnRoutes = new Elysia({ name: "learn" })
   )
   .get(
     "/items/:moduleItemId/content",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -677,7 +672,7 @@ export const learnRoutes = new Elysia({ name: "learn" })
         }
 
         throw new AppError(ErrorCode.BAD_REQUEST, "Invalid content type", 400);
-      }),
+    },
     {
       params: t.Object({
         moduleItemId: t.String({ format: "uuid" }),
@@ -690,8 +685,7 @@ export const learnRoutes = new Elysia({ name: "learn" })
   )
   .patch(
     "/items/:moduleItemId/progress",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -747,7 +741,7 @@ export const learnRoutes = new Elysia({ name: "learn" })
         }
 
         return { success: true };
-      }),
+    },
     {
       params: t.Object({
         moduleItemId: t.String({ format: "uuid" }),
@@ -764,8 +758,7 @@ export const learnRoutes = new Elysia({ name: "learn" })
   )
   .post(
     "/items/:moduleItemId/complete",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -823,7 +816,7 @@ export const learnRoutes = new Elysia({ name: "learn" })
           progress: newProgress,
           courseCompleted: newProgress === 100,
         };
-      }),
+    },
     {
       params: t.Object({
         moduleItemId: t.String({ format: "uuid" }),
@@ -836,8 +829,7 @@ export const learnRoutes = new Elysia({ name: "learn" })
   )
   .post(
     "/items/:moduleItemId/toggle-complete",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -916,7 +908,7 @@ export const learnRoutes = new Elysia({ name: "learn" })
           progress: newProgress,
           courseCompleted: newProgress === 100,
         };
-      }),
+    },
     {
       params: t.Object({
         moduleItemId: t.String({ format: "uuid" }),
@@ -929,8 +921,7 @@ export const learnRoutes = new Elysia({ name: "learn" })
   )
   .get(
     "/courses/:courseSlug/related",
-    (ctx) =>
-      withHandler(ctx, async () => {
+    async (ctx) => {
         if (!ctx.user) {
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
@@ -1013,7 +1004,7 @@ export const learnRoutes = new Elysia({ name: "learn" })
               : null,
           })),
         };
-      }),
+    },
     {
       params: t.Object({
         courseSlug: t.String(),
