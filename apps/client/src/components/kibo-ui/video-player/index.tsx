@@ -32,7 +32,6 @@ const variables = {
   "--media-live-button-icon-color": "var(--muted-foreground)",
   "--media-live-button-indicator-color": "var(--destructive)",
   "--media-range-track-background": "var(--border)",
-  "--media-text-track-display-bottom": "60px",
 } as CSSProperties;
 
 export const VideoPlayer = ({ style, ...props }: VideoPlayerProps) => (

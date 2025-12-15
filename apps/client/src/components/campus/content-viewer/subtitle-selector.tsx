@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Loader2, Languages, Check } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import {
   Popover,
   PopoverContent,
@@ -50,10 +49,14 @@ export function SubtitleSelector({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="relative h-10 w-10 text-white hover:bg-white/20 hover:text-white"
+        <button
+          type="button"
+          className={cn(
+            "relative flex h-10 w-10 items-center justify-center p-2.5",
+            "text-[var(--media-text-color)] hover:bg-[var(--media-control-hover-background)]",
+            "rounded transition-colors",
+            isLoading && "pointer-events-none opacity-50"
+          )}
           disabled={isLoading}
         >
           {isLoading ? (
@@ -64,7 +67,7 @@ export function SubtitleSelector({
           {selectedLanguage && (
             <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-primary" />
           )}
-        </Button>
+        </button>
       </PopoverTrigger>
       <PopoverContent className="w-[200px] p-0" align="end" side="top">
         <Command>
