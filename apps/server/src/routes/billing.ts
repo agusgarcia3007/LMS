@@ -113,8 +113,8 @@ export const billingRoutes = new Elysia()
               plan,
             },
           },
-          success_url: `${env.CLIENT_URL}/${ctx.tenant.slug}/settings/billing?success=true`,
-          cancel_url: `${env.CLIENT_URL}/${ctx.tenant.slug}/settings/billing?canceled=true`,
+          success_url: `${env.CLIENT_URL}/${ctx.tenant.slug}/billing?success=true`,
+          cancel_url: `${env.CLIENT_URL}/${ctx.tenant.slug}/billing?canceled=true`,
           metadata: {
             tenantId: ctx.tenant.id,
             plan,

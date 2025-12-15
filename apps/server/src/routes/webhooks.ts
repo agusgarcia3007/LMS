@@ -209,6 +209,10 @@ function mapStripeStatus(status: Stripe.Subscription.Status): SubscriptionStatus
 }
 
 export const webhooksRoutes = new Elysia()
+  .derive(async ({ request }) => {
+    const rawBody = await request.clone().text();
+    return { rawBody };
+  })
   .post("/stripe", async (ctx) => {
     if (!stripe) {
       return { received: false, error: "Stripe not configured" };
@@ -222,9 +226,8 @@ export const webhooksRoutes = new Elysia()
 
     let event: Stripe.Event;
     try {
-      const rawBody = await new Response(ctx.request.body).text();
       event = stripe.webhooks.constructEvent(
-        rawBody,
+        ctx.rawBody,
         signature,
         env.STRIPE_WEBHOOK_SECRET
       );
@@ -273,9 +276,8 @@ export const webhooksRoutes = new Elysia()
 
     let event: Stripe.Event;
     try {
-      const rawBody = await new Response(ctx.request.body).text();
       event = stripe.webhooks.constructEvent(
-        rawBody,
+        ctx.rawBody,
         signature,
         env.STRIPE_CONNECT_WEBHOOK_SECRET
       );
