@@ -71,22 +71,29 @@
       "active": "Active",
       "restricted": "Restricted"
     },
+    "features": {
+      "instant": "Instant setup",
+      "secure": "Bank-level security",
+      "payouts": "Fast payouts"
+    },
     "setup": {
-      "title": "Set up payments",
-      "description": "Connect your Stripe account to start accepting payments. You'll be redirected to Stripe to complete the setup process.",
+      "title": "Start accepting payments",
+      "description": "Connect your Stripe account to start accepting payments from students worldwide. Setup takes just a few minutes.",
       "button": "Connect with Stripe"
     },
     "pending": {
-      "title": "Setup incomplete",
+      "title": "Complete your setup",
       "description": "Your Stripe account setup is not complete. Please finish the onboarding process to start accepting payments.",
       "button": "Continue Setup"
     },
     "restricted": {
-      "title": "Account restricted",
-      "description": "Your Stripe account has restrictions. Please visit Stripe to resolve any pending requirements.",
+      "title": "Action required",
+      "description": "Your Stripe account has restrictions that need attention. Please visit Stripe to resolve any pending requirements.",
       "button": "Fix Issues"
     },
     "active": {
+      "title": "You're all set!",
+      "description": "Your Stripe account is connected and ready to accept payments",
       "charges": "Accept Payments",
       "payouts": "Receive Payouts",
       "enabled": "Enabled",

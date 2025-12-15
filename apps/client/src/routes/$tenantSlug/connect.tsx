@@ -1,12 +1,27 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { createSeoMeta } from "@/lib/seo";
-import { useConnectStatus, useStartOnboarding, useRefreshOnboarding, useGetDashboardLink } from "@/services/connect";
+import {
+  useConnectStatus,
+  useStartOnboarding,
+  useRefreshOnboarding,
+  useGetDashboardLink,
+} from "@/services/connect";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle, CheckCircle2, Clock, ExternalLink, Loader2, XCircle, Landmark } from "lucide-react";
+import {
+  ArrowRight,
+  CheckCircle2,
+  Clock,
+  ExternalLink,
+  Loader2,
+  XCircle,
+  Landmark,
+  Banknote,
+  ShieldCheck,
+  Zap,
+  AlertTriangle,
+} from "lucide-react";
 
 export const Route = createFileRoute("/$tenantSlug/connect")({
   head: () =>
@@ -18,12 +33,106 @@ export const Route = createFileRoute("/$tenantSlug/connect")({
   component: ConnectPage,
 });
 
+function StatusBadge({ status }: { status: string | undefined }) {
+  const { t } = useTranslation();
+
+  switch (status) {
+    case "active":
+      return (
+        <Badge className="gap-1.5 border border-emerald-500/30 bg-emerald-500/10 text-emerald-600 shadow-sm dark:text-emerald-400">
+          <span className="relative flex size-2">
+            <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+            <span className="relative inline-flex size-2 rounded-full bg-emerald-500" />
+          </span>
+          {t("connect.status.active")}
+        </Badge>
+      );
+    case "pending":
+      return (
+        <Badge className="gap-1.5 border border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400">
+          <Clock className="size-3" />
+          {t("connect.status.pending")}
+        </Badge>
+      );
+    case "restricted":
+      return (
+        <Badge className="gap-1.5 border border-red-500/30 bg-red-500/10 text-red-600 dark:text-red-400">
+          <XCircle className="size-3" />
+          {t("connect.status.restricted")}
+        </Badge>
+      );
+    default:
+      return (
+        <Badge variant="outline" className="gap-1.5 text-muted-foreground">
+          <span className="size-2 rounded-full bg-muted-foreground/50" />
+          {t("connect.status.notStarted")}
+        </Badge>
+      );
+  }
+}
+
+function CapabilityCard({
+  enabled,
+  title,
+  enabledText,
+  disabledText,
+  icon: Icon,
+}: {
+  enabled: boolean;
+  title: string;
+  enabledText: string;
+  disabledText: string;
+  icon: typeof Banknote;
+}) {
+  return (
+    <div className="group relative overflow-hidden rounded-2xl border border-border/60 bg-gradient-to-br from-card via-card to-muted/20 p-6 transition-all duration-300 hover:border-border hover:shadow-lg hover:shadow-black/5 dark:hover:shadow-black/20">
+      <div
+        className={`absolute inset-0 bg-gradient-to-br transition-opacity duration-300 ${enabled ? "from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100" : "from-muted/20 to-transparent opacity-50"}`}
+      />
+      <div className="relative flex items-center gap-4">
+        <div
+          className={`flex size-14 items-center justify-center rounded-2xl transition-all duration-300 ${enabled ? "bg-emerald-500/10 ring-1 ring-emerald-500/20 group-hover:ring-emerald-500/40" : "bg-muted ring-1 ring-border"}`}
+        >
+          {enabled ? (
+            <Icon className="size-7 text-emerald-500" />
+          ) : (
+            <Icon className="size-7 text-muted-foreground" />
+          )}
+        </div>
+        <div className="flex-1">
+          <p className="text-lg font-semibold text-foreground">{title}</p>
+          <div className="mt-1 flex items-center gap-2">
+            {enabled ? (
+              <>
+                <CheckCircle2 className="size-4 text-emerald-500" />
+                <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
+                  {enabledText}
+                </span>
+              </>
+            ) : (
+              <>
+                <XCircle className="size-4 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">
+                  {disabledText}
+                </span>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ConnectPage() {
   const { t } = useTranslation();
   const { data: status, isLoading } = useConnectStatus();
-  const { mutate: startOnboarding, isPending: isStarting } = useStartOnboarding();
-  const { mutate: refreshOnboarding, isPending: isRefreshing } = useRefreshOnboarding();
-  const { mutate: getDashboardLink, isPending: isGettingDashboard } = useGetDashboardLink();
+  const { mutate: startOnboarding, isPending: isStarting } =
+    useStartOnboarding();
+  const { mutate: refreshOnboarding, isPending: isRefreshing } =
+    useRefreshOnboarding();
+  const { mutate: getDashboardLink, isPending: isGettingDashboard } =
+    useGetDashboardLink();
 
   const handleStartOnboarding = () => {
     startOnboarding(undefined, {
@@ -52,154 +161,211 @@ function ConnectPage() {
   if (isLoading) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
-        <Loader2 className="size-8 animate-spin text-muted-foreground" />
+        <div className="relative">
+          <div className="absolute inset-0 rounded-full bg-primary/20 blur-xl" />
+          <Loader2 className="relative size-10 animate-spin text-primary" />
+        </div>
       </div>
     );
   }
 
-  const getStatusBadge = () => {
-    switch (status?.status) {
-      case "active":
-        return (
-          <Badge variant="default" className="gap-1 bg-green-500">
-            <CheckCircle2 className="size-3" />
-            {t("connect.status.active")}
-          </Badge>
-        );
-      case "pending":
-        return (
-          <Badge variant="secondary" className="gap-1">
-            <Clock className="size-3" />
-            {t("connect.status.pending")}
-          </Badge>
-        );
-      case "restricted":
-        return (
-          <Badge variant="destructive" className="gap-1">
-            <XCircle className="size-3" />
-            {t("connect.status.restricted")}
-          </Badge>
-        );
-      default:
-        return (
-          <Badge variant="outline" className="gap-1">
-            {t("connect.status.notStarted")}
-          </Badge>
-        );
-    }
-  };
-
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">{t("connect.title")}</h1>
-        <p className="text-muted-foreground">{t("connect.description")}</p>
+    <div className="space-y-8">
+      <div className="relative overflow-hidden rounded-3xl border border-border/50 bg-gradient-to-br from-primary/5 via-background to-background p-8 md:p-10">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/10 via-transparent to-transparent" />
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
+
+        <div className="relative flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+          <div className="space-y-2">
+            <div className="flex items-center gap-3">
+              <div className="flex size-12 items-center justify-center rounded-2xl bg-primary/10 ring-1 ring-primary/20">
+                <Landmark className="size-6 text-primary" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold tracking-tight md:text-3xl">
+                  {t("connect.title")}
+                </h1>
+                <p className="text-muted-foreground">
+                  {t("connect.description")}
+                </p>
+              </div>
+            </div>
+          </div>
+          <StatusBadge status={status?.status} />
+        </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <span className="flex items-center gap-2">
-              <Landmark className="size-5" />
-              {t("connect.accountTitle")}
-            </span>
-            {getStatusBadge()}
-          </CardTitle>
-          <CardDescription>
-            {t("connect.accountDescription")}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {status?.status === "not_started" && (
-            <>
-              <Alert>
-                <AlertCircle className="size-4" />
-                <AlertTitle>{t("connect.setup.title")}</AlertTitle>
-                <AlertDescription>
-                  {t("connect.setup.description")}
-                </AlertDescription>
-              </Alert>
-              <Button onClick={handleStartOnboarding} isLoading={isStarting} className="gap-2">
-                <ExternalLink className="size-4" />
-                {t("connect.setup.button")}
-              </Button>
-            </>
-          )}
+      <div className="relative overflow-hidden rounded-3xl border border-border/50 bg-gradient-to-b from-card to-card/80 shadow-xl shadow-black/5 dark:shadow-black/20">
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
 
-          {status?.status === "pending" && (
-            <>
-              <Alert variant="warning">
-                <Clock className="size-4" />
-                <AlertTitle>{t("connect.pending.title")}</AlertTitle>
-                <AlertDescription>
-                  {t("connect.pending.description")}
-                </AlertDescription>
-              </Alert>
-              <Button onClick={handleRefreshOnboarding} isLoading={isRefreshing} className="gap-2">
-                <ExternalLink className="size-4" />
-                {t("connect.pending.button")}
-              </Button>
-            </>
-          )}
-
-          {status?.status === "restricted" && (
-            <>
-              <Alert variant="destructive">
-                <XCircle className="size-4" />
-                <AlertTitle>{t("connect.restricted.title")}</AlertTitle>
-                <AlertDescription>
-                  {t("connect.restricted.description")}
-                </AlertDescription>
-              </Alert>
-              <Button onClick={handleRefreshOnboarding} isLoading={isRefreshing} className="gap-2">
-                <ExternalLink className="size-4" />
-                {t("connect.restricted.button")}
-              </Button>
-            </>
-          )}
-
-          {status?.status === "active" && (
-            <>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="flex items-center gap-3 rounded-lg border p-4">
-                  <div className={`flex size-10 items-center justify-center rounded-full ${status.chargesEnabled ? "bg-green-500/10" : "bg-muted"}`}>
-                    {status.chargesEnabled ? (
-                      <CheckCircle2 className="size-5 text-green-500" />
-                    ) : (
-                      <XCircle className="size-5 text-muted-foreground" />
-                    )}
-                  </div>
-                  <div>
-                    <p className="font-medium">{t("connect.active.charges")}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {status.chargesEnabled ? t("connect.active.enabled") : t("connect.active.disabled")}
-                    </p>
-                  </div>
+        {status?.status === "not_started" && (
+          <div className="p-8 md:p-12">
+            <div className="mx-auto max-w-2xl text-center">
+              <div className="relative mx-auto mb-8 inline-flex">
+                <div className="absolute inset-0 rounded-full bg-primary/20 blur-2xl" />
+                <div className="relative flex size-24 items-center justify-center rounded-full bg-gradient-to-br from-primary/20 to-primary/5 ring-1 ring-primary/20">
+                  <Landmark className="size-12 text-primary" />
                 </div>
-                <div className="flex items-center gap-3 rounded-lg border p-4">
-                  <div className={`flex size-10 items-center justify-center rounded-full ${status.payoutsEnabled ? "bg-green-500/10" : "bg-muted"}`}>
-                    {status.payoutsEnabled ? (
-                      <CheckCircle2 className="size-5 text-green-500" />
-                    ) : (
-                      <XCircle className="size-5 text-muted-foreground" />
-                    )}
+              </div>
+
+              <h2 className="text-2xl font-bold tracking-tight md:text-3xl">
+                {t("connect.setup.title")}
+              </h2>
+              <p className="mx-auto mt-4 max-w-lg text-muted-foreground">
+                {t("connect.setup.description")}
+              </p>
+
+              <div className="mt-8 grid gap-4 sm:grid-cols-3">
+                {[
+                  { icon: Zap, label: t("connect.features.instant") },
+                  { icon: ShieldCheck, label: t("connect.features.secure") },
+                  { icon: Banknote, label: t("connect.features.payouts") },
+                ].map((feature) => (
+                  <div
+                    key={feature.label}
+                    className="flex items-center justify-center gap-2 rounded-xl border border-border/50 bg-muted/30 px-4 py-3"
+                  >
+                    <feature.icon className="size-4 text-primary" />
+                    <span className="text-sm font-medium">{feature.label}</span>
                   </div>
-                  <div>
-                    <p className="font-medium">{t("connect.active.payouts")}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {status.payoutsEnabled ? t("connect.active.enabled") : t("connect.active.disabled")}
+                ))}
+              </div>
+
+              <Button
+                onClick={handleStartOnboarding}
+                isLoading={isStarting}
+                size="lg"
+                className="group relative mt-10 overflow-hidden bg-gradient-to-r from-primary to-primary/90 px-8 shadow-lg shadow-primary/25 transition-all duration-300 hover:shadow-xl hover:shadow-primary/30"
+              >
+                <span className="relative flex items-center gap-2">
+                  {t("connect.setup.button")}
+                  <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
+                </span>
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {status?.status === "pending" && (
+          <div className="p-8 md:p-12">
+            <div className="mx-auto max-w-2xl">
+              <div className="rounded-2xl border border-amber-500/20 bg-gradient-to-br from-amber-500/5 to-transparent p-6">
+                <div className="flex items-start gap-4">
+                  <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 ring-1 ring-amber-500/20">
+                    <Clock className="size-6 text-amber-500" />
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className="text-lg font-semibold text-foreground">
+                      {t("connect.pending.title")}
+                    </h3>
+                    <p className="text-muted-foreground">
+                      {t("connect.pending.description")}
                     </p>
                   </div>
                 </div>
               </div>
-              <Button onClick={handleOpenDashboard} isLoading={isGettingDashboard} variant="outline" className="gap-2">
-                <ExternalLink className="size-4" />
-                {t("connect.active.dashboard")}
-              </Button>
-            </>
-          )}
-        </CardContent>
-      </Card>
+
+              <div className="mt-8 flex flex-col items-center">
+                <Button
+                  onClick={handleRefreshOnboarding}
+                  isLoading={isRefreshing}
+                  size="lg"
+                  className="gap-2 bg-gradient-to-r from-amber-500 to-amber-600 shadow-lg shadow-amber-500/25 hover:shadow-xl hover:shadow-amber-500/30"
+                >
+                  <ExternalLink className="size-4" />
+                  {t("connect.pending.button")}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {status?.status === "restricted" && (
+          <div className="p-8 md:p-12">
+            <div className="mx-auto max-w-2xl">
+              <div className="rounded-2xl border border-red-500/20 bg-gradient-to-br from-red-500/5 to-transparent p-6">
+                <div className="flex items-start gap-4">
+                  <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-red-500/10 ring-1 ring-red-500/20">
+                    <AlertTriangle className="size-6 text-red-500" />
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className="text-lg font-semibold text-foreground">
+                      {t("connect.restricted.title")}
+                    </h3>
+                    <p className="text-muted-foreground">
+                      {t("connect.restricted.description")}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-8 flex flex-col items-center">
+                <Button
+                  onClick={handleRefreshOnboarding}
+                  isLoading={isRefreshing}
+                  size="lg"
+                  variant="destructive"
+                  className="gap-2 shadow-lg shadow-red-500/25 hover:shadow-xl hover:shadow-red-500/30"
+                >
+                  <ExternalLink className="size-4" />
+                  {t("connect.restricted.button")}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {status?.status === "active" && (
+          <div className="p-8 md:p-12">
+            <div className="mx-auto max-w-3xl">
+              <div className="mb-8 text-center">
+                <div className="relative mx-auto mb-6 inline-flex">
+                  <div className="absolute inset-0 rounded-full bg-emerald-500/20 blur-2xl" />
+                  <div className="relative flex size-20 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500/20 to-emerald-500/5 ring-1 ring-emerald-500/30">
+                    <CheckCircle2 className="size-10 text-emerald-500" />
+                  </div>
+                </div>
+                <h2 className="text-2xl font-bold tracking-tight">
+                  {t("connect.active.title")}
+                </h2>
+                <p className="mt-2 text-muted-foreground">
+                  {t("connect.active.description")}
+                </p>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <CapabilityCard
+                  enabled={status.chargesEnabled}
+                  title={t("connect.active.charges")}
+                  enabledText={t("connect.active.enabled")}
+                  disabledText={t("connect.active.disabled")}
+                  icon={Banknote}
+                />
+                <CapabilityCard
+                  enabled={status.payoutsEnabled}
+                  title={t("connect.active.payouts")}
+                  enabledText={t("connect.active.enabled")}
+                  disabledText={t("connect.active.disabled")}
+                  icon={Landmark}
+                />
+              </div>
+
+              <div className="mt-8 flex justify-center">
+                <Button
+                  onClick={handleOpenDashboard}
+                  isLoading={isGettingDashboard}
+                  size="lg"
+                  variant="outline"
+                  className="group gap-2 border-border/60 px-8 transition-all duration-300 hover:border-primary/50 hover:bg-primary/5"
+                >
+                  <ExternalLink className="size-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+                  {t("connect.active.dashboard")}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

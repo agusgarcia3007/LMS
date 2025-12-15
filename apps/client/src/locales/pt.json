@@ -71,22 +71,29 @@
       "active": "Ativo",
       "restricted": "Restrito"
     },
+    "features": {
+      "instant": "Configuracao instantanea",
+      "secure": "Seguranca bancaria",
+      "payouts": "Pagamentos rapidos"
+    },
     "setup": {
-      "title": "Configurar pagamentos",
-      "description": "Conecte sua conta Stripe para comecar a aceitar pagamentos. Voce sera redirecionado ao Stripe para completar o processo de configuracao.",
+      "title": "Comece a aceitar pagamentos",
+      "description": "Conecte sua conta Stripe para comecar a aceitar pagamentos de estudantes do mundo todo. A configuracao leva apenas alguns minutos.",
       "button": "Conectar com Stripe"
     },
     "pending": {
-      "title": "Configuracao incompleta",
+      "title": "Complete sua configuracao",
       "description": "A configuracao da sua conta Stripe nao esta completa. Por favor, finalize o processo de cadastro para comecar a aceitar pagamentos.",
       "button": "Continuar Configuracao"
     },
     "restricted": {
-      "title": "Conta restrita",
-      "description": "Sua conta Stripe tem restricoes. Por favor, visite o Stripe para resolver os requisitos pendentes.",
+      "title": "Acao necessaria",
+      "description": "Sua conta Stripe tem restricoes que precisam de atencao. Por favor, visite o Stripe para resolver os requisitos pendentes.",
       "button": "Resolver Problemas"
     },
     "active": {
+      "title": "Tudo pronto!",
+      "description": "Sua conta Stripe esta conectada e pronta para aceitar pagamentos",
       "charges": "Aceitar Pagamentos",
       "payouts": "Receber Pagamentos",
       "enabled": "Habilitado",
