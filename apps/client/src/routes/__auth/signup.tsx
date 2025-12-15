@@ -21,10 +21,15 @@ import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 
 export const Route = createFileRoute("/__auth/signup")({
-  loader: async () => {
+  validateSearch: (search: Record<string, unknown>) => ({
+    betatesting: search.betatesting === "true",
+  }),
+  loaderDeps: ({ search }) => ({ betatesting: search.betatesting }),
+  loader: async ({ deps }) => {
     const tenantInfo = await getTenantFromRequest({ data: {} });
 
-    if (!tenantInfo.isCampus && import.meta.env.PROD) {
+    const isBetaTesting = deps.betatesting;
+    if (!tenantInfo.isCampus && !isBetaTesting && import.meta.env.PROD) {
       throw redirect({ to: "/", hash: "waitlist" });
     }
 
