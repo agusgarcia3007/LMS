@@ -5,7 +5,7 @@ export type TenantInfo = {
 };
 
 const RESERVED_SUBDOMAINS = ["www", "api", "admin", "app"];
-const BASE_DOMAIN = import.meta.env.VITE_BASE_DOMAIN || "learnbase.lat";
+export const BASE_DOMAIN = import.meta.env.VITE_BASE_DOMAIN || "learnbase.lat";
 let resolvedCustomDomainSlug: string | null = null;
 
 export function setResolvedSlug(slug: string): void {

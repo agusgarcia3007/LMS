@@ -11,12 +11,14 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { createSeoMeta } from "@/lib/seo";
+import { BASE_DOMAIN } from "@/lib/tenant";
 import { profileOptions } from "@/services/profile/options";
 import { useCreateTenant } from "@/services/tenants/mutations";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 import { z } from "zod";
 
 const createTenantSchema = z.object({
@@ -72,8 +74,10 @@ function generateSlug(name: string): string {
 }
 
 function CreateTenantPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { mutate: createTenant, isPending } = useCreateTenant();
+  const slugManuallyEdited = useRef(false);
 
   const form = useForm<CreateTenantInput>({
     resolver: zodResolver(createTenantSchema),
@@ -81,15 +85,18 @@ function CreateTenantPage() {
   });
 
   const nameValue = form.watch("name");
+  const slugValue = form.watch("slug");
 
   useEffect(() => {
-    const currentSlug = form.getValues("slug");
+    if (slugManuallyEdited.current) return;
     const generatedSlug = generateSlug(nameValue);
-
-    if (!currentSlug || currentSlug === generateSlug(form.getValues("name").slice(0, -1))) {
-      form.setValue("slug", generatedSlug);
-    }
+    form.setValue("slug", generatedSlug);
   }, [nameValue, form]);
+
+  function handleSlugChange(e: React.ChangeEvent<HTMLInputElement>) {
+    slugManuallyEdited.current = true;
+    form.setValue("slug", e.target.value);
+  }
 
   function onSubmit(data: CreateTenantInput) {
     createTenant(data, {
@@ -106,9 +113,9 @@ function CreateTenantPage() {
     <div className="flex min-h-screen items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl">Create your LMS</CardTitle>
+          <CardTitle className="text-2xl">{t("createTenant.title")}</CardTitle>
           <p className="text-muted-foreground text-sm">
-            Set up your learning management system
+            {t("createTenant.description")}
           </p>
         </CardHeader>
         <CardContent>
@@ -119,12 +126,12 @@ function CreateTenantPage() {
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>LMS Name</FormLabel>
+                    <FormLabel>{t("createTenant.nameLabel")}</FormLabel>
                     <FormControl>
-                      <Input placeholder="My Academy" {...field} />
+                      <Input placeholder={t("createTenant.namePlaceholder")} {...field} />
                     </FormControl>
                     <FormDescription>
-                      The display name for your learning platform
+                      {t("createTenant.nameHelp")}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -136,15 +143,18 @@ function CreateTenantPage() {
                 name="slug"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>URL Slug</FormLabel>
+                    <FormLabel>{t("createTenant.slugLabel")}</FormLabel>
                     <FormControl>
-                      <Input placeholder="my-academy" {...field} />
+                      <Input
+                        placeholder={t("createTenant.slugPlaceholder")}
+                        {...field}
+                        onChange={handleSlugChange}
+                      />
                     </FormControl>
                     <FormDescription>
-                      Your LMS will be available at{" "}
-                      <span className="font-medium">
-                        {field.value || "slug"}.yourdomain.com
-                      </span>
+                      {t("createTenant.slugHelp", {
+                        domain: `${slugValue || "slug"}.${BASE_DOMAIN}`,
+                      })}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -152,7 +162,7 @@ function CreateTenantPage() {
               />
 
               <Button type="submit" className="w-full" isLoading={isPending}>
-                Create LMS
+                {t("createTenant.submit")}
               </Button>
             </form>
           </Form>

@@ -71,39 +71,36 @@ export function OnboardingChecklist({
   return (
     <Card>
       <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle>{t("dashboard.onboarding.title")}</CardTitle>
-          <span className="text-sm text-muted-foreground">
+        <div className="flex items-center justify-between gap-4">
+          <CardTitle className="text-base">{t("dashboard.onboarding.title")}</CardTitle>
+          <CardDescription>
             {t("dashboard.onboarding.progress", {
               completed: completedCount,
               total: totalSteps,
             })}
-          </span>
+          </CardDescription>
         </div>
-        <CardDescription className="sr-only">
-          {t("dashboard.onboarding.title")}
-        </CardDescription>
         <Progress value={progress} className="h-2" />
       </CardHeader>
-      <CardContent className="grid gap-2">
+      <CardContent className="grid gap-1">
         {stepConfig.map(({ key, icon: Icon, href }) => {
           const isCompleted = steps[key];
           return (
             <div
               key={key}
               className={cn(
-                "flex items-center justify-between rounded-lg border p-3 transition-colors",
-                isCompleted && "bg-muted/50"
+                "flex items-center justify-between rounded-lg p-3 transition-colors hover:bg-muted/50",
+                isCompleted && "opacity-60"
               )}
             >
               <div className="flex items-center gap-3">
                 {isCompleted ? (
-                  <div className="flex size-8 items-center justify-center rounded-full bg-primary/10">
-                    <Check className="size-4 text-primary" />
+                  <div className="flex size-6 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                    <Check className="size-3.5" />
                   </div>
                 ) : (
-                  <div className="flex size-8 items-center justify-center rounded-full border">
-                    <Circle className="size-4 text-muted-foreground" />
+                  <div className="flex size-6 items-center justify-center rounded-full border-2 border-muted-foreground/30">
+                    <Circle className="size-2 text-muted-foreground/50" />
                   </div>
                 )}
                 <div>
@@ -121,9 +118,9 @@ export function OnboardingChecklist({
                 </div>
               </div>
               {!isCompleted && (
-                <Button variant="ghost" size="sm" asChild>
+                <Button variant="ghost" size="icon" className="size-8" asChild>
                   <Link to={href(tenantSlug)}>
-                    <Icon className="mr-2 size-4" />
+                    <Icon className="size-4" />
                     <ArrowRight className="size-4" />
                   </Link>
                 </Button>

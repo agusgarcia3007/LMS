@@ -76,21 +76,113 @@ All file uploads must use the dropzone pattern with `useFileUpload` hook:
 
 ## Server (Elysia)
 
-### Route Handlers
+### Route Structure
 
-Always use `withHandler` wrapper:
+Routes are defined in `apps/server/src/routes/` and registered in `routes/index.ts`:
 
 ```typescript
-routes.get("/", (ctx) =>
-  withHandler(ctx, async () => {
-    if (!ctx.user) throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
-    return { data: ctx.user };
-  })
-);
+// routes/index.ts
+export const ROUTES = [
+  { path: "/courses", name: "courses-routes", route: coursesRoutes },
+  { path: "/users", name: "users-routes", route: usersRoutes },
+];
 ```
 
-- Throw `AppError` for expected errors
-- Never manual try/catch in routes
+### Creating a New Route File
+
+```typescript
+import { Elysia, t } from "elysia";
+import { authPlugin } from "@/plugins/auth";
+import { guardPlugin } from "@/plugins/guards";
+import { AppError, ErrorCode } from "@/lib/errors";
+
+export const myRoutes = new Elysia()
+  .use(authPlugin)
+  .use(guardPlugin)
+  .get("/", async (ctx) => {
+    // Handler code here
+    return { data: [] };
+  }, {
+    query: t.Object({
+      page: t.Optional(t.String()),
+      limit: t.Optional(t.String()),
+    }),
+    detail: {
+      tags: ["MyResource"],
+      summary: "List resources",
+    },
+    requireAuth: true,
+    requireTenant: true,
+  });
+```
+
+### Plugins
+
+| Plugin | Purpose | Provides |
+|--------|---------|----------|
+| `authPlugin` | JWT authentication | `ctx.user`, `ctx.userId`, `ctx.userRole` |
+| `tenantPlugin` | Multi-tenant resolution | `ctx.tenant` |
+| `guardPlugin` | Route-level authorization macros | `requireAuth`, `requireTenant`, `requireRole` |
+
+### Guard Macros
+
+Use in route options to enforce authorization:
+
+```typescript
+.get("/", handler, {
+  requireAuth: true,                              // User must be logged in
+  requireTenant: true,                            // User must have tenantId
+  requireRole: ["owner", "admin", "superadmin"],  // User must have one of these roles
+})
+```
+
+### Error Handling
+
+Throw `AppError` for expected errors - global handler catches them:
+
+```typescript
+import { AppError, ErrorCode } from "@/lib/errors";
+
+// In route handler
+if (!ctx.user) {
+  throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
+}
+
+if (!resource) {
+  throw new AppError(ErrorCode.NOT_FOUND, "Resource not found", 404);
+}
+```
+
+Common error codes: `UNAUTHORIZED`, `FORBIDDEN`, `NOT_FOUND`, `BAD_REQUEST`, `TENANT_NOT_FOUND`
+
+### Cache Invalidation
+
+When modifying tenant data, always invalidate cache:
+
+```typescript
+import { invalidateTenantCache } from "@/plugins/tenant";
+
+// After updating tenant
+await db.update(tenantsTable).set({ ... }).where(eq(tenantsTable.id, tenantId));
+invalidateTenantCache(tenant.slug);
+```
+
+### Request Validation
+
+Use TypeBox schemas in route options:
+
+```typescript
+.post("/", handler, {
+  body: t.Object({
+    name: t.String({ minLength: 1 }),
+    email: t.String({ format: "email" }),
+    status: t.Optional(t.Union([t.Literal("active"), t.Literal("inactive")])),
+  }),
+  params: t.Object({
+    id: t.String({ format: "uuid" }),
+  }),
+})
+```
 
 ### Database
 
@@ -116,6 +208,100 @@ Use `parseListParams` and `buildWhereClause` from `@/lib/filters`:
 | Multiple | `role=admin,owner` | `inArray()` |
 | Date range | `createdAt=2025-01-01,2025-01-31` | `gte() AND lte()` |
 | Search | `search=john` | `ilike()` on searchable fields |
+
+### List Endpoint Pattern
+
+```typescript
+import { parseListParams, buildWhereClause, getSortColumn, getPaginationParams, calculatePagination } from "@/lib/filters";
+
+const fieldMap: FieldMap = { status: resourcesTable.status, createdAt: resourcesTable.createdAt };
+const searchableFields = [resourcesTable.name, resourcesTable.description];
+const dateFields: DateFields = new Set(["createdAt"]);
+
+.get("/", async (ctx) => {
+  const params = parseListParams(ctx.query);
+  const baseWhere = buildWhereClause(params, fieldMap, searchableFields, dateFields);
+  const tenantFilter = eq(resourcesTable.tenantId, ctx.user!.tenantId!);
+  const whereClause = baseWhere ? and(baseWhere, tenantFilter) : tenantFilter;
+
+  const sortColumn = getSortColumn(params.sort, fieldMap, { field: "createdAt", order: "desc" });
+  const { limit, offset } = getPaginationParams(params.page, params.limit);
+
+  const [data, [{ count: total }]] = await Promise.all([
+    db.select().from(resourcesTable).where(whereClause).orderBy(sortColumn).limit(limit).offset(offset),
+    db.select({ count: count() }).from(resourcesTable).where(whereClause),
+  ]);
+
+  return { resources: data, pagination: calculatePagination(total, params.page, params.limit) };
+})
+```
+
+### Complete CRUD Example
+
+```typescript
+export const resourcesRoutes = new Elysia()
+  .use(authPlugin)
+  .use(guardPlugin)
+  // LIST
+  .get("/", async (ctx) => {
+    const resources = await db.select().from(resourcesTable)
+      .where(eq(resourcesTable.tenantId, ctx.user!.tenantId!));
+    return { resources };
+  }, { requireAuth: true, requireTenant: true })
+  // GET BY ID
+  .get("/:id", async (ctx) => {
+    const [resource] = await db.select().from(resourcesTable)
+      .where(and(
+        eq(resourcesTable.id, ctx.params.id),
+        eq(resourcesTable.tenantId, ctx.user!.tenantId!)
+      ));
+    if (!resource) throw new AppError(ErrorCode.NOT_FOUND, "Resource not found", 404);
+    return { resource };
+  }, {
+    params: t.Object({ id: t.String({ format: "uuid" }) }),
+    requireAuth: true, requireTenant: true,
+  })
+  // CREATE
+  .post("/", async (ctx) => {
+    const [resource] = await db.insert(resourcesTable)
+      .values({ ...ctx.body, tenantId: ctx.user!.tenantId! })
+      .returning();
+    return { resource };
+  }, {
+    body: t.Object({ name: t.String({ minLength: 1 }) }),
+    requireAuth: true, requireTenant: true, requireRole: ["owner", "admin"],
+  })
+  // UPDATE
+  .put("/:id", async (ctx) => {
+    const [resource] = await db.update(resourcesTable)
+      .set(ctx.body)
+      .where(and(
+        eq(resourcesTable.id, ctx.params.id),
+        eq(resourcesTable.tenantId, ctx.user!.tenantId!)
+      ))
+      .returning();
+    if (!resource) throw new AppError(ErrorCode.NOT_FOUND, "Resource not found", 404);
+    return { resource };
+  }, {
+    params: t.Object({ id: t.String({ format: "uuid" }) }),
+    body: t.Object({ name: t.Optional(t.String({ minLength: 1 })) }),
+    requireAuth: true, requireTenant: true, requireRole: ["owner", "admin"],
+  })
+  // DELETE
+  .delete("/:id", async (ctx) => {
+    const [deleted] = await db.delete(resourcesTable)
+      .where(and(
+        eq(resourcesTable.id, ctx.params.id),
+        eq(resourcesTable.tenantId, ctx.user!.tenantId!)
+      ))
+      .returning();
+    if (!deleted) throw new AppError(ErrorCode.NOT_FOUND, "Resource not found", 404);
+    return { success: true };
+  }, {
+    params: t.Object({ id: t.String({ format: "uuid" }) }),
+    requireAuth: true, requireTenant: true, requireRole: ["owner", "admin"],
+  });
+```
 
 ## AI Prompts Security
 

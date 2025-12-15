@@ -2347,5 +2347,16 @@
       "optionsRequired": "At least 2 options are required",
       "correctAnswerRequired": "You must mark at least one correct answer"
     }
+  },
+  "createTenant": {
+    "title": "Create your LMS",
+    "description": "Set up your learning management system",
+    "nameLabel": "LMS Name",
+    "namePlaceholder": "My Academy",
+    "nameHelp": "The display name for your learning platform",
+    "slugLabel": "URL Slug",
+    "slugPlaceholder": "my-academy",
+    "slugHelp": "Your LMS will be available at {{domain}}",
+    "submit": "Create LMS"
   }
 }

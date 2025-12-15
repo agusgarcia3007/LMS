@@ -2270,5 +2270,16 @@
         "incorrect": "Incorreto"
       }
     }
+  },
+  "createTenant": {
+    "title": "Crie seu LMS",
+    "description": "Configure sua plataforma de aprendizagem",
+    "nameLabel": "Nome do LMS",
+    "namePlaceholder": "Minha Academia",
+    "nameHelp": "O nome que sera exibido na sua plataforma",
+    "slugLabel": "URL",
+    "slugPlaceholder": "minha-academia",
+    "slugHelp": "Seu LMS estara disponivel em {{domain}}",
+    "submit": "Criar LMS"
   }
 }
