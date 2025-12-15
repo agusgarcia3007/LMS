@@ -476,10 +476,8 @@
       "newStudents": "+{{count}} ultimos 30 dias",
       "enrollments": "Inscripciones Activas",
       "totalEnrollments": "{{count}} inscripciones totales",
-      "completionRate": "Tasa de Completado",
-      "completed": "{{count}} completados",
-      "certificates": "Certificados",
-      "coursesPublished": "{{count}} cursos publicados"
+      "courses": "Cursos",
+      "coursesPublished": "{{count}} publicados"
     },
     "trends": {
       "title": "Tendencias de Inscripciones",

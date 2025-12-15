@@ -493,10 +493,8 @@
       "newStudents": "+{{count}} ultimos 30 dias",
       "enrollments": "Matriculas Ativas",
       "totalEnrollments": "{{count}} matriculas totais",
-      "completionRate": "Taxa de Conclusao",
-      "completed": "{{count}} concluidos",
-      "certificates": "Certificados",
-      "coursesPublished": "{{count}} cursos publicados"
+      "courses": "Cursos",
+      "coursesPublished": "{{count}} publicados"
     },
     "trends": {
       "title": "Tendencias de Matriculas",

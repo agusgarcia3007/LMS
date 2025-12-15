@@ -37,7 +37,7 @@ export type VisitorAnalytics = {
 
 export const analyticsService = {
   track(tenantSlug: string, path: string) {
-    const sessionId = getSessionId();
+    const sessionId = getSessionId() ?? undefined;
 
     publicHttp
       .post<{ success: boolean; sessionId: string }>("/analytics/track", {

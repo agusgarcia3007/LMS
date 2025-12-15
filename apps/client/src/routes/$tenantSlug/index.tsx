@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
@@ -8,18 +7,10 @@ import { createSeoMeta } from "@/lib/seo";
 import {
   useGetTenantStats,
   useGetOnboarding,
-  useGetTenantTrends,
-  useGetTenantTopCourses,
   useGetTenantActivity,
-  type TenantTrendPeriod,
 } from "@/services/tenants";
-import { useGetVisitorStats } from "@/services/analytics";
 import { OnboardingChecklist } from "@/components/dashboard/onboarding-checklist";
-import { PeriodSelector } from "@/components/dashboard/period-selector";
 import { StatsCards } from "@/components/dashboard/stats-cards";
-import { VisitorStatsCards } from "@/components/dashboard/visitor-stats";
-import { TrendsChart } from "@/components/dashboard/trends-chart";
-import { TopCoursesTable } from "@/components/dashboard/top-courses-table";
 import { RecentActivity } from "@/components/dashboard/recent-activity";
 
 export const Route = createFileRoute("/$tenantSlug/")({
@@ -36,22 +27,13 @@ function DashboardHome() {
   const { t } = useTranslation();
   const { tenant } = Route.useRouteContext();
   const campusUrl = getCampusUrl(tenant.slug, tenant.customDomain);
-  const [period, setPeriod] = useState<TenantTrendPeriod>("30d");
 
   const { data: statsData, isLoading: isLoadingStats } = useGetTenantStats(
     tenant.id
   );
   const { data: onboardingData } = useGetOnboarding(tenant.id);
-  const { data: trendsData, isLoading: isLoadingTrends } = useGetTenantTrends(
-    tenant.id,
-    period
-  );
-  const { data: topCoursesData, isLoading: isLoadingTopCourses } =
-    useGetTenantTopCourses(tenant.id, 5);
   const { data: activityData, isLoading: isLoadingActivity } =
     useGetTenantActivity(tenant.id, 5);
-  const { data: visitorData, isLoading: isLoadingVisitors } =
-    useGetVisitorStats(tenant.id, period);
 
   return (
     <div className="space-y-6">
@@ -64,15 +46,12 @@ function DashboardHome() {
             {t("dashboard.home.description")}
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <PeriodSelector value={period} onChange={setPeriod} />
-          <a href={campusUrl} target="_blank" rel="noopener noreferrer">
-            <Button variant="outline" className="gap-2">
-              <ExternalLink className="size-4" />
-              {t("dashboard.home.viewCampus")}
-            </Button>
-          </a>
-        </div>
+        <a href={campusUrl} target="_blank" rel="noopener noreferrer">
+          <Button variant="outline" className="gap-2">
+            <ExternalLink className="size-4" />
+            {t("dashboard.home.viewCampus")}
+          </Button>
+        </a>
       </div>
 
       {onboardingData?.steps && (
@@ -82,28 +61,12 @@ function DashboardHome() {
         />
       )}
 
-      <div className="grid gap-4 lg:grid-cols-3">
-        <div className="lg:col-span-2">
-          <StatsCards stats={statsData?.stats} isLoading={isLoadingStats} />
-        </div>
-        <VisitorStatsCards
-          stats={visitorData?.visitors}
-          isLoading={isLoadingVisitors}
-        />
-      </div>
+      <StatsCards stats={statsData?.stats} isLoading={isLoadingStats} />
 
-      <TrendsChart trends={trendsData?.trends} isLoading={isLoadingTrends} />
-
-      <div className="grid gap-4 lg:grid-cols-2">
-        <TopCoursesTable
-          courses={topCoursesData?.courses}
-          isLoading={isLoadingTopCourses}
-        />
-        <RecentActivity
-          activities={activityData?.activities}
-          isLoading={isLoadingActivity}
-        />
-      </div>
+      <RecentActivity
+        activities={activityData?.activities}
+        isLoading={isLoadingActivity}
+      />
     </div>
   );
 }

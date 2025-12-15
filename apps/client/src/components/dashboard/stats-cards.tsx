@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { Users, GraduationCap, TrendingUp, Award, type LucideIcon } from "lucide-react";
+import { Users, GraduationCap, BookOpen, type LucideIcon } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { TenantStats } from "@/services/tenants";
@@ -49,7 +49,7 @@ export function StatsCards({ stats, isLoading }: StatsCardsProps) {
   const { t } = useTranslation();
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-4 sm:grid-cols-3">
       <StatCard
         title={t("dashboard.stats.students")}
         value={stats?.totalStudents ?? 0}
@@ -67,19 +67,11 @@ export function StatsCards({ stats, isLoading }: StatsCardsProps) {
         isLoading={isLoading}
       />
       <StatCard
-        title={t("dashboard.stats.completionRate")}
-        value={`${stats?.completionRate ?? 0}%`}
-        subtitle={t("dashboard.stats.completed", { count: stats?.completedEnrollments ?? 0 })}
-        icon={TrendingUp}
-        iconColor="bg-violet-500/10 text-violet-500"
-        isLoading={isLoading}
-      />
-      <StatCard
-        title={t("dashboard.stats.certificates")}
-        value={stats?.totalCertificates ?? 0}
+        title={t("dashboard.stats.courses")}
+        value={stats?.totalCourses ?? 0}
         subtitle={t("dashboard.stats.coursesPublished", { count: stats?.totalCourses ?? 0 })}
-        icon={Award}
-        iconColor="bg-amber-500/10 text-amber-500"
+        icon={BookOpen}
+        iconColor="bg-violet-500/10 text-violet-500"
         isLoading={isLoading}
       />
     </div>

@@ -513,10 +513,8 @@
       "newStudents": "+{{count}} last 30 days",
       "enrollments": "Active Enrollments",
       "totalEnrollments": "{{count}} total enrollments",
-      "completionRate": "Completion Rate",
-      "completed": "{{count}} completed",
-      "certificates": "Certificates",
-      "coursesPublished": "{{count}} courses published"
+      "courses": "Courses",
+      "coursesPublished": "{{count}} published"
     },
     "trends": {
       "title": "Enrollment Trends",
