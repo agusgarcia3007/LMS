@@ -5,6 +5,7 @@ import {
   BookOpen,
   Building2,
   ChevronsUpDown,
+  CreditCard,
   HardDrive,
   Home,
   LayoutDashboard,
@@ -82,6 +83,12 @@ export function BackofficeSidebar({ user }: BackofficeSidebarProps) {
             url: "/backoffice/tenants",
             icon: Building2,
             isActive: currentPath === "/backoffice/tenants",
+          },
+          {
+            title: t("backoffice.sidebar.subscriptions"),
+            url: "/backoffice/subscriptions",
+            icon: CreditCard,
+            isActive: currentPath === "/backoffice/subscriptions",
           },
           {
             title: t("backoffice.sidebar.waitlist"),

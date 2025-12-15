@@ -1104,6 +1104,7 @@
       "management": "Gestao",
       "users": "Usuarios",
       "tenants": "Organizacoes",
+      "subscriptions": "Assinaturas",
       "storage": "Armazenamento",
       "fileExplorer": "Explorador de arquivos",
       "learning": "Aprendizado",
@@ -1437,6 +1438,97 @@
         "description": "Tem certeza que deseja remover {{email}} da lista de espera? Esta acao nao pode ser desfeita.",
         "success": "Removido da lista de espera com sucesso"
       }
+    },
+    "subscriptions": {
+      "title": "Gestao de Assinaturas",
+      "description": "Gerencie todas as assinaturas das organizacoes",
+      "columns": {
+        "tenant": "Organizacao",
+        "plan": "Plano",
+        "status": "Status",
+        "trialEnds": "Fim do Trial",
+        "commission": "Comissao",
+        "connectStatus": "Connect",
+        "createdAt": "Criado"
+      },
+      "filters": {
+        "plan": "Plano",
+        "status": "Status",
+        "createdAt": "Data de criacao"
+      },
+      "plans": {
+        "starter": "Starter",
+        "growth": "Growth",
+        "scale": "Scale"
+      },
+      "statuses": {
+        "trialing": "Trial",
+        "active": "Ativo",
+        "past_due": "Pagamento Pendente",
+        "canceled": "Cancelado",
+        "unpaid": "Nao Pago"
+      },
+      "connectStatuses": {
+        "not_started": "Nao Configurado",
+        "pending": "Pendente",
+        "active": "Ativo",
+        "restricted": "Restrito"
+      },
+      "actions": {
+        "viewHistory": "Ver Historico",
+        "changePlan": "Alterar Plano",
+        "extendTrial": "Estender Trial",
+        "updateCommission": "Atualizar Comissao",
+        "cancelSubscription": "Cancelar Assinatura",
+        "viewInStripe": "Ver no Stripe"
+      },
+      "changePlan": {
+        "title": "Alterar Plano",
+        "description": "Alterar o plano de assinatura para {{tenant}}",
+        "currentPlan": "Plano atual: {{plan}}",
+        "selectPlan": "Selecionar novo plano",
+        "confirm": "Alterar Plano"
+      },
+      "extendTrial": {
+        "title": "Estender Trial",
+        "description": "Estender o periodo de teste para {{tenant}}",
+        "currentEnd": "O trial termina em: {{date}}",
+        "days": "Dias para estender",
+        "daysHelp": "Insira o numero de dias para estender (1-365)",
+        "confirm": "Estender Trial"
+      },
+      "updateCommission": {
+        "title": "Atualizar Comissao",
+        "description": "Atualizar a taxa de comissao da plataforma para {{tenant}}",
+        "currentRate": "Taxa atual: {{rate}}%",
+        "newRate": "Nova taxa de comissao",
+        "rateHelp": "Insira um valor entre 0 e 100"
+      },
+      "cancel": {
+        "title": "Cancelar Assinatura",
+        "description": "Cancelar a assinatura para {{tenant}}",
+        "warning": "Esta acao cancelara a assinatura. A organizacao perdera acesso aos recursos premium.",
+        "immediate": "Cancelar imediatamente (sem reembolso)",
+        "immediateHelp": "A assinatura sera cancelada imediatamente e a organizacao perdera acesso instantaneamente.",
+        "endOfPeriodHelp": "A assinatura sera cancelada no final do periodo de cobranca atual.",
+        "confirm": "Cancelar Assinatura"
+      },
+      "history": {
+        "title": "Historico de Assinatura",
+        "description": "Historico de eventos para {{tenant}}",
+        "noHistory": "Nenhum evento de assinatura encontrado",
+        "eventTypes": {
+          "customer.subscription.created": "Assinatura Criada",
+          "customer.subscription.updated": "Assinatura Atualizada",
+          "customer.subscription.deleted": "Assinatura Cancelada"
+        }
+      },
+      "empty": {
+        "title": "Sem assinaturas",
+        "description": "Nenhuma assinatura encontrada com os filtros atuais"
+      },
+      "noPlan": "Sem plano",
+      "noSubscription": "Sem assinatura"
     }
   },
   "content": {

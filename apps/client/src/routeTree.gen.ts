@@ -28,6 +28,7 @@ import { Route as CoursesCourseSlugRouteImport } from './routes/courses/$courseS
 import { Route as BackofficeWaitlistRouteImport } from './routes/backoffice/waitlist'
 import { Route as BackofficeUsersRouteImport } from './routes/backoffice/users'
 import { Route as BackofficeTenantsRouteImport } from './routes/backoffice/tenants'
+import { Route as BackofficeSubscriptionsRouteImport } from './routes/backoffice/subscriptions'
 import { Route as BackofficeFilesRouteImport } from './routes/backoffice/files'
 import { Route as BackofficeEnrollmentsRouteImport } from './routes/backoffice/enrollments'
 import { Route as BackofficeCertificatesRouteImport } from './routes/backoffice/certificates'
@@ -149,6 +150,11 @@ const BackofficeUsersRoute = BackofficeUsersRouteImport.update({
 const BackofficeTenantsRoute = BackofficeTenantsRouteImport.update({
   id: '/tenants',
   path: '/tenants',
+  getParentRoute: () => BackofficeRouteRoute,
+} as any)
+const BackofficeSubscriptionsRoute = BackofficeSubscriptionsRouteImport.update({
+  id: '/subscriptions',
+  path: '/subscriptions',
   getParentRoute: () => BackofficeRouteRoute,
 } as any)
 const BackofficeFilesRoute = BackofficeFilesRouteImport.update({
@@ -323,6 +329,7 @@ export interface FileRoutesByFullPath {
   '/backoffice/certificates': typeof BackofficeCertificatesRoute
   '/backoffice/enrollments': typeof BackofficeEnrollmentsRoute
   '/backoffice/files': typeof BackofficeFilesRoute
+  '/backoffice/subscriptions': typeof BackofficeSubscriptionsRoute
   '/backoffice/tenants': typeof BackofficeTenantsRoute
   '/backoffice/users': typeof BackofficeUsersRoute
   '/backoffice/waitlist': typeof BackofficeWaitlistRoute
@@ -367,6 +374,7 @@ export interface FileRoutesByTo {
   '/backoffice/certificates': typeof BackofficeCertificatesRoute
   '/backoffice/enrollments': typeof BackofficeEnrollmentsRoute
   '/backoffice/files': typeof BackofficeFilesRoute
+  '/backoffice/subscriptions': typeof BackofficeSubscriptionsRoute
   '/backoffice/tenants': typeof BackofficeTenantsRoute
   '/backoffice/users': typeof BackofficeUsersRoute
   '/backoffice/waitlist': typeof BackofficeWaitlistRoute
@@ -416,6 +424,7 @@ export interface FileRoutesById {
   '/backoffice/certificates': typeof BackofficeCertificatesRoute
   '/backoffice/enrollments': typeof BackofficeEnrollmentsRoute
   '/backoffice/files': typeof BackofficeFilesRoute
+  '/backoffice/subscriptions': typeof BackofficeSubscriptionsRoute
   '/backoffice/tenants': typeof BackofficeTenantsRoute
   '/backoffice/users': typeof BackofficeUsersRoute
   '/backoffice/waitlist': typeof BackofficeWaitlistRoute
@@ -466,6 +475,7 @@ export interface FileRouteTypes {
     | '/backoffice/certificates'
     | '/backoffice/enrollments'
     | '/backoffice/files'
+    | '/backoffice/subscriptions'
     | '/backoffice/tenants'
     | '/backoffice/users'
     | '/backoffice/waitlist'
@@ -510,6 +520,7 @@ export interface FileRouteTypes {
     | '/backoffice/certificates'
     | '/backoffice/enrollments'
     | '/backoffice/files'
+    | '/backoffice/subscriptions'
     | '/backoffice/tenants'
     | '/backoffice/users'
     | '/backoffice/waitlist'
@@ -558,6 +569,7 @@ export interface FileRouteTypes {
     | '/backoffice/certificates'
     | '/backoffice/enrollments'
     | '/backoffice/files'
+    | '/backoffice/subscriptions'
     | '/backoffice/tenants'
     | '/backoffice/users'
     | '/backoffice/waitlist'
@@ -738,6 +750,13 @@ declare module '@tanstack/react-router' {
       path: '/tenants'
       fullPath: '/backoffice/tenants'
       preLoaderRoute: typeof BackofficeTenantsRouteImport
+      parentRoute: typeof BackofficeRouteRoute
+    }
+    '/backoffice/subscriptions': {
+      id: '/backoffice/subscriptions'
+      path: '/subscriptions'
+      fullPath: '/backoffice/subscriptions'
+      preLoaderRoute: typeof BackofficeSubscriptionsRouteImport
       parentRoute: typeof BackofficeRouteRoute
     }
     '/backoffice/files': {
@@ -1021,6 +1040,7 @@ interface BackofficeRouteRouteChildren {
   BackofficeCertificatesRoute: typeof BackofficeCertificatesRoute
   BackofficeEnrollmentsRoute: typeof BackofficeEnrollmentsRoute
   BackofficeFilesRoute: typeof BackofficeFilesRoute
+  BackofficeSubscriptionsRoute: typeof BackofficeSubscriptionsRoute
   BackofficeTenantsRoute: typeof BackofficeTenantsRoute
   BackofficeUsersRoute: typeof BackofficeUsersRoute
   BackofficeWaitlistRoute: typeof BackofficeWaitlistRoute
@@ -1031,6 +1051,7 @@ const BackofficeRouteRouteChildren: BackofficeRouteRouteChildren = {
   BackofficeCertificatesRoute: BackofficeCertificatesRoute,
   BackofficeEnrollmentsRoute: BackofficeEnrollmentsRoute,
   BackofficeFilesRoute: BackofficeFilesRoute,
+  BackofficeSubscriptionsRoute: BackofficeSubscriptionsRoute,
   BackofficeTenantsRoute: BackofficeTenantsRoute,
   BackofficeUsersRoute: BackofficeUsersRoute,
   BackofficeWaitlistRoute: BackofficeWaitlistRoute,

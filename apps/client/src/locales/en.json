@@ -1127,6 +1127,7 @@
       "management": "Management",
       "users": "Users",
       "tenants": "Organizations",
+      "subscriptions": "Subscriptions",
       "storage": "Storage",
       "fileExplorer": "File Explorer",
       "learning": "Learning",
@@ -1460,6 +1461,97 @@
         "description": "Are you sure you want to delete {{email}} from the waitlist? This action cannot be undone.",
         "success": "Waitlist entry deleted successfully"
       }
+    },
+    "subscriptions": {
+      "title": "Subscription Management",
+      "description": "Manage all tenant subscriptions",
+      "columns": {
+        "tenant": "Organization",
+        "plan": "Plan",
+        "status": "Status",
+        "trialEnds": "Trial Ends",
+        "commission": "Commission",
+        "connectStatus": "Connect",
+        "createdAt": "Created"
+      },
+      "filters": {
+        "plan": "Plan",
+        "status": "Status",
+        "createdAt": "Created at"
+      },
+      "plans": {
+        "starter": "Starter",
+        "growth": "Growth",
+        "scale": "Scale"
+      },
+      "statuses": {
+        "trialing": "Trial",
+        "active": "Active",
+        "past_due": "Past Due",
+        "canceled": "Canceled",
+        "unpaid": "Unpaid"
+      },
+      "connectStatuses": {
+        "not_started": "Not Set Up",
+        "pending": "Pending",
+        "active": "Active",
+        "restricted": "Restricted"
+      },
+      "actions": {
+        "viewHistory": "View History",
+        "changePlan": "Change Plan",
+        "extendTrial": "Extend Trial",
+        "updateCommission": "Update Commission",
+        "cancelSubscription": "Cancel Subscription",
+        "viewInStripe": "View in Stripe"
+      },
+      "changePlan": {
+        "title": "Change Plan",
+        "description": "Change the subscription plan for {{tenant}}",
+        "currentPlan": "Current plan: {{plan}}",
+        "selectPlan": "Select new plan",
+        "confirm": "Change Plan"
+      },
+      "extendTrial": {
+        "title": "Extend Trial",
+        "description": "Extend the trial period for {{tenant}}",
+        "currentEnd": "Current trial ends: {{date}}",
+        "days": "Days to extend",
+        "daysHelp": "Enter the number of days to extend (1-365)",
+        "confirm": "Extend Trial"
+      },
+      "updateCommission": {
+        "title": "Update Commission Rate",
+        "description": "Update the platform commission rate for {{tenant}}",
+        "currentRate": "Current rate: {{rate}}%",
+        "newRate": "New commission rate",
+        "rateHelp": "Enter a value between 0 and 100"
+      },
+      "cancel": {
+        "title": "Cancel Subscription",
+        "description": "Cancel the subscription for {{tenant}}",
+        "warning": "This action will cancel the subscription. The tenant will lose access to premium features.",
+        "immediate": "Cancel immediately (no refund)",
+        "immediateHelp": "The subscription will be canceled immediately and the tenant will lose access right away.",
+        "endOfPeriodHelp": "The subscription will be canceled at the end of the current billing period.",
+        "confirm": "Cancel Subscription"
+      },
+      "history": {
+        "title": "Subscription History",
+        "description": "Event history for {{tenant}}",
+        "noHistory": "No subscription events found",
+        "eventTypes": {
+          "customer.subscription.created": "Subscription Created",
+          "customer.subscription.updated": "Subscription Updated",
+          "customer.subscription.deleted": "Subscription Canceled"
+        }
+      },
+      "empty": {
+        "title": "No subscriptions",
+        "description": "No subscriptions found with the current filters"
+      },
+      "noPlan": "No plan",
+      "noSubscription": "No subscription"
     }
   },
   "content": {

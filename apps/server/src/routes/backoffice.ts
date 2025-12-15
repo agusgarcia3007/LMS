@@ -12,8 +12,11 @@ import {
   videosTable,
   documentsTable,
   waitlistTable,
+  subscriptionHistoryTable,
 } from "@/db/schema";
-import { count, sql, eq, gte, and, desc, ilike } from "drizzle-orm";
+import type { TenantPlan, SubscriptionStatus } from "@/db/schema";
+import { count, sql, eq, gte, and, desc, ilike, inArray } from "drizzle-orm";
+import { stripe, getPriceIdForPlan, PLAN_CONFIG } from "@/lib/stripe";
 import {
   parseListParams,
   buildWhereClause,
@@ -66,6 +69,23 @@ const waitlistSearchableFields: SearchableFields<typeof waitlistTable> = [
 ];
 
 const waitlistDateFields: DateFields = new Set(["createdAt"]);
+
+const subscriptionFieldMap: FieldMap<typeof tenantsTable> = {
+  id: tenantsTable.id,
+  plan: tenantsTable.plan,
+  subscriptionStatus: tenantsTable.subscriptionStatus,
+  commissionRate: tenantsTable.commissionRate,
+  trialEndsAt: tenantsTable.trialEndsAt,
+  createdAt: tenantsTable.createdAt,
+};
+
+const subscriptionSearchableFields: SearchableFields<typeof tenantsTable> = [
+  tenantsTable.name,
+  tenantsTable.slug,
+  tenantsTable.billingEmail,
+];
+
+const subscriptionDateFields: DateFields = new Set(["createdAt", "trialEndsAt"]);
 
 function requireSuperadmin(ctx: { user: unknown; userRole: string | null }) {
   if (!ctx.user) {
@@ -1125,6 +1145,357 @@ export const backofficeRoutes = new Elysia()
       detail: {
         tags: ["Backoffice"],
         summary: "Delete waitlist entry (superadmin only)",
+      },
+    }
+  )
+  .get(
+    "/subscriptions",
+    async (ctx) => {
+      requireSuperadmin(ctx);
+
+      const params = parseListParams(ctx.query);
+      const baseWhereClause = buildWhereClause(
+        params,
+        subscriptionFieldMap,
+        subscriptionSearchableFields,
+        subscriptionDateFields
+      );
+
+      const planFilter = ctx.query.plan
+        ? ctx.query.plan.includes(",")
+          ? inArray(tenantsTable.plan, ctx.query.plan.split(",") as TenantPlan[])
+          : eq(tenantsTable.plan, ctx.query.plan as TenantPlan)
+        : undefined;
+
+      const statusFilter = ctx.query.status
+        ? ctx.query.status.includes(",")
+          ? inArray(tenantsTable.subscriptionStatus, ctx.query.status.split(",") as SubscriptionStatus[])
+          : eq(tenantsTable.subscriptionStatus, ctx.query.status as SubscriptionStatus)
+        : undefined;
+
+      const filters = [baseWhereClause, planFilter, statusFilter].filter(Boolean);
+      const whereClause = filters.length > 0 ? and(...filters) : undefined;
+
+      const sortColumn = getSortColumn(params.sort, subscriptionFieldMap, {
+        field: "createdAt",
+        order: "desc",
+      });
+      const { limit, offset } = getPaginationParams(params.page, params.limit);
+
+      const baseQuery = db
+        .select({
+          id: tenantsTable.id,
+          tenantName: tenantsTable.name,
+          tenantSlug: tenantsTable.slug,
+          plan: tenantsTable.plan,
+          subscriptionStatus: tenantsTable.subscriptionStatus,
+          trialEndsAt: tenantsTable.trialEndsAt,
+          commissionRate: tenantsTable.commissionRate,
+          stripeCustomerId: tenantsTable.stripeCustomerId,
+          stripeSubscriptionId: tenantsTable.stripeSubscriptionId,
+          stripeConnectStatus: tenantsTable.stripeConnectStatus,
+          chargesEnabled: tenantsTable.chargesEnabled,
+          payoutsEnabled: tenantsTable.payoutsEnabled,
+          billingEmail: tenantsTable.billingEmail,
+          createdAt: tenantsTable.createdAt,
+          usersCount: sql<number>`(
+            SELECT COUNT(*) FROM ${usersTable}
+            WHERE ${usersTable.tenantId} = ${tenantsTable.id}
+          )::int`,
+          coursesCount: sql<number>`(
+            SELECT COUNT(*) FROM ${coursesTable}
+            WHERE ${coursesTable.tenantId} = ${tenantsTable.id}
+          )::int`,
+        })
+        .from(tenantsTable);
+
+      let query = baseQuery.$dynamic();
+      if (whereClause) {
+        query = query.where(whereClause);
+      }
+      if (sortColumn) {
+        query = query.orderBy(sortColumn);
+      }
+      query = query.limit(limit).offset(offset);
+
+      const countQuery = db.select({ count: count() }).from(tenantsTable);
+      let countQueryDynamic = countQuery.$dynamic();
+      if (whereClause) {
+        countQueryDynamic = countQueryDynamic.where(whereClause);
+      }
+
+      const [subscriptions, [{ count: total }]] = await Promise.all([
+        query,
+        countQueryDynamic,
+      ]);
+
+      return {
+        subscriptions,
+        pagination: calculatePagination(total, params.page, params.limit),
+      };
+    },
+    {
+      query: t.Object({
+        page: t.Optional(t.String()),
+        limit: t.Optional(t.String()),
+        sort: t.Optional(t.String()),
+        search: t.Optional(t.String()),
+        plan: t.Optional(t.String()),
+        status: t.Optional(t.String()),
+        createdAt: t.Optional(t.String()),
+        trialEndsAt: t.Optional(t.String()),
+      }),
+      detail: {
+        tags: ["Backoffice"],
+        summary: "List all tenant subscriptions (superadmin only)",
+      },
+    }
+  )
+  .get(
+    "/subscriptions/:tenantId/history",
+    async (ctx) => {
+      requireSuperadmin(ctx);
+
+      const history = await db
+        .select({
+          id: subscriptionHistoryTable.id,
+          stripeSubscriptionId: subscriptionHistoryTable.stripeSubscriptionId,
+          stripeEventId: subscriptionHistoryTable.stripeEventId,
+          previousPlan: subscriptionHistoryTable.previousPlan,
+          newPlan: subscriptionHistoryTable.newPlan,
+          previousStatus: subscriptionHistoryTable.previousStatus,
+          newStatus: subscriptionHistoryTable.newStatus,
+          eventType: subscriptionHistoryTable.eventType,
+          createdAt: subscriptionHistoryTable.createdAt,
+        })
+        .from(subscriptionHistoryTable)
+        .where(eq(subscriptionHistoryTable.tenantId, ctx.params.tenantId))
+        .orderBy(desc(subscriptionHistoryTable.createdAt));
+
+      return { history };
+    },
+    {
+      params: t.Object({
+        tenantId: t.String({ format: "uuid" }),
+      }),
+      detail: {
+        tags: ["Backoffice"],
+        summary: "Get subscription history for a tenant (superadmin only)",
+      },
+    }
+  )
+  .put(
+    "/subscriptions/:tenantId/plan",
+    async (ctx) => {
+      requireSuperadmin(ctx);
+
+      if (!stripe) {
+        throw new AppError(ErrorCode.BAD_REQUEST, "Stripe is not configured", 400);
+      }
+
+      const [tenant] = await db
+        .select()
+        .from(tenantsTable)
+        .where(eq(tenantsTable.id, ctx.params.tenantId))
+        .limit(1);
+
+      if (!tenant) {
+        throw new AppError(ErrorCode.TENANT_NOT_FOUND, "Tenant not found", 404);
+      }
+
+      if (!tenant.stripeSubscriptionId) {
+        throw new AppError(ErrorCode.BAD_REQUEST, "Tenant has no active subscription", 400);
+      }
+
+      const newPlan = ctx.body.plan;
+      const newPriceId = getPriceIdForPlan(newPlan);
+      const newCommissionRate = PLAN_CONFIG[newPlan].commissionRate;
+
+      const subscription = await stripe.subscriptions.retrieve(tenant.stripeSubscriptionId);
+      await stripe.subscriptions.update(tenant.stripeSubscriptionId, {
+        items: [
+          {
+            id: subscription.items.data[0].id,
+            price: newPriceId,
+          },
+        ],
+        proration_behavior: "create_prorations",
+        metadata: {
+          ...subscription.metadata,
+          plan: newPlan,
+        },
+      });
+
+      const [updated] = await db
+        .update(tenantsTable)
+        .set({
+          plan: newPlan,
+          commissionRate: newCommissionRate,
+        })
+        .where(eq(tenantsTable.id, ctx.params.tenantId))
+        .returning();
+
+      invalidateTenantCache(tenant.slug);
+
+      return { tenant: updated };
+    },
+    {
+      params: t.Object({
+        tenantId: t.String({ format: "uuid" }),
+      }),
+      body: t.Object({
+        plan: t.Union([t.Literal("starter"), t.Literal("growth"), t.Literal("scale")]),
+      }),
+      detail: {
+        tags: ["Backoffice"],
+        summary: "Change tenant subscription plan (superadmin only)",
+      },
+    }
+  )
+  .post(
+    "/subscriptions/:tenantId/cancel",
+    async (ctx) => {
+      requireSuperadmin(ctx);
+
+      if (!stripe) {
+        throw new AppError(ErrorCode.BAD_REQUEST, "Stripe is not configured", 400);
+      }
+
+      const [tenant] = await db
+        .select()
+        .from(tenantsTable)
+        .where(eq(tenantsTable.id, ctx.params.tenantId))
+        .limit(1);
+
+      if (!tenant) {
+        throw new AppError(ErrorCode.TENANT_NOT_FOUND, "Tenant not found", 404);
+      }
+
+      if (!tenant.stripeSubscriptionId) {
+        throw new AppError(ErrorCode.BAD_REQUEST, "Tenant has no active subscription", 400);
+      }
+
+      if (ctx.body.cancelImmediately) {
+        await stripe.subscriptions.cancel(tenant.stripeSubscriptionId);
+        await db
+          .update(tenantsTable)
+          .set({ subscriptionStatus: "canceled" })
+          .where(eq(tenantsTable.id, ctx.params.tenantId));
+      } else {
+        await stripe.subscriptions.update(tenant.stripeSubscriptionId, {
+          cancel_at_period_end: true,
+        });
+      }
+
+      invalidateTenantCache(tenant.slug);
+
+      return { success: true };
+    },
+    {
+      params: t.Object({
+        tenantId: t.String({ format: "uuid" }),
+      }),
+      body: t.Object({
+        cancelImmediately: t.Optional(t.Boolean()),
+      }),
+      detail: {
+        tags: ["Backoffice"],
+        summary: "Cancel tenant subscription (superadmin only)",
+      },
+    }
+  )
+  .post(
+    "/subscriptions/:tenantId/extend-trial",
+    async (ctx) => {
+      requireSuperadmin(ctx);
+
+      if (!stripe) {
+        throw new AppError(ErrorCode.BAD_REQUEST, "Stripe is not configured", 400);
+      }
+
+      const [tenant] = await db
+        .select()
+        .from(tenantsTable)
+        .where(eq(tenantsTable.id, ctx.params.tenantId))
+        .limit(1);
+
+      if (!tenant) {
+        throw new AppError(ErrorCode.TENANT_NOT_FOUND, "Tenant not found", 404);
+      }
+
+      if (!tenant.stripeSubscriptionId) {
+        throw new AppError(ErrorCode.BAD_REQUEST, "Tenant has no active subscription", 400);
+      }
+
+      if (tenant.subscriptionStatus !== "trialing") {
+        throw new AppError(ErrorCode.BAD_REQUEST, "Tenant is not on trial", 400);
+      }
+
+      const days = ctx.body.days;
+      const newTrialEnd = Math.floor(Date.now() / 1000) + days * 24 * 60 * 60;
+
+      await stripe.subscriptions.update(tenant.stripeSubscriptionId, {
+        trial_end: newTrialEnd,
+      });
+
+      const [updated] = await db
+        .update(tenantsTable)
+        .set({ trialEndsAt: new Date(newTrialEnd * 1000) })
+        .where(eq(tenantsTable.id, ctx.params.tenantId))
+        .returning();
+
+      invalidateTenantCache(tenant.slug);
+
+      return { tenant: updated };
+    },
+    {
+      params: t.Object({
+        tenantId: t.String({ format: "uuid" }),
+      }),
+      body: t.Object({
+        days: t.Integer({ minimum: 1, maximum: 365 }),
+      }),
+      detail: {
+        tags: ["Backoffice"],
+        summary: "Extend tenant trial period (superadmin only)",
+      },
+    }
+  )
+  .put(
+    "/subscriptions/:tenantId/commission",
+    async (ctx) => {
+      requireSuperadmin(ctx);
+
+      const [tenant] = await db
+        .select()
+        .from(tenantsTable)
+        .where(eq(tenantsTable.id, ctx.params.tenantId))
+        .limit(1);
+
+      if (!tenant) {
+        throw new AppError(ErrorCode.TENANT_NOT_FOUND, "Tenant not found", 404);
+      }
+
+      const [updated] = await db
+        .update(tenantsTable)
+        .set({ commissionRate: ctx.body.commissionRate })
+        .where(eq(tenantsTable.id, ctx.params.tenantId))
+        .returning();
+
+      invalidateTenantCache(tenant.slug);
+
+      return { tenant: updated };
+    },
+    {
+      params: t.Object({
+        tenantId: t.String({ format: "uuid" }),
+      }),
+      body: t.Object({
+        commissionRate: t.Integer({ minimum: 0, maximum: 100 }),
+      }),
+      detail: {
+        tags: ["Backoffice"],
+        summary: "Update tenant commission rate (superadmin only)",
       },
     }
   );
