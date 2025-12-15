@@ -1,4 +1,4 @@
-import { getRefreshToken, http, clearTokens } from "@/lib/http";
+import { getRefreshToken, http, publicHttp, clearTokens } from "@/lib/http";
 
 type User = {
   id: string;
@@ -62,7 +62,7 @@ export const AuthService = {
 
   async refresh() {
     const refreshToken = getRefreshToken();
-    const { data } = await http.post<{ accessToken: string }>("/auth/refresh", {
+    const { data } = await publicHttp.post<{ accessToken: string }>("/auth/refresh", {
       refreshToken,
     });
     return data;

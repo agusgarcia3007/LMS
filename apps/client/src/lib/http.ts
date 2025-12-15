@@ -89,10 +89,17 @@ http.interceptors.response.use(
           });
       }
 
-      return refreshPromise!.then((newToken) => {
-        originalRequest.headers.Authorization = `Bearer ${newToken}`;
-        return http(originalRequest);
-      });
+      return refreshPromise!
+        .then((newToken) => {
+          if (!newToken) {
+            return Promise.reject(error);
+          }
+          originalRequest.headers.Authorization = `Bearer ${newToken}`;
+          return http(originalRequest);
+        })
+        .catch(() => {
+          return Promise.reject(error);
+        });
     }
 
     return Promise.reject(error);
