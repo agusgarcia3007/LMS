@@ -116,7 +116,7 @@ export function SubtitleManager({ videoId }: SubtitleManagerProps) {
                 {t("subtitles.status.processing")}
               </span>
             </div>
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-muted/50 to-transparent animate-shimmer" />
+            <div className="absolute inset-0 bg-linear-to-r from-transparent via-muted/50 to-transparent animate-shimmer" />
           </div>
         </div>
       )}
@@ -128,7 +128,8 @@ export function SubtitleManager({ videoId }: SubtitleManagerProps) {
               key={subtitle.id}
               className={cn(
                 "flex items-center justify-between rounded-md border p-3",
-                subtitle.status === "failed" && "border-destructive/50 bg-destructive/5"
+                subtitle.status === "failed" &&
+                  "border-destructive/50 bg-destructive/5"
               )}
             >
               <div className="flex items-center gap-2">
@@ -146,7 +147,8 @@ export function SubtitleManager({ videoId }: SubtitleManagerProps) {
                   status={subtitle.status}
                   errorMessage={subtitle.errorMessage}
                 />
-                {(subtitle.status === "completed" || subtitle.status === "failed") && (
+                {(subtitle.status === "completed" ||
+                  subtitle.status === "failed") && (
                   <Button
                     size="icon"
                     variant="ghost"
