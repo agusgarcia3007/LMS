@@ -504,6 +504,10 @@
       "enrollments": "Matriculas",
       "completions": "Conclusoes"
     },
+    "visitors": {
+      "uniqueVisitors": "Visitantes Unicos",
+      "bounceRate": "Taxa de Rejeicao"
+    },
     "home": {
       "welcome": "Bem-vindo a {{name}}",
       "description": "Gerencie seus cursos, aulas e conteudo a partir daqui.",

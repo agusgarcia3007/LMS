@@ -487,6 +487,10 @@
       "enrollments": "Inscripciones",
       "completions": "Completados"
     },
+    "visitors": {
+      "uniqueVisitors": "Visitantes Unicos",
+      "bounceRate": "Tasa de Rebote"
+    },
     "home": {
       "welcome": "Bienvenido a {{name}}",
       "description": "Administra tus cursos, clases y contenido desde aqui.",

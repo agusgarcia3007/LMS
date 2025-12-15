@@ -524,6 +524,10 @@
       "enrollments": "Enrollments",
       "completions": "Completions"
     },
+    "visitors": {
+      "uniqueVisitors": "Unique Visitors",
+      "bounceRate": "Bounce Rate"
+    },
     "home": {
       "welcome": "Welcome to {{name}}",
       "description": "Manage your courses, classes, and content from here.",

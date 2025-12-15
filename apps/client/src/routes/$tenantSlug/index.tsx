@@ -13,9 +13,11 @@ import {
   useGetTenantActivity,
   type TenantTrendPeriod,
 } from "@/services/tenants";
+import { useGetVisitorStats } from "@/services/analytics";
 import { OnboardingChecklist } from "@/components/dashboard/onboarding-checklist";
 import { PeriodSelector } from "@/components/dashboard/period-selector";
 import { StatsCards } from "@/components/dashboard/stats-cards";
+import { VisitorStatsCards } from "@/components/dashboard/visitor-stats";
 import { TrendsChart } from "@/components/dashboard/trends-chart";
 import { TopCoursesTable } from "@/components/dashboard/top-courses-table";
 import { RecentActivity } from "@/components/dashboard/recent-activity";
@@ -48,6 +50,8 @@ function DashboardHome() {
     useGetTenantTopCourses(tenant.id, 5);
   const { data: activityData, isLoading: isLoadingActivity } =
     useGetTenantActivity(tenant.id, 5);
+  const { data: visitorData, isLoading: isLoadingVisitors } =
+    useGetVisitorStats(tenant.id, period);
 
   return (
     <div className="space-y-6">
@@ -78,7 +82,15 @@ function DashboardHome() {
         />
       )}
 
-      <StatsCards stats={statsData?.stats} isLoading={isLoadingStats} />
+      <div className="grid gap-4 lg:grid-cols-3">
+        <div className="lg:col-span-2">
+          <StatsCards stats={statsData?.stats} isLoading={isLoadingStats} />
+        </div>
+        <VisitorStatsCards
+          stats={visitorData?.visitors}
+          isLoading={isLoadingVisitors}
+        />
+      </div>
 
       <TrendsChart trends={trendsData?.trends} isLoading={isLoadingTrends} />
 
