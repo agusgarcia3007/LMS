@@ -29,7 +29,7 @@
     "colorjs.io": "^0.5.2",
     "dotenv": "^17.2.3",
     "drizzle-orm": "^0.44.7",
-    "elysia": "latest",
+    "elysia": "^1.4.19",
     "elysia-rate-limit": "^4.4.2",
     "groq-sdk": "^0.37.0",
     "mammoth": "^1.11.0",
