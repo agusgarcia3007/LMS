@@ -19,7 +19,7 @@ import {
   type SearchableFields,
   type DateFields,
 } from "@/lib/filters";
-import { uploadFileToS3, deleteFromS3, getPresignedUrl } from "@/lib/upload";
+import { deleteFromS3, getPresignedUrl } from "@/lib/upload";
 import { generateEmbedding } from "@/lib/ai/embeddings";
 
 async function updateDocumentEmbedding(documentId: string, title: string, description: string | null) {
@@ -41,16 +41,6 @@ const documentSearchableFields: SearchableFields<typeof documentsTable> = [
 ];
 
 const documentDateFields: DateFields = new Set(["createdAt"]);
-
-const allowedMimeTypes = [
-  "application/pdf",
-  "application/msword",
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-  "application/vnd.ms-excel",
-  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-  "application/vnd.ms-powerpoint",
-  "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-];
 
 function withUrl(document: SelectDocument): SelectDocument & { fileUrl: string | null } {
   return {
@@ -85,30 +75,24 @@ export const documentsRoutes = new Elysia()
         );
       }
 
-      const fileKey = await uploadFileToS3({
-        file: ctx.body.file,
-        folder: "documents",
-        userId: ctx.user.tenantId,
-      });
-
       return {
-        fileKey,
-        fileUrl: getPresignedUrl(fileKey),
-        fileName: ctx.body.file.name,
-        fileSize: ctx.body.file.size,
-        mimeType: ctx.body.file.type,
+        fileKey: ctx.body.key,
+        fileUrl: getPresignedUrl(ctx.body.key),
+        fileName: ctx.body.fileName,
+        fileSize: ctx.body.fileSize,
+        mimeType: ctx.body.mimeType,
       };
     },
     {
       body: t.Object({
-        file: t.File({
-          type: allowedMimeTypes as [string, ...string[]],
-          maxSize: "50m",
-        }),
+        key: t.String({ minLength: 1 }),
+        fileName: t.String({ minLength: 1 }),
+        fileSize: t.Number({ minimum: 0 }),
+        mimeType: t.String({ minLength: 1 }),
       }),
       detail: {
         tags: ["Documents"],
-        summary: "Upload document file (returns key to use when creating/updating)",
+        summary: "Confirm document upload (client uploaded directly to S3)",
       },
     }
   )
@@ -484,24 +468,17 @@ export const documentsRoutes = new Elysia()
         throw new AppError(ErrorCode.NOT_FOUND, "Document not found", 404);
       }
 
-      const [, fileKey] = await Promise.all([
-        existingDocument.fileKey
-          ? deleteFromS3(existingDocument.fileKey)
-          : Promise.resolve(),
-        uploadFileToS3({
-          file: ctx.body.file,
-          folder: "documents",
-          userId: ctx.user.tenantId,
-        }),
-      ]);
+      if (existingDocument.fileKey) {
+        await deleteFromS3(existingDocument.fileKey);
+      }
 
       const [updatedDocument] = await db
         .update(documentsTable)
         .set({
-          fileKey,
-          fileName: ctx.body.file.name,
-          fileSize: ctx.body.file.size,
-          mimeType: ctx.body.file.type,
+          fileKey: ctx.body.key,
+          fileName: ctx.body.fileName,
+          fileSize: ctx.body.fileSize,
+          mimeType: ctx.body.mimeType,
         })
         .where(eq(documentsTable.id, ctx.params.id))
         .returning();
@@ -513,14 +490,14 @@ export const documentsRoutes = new Elysia()
         id: t.String({ format: "uuid" }),
       }),
       body: t.Object({
-        file: t.File({
-          type: allowedMimeTypes as [string, ...string[]],
-          maxSize: "50m",
-        }),
+        key: t.String({ minLength: 1 }),
+        fileName: t.String({ minLength: 1 }),
+        fileSize: t.Number({ minimum: 0 }),
+        mimeType: t.String({ minLength: 1 }),
       }),
       detail: {
         tags: ["Documents"],
-        summary: "Upload file for a document record",
+        summary: "Confirm file upload for a document record",
       },
     }
   )

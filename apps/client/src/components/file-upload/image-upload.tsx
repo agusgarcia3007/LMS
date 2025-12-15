@@ -1,47 +1,60 @@
 import { Button } from "@/components/ui/button";
 import { Image } from "@/components/ui/image";
+import { Progress } from "@/components/ui/progress";
 import { formatBytes, useFileUpload } from "@/hooks/use-file-upload";
+import { useDirectUpload } from "@/hooks/use-direct-upload";
 import { cn } from "@/lib/utils";
+import type { UploadFolder } from "@/services/uploads/service";
 import { ImageIcon, Loader2, Upload, X } from "lucide-react";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 interface ImageUploadProps {
   value?: string | null;
   onChange: (url: string | null) => void;
-  onUpload: (file: File) => Promise<string>;
+  onConfirm: (key: string) => Promise<string>;
   onDelete?: () => Promise<void>;
+  folder: UploadFolder;
   maxSize?: number;
   aspectRatio?: "16/9" | "4/3" | "1/1" | "3/1" | "3/2";
   className?: string;
   disabled?: boolean;
-  isUploading?: boolean;
+  isConfirming?: boolean;
   isDeleting?: boolean;
 }
 
 export function ImageUpload({
   value,
   onChange,
-  onUpload,
+  onConfirm,
   onDelete,
+  folder,
   maxSize = 5 * 1024 * 1024,
   aspectRatio = "16/9",
   className,
   disabled = false,
-  isUploading = false,
+  isConfirming = false,
   isDeleting = false,
 }: ImageUploadProps) {
   const { t } = useTranslation();
+  const [localPreview, setLocalPreview] = useState<string | null>(null);
+  const { upload, isUploading, progress } = useDirectUpload({ folder });
 
   const handleFilesAdded = useCallback(
     async (files: { file: File | { url: string } }[]) => {
       const file = files[0]?.file;
       if (file instanceof File) {
-        const url = await onUpload(file);
+        const preview = URL.createObjectURL(file);
+        setLocalPreview(preview);
+
+        const { key } = await upload(file);
+        const url = await onConfirm(key);
         onChange(url);
+        setLocalPreview(null);
+        URL.revokeObjectURL(preview);
       }
     },
-    [onUpload, onChange]
+    [upload, onConfirm, onChange]
   );
 
   const [
@@ -62,7 +75,7 @@ export function ImageUpload({
     onFilesAdded: handleFilesAdded,
   });
 
-  const isLoading = isUploading || isDeleting;
+  const isLoading = isUploading || isConfirming || isDeleting;
 
   const handleDelete = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -80,7 +93,9 @@ export function ImageUpload({
     "3/2": "aspect-[3/2]",
   }[aspectRatio];
 
-  if (value) {
+  const displayImage = localPreview || value;
+
+  if (displayImage) {
     return (
       <div className={cn("relative", className)}>
         <div
@@ -90,14 +105,22 @@ export function ImageUpload({
           )}
         >
           <Image
-            src={value}
+            src={displayImage}
             alt="Uploaded image"
             layout="fullWidth"
             className="h-full w-full object-cover"
           />
           {isLoading && (
-            <div className="absolute inset-0 flex items-center justify-center bg-background/80">
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-background/80">
               <Loader2 className="size-6 animate-spin text-muted-foreground" />
+              {isUploading && (
+                <div className="w-32">
+                  <Progress value={progress} className="h-2" />
+                  <p className="mt-1 text-center text-xs text-muted-foreground">
+                    {progress}%
+                  </p>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -141,7 +164,17 @@ export function ImageUpload({
 
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 p-4">
           {isLoading ? (
-            <Loader2 className="size-8 animate-spin text-muted-foreground" />
+            <div className="flex flex-col items-center gap-3">
+              <Loader2 className="size-8 animate-spin text-muted-foreground" />
+              {isUploading && (
+                <div className="w-32">
+                  <Progress value={progress} className="h-2" />
+                  <p className="mt-1 text-center text-xs text-muted-foreground">
+                    {progress}%
+                  </p>
+                </div>
+              )}
+            </div>
           ) : (
             <>
               <div className="rounded-full bg-muted p-3">

@@ -28,12 +28,16 @@ export const useUpdateProfileOptions = () => {
   });
 };
 
-export const useUploadAvatarOptions = () =>
-  useUploadMutation({
-    mutationFn: ProfileService.uploadAvatar,
-    invalidateKeys: () => [QUERY_KEYS.PROFILE],
-    successMessage: "profile.avatarUploaded",
+export const useConfirmAvatarOptions = () => {
+  const queryClient = useQueryClient();
+  return mutationOptions({
+    mutationFn: ProfileService.confirmAvatar,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.PROFILE });
+      toast.success(i18n.t("profile.avatarUploaded"));
+    },
   });
+};
 
 export const useDeleteAvatarOptions = () =>
   useUploadMutation({

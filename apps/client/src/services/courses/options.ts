@@ -117,12 +117,17 @@ export const useUpdateCourseModulesOptions = () => {
   });
 };
 
-export const useUploadThumbnailOptions = () =>
-  useUploadMutation({
-    mutationFn: ({ id, file }: { id: string; file: File }) =>
-      CoursesService.uploadThumbnail(id, file),
-    invalidateKeys: ({ id }) => [QUERY_KEYS.COURSE(id), QUERY_KEYS.COURSES],
+export const useConfirmThumbnailOptions = () => {
+  const queryClient = useQueryClient();
+  return mutationOptions({
+    mutationFn: ({ id, key }: { id: string; key: string }) =>
+      CoursesService.confirmThumbnail(id, key),
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.COURSE(id) });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.COURSES });
+    },
   });
+};
 
 export const useDeleteThumbnailOptions = () =>
   useUploadMutation({
@@ -130,12 +135,17 @@ export const useDeleteThumbnailOptions = () =>
     invalidateKeys: (id) => [QUERY_KEYS.COURSE(id), QUERY_KEYS.COURSES],
   });
 
-export const useUploadCourseVideoOptions = () =>
-  useUploadMutation({
-    mutationFn: ({ id, file }: { id: string; file: File }) =>
-      CoursesService.uploadVideo(id, file),
-    invalidateKeys: ({ id }) => [QUERY_KEYS.COURSE(id), QUERY_KEYS.COURSES],
+export const useConfirmCourseVideoOptions = () => {
+  const queryClient = useQueryClient();
+  return mutationOptions({
+    mutationFn: ({ id, key }: { id: string; key: string }) =>
+      CoursesService.confirmVideo(id, key),
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.COURSE(id) });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.COURSES });
+    },
   });
+};
 
 export const useDeleteCourseVideoOptions = () =>
   useUploadMutation({

@@ -3,9 +3,9 @@ import {
   useCreateDocumentOptions,
   useUpdateDocumentOptions,
   useDeleteDocumentOptions,
-  useUploadDocumentFileOptions,
+  useConfirmDocumentFileOptions,
   useDeleteDocumentFileOptions,
-  useUploadDocumentStandaloneOptions,
+  useConfirmDocumentStandaloneOptions,
 } from "./options";
 
 export const useCreateDocument = () => useMutation(useCreateDocumentOptions());
@@ -14,8 +14,8 @@ export const useUpdateDocument = () => useMutation(useUpdateDocumentOptions());
 
 export const useDeleteDocument = () => useMutation(useDeleteDocumentOptions());
 
-export const useUploadDocumentFile = () => useMutation(useUploadDocumentFileOptions());
+export const useConfirmDocumentFile = () => useMutation(useConfirmDocumentFileOptions());
 
 export const useDeleteDocumentFile = () => useMutation(useDeleteDocumentFileOptions());
 
-export const useUploadDocumentStandalone = () => useMutation(useUploadDocumentStandaloneOptions());
+export const useConfirmDocumentStandalone = () => useMutation(useConfirmDocumentStandaloneOptions());

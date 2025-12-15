@@ -62,13 +62,18 @@ export const useDeleteVideoOptions = () => {
   });
 };
 
-export const useUploadVideoFileOptions = () =>
-  useUploadMutation({
-    mutationFn: ({ id, file, duration }: { id: string; file: File; duration?: number }) =>
-      VideosService.uploadVideo(id, file, duration),
-    invalidateKeys: (payload) => [QUERY_KEYS.VIDEOS, QUERY_KEYS.VIDEO(payload.id)],
-    successMessage: "videos.uploadSuccess",
+export const useConfirmVideoFileOptions = () => {
+  const queryClient = useQueryClient();
+  return mutationOptions({
+    mutationFn: ({ id, key, duration }: { id: string; key: string; duration?: number }) =>
+      VideosService.confirmVideo(id, key, duration),
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.VIDEOS });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.VIDEO(id) });
+      toast.success(i18n.t("videos.uploadSuccess"));
+    },
   });
+};
 
 export const useDeleteVideoFileOptions = () =>
   useUploadMutation({
@@ -77,8 +82,12 @@ export const useDeleteVideoFileOptions = () =>
     successMessage: "videos.videoDeleted",
   });
 
-export const useUploadVideoStandaloneOptions = () =>
-  useUploadMutation({
-    mutationFn: (file: File) => VideosService.upload(file),
-    invalidateKeys: () => [],
+export const useConfirmVideoStandaloneOptions = () => {
+  const queryClient = useQueryClient();
+  return mutationOptions({
+    mutationFn: (key: string) => VideosService.confirmUpload(key),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.VIDEOS });
+    },
   });
+};

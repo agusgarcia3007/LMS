@@ -104,17 +104,13 @@ export const DocumentsService = {
     return data;
   },
 
-  async upload(file: File) {
-    const formData = new FormData();
-    formData.append("file", file);
-    const { data } = await http.post<UploadFileResponse>("/documents/upload", formData);
+  async confirmUpload(payload: { key: string; fileName: string; fileSize: number; mimeType: string }) {
+    const { data } = await http.post<UploadFileResponse>("/documents/upload", payload);
     return data;
   },
 
-  async uploadFile(id: string, file: File) {
-    const formData = new FormData();
-    formData.append("file", file);
-    const { data } = await http.post<{ document: Document }>(`/documents/${id}/file`, formData);
+  async confirmFile(id: string, payload: { key: string; fileName: string; fileSize: number; mimeType: string }) {
+    const { data } = await http.post<{ document: Document }>(`/documents/${id}/file`, payload);
     return data;
   },
 

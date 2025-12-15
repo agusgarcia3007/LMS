@@ -1,5 +1,5 @@
 import { db } from "@/db";
-import { usersTable, refreshTokensTable } from "@/db/schema";
+import { usersTable, refreshTokensTable, tenantsTable } from "@/db/schema";
 import { CLIENT_URL } from "@/lib/constants";
 import { getWelcomeVerificationEmailHtml } from "@/lib/email-templates";
 import { AppError, ErrorCode } from "@/lib/errors";
@@ -97,7 +97,9 @@ authRoutes.post(
 
       const { password: _, ...userWithoutPassword } = user;
 
-      return { user: userWithoutPassword, accessToken, refreshToken };
+      const tenantSlug = ctx.tenant?.slug ?? null;
+
+      return { user: { ...userWithoutPassword, tenantSlug }, accessToken, refreshToken };
     },
   {
     body: t.Object({
@@ -181,7 +183,17 @@ authRoutes.post(
 
       const { password: _, ...userWithoutPassword } = user;
 
-      return { user: userWithoutPassword, accessToken, refreshToken };
+      let tenantSlug: string | null = null;
+      if (user.tenantId) {
+        const [tenant] = await db
+          .select({ slug: tenantsTable.slug })
+          .from(tenantsTable)
+          .where(eq(tenantsTable.id, user.tenantId))
+          .limit(1);
+        tenantSlug = tenant?.slug ?? null;
+      }
+
+      return { user: { ...userWithoutPassword, tenantSlug }, accessToken, refreshToken };
     },
   {
     body: t.Object({

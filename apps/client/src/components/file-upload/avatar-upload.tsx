@@ -1,8 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { Image } from "@/components/ui/image";
+import { Progress } from "@/components/ui/progress";
 import { formatBytes, useFileUpload } from "@/hooks/use-file-upload";
+import { useDirectUpload } from "@/hooks/use-direct-upload";
 import { cn } from "@/lib/utils";
-import { useDeleteAvatar, useUploadAvatar } from "@/services/profile/mutations";
+import { useDeleteAvatar, useConfirmAvatar } from "@/services/profile/mutations";
 import { Loader2, X } from "lucide-react";
 import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
@@ -30,17 +32,19 @@ export default function AvatarUpload({
   className,
 }: AvatarUploadProps) {
   const { t } = useTranslation();
-  const { mutate: uploadAvatar, isPending: isUploading } = useUploadAvatar();
+  const { upload, isUploading, progress } = useDirectUpload({ folder: "avatars" });
+  const { mutateAsync: confirmAvatar, isPending: isConfirming } = useConfirmAvatar();
   const { mutate: deleteAvatar, isPending: isDeleting } = useDeleteAvatar();
 
   const handleFilesAdded = useCallback(
-    (files: { file: File | { url: string } }[]) => {
+    async (files: { file: File | { url: string } }[]) => {
       const file = files[0]?.file;
       if (file instanceof File) {
-        uploadAvatar(file);
+        const { key } = await upload(file);
+        await confirmAvatar(key);
       }
     },
-    [uploadAvatar]
+    [upload, confirmAvatar]
   );
 
   const [
@@ -61,7 +65,7 @@ export default function AvatarUpload({
     onFilesAdded: handleFilesAdded,
   });
 
-  const isLoading = isUploading || isDeleting;
+  const isLoading = isUploading || isConfirming || isDeleting;
   const initials = userName ? getInitials(userName) : null;
 
   const handleDelete = (e: React.MouseEvent) => {
@@ -94,8 +98,11 @@ export default function AvatarUpload({
           />
 
           {isLoading ? (
-            <div className="flex h-full w-full items-center justify-center bg-muted">
-              <Loader2 className="size-6 animate-spin text-muted-foreground" />
+            <div className="flex h-full w-full flex-col items-center justify-center gap-1 bg-muted">
+              <Loader2 className="size-5 animate-spin text-muted-foreground" />
+              {isUploading && (
+                <span className="text-xs text-muted-foreground">{progress}%</span>
+              )}
             </div>
           ) : currentAvatar ? (
             <Image
@@ -135,6 +142,11 @@ export default function AvatarUpload({
         <p className="text-xs text-muted-foreground">
           {t("profile.avatarHint", { size: formatBytes(maxSize) })}
         </p>
+        {isUploading && (
+          <div className="mt-2 w-24">
+            <Progress value={progress} className="h-1.5" />
+          </div>
+        )}
       </div>
 
       {errors.length > 0 && (

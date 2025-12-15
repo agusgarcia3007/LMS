@@ -4,7 +4,7 @@ import { AppError, ErrorCode } from "@/lib/errors";
 import { db } from "@/db";
 import { tenantsTable, usersTable } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import { uploadFileToS3, deleteFromS3, getPresignedUrl } from "@/lib/upload";
+import { deleteFromS3, getPresignedUrl } from "@/lib/upload";
 
 export const profileRoutes = new Elysia().use(authPlugin);
 
@@ -75,7 +75,7 @@ profileRoutes.put(
   }
 );
 
-// Upload avatar
+// Confirm avatar (client uploaded directly to S3)
 profileRoutes.post(
   "/avatar",
   async (ctx) => {
@@ -83,20 +83,14 @@ profileRoutes.post(
       throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
     }
 
-    const [, avatarKey] = await Promise.all([
+    const [, [updated]] = await Promise.all([
       ctx.user.avatar ? deleteFromS3(ctx.user.avatar) : Promise.resolve(),
-      uploadFileToS3({
-        file: ctx.body.avatar,
-        folder: "avatars",
-        userId: ctx.userId!,
-      }),
+      db
+        .update(usersTable)
+        .set({ avatar: ctx.body.key })
+        .where(eq(usersTable.id, ctx.userId!))
+        .returning(),
     ]);
-
-    const [updated] = await db
-      .update(usersTable)
-      .set({ avatar: avatarKey })
-      .where(eq(usersTable.id, ctx.userId!))
-      .returning();
 
     invalidateUserCache(ctx.userId!);
 
@@ -105,9 +99,9 @@ profileRoutes.post(
   },
   {
     body: t.Object({
-      avatar: t.File({ type: "image", maxSize: "5m" }),
+      key: t.String({ minLength: 1 }),
     }),
-    detail: { tags: ["Profile"], summary: "Upload avatar" },
+    detail: { tags: ["Profile"], summary: "Confirm avatar upload" },
   }
 );
 

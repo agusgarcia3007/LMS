@@ -26,7 +26,7 @@ import {
   type SearchableFields,
   type DateFields,
 } from "@/lib/filters";
-import { uploadFileToS3, getPresignedUrl, deleteFromS3 } from "@/lib/upload";
+import { getPresignedUrl, deleteFromS3 } from "@/lib/upload";
 
 const courseFieldMap: FieldMap<typeof coursesTable> = {
   id: coursesTable.id,
@@ -644,26 +644,19 @@ export const coursesRoutes = new Elysia()
         throw new AppError(ErrorCode.NOT_FOUND, "Course not found", 404);
       }
 
-      const [, thumbnailKey] = await Promise.all([
-        existingCourse.thumbnail
-          ? deleteFromS3(existingCourse.thumbnail)
-          : Promise.resolve(),
-        uploadFileToS3({
-          file: ctx.body.thumbnail,
-          folder: "courses",
-          userId: ctx.user!.tenantId!,
-        }),
-      ]);
+      if (existingCourse.thumbnail) {
+        await deleteFromS3(existingCourse.thumbnail);
+      }
 
       const [updatedCourse] = await db
         .update(coursesTable)
-        .set({ thumbnail: thumbnailKey })
+        .set({ thumbnail: ctx.body.key })
         .where(eq(coursesTable.id, ctx.params.id))
         .returning();
 
       return {
-        thumbnailKey,
-        thumbnailUrl: getPresignedUrl(thumbnailKey),
+        thumbnailKey: ctx.body.key,
+        thumbnailUrl: getPresignedUrl(ctx.body.key),
         course: updatedCourse,
       };
     },
@@ -672,11 +665,11 @@ export const coursesRoutes = new Elysia()
         id: t.String({ format: "uuid" }),
       }),
       body: t.Object({
-        thumbnail: t.File({ type: "image", maxSize: "10m" }),
+        key: t.String({ minLength: 1 }),
       }),
       detail: {
         tags: ["Courses"],
-        summary: "Upload course thumbnail",
+        summary: "Confirm course thumbnail upload",
       },
       requireAuth: true,
       requireTenant: true,
@@ -744,29 +737,19 @@ export const coursesRoutes = new Elysia()
         throw new AppError(ErrorCode.NOT_FOUND, "Course not found", 404);
       }
 
-      const [, videoKey] = await Promise.all([
-        existingCourse.previewVideoUrl
-          ? deleteFromS3(existingCourse.previewVideoUrl)
-          : Promise.resolve(),
-        uploadFileToS3(
-          {
-            file: ctx.body.video,
-            folder: "courses/videos",
-            userId: ctx.user!.tenantId!,
-          },
-          { partSize: 10 * 1024 * 1024, queueSize: 6 }
-        ),
-      ]);
+      if (existingCourse.previewVideoUrl) {
+        await deleteFromS3(existingCourse.previewVideoUrl);
+      }
 
       const [updatedCourse] = await db
         .update(coursesTable)
-        .set({ previewVideoUrl: videoKey })
+        .set({ previewVideoUrl: ctx.body.key })
         .where(eq(coursesTable.id, ctx.params.id))
         .returning();
 
       return {
-        videoKey,
-        videoUrl: getPresignedUrl(videoKey),
+        videoKey: ctx.body.key,
+        videoUrl: getPresignedUrl(ctx.body.key),
         course: updatedCourse,
       };
     },
@@ -775,11 +758,11 @@ export const coursesRoutes = new Elysia()
         id: t.String({ format: "uuid" }),
       }),
       body: t.Object({
-        video: t.File({ type: "video", maxSize: "500m" }),
+        key: t.String({ minLength: 1 }),
       }),
       detail: {
         tags: ["Courses"],
-        summary: "Upload course preview video",
+        summary: "Confirm course preview video upload",
       },
       requireAuth: true,
       requireTenant: true,

@@ -186,12 +186,10 @@ export const CoursesService = {
     return data;
   },
 
-  async uploadThumbnail(id: string, file: File) {
-    const formData = new FormData();
-    formData.append("thumbnail", file);
+  async confirmThumbnail(id: string, key: string) {
     const { data } = await http.post<UploadThumbnailResponse>(
       `/courses/${id}/thumbnail`,
-      formData
+      { key }
     );
     return data;
   },
@@ -203,12 +201,10 @@ export const CoursesService = {
     return data;
   },
 
-  async uploadVideo(id: string, file: File) {
-    const formData = new FormData();
-    formData.append("video", file);
+  async confirmVideo(id: string, key: string) {
     const { data } = await http.post<UploadVideoResponse>(
       `/courses/${id}/video`,
-      formData
+      { key }
     );
     return data;
   },

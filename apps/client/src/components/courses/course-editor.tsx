@@ -66,10 +66,10 @@ import {
   useCreateCourse,
   useUpdateCourse,
   useUpdateCourseModules,
-  useUploadThumbnail,
+  useConfirmThumbnail,
   useDeleteThumbnail,
-  useUploadVideo,
-  useDeleteVideo,
+  useConfirmCourseVideo,
+  useDeleteCourseVideo,
 } from "@/services/courses";
 import type { Course, CourseLevel, CourseStatus } from "@/services/courses";
 import { useGetModules, type Module } from "@/services/modules";
@@ -239,10 +239,10 @@ export function CourseEditor({
   const createMutation = useCreateCourse();
   const updateMutation = useUpdateCourse();
   const updateModulesMutation = useUpdateCourseModules();
-  const uploadThumbnailMutation = useUploadThumbnail();
+  const confirmThumbnailMutation = useConfirmThumbnail();
   const deleteThumbnailMutation = useDeleteThumbnail();
-  const uploadVideoMutation = useUploadVideo();
-  const deleteVideoMutation = useDeleteVideo();
+  const confirmVideoMutation = useConfirmCourseVideo();
+  const deleteVideoMutation = useDeleteCourseVideo();
   const generateCourseMutation = useGenerateCourse();
   const generateThumbnailMutation = useGenerateThumbnail();
 
@@ -404,14 +404,14 @@ export function CourseEditor({
   }, []);
 
   const handleFormSubmit = async (data: FormData) => {
-    const isBase64Thumbnail = data.thumbnail?.startsWith("data:");
+    const isPendingThumbnailKey = data.thumbnail && !data.thumbnail.startsWith("http");
 
     const payload = {
       title: data.title,
       slug: data.slug || undefined,
       shortDescription: data.shortDescription || undefined,
       description: data.description || undefined,
-      thumbnail: isBase64Thumbnail ? undefined : data.thumbnail || undefined,
+      thumbnail: isPendingThumbnailKey ? undefined : data.thumbnail || undefined,
       previewVideoUrl: data.previewVideoUrl || undefined,
       instructorId: data.instructorId || undefined,
       categoryIds: data.categoryIds?.length ? data.categoryIds : undefined,
@@ -427,11 +427,11 @@ export function CourseEditor({
       includeCertificate: data.includeCertificate,
     };
 
-    const uploadThumbnailIfNeeded = async (courseId: string) => {
-      if (isBase64Thumbnail && data.thumbnail) {
-        await uploadThumbnailMutation.mutateAsync({
+    const confirmThumbnailIfNeeded = async (courseId: string) => {
+      if (isPendingThumbnailKey && data.thumbnail) {
+        await confirmThumbnailMutation.mutateAsync({
           id: courseId,
-          thumbnail: data.thumbnail,
+          key: data.thumbnail,
         });
       }
     };
@@ -452,7 +452,7 @@ export function CourseEditor({
         { id: course.id, ...payload },
         {
           onSuccess: async () => {
-            await uploadThumbnailIfNeeded(course.id);
+            await confirmThumbnailIfNeeded(course.id);
             updateModulesIfNeeded(course.id);
           },
         }
@@ -460,27 +460,27 @@ export function CourseEditor({
     } else {
       createMutation.mutate(payload, {
         onSuccess: async (result) => {
-          await uploadThumbnailIfNeeded(result.course.id);
+          await confirmThumbnailIfNeeded(result.course.id);
           updateModulesIfNeeded(result.course.id);
         },
       });
     }
   };
 
-  const handleThumbnailUpload = useCallback(
-    async (base64: string) => {
+  const handleThumbnailConfirm = useCallback(
+    async (key: string) => {
       if (!course?.id) {
-        form.setValue("thumbnail", base64);
-        return base64;
+        form.setValue("thumbnail", key);
+        return key;
       }
-      const result = await uploadThumbnailMutation.mutateAsync({
+      const result = await confirmThumbnailMutation.mutateAsync({
         id: course.id,
-        thumbnail: base64,
+        key,
       });
       form.setValue("thumbnail", result.thumbnailUrl);
       return result.thumbnailUrl;
     },
-    [course?.id, form, uploadThumbnailMutation]
+    [course?.id, form, confirmThumbnailMutation]
   );
 
   const handleThumbnailDelete = useCallback(async () => {
@@ -490,20 +490,20 @@ export function CourseEditor({
     form.setValue("thumbnail", "");
   }, [course?.id, form, deleteThumbnailMutation]);
 
-  const handleVideoUpload = useCallback(
-    async ({ base64 }: { base64: string; duration: number }) => {
+  const handleVideoConfirm = useCallback(
+    async ({ key }: { key: string; duration: number }) => {
       if (!course?.id) {
-        form.setValue("previewVideoUrl", base64);
-        return base64;
+        form.setValue("previewVideoUrl", key);
+        return key;
       }
-      const result = await uploadVideoMutation.mutateAsync({
+      const result = await confirmVideoMutation.mutateAsync({
         id: course.id,
-        video: base64,
+        key,
       });
       form.setValue("previewVideoUrl", result.videoUrl);
       return result.videoUrl;
     },
-    [course?.id, form, uploadVideoMutation]
+    [course?.id, form, confirmVideoMutation]
   );
 
   const handleVideoDelete = useCallback(async () => {
@@ -913,9 +913,10 @@ export function CourseEditor({
                               <ImageUpload
                                 value={field.value || null}
                                 onChange={(url) => field.onChange(url || "")}
-                                onUpload={handleThumbnailUpload}
+                                onConfirm={handleThumbnailConfirm}
                                 onDelete={handleThumbnailDelete}
-                                isUploading={uploadThumbnailMutation.isPending}
+                                folder="courses"
+                                isConfirming={confirmThumbnailMutation.isPending}
                                 isDeleting={deleteThumbnailMutation.isPending}
                                 disabled={
                                   isPending ||
@@ -948,9 +949,10 @@ export function CourseEditor({
                             <VideoUpload
                               value={field.value || null}
                               onChange={(url) => field.onChange(url || "")}
-                              onUpload={handleVideoUpload}
+                              onConfirm={handleVideoConfirm}
                               onDelete={handleVideoDelete}
-                              isUploading={uploadVideoMutation.isPending}
+                              folder="courses/videos"
+                              isConfirming={confirmVideoMutation.isPending}
                               isDeleting={deleteVideoMutation.isPending}
                               disabled={isPending || isGenerating}
                             />

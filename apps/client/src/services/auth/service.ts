@@ -7,6 +7,7 @@ type User = {
   locale: string;
   role: "superadmin" | "owner" | "admin" | "student";
   tenantId: string | null;
+  tenantSlug: string | null;
   avatar: string | null;
   emailVerified: boolean;
   createdAt: string;

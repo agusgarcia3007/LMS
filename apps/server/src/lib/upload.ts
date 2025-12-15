@@ -20,6 +20,35 @@ type MultipartOptions = {
   retry?: number;
 };
 
+type PresignedUploadOptions = {
+  folder: string;
+  userId: string;
+  fileName: string;
+  contentType: string;
+  expiresIn?: number;
+};
+
+export function getPresignedUploadUrl({
+  folder,
+  userId,
+  fileName,
+  contentType,
+  expiresIn = 3600,
+}: PresignedUploadOptions): { uploadUrl: string; key: string } {
+  const extension =
+    fileName.split(".").pop() || contentType.split("/")[1] || "bin";
+  const timestamp = Date.now();
+  const key = `${folder}/${userId}/${timestamp}.${extension}`;
+
+  const uploadUrl = s3.file(key).presign({
+    method: "PUT",
+    type: contentType,
+    expiresIn,
+  });
+
+  return { uploadUrl, key };
+}
+
 export async function uploadBase64ToS3({
   base64,
   folder,

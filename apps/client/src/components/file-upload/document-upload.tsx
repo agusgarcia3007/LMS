@@ -1,9 +1,19 @@
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 import { formatBytes, useFileUpload } from "@/hooks/use-file-upload";
+import { useDirectUpload } from "@/hooks/use-direct-upload";
 import { cn } from "@/lib/utils";
+import type { UploadFolder } from "@/services/uploads/service";
 import { FileText, Loader2, Upload, X } from "lucide-react";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
+
+type FileMetadata = {
+  key: string;
+  fileName: string;
+  fileSize: number;
+  mimeType: string;
+};
 
 interface DocumentUploadProps {
   value?: string | null;
@@ -11,12 +21,13 @@ interface DocumentUploadProps {
   fileSize?: number | null;
   mimeType?: string | null;
   onChange: (url: string | null) => void;
-  onUpload: (file: File) => Promise<string>;
+  onConfirm: (data: FileMetadata) => Promise<string>;
   onDelete?: () => Promise<void>;
+  folder?: UploadFolder;
   maxSize?: number;
   className?: string;
   disabled?: boolean;
-  isUploading?: boolean;
+  isConfirming?: boolean;
   isDeleting?: boolean;
 }
 
@@ -53,25 +64,32 @@ export function DocumentUpload({
   fileSize,
   mimeType,
   onChange,
-  onUpload,
+  onConfirm,
   onDelete,
+  folder = "documents",
   maxSize = 50 * 1024 * 1024,
   className,
   disabled = false,
-  isUploading = false,
+  isConfirming = false,
   isDeleting = false,
 }: DocumentUploadProps) {
   const { t } = useTranslation();
+  const [localFile, setLocalFile] = useState<{ name: string; size: number; type: string } | null>(null);
+  const { upload, isUploading, progress } = useDirectUpload({ folder });
 
   const handleFilesAdded = useCallback(
     async (files: { file: File | { url: string } }[]) => {
       const file = files[0]?.file;
       if (file instanceof File) {
-        const url = await onUpload(file);
+        setLocalFile({ name: file.name, size: file.size, type: file.type });
+
+        const { key, fileName: name, fileSize: size, mimeType: type } = await upload(file);
+        const url = await onConfirm({ key, fileName: name, fileSize: size, mimeType: type });
         onChange(url);
+        setLocalFile(null);
       }
     },
-    [onUpload, onChange]
+    [upload, onConfirm, onChange]
   );
 
   const [
@@ -92,7 +110,7 @@ export function DocumentUpload({
     onFilesAdded: handleFilesAdded,
   });
 
-  const isLoading = isUploading || isDeleting;
+  const isLoading = isUploading || isConfirming || isDeleting;
 
   const handleDelete = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -104,7 +122,9 @@ export function DocumentUpload({
 
   const FileIcon = getFileIcon(mimeType);
 
-  if (value) {
+  const displayFile = localFile || (value ? { name: fileName, size: fileSize, type: mimeType } : null);
+
+  if (displayFile) {
     return (
       <div className={cn("relative", className)}>
         <div className="relative overflow-hidden rounded-lg border p-4">
@@ -113,35 +133,45 @@ export function DocumentUpload({
               <FileIcon className="size-6 text-primary" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="truncate text-sm font-medium">{fileName || t("lessons.file.unknown")}</p>
+              <p className="truncate text-sm font-medium">{displayFile.name || t("lessons.file.unknown")}</p>
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <span>{getFileExtension(mimeType)}</span>
-                {fileSize && (
+                <span>{getFileExtension(displayFile.type)}</span>
+                {displayFile.size && (
                   <>
                     <span>-</span>
-                    <span>{formatBytes(fileSize)}</span>
+                    <span>{formatBytes(displayFile.size)}</span>
                   </>
                 )}
               </div>
             </div>
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              asChild
-            >
-              <a href={value} target="_blank" rel="noopener noreferrer">
-                {t("common.view")}
-              </a>
-            </Button>
+            {value && !isLoading && (
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                asChild
+              >
+                <a href={value} target="_blank" rel="noopener noreferrer">
+                  {t("common.view")}
+                </a>
+              </Button>
+            )}
           </div>
           {isLoading && (
-            <div className="absolute inset-0 flex items-center justify-center bg-background/80">
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-background/80">
               <Loader2 className="size-6 animate-spin text-muted-foreground" />
+              {isUploading && (
+                <div className="w-32">
+                  <Progress value={progress} className="h-2" />
+                  <p className="mt-1 text-center text-xs text-muted-foreground">
+                    {progress}%
+                  </p>
+                </div>
+              )}
             </div>
           )}
         </div>
-        {!disabled && !isLoading && (
+        {!disabled && !isLoading && value && (
           <Button
             type="button"
             size="icon"
@@ -180,7 +210,17 @@ export function DocumentUpload({
 
         <div className="flex flex-col items-center justify-center gap-2">
           {isLoading ? (
-            <Loader2 className="size-8 animate-spin text-muted-foreground" />
+            <div className="flex flex-col items-center gap-3">
+              <Loader2 className="size-8 animate-spin text-muted-foreground" />
+              {isUploading && (
+                <div className="w-32">
+                  <Progress value={progress} className="h-2" />
+                  <p className="mt-1 text-center text-xs text-muted-foreground">
+                    {progress}%
+                  </p>
+                </div>
+              )}
+            </div>
           ) : (
             <>
               <div className="rounded-full bg-muted p-3">

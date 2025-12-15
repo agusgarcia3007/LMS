@@ -1,19 +1,23 @@
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 import { formatBytes, useFileUpload } from "@/hooks/use-file-upload";
+import { useDirectUpload } from "@/hooks/use-direct-upload";
 import { cn } from "@/lib/utils";
+import type { UploadFolder } from "@/services/uploads/service";
 import { Loader2, Upload, Video, X } from "lucide-react";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 interface VideoUploadProps {
   value?: string | null;
   onChange: (url: string | null) => void;
-  onUpload: (data: { file: File; duration: number }) => Promise<string>;
+  onConfirm: (data: { key: string; duration: number }) => Promise<string>;
   onDelete?: () => Promise<void>;
+  folder: UploadFolder;
   maxSize?: number;
   className?: string;
   disabled?: boolean;
-  isUploading?: boolean;
+  isConfirming?: boolean;
   isDeleting?: boolean;
 }
 
@@ -36,26 +40,38 @@ function getVideoDuration(file: File): Promise<number> {
 export function VideoUpload({
   value,
   onChange,
-  onUpload,
+  onConfirm,
   onDelete,
-  maxSize = 100 * 1024 * 1024,
+  folder,
+  maxSize = 500 * 1024 * 1024,
   className,
   disabled = false,
-  isUploading = false,
+  isConfirming = false,
   isDeleting = false,
 }: VideoUploadProps) {
   const { t } = useTranslation();
+  const [localPreview, setLocalPreview] = useState<string | null>(null);
+  const { upload, isUploading, progress } = useDirectUpload({ folder });
 
   const handleFilesAdded = useCallback(
     async (files: { file: File | { url: string } }[]) => {
       const file = files[0]?.file;
       if (file instanceof File) {
-        const duration = await getVideoDuration(file);
-        const url = await onUpload({ file, duration });
+        const preview = URL.createObjectURL(file);
+        setLocalPreview(preview);
+
+        const [{ key }, duration] = await Promise.all([
+          upload(file),
+          getVideoDuration(file),
+        ]);
+
+        const url = await onConfirm({ key, duration });
         onChange(url);
+        setLocalPreview(null);
+        URL.revokeObjectURL(preview);
       }
     },
-    [onUpload, onChange]
+    [upload, onConfirm, onChange]
   );
 
   const [
@@ -76,7 +92,7 @@ export function VideoUpload({
     onFilesAdded: handleFilesAdded,
   });
 
-  const isLoading = isUploading || isDeleting;
+  const isLoading = isUploading || isConfirming || isDeleting;
 
   const handleDelete = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -86,18 +102,28 @@ export function VideoUpload({
     onChange(null);
   };
 
-  if (value) {
+  const displayVideo = localPreview || value;
+
+  if (displayVideo) {
     return (
       <div className={cn("relative", className)}>
         <div className="relative overflow-hidden rounded-lg border aspect-video">
           <video
-            src={value}
-            controls
+            src={displayVideo}
+            controls={!isLoading}
             className="h-full w-full object-cover"
           />
           {isLoading && (
-            <div className="absolute inset-0 flex items-center justify-center bg-background/80">
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-background/80">
               <Loader2 className="size-6 animate-spin text-muted-foreground" />
+              {isUploading && (
+                <div className="w-40">
+                  <Progress value={progress} className="h-2" />
+                  <p className="mt-1 text-center text-xs text-muted-foreground">
+                    {t("common.uploading")} {progress}%
+                  </p>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -140,7 +166,17 @@ export function VideoUpload({
 
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 p-4">
           {isLoading ? (
-            <Loader2 className="size-8 animate-spin text-muted-foreground" />
+            <div className="flex flex-col items-center gap-3">
+              <Loader2 className="size-8 animate-spin text-muted-foreground" />
+              {isUploading && (
+                <div className="w-40">
+                  <Progress value={progress} className="h-2" />
+                  <p className="mt-1 text-center text-xs text-muted-foreground">
+                    {t("common.uploading")} {progress}%
+                  </p>
+                </div>
+              )}
+            </div>
           ) : (
             <>
               <div className="rounded-full bg-muted p-3">

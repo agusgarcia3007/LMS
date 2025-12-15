@@ -20,6 +20,7 @@ import { profileRoutes } from "./profile";
 import { quizzesRoutes } from "./quizzes";
 import { seoRoutes } from "./seo";
 import { tenantsRoutes } from "./tenants";
+import { uploadsRoutes } from "./uploads";
 import { usersRoutes } from "./users";
 import { videosRoutes } from "./videos";
 import { waitlistRoutes } from "./waitlist";
@@ -48,6 +49,7 @@ export const ROUTES = [
   { path: "/profile", name: "profile-routes", route: profileRoutes },
   { path: "/quizzes", name: "quizzes-routes", route: quizzesRoutes },
   { path: "/tenants", name: "tenants-routes", route: tenantsRoutes },
+  { path: "/uploads", name: "uploads-routes", route: uploadsRoutes },
   { path: "/users", name: "users-routes", route: usersRoutes },
   { path: "/videos", name: "videos-routes", route: videosRoutes },
   { path: "/waitlist", name: "waitlist-routes", route: waitlistRoutes },

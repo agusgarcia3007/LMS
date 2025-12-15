@@ -62,13 +62,26 @@ export const useDeleteDocumentOptions = () => {
   });
 };
 
-export const useUploadDocumentFileOptions = () =>
-  useUploadMutation({
-    mutationFn: ({ id, file }: { id: string; file: File }) =>
-      DocumentsService.uploadFile(id, file),
-    invalidateKeys: (payload) => [QUERY_KEYS.DOCUMENTS, QUERY_KEYS.DOCUMENT(payload.id)],
-    successMessage: "documents.uploadSuccess",
+type ConfirmFilePayload = {
+  id: string;
+  key: string;
+  fileName: string;
+  fileSize: number;
+  mimeType: string;
+};
+
+export const useConfirmDocumentFileOptions = () => {
+  const queryClient = useQueryClient();
+  return mutationOptions({
+    mutationFn: ({ id, ...payload }: ConfirmFilePayload) =>
+      DocumentsService.confirmFile(id, payload),
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.DOCUMENTS });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.DOCUMENT(id) });
+      toast.success(i18n.t("documents.uploadSuccess"));
+    },
   });
+};
 
 export const useDeleteDocumentFileOptions = () =>
   useUploadMutation({
@@ -77,8 +90,19 @@ export const useDeleteDocumentFileOptions = () =>
     successMessage: "documents.fileDeleted",
   });
 
-export const useUploadDocumentStandaloneOptions = () =>
-  useUploadMutation({
-    mutationFn: (file: File) => DocumentsService.upload(file),
-    invalidateKeys: () => [],
+type ConfirmStandalonePayload = {
+  key: string;
+  fileName: string;
+  fileSize: number;
+  mimeType: string;
+};
+
+export const useConfirmDocumentStandaloneOptions = () => {
+  const queryClient = useQueryClient();
+  return mutationOptions({
+    mutationFn: (payload: ConfirmStandalonePayload) => DocumentsService.confirmUpload(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.DOCUMENTS });
+    },
   });
+};

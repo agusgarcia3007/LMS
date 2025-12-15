@@ -4,9 +4,9 @@ import {
   useUpdateCourseOptions,
   useDeleteCourseOptions,
   useUpdateCourseModulesOptions,
-  useUploadThumbnailOptions,
+  useConfirmThumbnailOptions,
   useDeleteThumbnailOptions,
-  useUploadCourseVideoOptions,
+  useConfirmCourseVideoOptions,
   useDeleteCourseVideoOptions,
 } from "./options";
 
@@ -18,10 +18,10 @@ export const useDeleteCourse = () => useMutation(useDeleteCourseOptions());
 
 export const useUpdateCourseModules = () => useMutation(useUpdateCourseModulesOptions());
 
-export const useUploadThumbnail = () => useMutation(useUploadThumbnailOptions());
+export const useConfirmThumbnail = () => useMutation(useConfirmThumbnailOptions());
 
 export const useDeleteThumbnail = () => useMutation(useDeleteThumbnailOptions());
 
-export const useUploadVideo = () => useMutation(useUploadCourseVideoOptions());
+export const useConfirmCourseVideo = () => useMutation(useConfirmCourseVideoOptions());
 
-export const useDeleteVideo = () => useMutation(useDeleteCourseVideoOptions());
+export const useDeleteCourseVideo = () => useMutation(useDeleteCourseVideoOptions());

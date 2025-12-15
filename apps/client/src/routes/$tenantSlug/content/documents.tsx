@@ -52,9 +52,9 @@ import {
   useCreateDocument,
   useUpdateDocument,
   useDeleteDocument,
-  useUploadDocumentFile,
+  useConfirmDocumentFile,
   useDeleteDocumentFile,
-  useUploadDocumentStandalone,
+  useConfirmDocumentStandalone,
   type Document as DocumentType,
 } from "@/services/documents";
 import { createSeoMeta } from "@/lib/seo";
@@ -115,9 +115,9 @@ function DocumentsPage() {
   const createMutation = useCreateDocument();
   const updateMutation = useUpdateDocument();
   const deleteMutation = useDeleteDocument();
-  const uploadMutation = useUploadDocumentFile();
+  const confirmMutation = useConfirmDocumentFile();
   const deleteFileMutation = useDeleteDocumentFile();
-  const uploadStandaloneMutation = useUploadDocumentStandalone();
+  const confirmStandaloneMutation = useConfirmDocumentStandalone();
 
   const form = useForm<DocumentFormData>({
     resolver: zodResolver(documentSchema),
@@ -204,18 +204,16 @@ function DocumentsPage() {
     });
   }, [deleteDocument, deleteMutation]);
 
-  const handleUploadFile = useCallback(
-    async (base64: string, fileName: string, fileSize: number) => {
+  const handleConfirmFile = useCallback(
+    async (data: { key: string; fileName: string; fileSize: number; mimeType: string }) => {
       if (!editDocument) return "";
-      const result = await uploadMutation.mutateAsync({
+      const result = await confirmMutation.mutateAsync({
         id: editDocument.id,
-        file: base64,
-        fileName,
-        fileSize,
+        ...data,
       });
       return result.document.fileUrl ?? "";
     },
-    [editDocument, uploadMutation]
+    [editDocument, confirmMutation]
   );
 
   const handleDeleteFile = useCallback(async () => {
@@ -223,13 +221,9 @@ function DocumentsPage() {
     await deleteFileMutation.mutateAsync(editDocument.id);
   }, [editDocument, deleteFileMutation]);
 
-  const handleUploadFileStandalone = useCallback(
-    async (base64: string, fileName: string, fileSize: number) => {
-      const result = await uploadStandaloneMutation.mutateAsync({
-        file: base64,
-        fileName,
-        fileSize,
-      });
+  const handleConfirmFileStandalone = useCallback(
+    async (data: { key: string; fileName: string; fileSize: number; mimeType: string }) => {
+      const result = await confirmStandaloneMutation.mutateAsync(data);
       setPendingFile({
         fileKey: result.fileKey,
         fileUrl: result.fileUrl,
@@ -239,7 +233,7 @@ function DocumentsPage() {
       });
       return result.fileUrl;
     },
-    [uploadStandaloneMutation]
+    [confirmStandaloneMutation]
   );
 
   const handleDeletePendingFile = useCallback(async () => {
@@ -549,16 +543,17 @@ function DocumentsPage() {
                       : pendingFile?.mimeType ?? null
                   }
                   onChange={() => {}}
-                  onUpload={
-                    editDocument ? handleUploadFile : handleUploadFileStandalone
+                  onConfirm={
+                    editDocument ? handleConfirmFile : handleConfirmFileStandalone
                   }
                   onDelete={
                     editDocument ? handleDeleteFile : handleDeletePendingFile
                   }
-                  isUploading={
+                  folder="documents"
+                  isConfirming={
                     editDocument
-                      ? uploadMutation.isPending
-                      : uploadStandaloneMutation.isPending
+                      ? confirmMutation.isPending
+                      : confirmStandaloneMutation.isPending
                   }
                   isDeleting={deleteFileMutation.isPending}
                 />

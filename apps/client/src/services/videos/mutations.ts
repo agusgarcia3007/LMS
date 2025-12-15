@@ -3,9 +3,9 @@ import {
   useCreateVideoOptions,
   useUpdateVideoOptions,
   useDeleteVideoOptions,
-  useUploadVideoFileOptions,
+  useConfirmVideoFileOptions,
   useDeleteVideoFileOptions,
-  useUploadVideoStandaloneOptions,
+  useConfirmVideoStandaloneOptions,
 } from "./options";
 
 export const useCreateVideo = () => useMutation(useCreateVideoOptions());
@@ -14,8 +14,8 @@ export const useUpdateVideo = () => useMutation(useUpdateVideoOptions());
 
 export const useDeleteVideo = () => useMutation(useDeleteVideoOptions());
 
-export const useUploadVideoFile = () => useMutation(useUploadVideoFileOptions());
+export const useConfirmVideoFile = () => useMutation(useConfirmVideoFileOptions());
 
 export const useDeleteVideoFile = () => useMutation(useDeleteVideoFileOptions());
 
-export const useUploadVideoStandalone = () => useMutation(useUploadVideoStandaloneOptions());
+export const useConfirmVideoStandalone = () => useMutation(useConfirmVideoStandaloneOptions());

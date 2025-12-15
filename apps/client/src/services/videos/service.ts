@@ -107,20 +107,13 @@ export const VideosService = {
     return data;
   },
 
-  async upload(file: File) {
-    const formData = new FormData();
-    formData.append("video", file);
-    const { data } = await http.post<UploadVideoResponse>("/videos/upload", formData);
+  async confirmUpload(key: string) {
+    const { data } = await http.post<UploadVideoResponse>("/videos/upload", { key });
     return data;
   },
 
-  async uploadVideo(id: string, file: File, duration?: number) {
-    const formData = new FormData();
-    formData.append("video", file);
-    if (duration !== undefined) {
-      formData.append("duration", String(duration));
-    }
-    const { data } = await http.post<{ video: Video }>(`/videos/${id}/video`, formData);
+  async confirmVideo(id: string, key: string, duration?: number) {
+    const { data } = await http.post<{ video: Video }>(`/videos/${id}/video`, { key, duration });
     return data;
   },
 

@@ -56,9 +56,9 @@ import {
   useCreateVideo,
   useUpdateVideo,
   useDeleteVideo,
-  useUploadVideoFile,
+  useConfirmVideoFile,
   useDeleteVideoFile,
-  useUploadVideoStandalone,
+  useConfirmVideoStandalone,
   type Video as VideoType,
 } from "@/services/videos";
 import { useAnalyzeVideo } from "@/services/ai";
@@ -120,9 +120,9 @@ function VideosPage() {
   const createMutation = useCreateVideo();
   const updateMutation = useUpdateVideo();
   const deleteMutation = useDeleteVideo();
-  const uploadMutation = useUploadVideoFile();
+  const confirmMutation = useConfirmVideoFile();
   const deleteFileMutation = useDeleteVideoFile();
-  const uploadStandaloneMutation = useUploadVideoStandalone();
+  const confirmStandaloneMutation = useConfirmVideoStandalone();
   const analyzeVideoMutation = useAnalyzeVideo();
 
   const form = useForm<VideoFormData>({
@@ -201,17 +201,17 @@ function VideosPage() {
     });
   }, [deleteVideo, deleteMutation]);
 
-  const handleUploadVideo = useCallback(
-    async ({ base64, duration }: { base64: string; duration: number }) => {
+  const handleConfirmVideo = useCallback(
+    async ({ key, duration }: { key: string; duration: number }) => {
       if (!editVideo) return "";
-      const result = await uploadMutation.mutateAsync({
+      const result = await confirmMutation.mutateAsync({
         id: editVideo.id,
-        video: base64,
+        key,
         duration,
       });
       return result.video.videoUrl ?? "";
     },
-    [editVideo, uploadMutation]
+    [editVideo, confirmMutation]
   );
 
   const handleDeleteVideoFile = useCallback(async () => {
@@ -220,15 +220,15 @@ function VideosPage() {
     setEditVideo({ ...editVideo, videoKey: null, videoUrl: null });
   }, [editVideo, deleteFileMutation]);
 
-  const handleUploadVideoStandalone = useCallback(
-    async ({ base64, duration }: { base64: string; duration: number }) => {
-      const result = await uploadStandaloneMutation.mutateAsync(base64);
+  const handleConfirmVideoStandalone = useCallback(
+    async ({ key, duration }: { key: string; duration: number }) => {
+      const result = await confirmStandaloneMutation.mutateAsync(key);
       setPendingVideoKey(result.videoKey);
       setPendingVideoUrl(result.videoUrl);
       setPendingDuration(duration);
       return result.videoUrl;
     },
-    [uploadStandaloneMutation]
+    [confirmStandaloneMutation]
   );
 
   const handleDeletePendingVideo = useCallback(async () => {
@@ -539,9 +539,10 @@ function VideosPage() {
                   <VideoUpload
                     value={editVideo ? editVideo.videoUrl : pendingVideoUrl}
                     onChange={() => {}}
-                    onUpload={editVideo ? handleUploadVideo : handleUploadVideoStandalone}
+                    onConfirm={editVideo ? handleConfirmVideo : handleConfirmVideoStandalone}
                     onDelete={editVideo ? handleDeleteVideoFile : handleDeletePendingVideo}
-                    isUploading={editVideo ? uploadMutation.isPending : uploadStandaloneMutation.isPending}
+                    folder="videos"
+                    isConfirming={editVideo ? confirmMutation.isPending : confirmStandaloneMutation.isPending}
                     isDeleting={deleteFileMutation.isPending}
                     maxSize={250 * 1024 * 1024}
                   />

@@ -18,7 +18,7 @@ import {
   type FieldMap,
   type SearchableFields,
 } from "@/lib/filters";
-import { deleteFromS3, getPresignedUrl, uploadFileToS3 } from "@/lib/upload";
+import { deleteFromS3, getPresignedUrl } from "@/lib/upload";
 import { authPlugin } from "@/plugins/auth";
 import { guardPlugin } from "@/plugins/guards";
 import { and, count, eq } from "drizzle-orm";
@@ -67,28 +67,18 @@ export const videosRoutes = new Elysia()
   .post(
     "/upload",
     async (ctx) => {
-      const videoKey = await uploadFileToS3(
-        {
-          file: ctx.body.video,
-          folder: "videos",
-          userId: ctx.user!.tenantId!,
-        },
-        { partSize: 10 * 1024 * 1024, queueSize: 6 }
-      );
-
       return {
-        videoKey,
-        videoUrl: getPresignedUrl(videoKey),
+        videoKey: ctx.body.key,
+        videoUrl: getPresignedUrl(ctx.body.key),
       };
     },
     {
       body: t.Object({
-        video: t.File({ type: "video", maxSize: "500m" }),
+        key: t.String({ minLength: 1 }),
       }),
       detail: {
         tags: ["Videos"],
-        summary:
-          "Upload video file (returns key to use when creating/updating)",
+        summary: "Confirm video upload (client uploaded directly to S3)",
       },
       requireAuth: true,
       requireTenant: true,
@@ -389,21 +379,11 @@ export const videosRoutes = new Elysia()
         throw new AppError(ErrorCode.NOT_FOUND, "Video not found", 404);
       }
 
-      const [, videoKey] = await Promise.all([
-        existingVideo.videoKey
-          ? deleteFromS3(existingVideo.videoKey)
-          : Promise.resolve(),
-        uploadFileToS3(
-          {
-            file: ctx.body.video,
-            folder: "videos",
-            userId: ctx.user!.tenantId!,
-          },
-          { partSize: 10 * 1024 * 1024, queueSize: 6 }
-        ),
-      ]);
+      if (existingVideo.videoKey) {
+        await deleteFromS3(existingVideo.videoKey);
+      }
 
-      const updateData: Partial<SelectVideo> = { videoKey };
+      const updateData: Partial<SelectVideo> = { videoKey: ctx.body.key };
       if (ctx.body.duration !== undefined) {
         updateData.duration = ctx.body.duration;
       }
@@ -414,7 +394,7 @@ export const videosRoutes = new Elysia()
         .where(eq(videosTable.id, ctx.params.id))
         .returning();
 
-      updateVideoTranscript(updatedVideo.id, videoKey).catch(() => {});
+      updateVideoTranscript(updatedVideo.id, ctx.body.key).catch(() => {});
 
       return { video: withUrl(updatedVideo) };
     },
@@ -423,12 +403,12 @@ export const videosRoutes = new Elysia()
         id: t.String({ format: "uuid" }),
       }),
       body: t.Object({
-        video: t.File({ type: "video", maxSize: "500m" }),
+        key: t.String({ minLength: 1 }),
         duration: t.Optional(t.Number({ minimum: 0 })),
       }),
       detail: {
         tags: ["Videos"],
-        summary: "Upload video file for a video record",
+        summary: "Confirm video upload for a video record",
       },
       requireAuth: true,
       requireTenant: true,
