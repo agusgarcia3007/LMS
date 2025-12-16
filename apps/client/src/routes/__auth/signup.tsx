@@ -283,13 +283,13 @@ function SignupPage() {
 
                   <p className="text-center text-xs text-muted-foreground">
                     {t("auth.signup.termsText")}{" "}
-                    <a href="#" className="text-primary hover:text-primary/90">
+                    <Link to="/terms" className="text-primary hover:text-primary/90">
                       {t("auth.signup.termsOfUse")}
-                    </a>{" "}
+                    </Link>{" "}
                     {t("auth.signup.and")}{" "}
-                    <a href="#" className="text-primary hover:text-primary/90">
+                    <Link to="/privacy" className="text-primary hover:text-primary/90">
                       {t("auth.signup.privacyPolicy")}
-                    </a>
+                    </Link>
                   </p>
 
                   {isOnTenantDomain ? (
