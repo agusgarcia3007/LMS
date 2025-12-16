@@ -106,15 +106,15 @@ export const Route = createFileRoute("/")({
       getCampusStatsServer({ data: { slug: tenantInfo.slug } }),
     ]);
 
-    const tenant = tenantData.tenant;
+    const tenant = tenantData?.tenant ?? null;
     const { themeClass, customStyles } = computeThemeStyles(tenant);
 
     return {
       isCampus: true,
       slug: tenantInfo.slug,
       tenant,
-      courses: coursesData.courses,
-      stats: statsData.stats,
+      courses: coursesData?.courses ?? null,
+      stats: statsData?.stats ?? null,
       themeClass,
       customStyles,
     };
