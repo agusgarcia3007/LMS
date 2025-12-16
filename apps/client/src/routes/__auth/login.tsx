@@ -53,24 +53,28 @@ function LoginPage() {
     defaultValues: { email: "", password: "" },
   });
 
-  const { tenant } = Route.useLoaderData();
-
   function onSubmit(data: LoginInput) {
     login(data, {
       onSuccess: (response) => {
         const { user } = response;
+
         if (user.role === "owner" && user.tenantId === null) {
           navigate({ to: "/create-tenant" });
+        } else if (user.role === "superadmin" && !user.tenantSlug) {
+          navigate({ to: "/backoffice" });
         } else if (user.tenantSlug) {
-          navigate({ to: "/$tenantSlug", params: { tenantSlug: user.tenantSlug } });
+          if (user.role === "student") {
+            navigate({ to: "/", search: { campus: undefined } });
+          } else {
+            navigate({
+              to: "/$tenantSlug",
+              params: { tenantSlug: user.tenantSlug },
+            });
+          }
         } else {
           const redirectPath = getRedirectPath();
           clearRedirectPath();
-          if (redirectPath) {
-            navigate({ to: redirectPath });
-          } else {
-            navigate({ to: "/", search: { campus: undefined } });
-          }
+          navigate({ to: redirectPath || "/", search: { campus: undefined } });
         }
       },
     });

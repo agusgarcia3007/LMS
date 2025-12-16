@@ -118,21 +118,21 @@ authRoutes.post(
         .select()
         .from(usersTable)
         .where(
-          and(
-            eq(usersTable.email, ctx.body.email),
-            eq(usersTable.role, "superadmin")
-          )
+          ctx.tenant
+            ? and(eq(usersTable.email, ctx.body.email), eq(usersTable.tenantId, ctx.tenant.id))
+            : and(eq(usersTable.email, ctx.body.email), inArray(usersTable.role, ["owner", "superadmin"]))
         )
         .limit(1);
 
-      if (!user) {
+      if (!user && ctx.tenant) {
         [user] = await db
           .select()
           .from(usersTable)
           .where(
-            ctx.tenant
-              ? and(eq(usersTable.email, ctx.body.email), eq(usersTable.tenantId, ctx.tenant.id))
-              : and(eq(usersTable.email, ctx.body.email), inArray(usersTable.role, ["owner", "superadmin"]))
+            and(
+              eq(usersTable.email, ctx.body.email),
+              eq(usersTable.role, "superadmin")
+            )
           )
           .limit(1);
       }

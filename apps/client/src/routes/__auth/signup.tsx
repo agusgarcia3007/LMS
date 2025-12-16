@@ -67,7 +67,11 @@ function SignupPage() {
       {
         onSuccess: (response) => {
           if (response.user.tenantSlug) {
-            navigate({ to: "/$tenantSlug", params: { tenantSlug: response.user.tenantSlug } });
+            if (response.user.role === "student") {
+              navigate({ to: "/", search: { campus: undefined } });
+            } else {
+              navigate({ to: "/$tenantSlug", params: { tenantSlug: response.user.tenantSlug } });
+            }
           } else {
             navigate({ to: "/create-tenant" });
           }
