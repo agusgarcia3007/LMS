@@ -31,6 +31,7 @@ export const ErrorCode = {
 
   // Payment errors
   PAYMENT_REQUIRED: "PAYMENT_REQUIRED",
+  SUBSCRIPTION_REQUIRED: "SUBSCRIPTION_REQUIRED",
 
   // System errors
   VALIDATION_ERROR: "VALIDATION_ERROR",

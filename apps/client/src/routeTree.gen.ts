@@ -9,8 +9,9 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as ProfileRouteImport } from './routes/profile'
-import { Route as CreateTenantRouteImport } from './routes/create-tenant'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as CoursesRouteImport } from './routes/courses'
 import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as MyCoursesRouteRouteImport } from './routes/my-courses/route'
@@ -61,14 +62,19 @@ import { Route as TenantSlugContentQuizzesIndexRouteImport } from './routes/$ten
 import { Route as ApiOgCourseSlugRouteImport } from './routes/api/og/course.$slug'
 import { Route as TenantSlugContentQuizzesQuizIdRouteImport } from './routes/$tenantSlug/content/quizzes.$quizId'
 
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
-const CreateTenantRoute = CreateTenantRouteImport.update({
-  id: '/create-tenant',
-  path: '/create-tenant',
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CoursesRoute = CoursesRouteImport.update({
@@ -339,8 +345,9 @@ export interface FileRoutesByFullPath {
   '/my-courses': typeof MyCoursesRouteRouteWithChildren
   '/checkout': typeof CheckoutRouteWithChildren
   '/courses': typeof CoursesRouteWithChildren
-  '/create-tenant': typeof CreateTenantRoute
+  '/privacy': typeof PrivacyRoute
   '/profile': typeof ProfileRoute
+  '/terms': typeof TermsRoute
   '/forgot-password': typeof _authForgotPasswordRoute
   '/login': typeof _authLoginRoute
   '/reset-password': typeof _authResetPasswordRoute
@@ -387,8 +394,9 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/checkout': typeof CheckoutRouteWithChildren
-  '/create-tenant': typeof CreateTenantRoute
+  '/privacy': typeof PrivacyRoute
   '/profile': typeof ProfileRoute
+  '/terms': typeof TermsRoute
   '/forgot-password': typeof _authForgotPasswordRoute
   '/login': typeof _authLoginRoute
   '/reset-password': typeof _authResetPasswordRoute
@@ -440,8 +448,9 @@ export interface FileRoutesById {
   '/my-courses': typeof MyCoursesRouteRouteWithChildren
   '/checkout': typeof CheckoutRouteWithChildren
   '/courses': typeof CoursesRouteWithChildren
-  '/create-tenant': typeof CreateTenantRoute
+  '/privacy': typeof PrivacyRoute
   '/profile': typeof ProfileRoute
+  '/terms': typeof TermsRoute
   '/__auth/forgot-password': typeof _authForgotPasswordRoute
   '/__auth/login': typeof _authLoginRoute
   '/__auth/reset-password': typeof _authResetPasswordRoute
@@ -494,8 +503,9 @@ export interface FileRouteTypes {
     | '/my-courses'
     | '/checkout'
     | '/courses'
-    | '/create-tenant'
+    | '/privacy'
     | '/profile'
+    | '/terms'
     | '/forgot-password'
     | '/login'
     | '/reset-password'
@@ -542,8 +552,9 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/checkout'
-    | '/create-tenant'
+    | '/privacy'
     | '/profile'
+    | '/terms'
     | '/forgot-password'
     | '/login'
     | '/reset-password'
@@ -594,8 +605,9 @@ export interface FileRouteTypes {
     | '/my-courses'
     | '/checkout'
     | '/courses'
-    | '/create-tenant'
+    | '/privacy'
     | '/profile'
+    | '/terms'
     | '/__auth/forgot-password'
     | '/__auth/login'
     | '/__auth/reset-password'
@@ -648,8 +660,9 @@ export interface RootRouteChildren {
   MyCoursesRouteRoute: typeof MyCoursesRouteRouteWithChildren
   CheckoutRoute: typeof CheckoutRouteWithChildren
   CoursesRoute: typeof CoursesRouteWithChildren
-  CreateTenantRoute: typeof CreateTenantRoute
+  PrivacyRoute: typeof PrivacyRoute
   ProfileRoute: typeof ProfileRoute
+  TermsRoute: typeof TermsRoute
   SitemapXmlRoute: typeof SitemapXmlRoute
   VerifyCodeRoute: typeof VerifyCodeRoute
   ApiOgCampusRoute: typeof ApiOgCampusRoute
@@ -659,6 +672,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/profile': {
       id: '/profile'
       path: '/profile'
@@ -666,11 +686,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/create-tenant': {
-      id: '/create-tenant'
-      path: '/create-tenant'
-      fullPath: '/create-tenant'
-      preLoaderRoute: typeof CreateTenantRouteImport
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/courses': {
@@ -1172,8 +1192,9 @@ const rootRouteChildren: RootRouteChildren = {
   MyCoursesRouteRoute: MyCoursesRouteRouteWithChildren,
   CheckoutRoute: CheckoutRouteWithChildren,
   CoursesRoute: CoursesRouteWithChildren,
-  CreateTenantRoute: CreateTenantRoute,
+  PrivacyRoute: PrivacyRoute,
   ProfileRoute: ProfileRoute,
+  TermsRoute: TermsRoute,
   SitemapXmlRoute: SitemapXmlRoute,
   VerifyCodeRoute: VerifyCodeRoute,
   ApiOgCampusRoute: ApiOgCampusRoute,

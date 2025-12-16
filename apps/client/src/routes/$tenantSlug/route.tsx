@@ -1,11 +1,32 @@
+import { createContext, useContext, useState } from "react";
 import { Outlet, createFileRoute, redirect } from "@tanstack/react-router";
 
 import { DashboardHeader } from "@/components/dashboard/header";
 import { DashboardSidebar } from "@/components/dashboard/sidebar";
+import { OnboardingPanel } from "@/components/dashboard/onboarding-panel";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { setResolvedSlug } from "@/lib/tenant";
+import { cn } from "@/lib/utils";
 import { profileOptions } from "@/services/profile/options";
 import { tenantOptions } from "@/services/tenants/options";
+import { useGetOnboarding } from "@/services/tenants";
+
+type OnboardingPanelContextType = {
+  isOpen: boolean;
+  open: () => void;
+  close: () => void;
+  toggle: () => void;
+};
+
+const OnboardingPanelContext = createContext<OnboardingPanelContextType | null>(null);
+
+export function useOnboardingPanel() {
+  const context = useContext(OnboardingPanelContext);
+  if (!context) {
+    throw new Error("useOnboardingPanel must be used within TenantDashboardLayout");
+  }
+  return context;
+}
 
 function hasValidSubscription(tenant: {
   plan: string | null;
@@ -80,20 +101,40 @@ export const Route = createFileRoute("/$tenantSlug")({
 
 function TenantDashboardLayout() {
   const { user, tenant } = Route.useRouteContext();
+  const [isOpen, setIsOpen] = useState(false);
+  const { data: onboardingData } = useGetOnboarding(tenant?.id ?? "");
 
   if (!user || !tenant) {
     return null;
   }
 
+  const steps = onboardingData?.steps;
+
+  const panelContext: OnboardingPanelContextType = {
+    isOpen,
+    open: () => setIsOpen(true),
+    close: () => setIsOpen(false),
+    toggle: () => setIsOpen((prev) => !prev),
+  };
+
   return (
-    <SidebarProvider>
-      <DashboardSidebar tenant={tenant} user={user} />
-      <SidebarInset>
-        <DashboardHeader tenant={tenant} user={user} />
-        <main className="flex-1 p-4">
-          <Outlet />
-        </main>
-      </SidebarInset>
-    </SidebarProvider>
+    <OnboardingPanelContext.Provider value={panelContext}>
+      <SidebarProvider>
+        <DashboardSidebar tenant={tenant} user={user} />
+        <SidebarInset className={cn(isOpen && "mr-80")}>
+          <DashboardHeader tenant={tenant} user={user} />
+          <main className="flex-1 p-4">
+            <Outlet />
+          </main>
+        </SidebarInset>
+        {isOpen && steps && (
+          <OnboardingPanel
+            tenant={tenant}
+            steps={steps}
+            onClose={() => setIsOpen(false)}
+          />
+        )}
+      </SidebarProvider>
+    </OnboardingPanelContext.Provider>
   );
 }

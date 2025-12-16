@@ -149,6 +149,8 @@ export type Tenant = {
   trialEndsAt: string | null;
   commissionRate: number;
   chargesEnabled: boolean;
+  published: boolean;
+  publishedAt: string | null;
   createdAt: string;
   updatedAt: string;
   usersCount?: number;
@@ -419,6 +421,20 @@ export const TenantsService = {
   async getActivity(id: string, limit = 10) {
     const { data } = await http.get<{ activities: TenantActivity[] }>(
       `/tenants/${id}/stats/activity?limit=${limit}`
+    );
+    return data;
+  },
+
+  async publish(id: string) {
+    const { data } = await http.post<{ tenant: Tenant }>(
+      `/tenants/${id}/publish`
+    );
+    return data;
+  },
+
+  async unpublish(id: string) {
+    const { data } = await http.post<{ tenant: Tenant }>(
+      `/tenants/${id}/unpublish`
     );
     return data;
   },

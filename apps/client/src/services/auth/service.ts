@@ -30,6 +30,7 @@ type SignupRequest = {
   password: string;
   name: string;
   locale?: string;
+  tenantName?: string;
 };
 
 type ForgotPasswordRequest = {

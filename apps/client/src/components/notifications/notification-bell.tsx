@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Bell, Clock, Mail, ExternalLink, Check } from "lucide-react";
+import { Bell, Clock, Mail, Check } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -27,12 +27,6 @@ function getReadNotifications(): Set<NotificationType> {
 function markAsRead(type: NotificationType): void {
   const current = getReadNotifications();
   current.add(type);
-  localStorage.setItem(READ_NOTIFICATIONS_KEY, JSON.stringify([...current]));
-}
-
-function clearReadStatus(type: NotificationType): void {
-  const current = getReadNotifications();
-  current.delete(type);
   localStorage.setItem(READ_NOTIFICATIONS_KEY, JSON.stringify([...current]));
 }
 

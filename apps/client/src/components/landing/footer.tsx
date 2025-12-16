@@ -17,9 +17,14 @@ export function LandingFooter() {
             </span>
           </Link>
 
-          <p className="text-sm text-muted-foreground">
-            {t("landing.footer.description")}
-          </p>
+          <div className="flex items-center gap-6 text-sm text-muted-foreground">
+            <Link to="/terms" className="transition-colors hover:text-foreground">
+              {t("landing.footer.terms")}
+            </Link>
+            <Link to="/privacy" className="transition-colors hover:text-foreground">
+              {t("landing.footer.privacy")}
+            </Link>
+          </div>
 
           <p className="text-xs text-muted-foreground">
             {t("landing.footer.copyright", { year: new Date().getFullYear() })}

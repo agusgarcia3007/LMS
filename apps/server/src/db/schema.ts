@@ -270,6 +270,8 @@ export const tenantsTable = pgTable(
     stripeConnectStatus: connectAccountStatusEnum("stripe_connect_status").default("not_started"),
     chargesEnabled: boolean("charges_enabled").default(false),
     payoutsEnabled: boolean("payouts_enabled").default(false),
+    published: boolean("published").default(false).notNull(),
+    publishedAt: timestamp("published_at"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at")
       .notNull()
@@ -282,6 +284,7 @@ export const tenantsTable = pgTable(
     index("tenants_stripe_customer_id_idx").on(table.stripeCustomerId),
     index("tenants_stripe_connect_account_id_idx").on(table.stripeConnectAccountId),
     index("tenants_plan_idx").on(table.plan),
+    index("tenants_published_idx").on(table.published),
   ]
 );
 

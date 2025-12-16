@@ -1474,4 +1474,113 @@ export const tenantsRoutes = new Elysia()
         summary: "Remove custom domain",
       },
     }
+  )
+  .post(
+    "/:id/publish",
+    async (ctx) => {
+      if (!ctx.user) {
+        throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
+      }
+
+      const isOwnerUpdatingOwnTenant =
+        ctx.userRole === "owner" && ctx.user.tenantId === ctx.params.id;
+
+      if (ctx.userRole !== "superadmin" && !isOwnerUpdatingOwnTenant) {
+        throw new AppError(ErrorCode.FORBIDDEN, "Access denied", 403);
+      }
+
+      const [tenant] = await db
+        .select()
+        .from(tenantsTable)
+        .where(eq(tenantsTable.id, ctx.params.id))
+        .limit(1);
+
+      if (!tenant) {
+        throw new AppError(ErrorCode.TENANT_NOT_FOUND, "Tenant not found", 404);
+      }
+
+      if (tenant.published) {
+        return { tenant: transformTenant(tenant) };
+      }
+
+      const hasValidSubscription =
+        tenant.subscriptionStatus === "active" ||
+        (tenant.subscriptionStatus === "trialing" &&
+          tenant.trialEndsAt &&
+          new Date(tenant.trialEndsAt) > new Date());
+
+      if (!hasValidSubscription) {
+        throw new AppError(
+          ErrorCode.SUBSCRIPTION_REQUIRED,
+          "Active subscription or trial required to publish",
+          402
+        );
+      }
+
+      const [updatedTenant] = await db
+        .update(tenantsTable)
+        .set({
+          published: true,
+          publishedAt: new Date(),
+        })
+        .where(eq(tenantsTable.id, ctx.params.id))
+        .returning();
+
+      invalidateTenantCache(tenant.slug);
+
+      return { tenant: transformTenant(updatedTenant) };
+    },
+    {
+      params: t.Object({
+        id: t.String({ format: "uuid" }),
+      }),
+      detail: {
+        tags: ["Tenants"],
+        summary: "Publish tenant (requires active subscription)",
+      },
+    }
+  )
+  .post(
+    "/:id/unpublish",
+    async (ctx) => {
+      if (!ctx.user) {
+        throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
+      }
+
+      const isOwnerUpdatingOwnTenant =
+        ctx.userRole === "owner" && ctx.user.tenantId === ctx.params.id;
+
+      if (ctx.userRole !== "superadmin" && !isOwnerUpdatingOwnTenant) {
+        throw new AppError(ErrorCode.FORBIDDEN, "Access denied", 403);
+      }
+
+      const [tenant] = await db
+        .select()
+        .from(tenantsTable)
+        .where(eq(tenantsTable.id, ctx.params.id))
+        .limit(1);
+
+      if (!tenant) {
+        throw new AppError(ErrorCode.TENANT_NOT_FOUND, "Tenant not found", 404);
+      }
+
+      const [updatedTenant] = await db
+        .update(tenantsTable)
+        .set({ published: false })
+        .where(eq(tenantsTable.id, ctx.params.id))
+        .returning();
+
+      invalidateTenantCache(tenant.slug);
+
+      return { tenant: transformTenant(updatedTenant) };
+    },
+    {
+      params: t.Object({
+        id: t.String({ format: "uuid" }),
+      }),
+      detail: {
+        tags: ["Tenants"],
+        summary: "Unpublish tenant",
+      },
+    }
   );

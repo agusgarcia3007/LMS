@@ -14,8 +14,6 @@ export const authRoutes = new Elysia().use(jwtPlugin).use(tenantPlugin);
 authRoutes.post(
   "/signup",
   async (ctx) => {
-      // Parent app signup (no tenant) → owner
-      // Tenant signup (with tenant) → student
       const isParentAppSignup = !ctx.tenant;
 
       const [existing] = await db
@@ -71,22 +69,58 @@ authRoutes.post(
         });
       }
 
+      let tenantSlug: string | null = ctx.tenant?.slug ?? null;
+      let userTenantId: string | null = user.tenantId;
+
+      if (isParentAppSignup && ctx.body.tenantName) {
+        const baseSlug = ctx.body.tenantName
+          .toLowerCase()
+          .trim()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-|-$/g, "");
+
+        const [existingSlug] = await db
+          .select({ id: tenantsTable.id })
+          .from(tenantsTable)
+          .where(eq(tenantsTable.slug, baseSlug))
+          .limit(1);
+
+        const finalSlug = existingSlug
+          ? `${baseSlug}-${Date.now().toString().slice(-4)}`
+          : baseSlug;
+
+        const [tenant] = await db
+          .insert(tenantsTable)
+          .values({
+            slug: finalSlug,
+            name: ctx.body.tenantName,
+          })
+          .returning();
+
+        await db
+          .update(usersTable)
+          .set({ tenantId: tenant.id })
+          .where(eq(usersTable.id, user.id));
+
+        tenantSlug = tenant.slug;
+        userTenantId = tenant.id;
+      }
+
       const [accessToken, refreshToken] = await Promise.all([
         ctx.jwt.sign({
           sub: user.id,
           role: user.role,
-          tenantId: user.tenantId,
+          tenantId: userTenantId,
         }),
         ctx.refreshJwt.sign({
           sub: user.id,
           role: user.role,
-          tenantId: user.tenantId,
+          tenantId: userTenantId,
         }),
       ]);
 
-      // Store refresh token in DB
       const expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + 7); // 7 days from now
+      expiresAt.setDate(expiresAt.getDate() + 7);
 
       await db.insert(refreshTokensTable).values({
         token: refreshToken,
@@ -96,9 +130,11 @@ authRoutes.post(
 
       const { password: _, ...userWithoutPassword } = user;
 
-      const tenantSlug = ctx.tenant?.slug ?? null;
-
-      return { user: { ...userWithoutPassword, tenantSlug }, accessToken, refreshToken };
+      return {
+        user: { ...userWithoutPassword, tenantSlug, tenantId: userTenantId },
+        accessToken,
+        refreshToken,
+      };
     },
   {
     body: t.Object({
@@ -106,6 +142,7 @@ authRoutes.post(
       password: t.String({ minLength: 8 }),
       name: t.String({ minLength: 1 }),
       locale: t.Optional(t.String()),
+      tenantName: t.Optional(t.String({ minLength: 2 })),
     }),
     detail: { tags: ["Auth"], summary: "Register a new user" },
   }

@@ -26,9 +26,6 @@
       "action": "Reenviar"
     }
   },
-  "header": {
-    "viewCampus": "Ver Campus"
-  },
   "subscription": {
     "title": "Suscripcion",
     "description": "Administra tu suscripcion y plan de la plataforma",
@@ -343,6 +340,8 @@
     },
     "signup": {
       "title": "Crear nueva cuenta",
+      "step1Title": "Tu cuenta",
+      "step2Title": "Tu academia",
       "name": "Nombre",
       "namePlaceholder": "Tu nombre",
       "confirmPassword": "Confirmar contraseña",
@@ -352,7 +351,11 @@
       "and": "y",
       "privacyPolicy": "Política de privacidad",
       "createAccount": "Crear cuenta",
-      "hasAccount": "¿Ya tienes una cuenta?"
+      "hasAccount": "¿Ya tienes una cuenta?",
+      "academyName": "Nombre de la academia",
+      "academyNamePlaceholder": "Mi Academia de Aprendizaje",
+      "academyNameDescription": "Este será el nombre de tu plataforma",
+      "createAcademy": "Crear Academia"
     },
     "forgotPassword": {
       "title": "Restablecer tu contraseña",
@@ -396,6 +399,7 @@
   "header": {
     "myAccount": "Mi cuenta",
     "profile": "Perfil",
+    "viewCampus": "Ver Campus",
     "userAvatar": "Avatar del usuario",
     "toggleTheme": "Cambiar tema",
     "theme": {
@@ -567,7 +571,13 @@
         "price": "$29",
         "period": "/mes",
         "cta": "Comenzar gratis",
-        "features": ["Hasta 100 alumnos", "3 cursos", "Editor de contenido", "Pagos integrados", "Soporte por email"]
+        "features": [
+          "Hasta 100 alumnos",
+          "3 cursos",
+          "Editor de contenido",
+          "Pagos integrados",
+          "Soporte por email"
+        ]
       },
       "pro": {
         "name": "Pro",
@@ -575,7 +585,15 @@
         "price": "$79",
         "period": "/mes",
         "cta": "Comenzar prueba",
-        "features": ["Hasta 1,000 alumnos", "Cursos ilimitados", "Agente IA basico", "Dominio personalizado", "Integracion WhatsApp", "Soporte prioritario", "Analiticas avanzadas"]
+        "features": [
+          "Hasta 1,000 alumnos",
+          "Cursos ilimitados",
+          "Agente IA basico",
+          "Dominio personalizado",
+          "Integracion WhatsApp",
+          "Soporte prioritario",
+          "Analiticas avanzadas"
+        ]
       },
       "enterprise": {
         "name": "Enterprise",
@@ -583,7 +601,16 @@
         "price": "Contactar",
         "period": "",
         "cta": "Contactar ventas",
-        "features": ["Alumnos ilimitados", "Cursos ilimitados", "Agente IA avanzado", "API personalizada", "SSO / SAML", "Soporte dedicado", "Onboarding personalizado", "SLA garantizado"]
+        "features": [
+          "Alumnos ilimitados",
+          "Cursos ilimitados",
+          "Agente IA avanzado",
+          "API personalizada",
+          "SSO / SAML",
+          "Soporte dedicado",
+          "Onboarding personalizado",
+          "SLA garantizado"
+        ]
       }
     },
     "testimonials": {
@@ -643,7 +670,9 @@
     },
     "footer": {
       "description": "Crea academias online con IA.",
-      "copyright": "© {{year}} LearnBase"
+      "copyright": "© {{year}} LearnBase",
+      "terms": "Terminos",
+      "privacy": "Privacidad"
     }
   },
   "dashboard": {
@@ -719,6 +748,7 @@
     "onboarding": {
       "title": "Primeros pasos",
       "progress": "{{completed}} de {{total}} completados",
+      "openPanel": "Guía de configuración",
       "steps": {
         "basicInfo": {
           "title": "Configura tu sitio",
@@ -740,6 +770,21 @@
           "title": "Publica tu primer curso",
           "description": "Crea y publica contenido"
         }
+      },
+      "publish": {
+        "title": "Publicar Academia",
+        "published": "Tu academia está visible",
+        "unpublished": "Tu academia no es visible",
+        "requiresSubscription": "Se requiere una suscripción activa para publicar",
+        "success": "Academia publicada exitosamente"
+      },
+      "unpublish": {
+        "success": "Academia despublicada"
+      },
+      "paywall": {
+        "title": "Suscripción Requerida",
+        "description": "Necesitas una suscripción activa o trial para publicar tu academia.",
+        "subscribe": "Ver Planes"
       }
     },
     "sidebar": {
@@ -2486,6 +2531,397 @@
       "updatingSettings": "Actualizando configuracion...",
       "uploadingLogo": "Subiendo logo...",
       "redirecting": "Redirigiendo..."
+    }
+  },
+  "legal": {
+    "terms": {
+      "title": "Terminos de Servicio",
+      "lastUpdated": "Ultima actualizacion: {{date}}",
+      "sections": {
+        "acceptance": {
+          "title": "1. Aceptacion de los Terminos",
+          "content": "Al acceder o utilizar Learnbase (el \"Servicio\"), aceptas estar sujeto a estos Terminos de Servicio (\"Terminos\"). Si no estas de acuerdo con estos Terminos, no puedes utilizar el Servicio.",
+          "age": "Debes tener al menos 18 anos para crear una cuenta de academia. Los propietarios de academias son responsables de asegurar que sus estudiantes cumplan con los requisitos de edad que establezcan."
+        },
+        "description": {
+          "title": "2. Descripcion del Servicio",
+          "content": "Learnbase es una plataforma SaaS B2B que permite a empresas e individuos crear y gestionar academias online. Nuestro Servicio incluye:",
+          "features": {
+            "academies": "Creacion y personalizacion de academias online",
+            "courses": "Creacion, alojamiento y entrega de cursos",
+            "students": "Gestion de inscripciones y aprendizaje de estudiantes",
+            "certificates": "Generacion y verificacion de certificados",
+            "payments": "Procesamiento de pagos via Stripe Connect Express",
+            "ai": "Asistencia y generacion de contenido con IA"
+          }
+        },
+        "accounts": {
+          "title": "3. Registro y Seguridad de Cuenta",
+          "content": "Debes proporcionar informacion precisa y completa al crear una cuenta. Eres responsable de mantener la confidencialidad de tus credenciales y de todas las actividades que ocurran bajo tu cuenta.",
+          "roles": {
+            "title": "Tipos de Cuenta",
+            "owner": {
+              "title": "Propietario de Academia",
+              "description": "Gestion completa del tenant, responsabilidad de facturacion y cumplimiento legal para estudiantes"
+            },
+            "admin": {
+              "title": "Administrador",
+              "description": "Gestion de cursos y usuarios dentro de los limites del tenant"
+            },
+            "student": {
+              "title": "Estudiante",
+              "description": "Aprendizaje y completacion de cursos, regido por los terminos de la academia"
+            }
+          }
+        },
+        "billing": {
+          "title": "4. Planes de Suscripcion y Facturacion",
+          "content": "Learnbase ofrece planes de suscripcion facturados mensualmente via Stripe. Al suscribirte, autorizas que cobremos a tu metodo de pago de forma recurrente.",
+          "plans": {
+            "title": "Planes Disponibles"
+          },
+          "renewal": "Las suscripciones se renuevan automaticamente a menos que se cancelen antes del final del periodo de facturacion. Puedes cancelar en cualquier momento desde tu panel de control.",
+          "refund": "Ofrecemos una politica de reembolso de 14 dias sin preguntas para pagos de suscripcion. Para solicitar un reembolso, contactanos en hello@uselearnbase.com dentro de los 14 dias de tu pago."
+        },
+        "stripeConnect": {
+          "title": "5. Ventas de Cursos y Stripe Connect",
+          "content": "Los propietarios de academias pueden conectar su cuenta de Stripe Express para aceptar pagos por cursos. Learnbase actua como facilitador y cobra una comision de plataforma segun tu plan de suscripcion.",
+          "responsibility": "Como propietario de academia usando Stripe Connect, eres un comerciante independiente responsable de tus precios, impuestos, servicio al cliente y cumplimiento de las leyes aplicables.",
+          "courseRefunds": "Las politicas de reembolso para compras de cursos son determinadas por cada academia individual. Learnbase no es responsable de reembolsos en compras de cursos realizadas a traves de academias en nuestra plataforma."
+        },
+        "ip": {
+          "title": "6. Propiedad Intelectual",
+          "platform": "Learnbase y sus licenciantes poseen todos los derechos, titulo e interes en el Servicio, incluyendo todos los derechos de propiedad intelectual (codigo, diseno, marcas, etc.).",
+          "userContent": "Tu conservas la propiedad de todo el contenido que creas y subes al Servicio (cursos, videos, documentos, etc.).",
+          "license": "Al subir contenido, otorgas a Learnbase una licencia no exclusiva, mundial, para alojar, almacenar y entregar tu contenido unicamente con el proposito de proporcionar el Servicio. Esta licencia termina cuando eliminas tu contenido o cuenta."
+        },
+        "acceptableUse": {
+          "title": "7. Politica de Uso Aceptable",
+          "content": "Aceptas no utilizar el Servicio para ningun proposito ilegal o en violacion de estos Terminos. Las actividades prohibidas incluyen:",
+          "prohibited": {
+            "illegal": "Participar en actividades ilegales o promover contenido ilegal",
+            "copyright": "Infringir derechos de propiedad intelectual (proceso DMCA disponible)",
+            "harassment": "Acoso, discurso de odio, discriminacion o intimidacion",
+            "malware": "Distribuir malware, spam o contenido de phishing",
+            "ai": "Mal uso de funciones de IA para generar contenido danino, enganoso o inapropiado"
+          }
+        },
+        "ai": {
+          "title": "8. Funciones de IA",
+          "content": "Learnbase proporciona funciones impulsadas por IA incluyendo transcripcion de video, generacion de contenido y creacion de cuestionarios. Estas funciones se proporcionan como herramientas de asistencia y no se garantiza que sean precisas.",
+          "providers": "El procesamiento de IA es realizado por proveedores terceros incluyendo Groq, Google (Gemini), OpenAI y Anthropic. Al usar funciones de IA, consientes que tus datos sean procesados por estos proveedores.",
+          "responsibility": "Eres el unico responsable de revisar, editar y aprobar cualquier contenido generado por IA antes de publicarlo en tu academia."
+        },
+        "certificates": {
+          "title": "9. Certificados",
+          "content": "Los certificados se emiten al completar un curso e incluyen un codigo de verificacion unico. Los certificados son intransferibles y representan la completacion del curso especifico.",
+          "permanence": "Los registros de certificados se mantienen permanentemente para asegurar la integridad de la verificacion. El nombre del estudiante se bloquea en el momento de la emision y no puede ser cambiado."
+        },
+        "privacy": {
+          "title": "10. Datos y Privacidad",
+          "content": "Tu uso del Servicio tambien esta regido por nuestra Politica de Privacidad, que se puede encontrar en",
+          "link": "Politica de Privacidad",
+          "dataController": "Para propietarios de academias: Tu actuas como controlador de datos para los datos personales de tus estudiantes. Learnbase actua como procesador de datos en tu nombre.",
+          "dpa": "Un Acuerdo de Procesamiento de Datos (DPA) esta disponible bajo solicitud para clientes empresariales."
+        },
+        "liability": {
+          "title": "11. Limitacion de Responsabilidad",
+          "warranty": "EL SERVICIO SE PROPORCIONA \"TAL CUAL\" SIN GARANTIA DE NINGUN TIPO, EXPRESA O IMPLICITA, INCLUYENDO PERO NO LIMITADO A GARANTIAS DE COMERCIABILIDAD, IDONEIDAD PARA UN PROPOSITO PARTICULAR Y NO INFRACCION.",
+          "limitation": "EN LA MAXIMA MEDIDA PERMITIDA POR LA LEY, LA RESPONSABILIDAD TOTAL DE LEARNBASE NO EXCEDERA LAS TARIFAS PAGADAS POR TI EN LOS 12 MESES ANTERIORES A LA RECLAMACION.",
+          "exclusions": "LEARNBASE NO SERA RESPONSABLE POR NINGUN DANO INDIRECTO, INCIDENTAL, ESPECIAL, CONSECUENTE O PUNITIVO, INCLUYENDO PERDIDA DE GANANCIAS, DATOS U OPORTUNIDADES DE NEGOCIO."
+        },
+        "indemnification": {
+          "title": "12. Indemnizacion",
+          "content": "Aceptas indemnizar y mantener indemne a Learnbase, sus funcionarios, directores, empleados y agentes de cualquier reclamacion, danos, perdidas o gastos derivados de: (a) tu violacion de estos Terminos; (b) tu contenido subido al Servicio; (c) tu violacion de derechos de terceros; (d) para propietarios de academias, cualquier reclamacion relacionada con tu manejo de datos de estudiantes."
+        },
+        "termination": {
+          "title": "13. Terminacion",
+          "user": "Puedes cancelar tu cuenta en cualquier momento desde tu panel de control. La cancelacion toma efecto al final de tu periodo de facturacion actual.",
+          "platform": "Podemos suspender o terminar tu cuenta por violacion de estos Terminos, con aviso cuando sea razonablemente posible. En casos de violaciones graves, podemos terminar inmediatamente.",
+          "effect": "Al terminar, tu acceso al Servicio sera revocado. Tus datos seran retenidos segun nuestra Politica de Privacidad. Los certificados emitidos a traves de tu academia permaneceran verificables."
+        },
+        "disputes": {
+          "title": "14. Resolucion de Disputas",
+          "law": "Estos Terminos se rigen por las leyes del Estado de Nuevo Mexico, EE.UU., sin tener en cuenta los principios de conflicto de leyes.",
+          "resolution": "Antes de presentar una disputa formal, aceptas contactarnos primero en hello@uselearnbase.com para intentar una resolucion informal. Trabajaremos de buena fe para resolver cualquier problema dentro de 30 dias.",
+          "arbitration": "Cualquier disputa no resuelta informalmente se resolvera mediante arbitraje vinculante administrado por la Asociacion Americana de Arbitraje (AAA) bajo sus Reglas de Arbitraje Comercial.",
+          "classAction": "ACEPTAS RESOLVER DISPUTAS DE FORMA INDIVIDUAL Y RENUNCIAS A TU DERECHO DE PARTICIPAR EN UNA DEMANDA COLECTIVA O ARBITRAJE COLECTIVO."
+        },
+        "changes": {
+          "title": "15. Cambios en los Terminos",
+          "content": "Podemos actualizar estos Terminos de vez en cuando. Los cambios materiales se comunicaran por correo electronico o a traves del Servicio. Tu uso continuado del Servicio despues de que los cambios entren en vigor constituye la aceptacion de los Terminos actualizados."
+        },
+        "contact": {
+          "title": "16. Contacto",
+          "content": "Para preguntas sobre estos Terminos, por favor contactanos:"
+        }
+      }
+    },
+    "privacy": {
+      "title": "Politica de Privacidad",
+      "lastUpdated": "Ultima actualizacion: {{date}}",
+      "seeAlso": "Ver tambien:",
+      "sections": {
+        "intro": {
+          "title": "1. Introduccion",
+          "content": "Learnbase LLC (\"Learnbase\", \"nosotros\", \"nos\" o \"nuestro\") esta comprometido con proteger tu privacidad. Esta Politica de Privacidad explica como recopilamos, usamos, divulgamos y protegemos tu informacion cuando usas nuestro Servicio.",
+          "scope": "Esta politica aplica a visitantes de nuestro sitio web, propietarios de academias que usan nuestra plataforma y estudiantes que acceden a academias alojadas en nuestra plataforma.",
+          "processor": "Para datos de estudiantes: Los propietarios de academias actuan como controladores de datos, y Learnbase actua como procesador de datos en su nombre."
+        },
+        "collection": {
+          "title": "2. Informacion que Recopilamos",
+          "direct": {
+            "title": "Informacion que Proporcionas",
+            "content": "Recopilamos informacion que proporcionas directamente al crear una cuenta o usar nuestro Servicio:",
+            "email": {
+              "label": "Direccion de Email",
+              "purpose": "Creacion de cuenta, inicio de sesion y comunicaciones"
+            },
+            "name": {
+              "label": "Nombre",
+              "purpose": "Identificacion de perfil y emision de certificados"
+            },
+            "password": {
+              "label": "Contrasena",
+              "purpose": "Autenticacion (almacenada de forma segura hasheada, nunca en texto plano)"
+            },
+            "avatar": {
+              "label": "Foto de Perfil",
+              "purpose": "Personalizacion del perfil (opcional)"
+            }
+          },
+          "auto": {
+            "title": "Informacion Recopilada Automaticamente",
+            "content": "Cuando usas nuestro Servicio, recopilamos automaticamente cierta informacion:",
+            "pageViews": "Paginas visitadas y patrones de navegacion",
+            "session": "Duracion de sesion y frecuencia de uso",
+            "userAgent": "Tipo de navegador e informacion del dispositivo",
+            "referrer": "Como llegaste a nuestro Servicio",
+            "country": "Ubicacion geografica general (derivada de direccion IP, no almacenada)"
+          },
+          "learning": {
+            "title": "Datos de Aprendizaje",
+            "enrollments": "Inscripciones a cursos y estado",
+            "progress": "Progreso de visualizacion de videos y estado de completacion",
+            "quizzes": "Respuestas a cuestionarios y puntuaciones",
+            "certificates": "Registros de emision de certificados"
+          },
+          "payment": {
+            "title": "Informacion de Pago",
+            "content": "El procesamiento de pagos es manejado por Stripe. Almacenamos IDs de cliente de Stripe, IDs de suscripcion y registros de transacciones (montos y estado).",
+            "noCards": "No almacenamos numeros de tarjetas de credito ni detalles de pago sensibles. Todos los datos de pago son procesados de forma segura por Stripe (compatible con PCI-DSS)."
+          },
+          "ai": {
+            "title": "Datos de Procesamiento de IA",
+            "audio": "Audio de video para propositos de transcripcion",
+            "prompts": "Prompts para generacion de contenido",
+            "feedback": "Tu retroalimentacion sobre contenido generado por IA",
+            "preferences": "Preferencias de estilo y tono inferidas"
+          }
+        },
+        "use": {
+          "title": "3. Como Usamos Tu Informacion",
+          "service": "Proporcionar, mantener y mejorar nuestro Servicio",
+          "payments": "Procesar pagos y gestionar suscripciones",
+          "emails": "Enviar correos transaccionales (verificacion, recibos, certificados)",
+          "analytics": "Analizar patrones de uso y mejorar funciones",
+          "security": "Asegurar la seguridad y prevenir fraude",
+          "legal": "Cumplir con obligaciones legales",
+          "ai": "Impulsar funciones de generacion de contenido asistidas por IA"
+        },
+        "sharing": {
+          "title": "4. Comparticion de Informacion",
+          "providers": {
+            "title": "Proveedores de Servicios",
+            "content": "Compartimos informacion con proveedores de servicios terceros que realizan servicios en nuestro nombre:",
+            "table": {
+              "provider": "Proveedor",
+              "data": "Datos Compartidos",
+              "purpose": "Proposito",
+              "location": "Ubicacion"
+            },
+            "stripe": {
+              "data": "Email, montos de pago",
+              "purpose": "Procesamiento de pagos"
+            },
+            "railway": {
+              "data": "Todos los datos del servicio",
+              "purpose": "Alojamiento y almacenamiento"
+            },
+            "cloudflare": {
+              "data": "Nombres de dominio",
+              "purpose": "DNS y SSL"
+            },
+            "resend": {
+              "data": "Nombre, email",
+              "purpose": "Correo transaccional"
+            },
+            "groq": {
+              "data": "Audio, prompts",
+              "purpose": "Transcripcion con IA"
+            },
+            "google": {
+              "data": "Prompts",
+              "purpose": "Generacion de imagenes"
+            },
+            "openai": {
+              "data": "Prompts de chat",
+              "purpose": "Chat de aprendizaje"
+            },
+            "langfuse": {
+              "data": "Trazas de IA",
+              "purpose": "Monitoreo de calidad"
+            }
+          },
+          "legal": {
+            "title": "Requisitos Legales",
+            "content": "Podemos divulgar informacion si lo requiere la ley, orden judicial o solicitud gubernamental, o para proteger nuestros derechos, propiedad o seguridad."
+          },
+          "business": {
+            "title": "Transferencias de Negocio",
+            "content": "En caso de fusion, adquisicion o venta de activos, tu informacion puede ser transferida. Te notificaremos de cualquier cambio en la propiedad o uso de tu informacion personal."
+          },
+          "noSale": "No vendemos tu informacion personal a terceros."
+        },
+        "transfers": {
+          "title": "5. Transferencias Internacionales de Datos",
+          "content": "Nuestra infraestructura principal esta ubicada en Estados Unidos. Si accedes a nuestro Servicio desde fuera de EE.UU., tu informacion sera transferida y procesada en EE.UU.",
+          "scc": "Para usuarios en el Espacio Economico Europeo (EEE), confiamos en Clausulas Contractuales Estandar aprobadas por la Comision Europea para asegurar proteccion adecuada para transferencias internacionales de datos."
+        },
+        "retention": {
+          "title": "6. Retencion de Datos",
+          "account": {
+            "label": "Datos de cuenta",
+            "period": "Retenidos hasta que solicites la eliminacion"
+          },
+          "payment": {
+            "label": "Registros de pago",
+            "period": "7 anos (requisito legal)"
+          },
+          "learning": {
+            "label": "Progreso de aprendizaje",
+            "period": "Hasta eliminacion de cuenta"
+          },
+          "certificates": {
+            "label": "Certificados",
+            "period": "Permanente (para verificacion)"
+          },
+          "analytics": {
+            "label": "Datos analiticos",
+            "period": "2 anos"
+          },
+          "logs": {
+            "label": "Registros del servidor",
+            "period": "90 dias"
+          }
+        },
+        "gdpr": {
+          "title": "7. Tus Derechos (GDPR - Usuarios Europeos)",
+          "content": "Si te encuentras en el Espacio Economico Europeo (EEE), tienes los siguientes derechos:",
+          "access": {
+            "label": "Derecho de Acceso",
+            "description": "Solicitar una copia de tus datos personales"
+          },
+          "rectification": {
+            "label": "Derecho de Rectificacion",
+            "description": "Solicitar correccion de datos inexactos"
+          },
+          "erasure": {
+            "label": "Derecho de Supresion",
+            "description": "Solicitar eliminacion de tus datos (\"derecho al olvido\")"
+          },
+          "restriction": {
+            "label": "Derecho de Restriccion",
+            "description": "Solicitar limitacion del procesamiento de datos"
+          },
+          "portability": {
+            "label": "Derecho a la Portabilidad",
+            "description": "Recibir tus datos en formato legible por maquina"
+          },
+          "object": {
+            "label": "Derecho de Oposicion",
+            "description": "Oponerse al procesamiento basado en intereses legitimos"
+          },
+          "withdraw": {
+            "label": "Derecho a Retirar Consentimiento",
+            "description": "Retirar consentimiento donde el procesamiento se base en consentimiento"
+          },
+          "contact": "Para ejercer estos derechos, contactanos en hello@uselearnbase.com. Responderemos dentro de 30 dias."
+        },
+        "ccpa": {
+          "title": "8. Tus Derechos (CCPA - Residentes de California)",
+          "content": "Si eres residente de California, tienes los siguientes derechos bajo la Ley de Privacidad del Consumidor de California:",
+          "know": {
+            "label": "Derecho a Saber",
+            "description": "Solicitar divulgacion de que informacion personal recopilamos, usamos y compartimos"
+          },
+          "delete": {
+            "label": "Derecho a Eliminar",
+            "description": "Solicitar eliminacion de tu informacion personal"
+          },
+          "optout": {
+            "label": "Derecho a Optar por No Participar",
+            "description": "No vendemos informacion personal, por lo que este derecho no aplica"
+          },
+          "nondiscrimination": {
+            "label": "Derecho a No Discriminacion",
+            "description": "No discriminaremos contra ti por ejercer tus derechos de privacidad"
+          }
+        },
+        "cookies": {
+          "title": "9. Cookies y Tecnologias de Seguimiento",
+          "content": "Usamos tecnologias de seguimiento minimas:",
+          "noCookies": "No usamos cookies de seguimiento tradicionales",
+          "localStorage": "Usado para almacenar tokens de autenticacion (JWT) para tu sesion",
+          "sessionStorage": "Usado para almacenar un ID de sesion temporal para analiticas",
+          "umami": "Analiticas enfocadas en privacidad que no usan cookies ni recopilan datos personales"
+        },
+        "security": {
+          "title": "10. Medidas de Seguridad",
+          "content": "Implementamos medidas tecnicas y organizativas apropiadas para proteger tu informacion:",
+          "passwords": "Las contrasenas son hasheadas de forma segura usando bcrypt",
+          "jwt": "Los tokens de autenticacion expiran despues de 15 minutos",
+          "https": "Todos los datos transmitidos sobre encriptacion HTTPS/TLS",
+          "presigned": "Acceso a archivos via URLs prefirmadas seguras (expiracion de 7 dias)",
+          "rbac": "Control de acceso basado en roles para acceso a datos",
+          "isolation": "Aislamiento de datos multi-tenant"
+        },
+        "children": {
+          "title": "11. Privacidad de Menores",
+          "content": "Nuestra plataforma no esta dirigida a menores de 13 anos. No recopilamos intencionalmente informacion personal de menores de 13 anos.",
+          "tenants": "Los propietarios de academias son responsables de asegurar el cumplimiento de requisitos de edad y obtener consentimiento apropiado para menores que acceden a sus academias.",
+          "contact": "Si crees que hemos recopilado informacion de un menor de 13 anos, por favor contactanos inmediatamente en hello@uselearnbase.com para que podamos eliminarla."
+        },
+        "multiTenant": {
+          "title": "12. Arquitectura Multi-Tenant",
+          "content": "Nuestra plataforma usa una arquitectura multi-tenant donde cada academia opera independientemente:",
+          "processor": "Actua como procesador de datos para datos de estudiantes de academias",
+          "owners": {
+            "label": "Propietarios de Academias",
+            "description": "Actuan como controladores de datos para los datos personales de sus estudiantes"
+          },
+          "review": "Si eres estudiante, por favor revisa tambien la politica de privacidad de tu academia para informacion sobre como manejan tus datos."
+        },
+        "ai": {
+          "title": "13. Aviso de Procesamiento de IA",
+          "content": "Usamos inteligencia artificial para proporcionar varias funciones:",
+          "transcription": "Transcripcion de video (audio enviado a Groq)",
+          "generation": "Generacion de contenido de cursos (prompts enviados a proveedores de IA)",
+          "chat": "Chat de asistencia de aprendizaje",
+          "images": "Generacion de imagenes y temas",
+          "providers": "El procesamiento de IA puede involucrar: Groq, Google (Gemini), OpenAI (GPT-4o) y Anthropic (Claude).",
+          "monitoring": "Las salidas de IA pueden ser monitoreadas via Langfuse para propositos de mejora de calidad."
+        },
+        "changes": {
+          "title": "14. Cambios a Esta Politica de Privacidad",
+          "content": "Podemos actualizar esta Politica de Privacidad de vez en cuando. Los cambios materiales se comunicaran por correo electronico. Los cambios menores se reflejaran con una fecha de \"Ultima Actualizacion\" actualizada. Tu uso continuado del Servicio despues de que los cambios entren en vigor constituye la aceptacion de la politica actualizada."
+        },
+        "contact": {
+          "title": "15. Contactanos",
+          "content": "Si tienes preguntas sobre esta Politica de Privacidad o deseas ejercer tus derechos de privacidad, por favor contactanos:",
+          "subject": "Para solicitudes relacionadas con privacidad, por favor incluye \"Solicitud de Privacidad\" en el asunto de tu correo."
+        }
+      }
     }
   }
 }

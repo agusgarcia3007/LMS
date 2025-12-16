@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { GraduationCap } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Image } from "@/components/ui/image";
@@ -95,12 +96,12 @@ export function CampusFooter({ tenant }: CampusFooterProps) {
           )}
 
           <div className="flex items-center gap-6 text-sm text-muted-foreground">
-            <a href="#" className="transition-colors hover:text-foreground">
+            <Link to="/terms" className="transition-colors hover:text-foreground">
               {t("campus.footer.terms")}
-            </a>
-            <a href="#" className="transition-colors hover:text-foreground">
+            </Link>
+            <Link to="/privacy" className="transition-colors hover:text-foreground">
               {t("campus.footer.privacy")}
-            </a>
+            </Link>
             {tenant.contactEmail && (
               <a
                 href={`mailto:${tenant.contactEmail}`}

@@ -20,6 +20,15 @@ import {
 } from "@/db/schema";
 import { eq, and, ilike, count, inArray, sql } from "drizzle-orm";
 
+function requirePublished(tenant: typeof tenantsTable.$inferSelect | null) {
+  if (!tenant) {
+    throw new AppError(ErrorCode.TENANT_NOT_FOUND, "Tenant not found", 404);
+  }
+  if (!tenant.published) {
+    throw new AppError(ErrorCode.TENANT_NOT_FOUND, "Academy not available", 404);
+  }
+}
+
 export const campusRoutes = new Elysia({ name: "campus" })
   .get(
     "/resolve",
@@ -35,9 +44,7 @@ export const campusRoutes = new Elysia({ name: "campus" })
           .where(eq(tenantsTable.customDomain, hostname.toLowerCase()))
           .limit(1);
 
-        if (!tenant) {
-          throw new AppError(ErrorCode.TENANT_NOT_FOUND, "Tenant not found", 404);
-        }
+        requirePublished(tenant);
 
         return {
           tenant: {
@@ -77,9 +84,7 @@ export const campusRoutes = new Elysia({ name: "campus" })
   )
   .use(tenantPlugin)
   .get("/tenant", async (ctx) => {
-      if (!ctx.tenant) {
-        throw new AppError(ErrorCode.TENANT_NOT_FOUND, "Tenant not found", 404);
-      }
+      requirePublished(ctx.tenant);
       return {
         tenant: {
           id: ctx.tenant.id,
@@ -113,9 +118,7 @@ export const campusRoutes = new Elysia({ name: "campus" })
   .get(
     "/courses",
     async (ctx) => {
-        if (!ctx.tenant) {
-          throw new AppError(ErrorCode.TENANT_NOT_FOUND, "Tenant not found", 404);
-        }
+        requirePublished(ctx.tenant);
 
         const { category, level, search, page = "1", limit = "12" } = ctx.query;
         const pageNum = parseInt(page);
@@ -289,9 +292,7 @@ export const campusRoutes = new Elysia({ name: "campus" })
   .get(
     "/courses/:slug",
     async (ctx) => {
-      if (!ctx.tenant) {
-        throw new AppError(ErrorCode.TENANT_NOT_FOUND, "Tenant not found", 404);
-      }
+      requirePublished(ctx.tenant);
 
       const [result] = await db
         .select({
@@ -395,9 +396,7 @@ export const campusRoutes = new Elysia({ name: "campus" })
   .get(
     "/categories",
     async (ctx) => {
-      if (!ctx.tenant) {
-        throw new AppError(ErrorCode.TENANT_NOT_FOUND, "Tenant not found", 404);
-      }
+      requirePublished(ctx.tenant);
 
       const categories = await db
         .select()
@@ -421,9 +420,7 @@ export const campusRoutes = new Elysia({ name: "campus" })
   .get(
     "/stats",
     async (ctx) => {
-      if (!ctx.tenant) {
-        throw new AppError(ErrorCode.TENANT_NOT_FOUND, "Tenant not found", 404);
-      }
+      requirePublished(ctx.tenant);
 
       const [coursesCount] = await db
         .select({ count: count() })
@@ -455,9 +452,7 @@ export const campusRoutes = new Elysia({ name: "campus" })
   .get(
     "/modules/:moduleId/items",
     async (ctx) => {
-        if (!ctx.tenant) {
-          throw new AppError(ErrorCode.TENANT_NOT_FOUND, "Tenant not found", 404);
-        }
+        requirePublished(ctx.tenant);
 
         const moduleItems = await db
           .select({
@@ -543,9 +538,7 @@ export const campusRoutes = new Elysia({ name: "campus" })
   .get(
     "/preview/:moduleItemId/content",
     async (ctx) => {
-        if (!ctx.tenant) {
-          throw new AppError(ErrorCode.TENANT_NOT_FOUND, "Tenant not found", 404);
-        }
+        requirePublished(ctx.tenant);
 
         const [item] = await db
           .select({
