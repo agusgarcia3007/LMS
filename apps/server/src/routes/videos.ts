@@ -193,6 +193,7 @@ export const videosRoutes = new Elysia()
           description: ctx.body.description,
           videoKey: ctx.body.videoKey,
           duration: ctx.body.duration ?? 0,
+          fileSizeBytes: ctx.body.fileSizeBytes,
           status: ctx.body.status ?? "draft",
         })
         .returning();
@@ -215,6 +216,7 @@ export const videosRoutes = new Elysia()
         description: t.Optional(t.String()),
         videoKey: t.Optional(t.String()),
         duration: t.Optional(t.Number({ minimum: 0 })),
+        fileSizeBytes: t.Optional(t.Number({ minimum: 0 })),
         status: t.Optional(
           t.Enum(
             Object.fromEntries(contentStatusEnum.enumValues.map((v) => [v, v]))
@@ -264,6 +266,8 @@ export const videosRoutes = new Elysia()
         updateData.videoKey = ctx.body.videoKey;
       if (ctx.body.duration !== undefined)
         updateData.duration = ctx.body.duration;
+      if (ctx.body.fileSizeBytes !== undefined)
+        updateData.fileSizeBytes = ctx.body.fileSizeBytes;
       if (ctx.body.status !== undefined) updateData.status = ctx.body.status;
 
       const [updatedVideo] = await db
@@ -297,6 +301,7 @@ export const videosRoutes = new Elysia()
         description: t.Optional(t.Union([t.String(), t.Null()])),
         videoKey: t.Optional(t.Union([t.String(), t.Null()])),
         duration: t.Optional(t.Number({ minimum: 0 })),
+        fileSizeBytes: t.Optional(t.Number({ minimum: 0 })),
         status: t.Optional(
           t.Enum(
             Object.fromEntries(contentStatusEnum.enumValues.map((v) => [v, v]))
@@ -387,6 +392,9 @@ export const videosRoutes = new Elysia()
       if (ctx.body.duration !== undefined) {
         updateData.duration = ctx.body.duration;
       }
+      if (ctx.body.fileSizeBytes !== undefined) {
+        updateData.fileSizeBytes = ctx.body.fileSizeBytes;
+      }
 
       const [updatedVideo] = await db
         .update(videosTable)
@@ -405,6 +413,7 @@ export const videosRoutes = new Elysia()
       body: t.Object({
         key: t.String({ minLength: 1 }),
         duration: t.Optional(t.Number({ minimum: 0 })),
+        fileSizeBytes: t.Optional(t.Number({ minimum: 0 })),
       }),
       detail: {
         tags: ["Videos"],

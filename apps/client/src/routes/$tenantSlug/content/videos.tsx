@@ -116,6 +116,7 @@ function VideosPage() {
   const [pendingVideoKey, setPendingVideoKey] = useState<string | null>(null);
   const [pendingVideoUrl, setPendingVideoUrl] = useState<string | null>(null);
   const [pendingDuration, setPendingDuration] = useState<number>(0);
+  const [pendingFileSizeBytes, setPendingFileSizeBytes] = useState<number>(0);
 
   const createMutation = useCreateVideo();
   const updateMutation = useUpdateVideo();
@@ -184,6 +185,7 @@ function VideosPage() {
             ...values,
             videoKey: pendingVideoKey ?? undefined,
             duration: pendingDuration,
+            fileSizeBytes: pendingFileSizeBytes || undefined,
           },
           {
             onSuccess: () => handleCloseEditor(false),
@@ -191,7 +193,7 @@ function VideosPage() {
         );
       }
     },
-    [editVideo, createMutation, updateMutation, handleCloseEditor, pendingVideoKey, pendingDuration]
+    [editVideo, createMutation, updateMutation, handleCloseEditor, pendingVideoKey, pendingDuration, pendingFileSizeBytes]
   );
 
   const handleDelete = useCallback(() => {
@@ -202,12 +204,13 @@ function VideosPage() {
   }, [deleteVideo, deleteMutation]);
 
   const handleConfirmVideo = useCallback(
-    async ({ key, duration }: { key: string; duration: number }) => {
+    async ({ key, duration, fileSizeBytes }: { key: string; duration: number; fileSizeBytes: number }) => {
       if (!editVideo) return "";
       const result = await confirmMutation.mutateAsync({
         id: editVideo.id,
         key,
         duration,
+        fileSizeBytes,
       });
       return result.video.videoUrl ?? "";
     },
@@ -221,11 +224,12 @@ function VideosPage() {
   }, [editVideo, deleteFileMutation]);
 
   const handleConfirmVideoStandalone = useCallback(
-    async ({ key, duration }: { key: string; duration: number }) => {
+    async ({ key, duration, fileSizeBytes }: { key: string; duration: number; fileSizeBytes: number }) => {
       const result = await confirmStandaloneMutation.mutateAsync(key);
       setPendingVideoKey(result.videoKey);
       setPendingVideoUrl(result.videoUrl);
       setPendingDuration(duration);
+      setPendingFileSizeBytes(fileSizeBytes);
       return result.videoUrl;
     },
     [confirmStandaloneMutation]
@@ -235,6 +239,7 @@ function VideosPage() {
     setPendingVideoKey(null);
     setPendingVideoUrl(null);
     setPendingDuration(0);
+    setPendingFileSizeBytes(0);
   }, []);
 
   const hasVideo = editVideo?.videoKey || pendingVideoKey;

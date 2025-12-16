@@ -355,6 +355,7 @@ export const videosTable = pgTable(
     description: text("description"),
     videoKey: text("video_key"),
     duration: integer("duration").notNull().default(0),
+    fileSizeBytes: integer("file_size_bytes"),
     transcript: text("transcript"),
     status: contentStatusEnum("status").notNull().default("draft"),
     embedding: vector("embedding", { dimensions: 384 }),

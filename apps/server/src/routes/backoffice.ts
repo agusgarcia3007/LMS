@@ -13,6 +13,7 @@ import {
   documentsTable,
   waitlistTable,
   subscriptionHistoryTable,
+  paymentsTable,
 } from "@/db/schema";
 import type { TenantPlan, SubscriptionStatus } from "@/db/schema";
 import { count, sql, eq, gte, and, desc, ilike, inArray } from "drizzle-orm";
@@ -180,11 +181,12 @@ export const backofficeRoutes = new Elysia()
             .where(eq(enrollmentsTable.status, "completed")),
           db
             .select({
-              total: sql<number>`COALESCE(SUM(${coursesTable.price}), 0)`,
-              avgPrice: sql<number>`COALESCE(AVG(${coursesTable.price}), 0)`,
+              totalProcessed: sql<number>`COALESCE(SUM(${paymentsTable.amount}), 0)`,
+              platformFees: sql<number>`COALESCE(SUM(${paymentsTable.platformFee}), 0)`,
+              transactionCount: count(),
             })
-            .from(enrollmentsTable)
-            .innerJoin(coursesTable, eq(enrollmentsTable.courseId, coursesTable.id)),
+            .from(paymentsTable)
+            .where(eq(paymentsTable.status, "succeeded")),
           db
             .select({
               avgProgress: sql<number>`COALESCE(AVG(${enrollmentsTable.progress}), 0)`,
@@ -192,6 +194,22 @@ export const backofficeRoutes = new Elysia()
             .from(enrollmentsTable)
             .where(eq(enrollmentsTable.status, "active")),
         ]);
+
+        const tenantBreakdown = await db
+          .select({
+            tenantId: paymentsTable.tenantId,
+            tenantName: tenantsTable.name,
+            tenantSlug: tenantsTable.slug,
+            totalProcessed: sql<number>`SUM(${paymentsTable.amount})`,
+            platformFees: sql<number>`SUM(${paymentsTable.platformFee})`,
+            transactionCount: count(),
+          })
+          .from(paymentsTable)
+          .innerJoin(tenantsTable, eq(paymentsTable.tenantId, tenantsTable.id))
+          .where(eq(paymentsTable.status, "succeeded"))
+          .groupBy(paymentsTable.tenantId, tenantsTable.name, tenantsTable.slug)
+          .orderBy(desc(sql`SUM(${paymentsTable.amount})`))
+          .limit(10);
 
         const calculateGrowth = (current: number, previous: number): number => {
           if (previous === 0) return current > 0 ? 100 : 0;
@@ -227,8 +245,17 @@ export const backofficeRoutes = new Elysia()
               ),
             },
             revenue: {
-              total: Number(revenueResult[0].total) / 100,
-              avgCoursePrice: Math.round(Number(revenueResult[0].avgPrice) / 100),
+              totalProcessed: Number(revenueResult[0].totalProcessed) / 100,
+              platformFeeRevenue: Number(revenueResult[0].platformFees) / 100,
+              transactionCount: Number(revenueResult[0].transactionCount),
+              tenantBreakdown: tenantBreakdown.map((t) => ({
+                tenantId: t.tenantId,
+                tenantName: t.tenantName,
+                tenantSlug: t.tenantSlug,
+                processed: Number(t.totalProcessed ?? 0) / 100,
+                fees: Number(t.platformFees ?? 0) / 100,
+                transactions: Number(t.transactionCount),
+              })),
             },
             engagement: {
               avgCompletionRate: Math.round(Number(avgProgressResult[0].avgProgress)),

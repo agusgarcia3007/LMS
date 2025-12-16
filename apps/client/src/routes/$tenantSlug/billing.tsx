@@ -10,10 +10,12 @@ import { cn } from "@/lib/utils";
 import {
   useCreatePortalSession,
   useCreateSubscription,
+  useEarnings,
   usePlans,
   useSubscription,
 } from "@/services/billing";
 import type {
+  EarningsResponse,
   SubscriptionResponse,
   TenantPlan,
 } from "@/services/billing/service";
@@ -22,9 +24,11 @@ import {
   ArrowRight,
   BookOpen,
   CreditCard,
+  DollarSign,
   ExternalLink,
   HardDrive,
   Percent,
+  TrendingUp,
   Users,
 } from "lucide-react";
 import { useState } from "react";
@@ -116,6 +120,79 @@ function UsageCard({
         )}
       </CardContent>
     </Card>
+  );
+}
+
+function formatCurrency(cents: number): string {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+  }).format(cents / 100);
+}
+
+function EarningsSection({ earnings }: { earnings: EarningsResponse }) {
+  const { t } = useTranslation();
+
+  return (
+    <div className="space-y-4">
+      <h2 className="text-lg font-semibold flex items-center gap-2">
+        <TrendingUp className="size-5" />
+        {t("billing.earnings.title")}
+      </h2>
+
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              {t("billing.earnings.gross")}
+            </CardTitle>
+            <DollarSign className="size-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">
+              {formatCurrency(earnings.grossEarnings)}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {earnings.transactionCount} {t("billing.earnings.transactions")}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              {t("billing.earnings.net")}
+            </CardTitle>
+            <TrendingUp className="size-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {formatCurrency(earnings.netEarnings)}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {t("billing.earnings.afterFees")}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              {t("billing.earnings.fees")}
+            </CardTitle>
+            <Percent className="size-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-orange-600">
+              {formatCurrency(earnings.platformFees)}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {t("billing.earnings.platformFees")}
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
   );
 }
 
@@ -226,11 +303,13 @@ function BillingPageSkeleton() {
 
 function BillingContent({
   subscription,
+  earnings,
   onManageBilling,
   onChangePlan,
   isLoadingPortal,
 }: {
   subscription: SubscriptionResponse;
+  earnings: EarningsResponse | undefined;
   onManageBilling: () => void;
   onChangePlan: () => void;
   isLoadingPortal: boolean;
@@ -271,6 +350,8 @@ function BillingContent({
         />
       </div>
 
+      {earnings && <EarningsSection earnings={earnings} />}
+
       <CurrentPlanCard
         subscription={subscription}
         onManageBilling={onManageBilling}
@@ -286,6 +367,7 @@ function BillingPage() {
   const { data: subscription, isLoading: isLoadingSubscription } =
     useSubscription();
   const { data: plansData, isLoading: isLoadingPlans } = usePlans();
+  const { data: earnings } = useEarnings();
   const { mutate: createSubscription, isPending: isCreating } =
     useCreateSubscription();
   const { mutate: createPortal, isPending: isOpeningPortal } =
@@ -320,6 +402,7 @@ function BillingPage() {
     <>
       <BillingContent
         subscription={subscription!}
+        earnings={earnings}
         onManageBilling={handleManageBilling}
         onChangePlan={() => setShowPricingModal(true)}
         isLoadingPortal={isOpeningPortal}

@@ -14,6 +14,12 @@ export const billingQueryOptions = {
       queryKey: QUERY_KEYS.PLANS,
       queryFn: () => BillingService.getPlans(),
     }),
+
+  earnings: () =>
+    queryOptions({
+      queryKey: QUERY_KEYS.EARNINGS,
+      queryFn: () => BillingService.getEarnings(),
+    }),
 };
 
 export const billingMutationOptions = {

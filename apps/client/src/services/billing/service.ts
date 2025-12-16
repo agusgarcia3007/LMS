@@ -42,9 +42,25 @@ export type PortalResponse = {
   portalUrl: string;
 };
 
+export type MonthlyEarning = {
+  month: string;
+  gross: number;
+  net: number;
+  fees: number;
+};
+
+export type EarningsResponse = {
+  grossEarnings: number;
+  netEarnings: number;
+  platformFees: number;
+  transactionCount: number;
+  monthlyBreakdown: MonthlyEarning[];
+};
+
 export const QUERY_KEYS = {
   SUBSCRIPTION: ["billing", "subscription"] as const,
   PLANS: ["billing", "plans"] as const,
+  EARNINGS: ["billing", "earnings"] as const,
 } as const;
 
 export const BillingService = {
@@ -70,6 +86,11 @@ export const BillingService = {
 
   async cancelSubscription() {
     const { data } = await http.post<{ success: boolean }>("/billing/subscription/cancel", {});
+    return data;
+  },
+
+  async getEarnings() {
+    const { data } = await http.get<EarningsResponse>("/billing/earnings");
     return data;
   },
 } as const;

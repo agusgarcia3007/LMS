@@ -65,8 +65,8 @@ export const useDeleteVideoOptions = () => {
 export const useConfirmVideoFileOptions = () => {
   const queryClient = useQueryClient();
   return mutationOptions({
-    mutationFn: ({ id, key, duration }: { id: string; key: string; duration?: number }) =>
-      VideosService.confirmVideo(id, key, duration),
+    mutationFn: ({ id, key, duration, fileSizeBytes }: { id: string; key: string; duration?: number; fileSizeBytes?: number }) =>
+      VideosService.confirmVideo(id, key, duration, fileSizeBytes),
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.VIDEOS });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.VIDEO(id) });

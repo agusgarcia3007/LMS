@@ -11,7 +11,7 @@ import { useTranslation } from "react-i18next";
 interface VideoUploadProps {
   value?: string | null;
   onChange: (url: string | null) => void;
-  onConfirm: (data: { key: string; duration: number }) => Promise<string>;
+  onConfirm: (data: { key: string; duration: number; fileSizeBytes: number }) => Promise<string>;
   onDelete?: () => Promise<void>;
   folder: UploadFolder;
   maxSize?: number;
@@ -65,7 +65,7 @@ export function VideoUpload({
           getVideoDuration(file),
         ]);
 
-        const url = await onConfirm({ key, duration });
+        const url = await onConfirm({ key, duration, fileSizeBytes: file.size });
         onChange(url);
         setLocalPreview(null);
         URL.revokeObjectURL(preview);

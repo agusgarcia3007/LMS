@@ -9,6 +9,7 @@ import {
   TrendingDown,
   DollarSign,
   Activity,
+  Percent,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { DashboardStats } from "@/services/dashboard";
@@ -159,8 +160,8 @@ export function StatsOverview({ stats, isLoading }: StatsOverviewProps) {
           isLoading={isLoading}
         />
         <StatCard
-          title={t("backoffice.dashboard.totalRevenue")}
-          value={stats?.revenue.total}
+          title={t("backoffice.dashboard.totalProcessed")}
+          value={stats?.revenue.totalProcessed}
           icon={DollarSign}
           isLoading={isLoading}
           format="currency"
@@ -169,6 +170,14 @@ export function StatsOverview({ stats, isLoading }: StatsOverviewProps) {
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard
+          title={t("backoffice.dashboard.platformFees")}
+          value={stats?.revenue.platformFeeRevenue}
+          icon={Percent}
+          isLoading={isLoading}
+          format="currency"
+          accent="warning"
+        />
         <StatCard
           title={t("backoffice.dashboard.totalEnrollments")}
           value={stats?.overview.totalEnrollments}

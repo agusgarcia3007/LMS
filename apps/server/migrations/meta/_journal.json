@@ -351,6 +351,13 @@
       "when": 1765826251767,
       "tag": "0049_friendly_rictor",
       "breakpoints": true
+    },
+    {
+      "idx": 50,
+      "version": "7",
+      "when": 1765897569920,
+      "tag": "0050_high_texas_twister",
+      "breakpoints": true
     }
   ]
 }

@@ -69,6 +69,15 @@
       "courses": "Courses",
       "progress": "{{percentage}}% used",
       "unlimited": "Unlimited"
+    },
+    "earnings": {
+      "title": "Earnings",
+      "gross": "Gross Earnings",
+      "net": "Net Earnings",
+      "fees": "Platform Fees",
+      "transactions": "transactions",
+      "afterFees": "After platform fees",
+      "platformFees": "Fees paid to platform"
     }
   },
   "connect": {
@@ -1144,7 +1153,8 @@
       "totalTenants": "Organizations",
       "totalCourses": "Total Courses",
       "totalEnrollments": "Enrollments",
-      "totalRevenue": "Total Revenue",
+      "totalProcessed": "Total Processed",
+      "platformFees": "Platform Fee Revenue",
       "activeUsers": "Active Users (30d)",
       "completionRate": "Completion Rate",
       "certificates": "Certificates",

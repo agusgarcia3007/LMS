@@ -69,6 +69,15 @@
       "courses": "Cursos",
       "progress": "{{percentage}}% usado",
       "unlimited": "Ilimitado"
+    },
+    "earnings": {
+      "title": "Ganancias",
+      "gross": "Ganancias Brutas",
+      "net": "Ganancias Netas",
+      "fees": "Comisiones de Plataforma",
+      "transactions": "transacciones",
+      "afterFees": "Despues de comisiones",
+      "platformFees": "Comisiones pagadas a la plataforma"
     }
   },
   "connect": {
@@ -1104,7 +1113,8 @@
       "totalTenants": "Organizaciones",
       "totalCourses": "Total Cursos",
       "totalEnrollments": "Inscripciones",
-      "totalRevenue": "Ingresos Totales",
+      "totalProcessed": "Total Procesado",
+      "platformFees": "Comisiones de Plataforma",
       "activeUsers": "Usuarios Activos (30d)",
       "completionRate": "Tasa de Completado",
       "certificates": "Certificados",

@@ -69,6 +69,15 @@
       "courses": "Cursos",
       "progress": "{{percentage}}% usado",
       "unlimited": "Ilimitado"
+    },
+    "earnings": {
+      "title": "Ganhos",
+      "gross": "Ganhos Brutos",
+      "net": "Ganhos Liquidos",
+      "fees": "Taxas da Plataforma",
+      "transactions": "transacoes",
+      "afterFees": "Apos taxas da plataforma",
+      "platformFees": "Taxas pagas a plataforma"
     }
   },
   "connect": {
@@ -1121,7 +1130,8 @@
       "totalTenants": "Organizacoes",
       "totalCourses": "Total Cursos",
       "totalEnrollments": "Inscricoes",
-      "totalRevenue": "Receita Total",
+      "totalProcessed": "Total Processado",
+      "platformFees": "Taxas da Plataforma",
       "activeUsers": "Usuarios Ativos (30d)",
       "completionRate": "Taxa de Conclusao",
       "certificates": "Certificados",

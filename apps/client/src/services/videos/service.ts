@@ -49,6 +49,7 @@ export type CreateVideoRequest = {
   description?: string;
   videoKey?: string;
   duration?: number;
+  fileSizeBytes?: number;
   status?: ContentStatus;
 };
 
@@ -57,6 +58,7 @@ export type UpdateVideoRequest = {
   description?: string | null;
   videoKey?: string | null;
   duration?: number;
+  fileSizeBytes?: number;
   status?: ContentStatus;
 };
 
@@ -112,8 +114,8 @@ export const VideosService = {
     return data;
   },
 
-  async confirmVideo(id: string, key: string, duration?: number) {
-    const { data } = await http.post<{ video: Video }>(`/videos/${id}/video`, { key, duration });
+  async confirmVideo(id: string, key: string, duration?: number, fileSizeBytes?: number) {
+    const { data } = await http.post<{ video: Video }>(`/videos/${id}/video`, { key, duration, fileSizeBytes });
     return data;
   },
 

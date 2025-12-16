@@ -15,9 +15,20 @@ export type GrowthStats = {
   enrollmentsChange: number;
 };
 
+export type TenantRevenue = {
+  tenantId: string;
+  tenantName: string;
+  tenantSlug: string;
+  processed: number;
+  fees: number;
+  transactions: number;
+};
+
 export type RevenueStats = {
-  total: number;
-  avgCoursePrice: number;
+  totalProcessed: number;
+  platformFeeRevenue: number;
+  transactionCount: number;
+  tenantBreakdown: TenantRevenue[];
 };
 
 export type EngagementStats = {

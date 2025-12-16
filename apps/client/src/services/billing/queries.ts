@@ -8,3 +8,7 @@ export function useSubscription() {
 export function usePlans() {
   return useQuery(billingQueryOptions.plans());
 }
+
+export function useEarnings() {
+  return useQuery(billingQueryOptions.earnings());
+}
