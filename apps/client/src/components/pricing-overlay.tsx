@@ -39,24 +39,24 @@ function PricingCard({
 }) {
   const features = [
     plan.maxStudents
-      ? t("billing.features.maxStudents", { count: plan.maxStudents })
-      : t("billing.features.unlimitedStudents"),
+      ? t("subscription.features.maxStudents", { count: plan.maxStudents })
+      : t("subscription.features.unlimitedStudents"),
     plan.maxCourses
-      ? t("billing.features.maxCourses", { count: plan.maxCourses })
-      : t("billing.features.unlimitedCourses"),
-    t("billing.features.storage", { size: plan.storageGb }),
-    t("billing.features.ai", {
-      type: t(`billing.aiTypes.${plan.aiGeneration}`),
+      ? t("subscription.features.maxCourses", { count: plan.maxCourses })
+      : t("subscription.features.unlimitedCourses"),
+    t("subscription.features.storage", { size: plan.storageGb }),
+    t("subscription.features.ai", {
+      type: t(`subscription.aiTypes.${plan.aiGeneration}`),
     }),
-    t("billing.features.commission", { rate: plan.commissionRate }),
+    t("subscription.features.commission", { rate: plan.commissionRate }),
   ];
 
-  if (plan.certificates) features.push(t("billing.features.certificates"));
-  if (plan.customDomain) features.push(t("billing.features.customDomain"));
-  if (plan.analytics) features.push(t("billing.features.analytics"));
+  if (plan.certificates) features.push(t("subscription.features.certificates"));
+  if (plan.customDomain) features.push(t("subscription.features.customDomain"));
+  if (plan.analytics) features.push(t("subscription.features.analytics"));
   if (plan.prioritySupport)
-    features.push(t("billing.features.prioritySupport"));
-  if (plan.whiteLabel) features.push(t("billing.features.whiteLabel"));
+    features.push(t("subscription.features.prioritySupport"));
+  if (plan.whiteLabel) features.push(t("subscription.features.whiteLabel"));
 
   return (
     <div
@@ -68,11 +68,11 @@ function PricingCard({
     >
       <div className={cn("p-8", isRecommended && "lg:py-3 lg:px-0")}>
         <div className="p-0 lg:p-8">
-          <h3 className="font-medium">{t(`billing.plans.${plan.id}`)}</h3>
+          <h3 className="font-medium">{t(`subscription.plans.${plan.id}`)}</h3>
           <span className="mb-0.5 mt-2 block text-2xl font-semibold">
             {formatPrice(plan.monthlyPrice, "USD")}{" "}
             <span className="text-sm font-normal text-muted-foreground">
-              {t("billing.perMonth")}
+              {t("subscription.perMonth")}
             </span>
           </span>
         </div>
@@ -92,7 +92,7 @@ function PricingCard({
             {isLoading ? (
               <Loader2 className="size-4 animate-spin" />
             ) : (
-              t("billing.selectPlan")
+              t("subscription.selectPlan")
             )}
           </Button>
         </div>
@@ -132,14 +132,14 @@ export function PricingOverlay({
         <div className="mx-auto max-w-2xl text-center">
           <Badge variant="outline" className="mb-4">
             {canClose
-              ? t("billing.changePlan")
-              : t("billing.noPlanDescription")}
+              ? t("subscription.changePlan")
+              : t("subscription.noPlanDescription")}
           </Badge>
           <h2 className="text-balance text-3xl font-bold md:text-4xl">
-            {t("billing.overlay.title")}
+            {t("subscription.overlay.title")}
           </h2>
           <p className="text-muted-foreground mx-auto mt-4 max-w-xl text-balance text-lg">
-            {t("billing.overlay.description")}
+            {t("subscription.overlay.description")}
           </p>
         </div>
 
