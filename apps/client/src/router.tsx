@@ -3,6 +3,7 @@ import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query
 import * as TanstackQuery from "./integrations/tanstack-query/root-provider";
 import { ThemeProvider } from "@/components/ui/theme-provider";
 import { routeTree } from "./routeTree.gen";
+import { ErrorBoundary, NotFoundBoundary } from "@/components/error";
 
 export const getRouter = () => {
   const rqContext = TanstackQuery.getContext();
@@ -15,6 +16,8 @@ export const getRouter = () => {
     defaultPendingMs: 0,
     defaultPendingMinMs: 0,
     scrollRestoration: true,
+    defaultErrorComponent: ErrorBoundary,
+    defaultNotFoundComponent: NotFoundBoundary,
     Wrap: (props: { children: React.ReactNode }) => {
       return (
         <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
@@ -26,7 +29,10 @@ export const getRouter = () => {
     },
   });
 
-  setupRouterSsrQueryIntegration({ router, queryClient: rqContext.queryClient });
+  setupRouterSsrQueryIntegration({
+    router,
+    queryClient: rqContext.queryClient,
+  });
 
   return router;
 };

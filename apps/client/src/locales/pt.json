@@ -271,7 +271,16 @@
     "internal_server_error": "Ocorreu um erro inesperado. Por favor, tente mais tarde.",
     "invalid_verification_token": "Este link de verificação é inválido.",
     "verification_token_expired": "Este link de verificação expirou. Por favor solicite um novo.",
-    "already_verified": "Seu e-mail já está verificado."
+    "already_verified": "Seu e-mail já está verificado.",
+    "pageTitle": "Algo deu errado",
+    "pageDescription": "Ocorreu um erro inesperado. Por favor, tente novamente.",
+    "notFoundTitle": "Página não encontrada",
+    "notFoundDescription": "A página que você procura não existe ou foi movida.",
+    "backToHome": "Voltar ao início",
+    "backToCampus": "Voltar ao campus",
+    "tryAgain": "Tentar novamente",
+    "showDetails": "Mostrar detalhes",
+    "hideDetails": "Ocultar detalhes"
   },
   "auth": {
     "login": {
@@ -2114,7 +2123,8 @@
       "title": "Erro no Pagamento",
       "description": "Houve um problema ao processar seu pagamento. Por favor, tente novamente."
     },
-    "backToDashboard": "Voltar ao Painel"
+    "backToDashboard": "Voltar ao Painel",
+    "backToCourses": "Voltar aos Cursos"
   },
   "contentViewer": {
     "markComplete": "Marcar como concluido",

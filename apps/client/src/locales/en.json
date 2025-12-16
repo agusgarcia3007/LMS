@@ -270,7 +270,16 @@
     "internal_server_error": "An unexpected error occurred. Please try again later.",
     "invalid_verification_token": "This verification link is invalid.",
     "verification_token_expired": "This verification link has expired. Please request a new one.",
-    "already_verified": "Your email is already verified."
+    "already_verified": "Your email is already verified.",
+    "pageTitle": "Something went wrong",
+    "pageDescription": "An unexpected error occurred. Please try again.",
+    "notFoundTitle": "Page not found",
+    "notFoundDescription": "The page you're looking for doesn't exist or has been moved.",
+    "backToHome": "Back to home",
+    "backToCampus": "Back to campus",
+    "tryAgain": "Try again",
+    "showDetails": "Show details",
+    "hideDetails": "Hide details"
   },
   "auth": {
     "login": {
@@ -2351,7 +2360,8 @@
       "title": "Payment Error",
       "description": "There was an issue processing your payment. Please try again."
     },
-    "backToDashboard": "Back to Dashboard"
+    "backToDashboard": "Back to Dashboard",
+    "backToCourses": "Back to Courses"
   },
   "contentViewer": {
     "markComplete": "Mark as complete",

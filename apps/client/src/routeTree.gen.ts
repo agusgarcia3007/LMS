@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as CreateTenantRouteImport } from './routes/create-tenant'
 import { Route as CoursesRouteImport } from './routes/courses'
+import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as MyCoursesRouteRouteImport } from './routes/my-courses/route'
 import { Route as BackofficeRouteRouteImport } from './routes/backoffice/route'
 import { Route as _authRouteRouteImport } from './routes/__auth/route'
@@ -25,6 +26,7 @@ import { Route as VerifyCodeRouteImport } from './routes/verify.$code'
 import { Route as SitemapXmlRouteImport } from './routes/sitemap.xml'
 import { Route as MyCoursesCourseSlugRouteImport } from './routes/my-courses/$courseSlug'
 import { Route as CoursesCourseSlugRouteImport } from './routes/courses/$courseSlug'
+import { Route as CheckoutSuccessRouteImport } from './routes/checkout/success'
 import { Route as BackofficeWaitlistRouteImport } from './routes/backoffice/waitlist'
 import { Route as BackofficeUsersRouteImport } from './routes/backoffice/users'
 import { Route as BackofficeTenantsRouteImport } from './routes/backoffice/tenants'
@@ -71,6 +73,11 @@ const CreateTenantRoute = CreateTenantRouteImport.update({
 const CoursesRoute = CoursesRouteImport.update({
   id: '/courses',
   path: '/courses',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CheckoutRoute = CheckoutRouteImport.update({
+  id: '/checkout',
+  path: '/checkout',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MyCoursesRouteRoute = MyCoursesRouteRouteImport.update({
@@ -136,6 +143,11 @@ const CoursesCourseSlugRoute = CoursesCourseSlugRouteImport.update({
   id: '/$courseSlug',
   path: '/$courseSlug',
   getParentRoute: () => CoursesRoute,
+} as any)
+const CheckoutSuccessRoute = CheckoutSuccessRouteImport.update({
+  id: '/success',
+  path: '/success',
+  getParentRoute: () => CheckoutRoute,
 } as any)
 const BackofficeWaitlistRoute = BackofficeWaitlistRouteImport.update({
   id: '/waitlist',
@@ -316,6 +328,7 @@ export interface FileRoutesByFullPath {
   '/$tenantSlug': typeof TenantSlugRouteRouteWithChildren
   '/backoffice': typeof BackofficeRouteRouteWithChildren
   '/my-courses': typeof MyCoursesRouteRouteWithChildren
+  '/checkout': typeof CheckoutRouteWithChildren
   '/courses': typeof CoursesRouteWithChildren
   '/create-tenant': typeof CreateTenantRoute
   '/profile': typeof ProfileRoute
@@ -333,6 +346,7 @@ export interface FileRoutesByFullPath {
   '/backoffice/tenants': typeof BackofficeTenantsRoute
   '/backoffice/users': typeof BackofficeUsersRoute
   '/backoffice/waitlist': typeof BackofficeWaitlistRoute
+  '/checkout/success': typeof CheckoutSuccessRoute
   '/courses/$courseSlug': typeof CoursesCourseSlugRoute
   '/my-courses/$courseSlug': typeof MyCoursesCourseSlugRoute
   '/sitemap/xml': typeof SitemapXmlRoute
@@ -362,6 +376,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/checkout': typeof CheckoutRouteWithChildren
   '/create-tenant': typeof CreateTenantRoute
   '/profile': typeof ProfileRoute
   '/$tenantSlug/billing': typeof TenantSlugBillingRoute
@@ -378,6 +393,7 @@ export interface FileRoutesByTo {
   '/backoffice/tenants': typeof BackofficeTenantsRoute
   '/backoffice/users': typeof BackofficeUsersRoute
   '/backoffice/waitlist': typeof BackofficeWaitlistRoute
+  '/checkout/success': typeof CheckoutSuccessRoute
   '/courses/$courseSlug': typeof CoursesCourseSlugRoute
   '/my-courses/$courseSlug': typeof MyCoursesCourseSlugRoute
   '/sitemap/xml': typeof SitemapXmlRoute
@@ -411,6 +427,7 @@ export interface FileRoutesById {
   '/__auth': typeof _authRouteRouteWithChildren
   '/backoffice': typeof BackofficeRouteRouteWithChildren
   '/my-courses': typeof MyCoursesRouteRouteWithChildren
+  '/checkout': typeof CheckoutRouteWithChildren
   '/courses': typeof CoursesRouteWithChildren
   '/create-tenant': typeof CreateTenantRoute
   '/profile': typeof ProfileRoute
@@ -428,6 +445,7 @@ export interface FileRoutesById {
   '/backoffice/tenants': typeof BackofficeTenantsRoute
   '/backoffice/users': typeof BackofficeUsersRoute
   '/backoffice/waitlist': typeof BackofficeWaitlistRoute
+  '/checkout/success': typeof CheckoutSuccessRoute
   '/courses/$courseSlug': typeof CoursesCourseSlugRoute
   '/my-courses/$courseSlug': typeof MyCoursesCourseSlugRoute
   '/sitemap/xml': typeof SitemapXmlRoute
@@ -462,6 +480,7 @@ export interface FileRouteTypes {
     | '/$tenantSlug'
     | '/backoffice'
     | '/my-courses'
+    | '/checkout'
     | '/courses'
     | '/create-tenant'
     | '/profile'
@@ -479,6 +498,7 @@ export interface FileRouteTypes {
     | '/backoffice/tenants'
     | '/backoffice/users'
     | '/backoffice/waitlist'
+    | '/checkout/success'
     | '/courses/$courseSlug'
     | '/my-courses/$courseSlug'
     | '/sitemap/xml'
@@ -508,6 +528,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/checkout'
     | '/create-tenant'
     | '/profile'
     | '/$tenantSlug/billing'
@@ -524,6 +545,7 @@ export interface FileRouteTypes {
     | '/backoffice/tenants'
     | '/backoffice/users'
     | '/backoffice/waitlist'
+    | '/checkout/success'
     | '/courses/$courseSlug'
     | '/my-courses/$courseSlug'
     | '/sitemap/xml'
@@ -556,6 +578,7 @@ export interface FileRouteTypes {
     | '/__auth'
     | '/backoffice'
     | '/my-courses'
+    | '/checkout'
     | '/courses'
     | '/create-tenant'
     | '/profile'
@@ -573,6 +596,7 @@ export interface FileRouteTypes {
     | '/backoffice/tenants'
     | '/backoffice/users'
     | '/backoffice/waitlist'
+    | '/checkout/success'
     | '/courses/$courseSlug'
     | '/my-courses/$courseSlug'
     | '/sitemap/xml'
@@ -607,6 +631,7 @@ export interface RootRouteChildren {
   _authRouteRoute: typeof _authRouteRouteWithChildren
   BackofficeRouteRoute: typeof BackofficeRouteRouteWithChildren
   MyCoursesRouteRoute: typeof MyCoursesRouteRouteWithChildren
+  CheckoutRoute: typeof CheckoutRouteWithChildren
   CoursesRoute: typeof CoursesRouteWithChildren
   CreateTenantRoute: typeof CreateTenantRoute
   ProfileRoute: typeof ProfileRoute
@@ -638,6 +663,13 @@ declare module '@tanstack/react-router' {
       path: '/courses'
       fullPath: '/courses'
       preLoaderRoute: typeof CoursesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/checkout': {
+      id: '/checkout'
+      path: '/checkout'
+      fullPath: '/checkout'
+      preLoaderRoute: typeof CheckoutRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/my-courses': {
@@ -730,6 +762,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/courses/$courseSlug'
       preLoaderRoute: typeof CoursesCourseSlugRouteImport
       parentRoute: typeof CoursesRoute
+    }
+    '/checkout/success': {
+      id: '/checkout/success'
+      path: '/success'
+      fullPath: '/checkout/success'
+      preLoaderRoute: typeof CheckoutSuccessRouteImport
+      parentRoute: typeof CheckoutRoute
     }
     '/backoffice/waitlist': {
       id: '/backoffice/waitlist'
@@ -1076,6 +1115,18 @@ const MyCoursesRouteRouteWithChildren = MyCoursesRouteRoute._addFileChildren(
   MyCoursesRouteRouteChildren,
 )
 
+interface CheckoutRouteChildren {
+  CheckoutSuccessRoute: typeof CheckoutSuccessRoute
+}
+
+const CheckoutRouteChildren: CheckoutRouteChildren = {
+  CheckoutSuccessRoute: CheckoutSuccessRoute,
+}
+
+const CheckoutRouteWithChildren = CheckoutRoute._addFileChildren(
+  CheckoutRouteChildren,
+)
+
 interface CoursesRouteChildren {
   CoursesCourseSlugRoute: typeof CoursesCourseSlugRoute
   CoursesIndexRoute: typeof CoursesIndexRoute
@@ -1095,6 +1146,7 @@ const rootRouteChildren: RootRouteChildren = {
   _authRouteRoute: _authRouteRouteWithChildren,
   BackofficeRouteRoute: BackofficeRouteRouteWithChildren,
   MyCoursesRouteRoute: MyCoursesRouteRouteWithChildren,
+  CheckoutRoute: CheckoutRouteWithChildren,
   CoursesRoute: CoursesRouteWithChildren,
   CreateTenantRoute: CreateTenantRoute,
   ProfileRoute: ProfileRoute,
