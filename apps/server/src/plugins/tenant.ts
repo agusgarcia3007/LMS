@@ -8,6 +8,7 @@ import { env } from "@/lib/env";
 const TENANT_CACHE_TTL = 30 * 60 * 1000;
 const tenantCache = new Cache<SelectTenant>(TENANT_CACHE_TTL, 500);
 const customDomainCache = new Cache<SelectTenant>(TENANT_CACHE_TTL, 500);
+const tenantIdCache = new Cache<SelectTenant>(TENANT_CACHE_TTL, 500);
 
 export function invalidateTenantCache(slug: string): void {
   tenantCache.delete(slug);
@@ -69,6 +70,28 @@ async function findTenantByCustomDomain(
 
   if (tenant) {
     customDomainCache.set(domain, tenant);
+    return tenant.status === "active" ? tenant : null;
+  }
+
+  return null;
+}
+
+export async function findTenantById(
+  id: string
+): Promise<SelectTenant | null> {
+  const cached = tenantIdCache.get(id);
+  if (cached) {
+    return cached.status === "active" ? cached : null;
+  }
+
+  const [tenant] = await db
+    .select()
+    .from(tenantsTable)
+    .where(eq(tenantsTable.id, id))
+    .limit(1);
+
+  if (tenant) {
+    tenantIdCache.set(id, tenant);
     return tenant.status === "active" ? tenant : null;
   }
 

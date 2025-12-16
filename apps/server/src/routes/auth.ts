@@ -1,12 +1,11 @@
 import { db } from "@/db";
 import { usersTable, refreshTokensTable, tenantsTable } from "@/db/schema";
-import { CLIENT_URL } from "@/lib/constants";
 import { getWelcomeVerificationEmailHtml } from "@/lib/email-templates";
 import { AppError, ErrorCode } from "@/lib/errors";
-import { sendEmail } from "@/lib/utils";
+import { getTenantClientUrl, sendEmail } from "@/lib/utils";
 import { authPlugin, invalidateUserCache } from "@/plugins/auth";
 import { jwtPlugin } from "@/plugins/jwt";
-import { tenantPlugin } from "@/plugins/tenant";
+import { findTenantById, tenantPlugin } from "@/plugins/tenant";
 import { and, eq, gt, inArray, isNull } from "drizzle-orm";
 import { Elysia, t } from "elysia";
 
@@ -61,7 +60,7 @@ authRoutes.post(
         .returning();
 
       if (isParentAppSignup && emailVerificationToken) {
-        const verificationUrl = `${CLIENT_URL}/verify-email?token=${emailVerificationToken}`;
+        const verificationUrl = `${getTenantClientUrl(ctx.tenant)}/verify-email?token=${emailVerificationToken}`;
         sendEmail({
           to: user.email,
           subject: "Welcome! Please verify your email",
@@ -279,13 +278,17 @@ authRoutes.post(
         .where(eq(usersTable.email, ctx.body.email))
         .limit(1);
 
-      // Always return success to prevent email enumeration
       if (!user) {
         return { message: "If the email exists, a reset link has been sent" };
       }
 
+      let tenant = ctx.tenant;
+      if (!tenant && user.tenantId) {
+        tenant = await findTenantById(user.tenantId);
+      }
+
       const resetToken = await ctx.resetJwt.sign({ sub: user.id });
-      const resetUrl = `${CLIENT_URL}/reset-password?token=${resetToken}`;
+      const resetUrl = `${getTenantClientUrl(tenant)}/reset-password?token=${resetToken}`;
 
       await sendEmail({
         to: user.email,
@@ -296,8 +299,8 @@ authRoutes.post(
           <a href="${resetUrl}">Reset Password</a>
           <p>If you didn't request this, please ignore this email.</p>
         `,
-        senderName: ctx.tenant?.name,
-        replyTo: ctx.tenant?.contactEmail || undefined,
+        senderName: tenant?.name,
+        replyTo: tenant?.contactEmail || undefined,
       });
 
       return { message: "If the email exists, a reset link has been sent" };
@@ -464,7 +467,7 @@ authRoutes
           })
           .where(eq(usersTable.id, ctx.user.id));
 
-        const verificationUrl = `${CLIENT_URL}/verify-email?token=${emailVerificationToken}`;
+        const verificationUrl = `${getTenantClientUrl(ctx.tenant)}/verify-email?token=${emailVerificationToken}`;
         await sendEmail({
           to: ctx.user.email,
           subject: "Verify your email",

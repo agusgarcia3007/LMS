@@ -3,9 +3,8 @@ import { authPlugin, invalidateUserCache } from "@/plugins/auth";
 import { tenantPlugin, invalidateTenantCache } from "@/plugins/tenant";
 import { jwtPlugin } from "@/plugins/jwt";
 import { AppError, ErrorCode } from "@/lib/errors";
-import { sendEmail } from "@/lib/utils";
+import { getTenantClientUrl, sendEmail } from "@/lib/utils";
 import { getInvitationEmailHtml } from "@/lib/email-templates";
-import { CLIENT_URL } from "@/lib/constants";
 import { db } from "@/db";
 import {
   tenantsTable,
@@ -598,7 +597,7 @@ export const usersRoutes = new Elysia()
           .returning();
 
         const resetToken = await ctx.resetJwt.sign({ sub: newUser.id });
-        const resetUrl = `${CLIENT_URL}/reset-password?token=${resetToken}`;
+        const resetUrl = `${getTenantClientUrl(tenant)}/reset-password?token=${resetToken}`;
 
         await sendEmail({
           to: ctx.body.email,

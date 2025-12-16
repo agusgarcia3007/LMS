@@ -1,7 +1,8 @@
 import { Resend } from "resend";
 import { env } from "./env";
-import { SITE_DATA } from "./constants";
+import { CLIENT_URL, SITE_DATA } from "./constants";
 import { logger } from "./logger";
+import type { SelectTenant } from "@/db/schema";
 
 export function parseDuration(durationMs: number) {
   if (isNaN(durationMs)) return null;
@@ -40,4 +41,14 @@ export async function sendEmail({
     logger.error("Error sending email", { error: error.message });
   }
   return data;
+}
+
+export function getTenantClientUrl(tenant: SelectTenant | null): string {
+  if (!tenant) return CLIENT_URL;
+
+  if (tenant.customDomain) {
+    return `https://${tenant.customDomain}`;
+  }
+
+  return `https://${tenant.slug}.${env.BASE_DOMAIN}`;
 }
