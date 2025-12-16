@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import {
@@ -11,25 +10,11 @@ import {
   Circle,
   ArrowRight,
   X,
-  Globe,
-  Lock,
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import type { OnboardingSteps, Tenant } from "@/services/tenants/service";
-import { usePublishTenant, useUnpublishTenant } from "@/services/tenants";
 
 type OnboardingPanelProps = {
   tenant: Tenant;
@@ -65,169 +50,82 @@ const stepConfig = [
   },
 ];
 
-function hasValidSubscription(tenant: Tenant): boolean {
-  if (!tenant.plan) {
-    return false;
-  }
-  if (tenant.subscriptionStatus === "active") {
-    return true;
-  }
-  if (
-    tenant.subscriptionStatus === "trialing" &&
-    tenant.trialEndsAt &&
-    new Date(tenant.trialEndsAt) > new Date()
-  ) {
-    return true;
-  }
-  return false;
-}
-
 export function OnboardingPanel({
   tenant,
   steps,
   onClose,
 }: OnboardingPanelProps) {
   const { t } = useTranslation();
-  const [showPaywall, setShowPaywall] = useState(false);
-  const { mutate: publish, isPending: isPublishing } = usePublishTenant(tenant.slug);
-  const { mutate: unpublish, isPending: isUnpublishing } = useUnpublishTenant(tenant.slug);
 
   const completedCount = Object.values(steps).filter(Boolean).length;
   const totalSteps = stepConfig.length;
   const progress = (completedCount / totalSteps) * 100;
-  const canPublish = hasValidSubscription(tenant);
-
-  function handlePublishChange(checked: boolean) {
-    if (checked) {
-      if (!canPublish) {
-        setShowPaywall(true);
-        return;
-      }
-      publish(tenant.id);
-    } else {
-      unpublish(tenant.id);
-    }
-  }
 
   return (
-    <>
-      <div className="fixed right-0 top-0 z-40 flex h-full w-80 flex-col border-l bg-background shadow-lg">
-        <div className="flex items-center justify-between border-b p-4">
-          <h2 className="text-base font-semibold">{t("dashboard.onboarding.title")}</h2>
-          <Button variant="ghost" size="icon" onClick={onClose} className="size-8">
-            <X className="size-4" />
-          </Button>
-        </div>
-
-        <div className="flex-1 overflow-y-auto">
-          <div className="p-4">
-            <div className="flex items-center justify-between text-sm text-muted-foreground">
-              <span>{t("dashboard.onboarding.progress", { completed: completedCount, total: totalSteps })}</span>
-              <span>{Math.round(progress)}%</span>
-            </div>
-            <Progress value={progress} className="mt-2 h-2" />
-          </div>
-
-          <div className="space-y-1 px-2">
-            {stepConfig.map(({ key, icon: Icon, href }) => {
-              const isCompleted = steps[key];
-              return (
-                <div
-                  key={key}
-                  className={cn(
-                    "flex items-center justify-between rounded-lg p-3 transition-colors hover:bg-muted/50",
-                    isCompleted && "opacity-60"
-                  )}
-                >
-                  <div className="flex items-center gap-3">
-                    {isCompleted ? (
-                      <div className="flex size-6 items-center justify-center rounded-full bg-primary text-primary-foreground">
-                        <Check className="size-3.5" />
-                      </div>
-                    ) : (
-                      <div className="flex size-6 items-center justify-center rounded-full border-2 border-muted-foreground/30">
-                        <Circle className="size-2 text-muted-foreground/50" />
-                      </div>
-                    )}
-                    <div>
-                      <p
-                        className={cn(
-                          "text-sm font-medium",
-                          isCompleted && "text-muted-foreground line-through"
-                        )}
-                      >
-                        {t(`dashboard.onboarding.steps.${key}.title`)}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {t(`dashboard.onboarding.steps.${key}.description`)}
-                      </p>
-                    </div>
-                  </div>
-                  {!isCompleted && (
-                    <Button variant="ghost" size="icon" className="size-8" asChild>
-                      <Link to={href(tenant.slug)}>
-                        <ArrowRight className="size-4" />
-                      </Link>
-                    </Button>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-
-          <Separator className="my-4" />
-
-          <div className="px-4 pb-4">
-            <div className="flex items-center gap-3 rounded-lg border p-4">
-              <div className={cn(
-                "flex size-10 items-center justify-center rounded-full",
-                tenant.published ? "bg-green-100 text-green-600 dark:bg-green-900/30" : "bg-muted text-muted-foreground"
-              )}>
-                {tenant.published ? <Globe className="size-5" /> : <Lock className="size-5" />}
-              </div>
-              <div className="flex-1">
-                <p className="text-sm font-medium">{t("dashboard.onboarding.publish.title")}</p>
-                <p className="text-xs text-muted-foreground">
-                  {tenant.published
-                    ? t("dashboard.onboarding.publish.published")
-                    : t("dashboard.onboarding.publish.unpublished")}
-                </p>
-              </div>
-              <Switch
-                checked={tenant.published}
-                onCheckedChange={handlePublishChange}
-                disabled={isPublishing || isUnpublishing}
-              />
-            </div>
-            {!canPublish && !tenant.published && (
-              <p className="mt-2 text-xs text-muted-foreground">
-                {t("dashboard.onboarding.publish.requiresSubscription")}
-              </p>
-            )}
-          </div>
-        </div>
+    <div className="fixed right-0 top-0 z-40 flex h-full w-80 flex-col border-l bg-background shadow-lg">
+      <div className="flex items-center justify-between border-b p-4">
+        <h2 className="text-base font-semibold">{t("dashboard.onboarding.title")}</h2>
+        <Button variant="ghost" size="icon" onClick={onClose} className="size-8">
+          <X className="size-4" />
+        </Button>
       </div>
 
-      <Dialog open={showPaywall} onOpenChange={setShowPaywall}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t("dashboard.onboarding.paywall.title")}</DialogTitle>
-            <DialogDescription>
-              {t("dashboard.onboarding.paywall.description")}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowPaywall(false)}>
-              {t("common.cancel")}
-            </Button>
-            <Button asChild>
-              <Link to={`/${tenant.slug}/finance/subscription`}>
-                {t("dashboard.onboarding.paywall.subscribe")}
-              </Link>
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </>
+      <div className="flex-1 overflow-y-auto">
+        <div className="p-4">
+          <div className="flex items-center justify-between text-sm text-muted-foreground">
+            <span>{t("dashboard.onboarding.progress", { completed: completedCount, total: totalSteps })}</span>
+            <span>{Math.round(progress)}%</span>
+          </div>
+          <Progress value={progress} className="mt-2 h-2" />
+        </div>
+
+        <div className="space-y-1 px-2">
+          {stepConfig.map(({ key, icon: Icon, href }) => {
+            const isCompleted = steps[key];
+            return (
+              <div
+                key={key}
+                className={cn(
+                  "flex items-center justify-between rounded-lg p-3 transition-colors hover:bg-muted/50",
+                  isCompleted && "opacity-60"
+                )}
+              >
+                <div className="flex items-center gap-3">
+                  {isCompleted ? (
+                    <div className="flex size-6 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                      <Check className="size-3.5" />
+                    </div>
+                  ) : (
+                    <div className="flex size-6 items-center justify-center rounded-full border-2 border-muted-foreground/30">
+                      <Circle className="size-2 text-muted-foreground/50" />
+                    </div>
+                  )}
+                  <div>
+                    <p
+                      className={cn(
+                        "text-sm font-medium",
+                        isCompleted && "text-muted-foreground line-through"
+                      )}
+                    >
+                      {t(`dashboard.onboarding.steps.${key}.title`)}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {t(`dashboard.onboarding.steps.${key}.description`)}
+                    </p>
+                  </div>
+                </div>
+                {!isCompleted && (
+                  <Button variant="ghost" size="icon" className="size-8" asChild>
+                    <Link to={href(tenant.slug)}>
+                      <ArrowRight className="size-4" />
+                    </Link>
+                  </Button>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
   );
 }

@@ -6,13 +6,12 @@ import { createSeoMeta } from "@/lib/seo";
 
 export const Route = createFileRoute("/terms")({
   component: TermsPage,
-  head: () => ({
-    meta: createSeoMeta({
+  head: () =>
+    createSeoMeta({
       title: "Terms of Service | Learnbase",
       description:
         "Terms of Service for Learnbase - the platform for creating and managing online academies.",
     }),
-  }),
 });
 
 function TermsPage() {
@@ -28,7 +27,7 @@ function TermsPage() {
               {t("legal.terms.title")}
             </h1>
             <p className="mt-2 text-sm text-muted-foreground">
-              {t("legal.terms.lastUpdated", { date: "December 16, 2024" })}
+              {t("legal.terms.lastUpdated", { date: "December 16, 2025" })}
             </p>
           </div>
 

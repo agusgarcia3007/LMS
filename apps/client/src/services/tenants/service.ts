@@ -424,18 +424,4 @@ export const TenantsService = {
     );
     return data;
   },
-
-  async publish(id: string) {
-    const { data } = await http.post<{ tenant: Tenant }>(
-      `/tenants/${id}/publish`
-    );
-    return data;
-  },
-
-  async unpublish(id: string) {
-    const { data } = await http.post<{ tenant: Tenant }>(
-      `/tenants/${id}/unpublish`
-    );
-    return data;
-  },
 } as const;

@@ -28,7 +28,7 @@ function PrivacyPage() {
               {t("legal.privacy.title")}
             </h1>
             <p className="mt-2 text-sm text-muted-foreground">
-              {t("legal.privacy.lastUpdated", { date: "December 16, 2024" })}
+              {t("legal.privacy.lastUpdated", { date: "December 16, 2025" })}
             </p>
           </div>
 

@@ -20,14 +20,11 @@ import {
 } from "@/db/schema";
 import { eq, and, ilike, count, inArray, sql } from "drizzle-orm";
 
-function requirePublished(
+function requireTenant(
   tenant: typeof tenantsTable.$inferSelect | null
 ): asserts tenant is typeof tenantsTable.$inferSelect {
   if (!tenant) {
     throw new AppError(ErrorCode.TENANT_NOT_FOUND, "Tenant not found", 404);
-  }
-  if (!tenant.published) {
-    throw new AppError(ErrorCode.TENANT_NOT_FOUND, "Academy not available", 404);
   }
 }
 
@@ -46,7 +43,9 @@ export const campusRoutes = new Elysia({ name: "campus" })
           .where(eq(tenantsTable.customDomain, hostname.toLowerCase()))
           .limit(1);
 
-        requirePublished(tenant);
+        if (!tenant) {
+          throw new AppError(ErrorCode.TENANT_NOT_FOUND, "Tenant not found", 404);
+        }
 
         return {
           tenant: {
@@ -86,7 +85,7 @@ export const campusRoutes = new Elysia({ name: "campus" })
   )
   .use(tenantPlugin)
   .get("/tenant", async (ctx) => {
-      requirePublished(ctx.tenant);
+      requireTenant(ctx.tenant);
       return {
         tenant: {
           id: ctx.tenant.id,
@@ -120,8 +119,7 @@ export const campusRoutes = new Elysia({ name: "campus" })
   .get(
     "/courses",
     async (ctx) => {
-        requirePublished(ctx.tenant);
-
+        requireTenant(ctx.tenant);
         const { category, level, search, page = "1", limit = "12" } = ctx.query;
         const pageNum = parseInt(page);
         const limitNum = parseInt(limit);
@@ -294,8 +292,7 @@ export const campusRoutes = new Elysia({ name: "campus" })
   .get(
     "/courses/:slug",
     async (ctx) => {
-      requirePublished(ctx.tenant);
-
+      requireTenant(ctx.tenant);
       const [result] = await db
         .select({
           course: coursesTable,
@@ -398,8 +395,7 @@ export const campusRoutes = new Elysia({ name: "campus" })
   .get(
     "/categories",
     async (ctx) => {
-      requirePublished(ctx.tenant);
-
+      requireTenant(ctx.tenant);
       const categories = await db
         .select()
         .from(categoriesTable)
@@ -422,8 +418,7 @@ export const campusRoutes = new Elysia({ name: "campus" })
   .get(
     "/stats",
     async (ctx) => {
-      requirePublished(ctx.tenant);
-
+      requireTenant(ctx.tenant);
       const [coursesCount] = await db
         .select({ count: count() })
         .from(coursesTable)
@@ -454,8 +449,7 @@ export const campusRoutes = new Elysia({ name: "campus" })
   .get(
     "/modules/:moduleId/items",
     async (ctx) => {
-        requirePublished(ctx.tenant);
-
+        requireTenant(ctx.tenant);
         const moduleItems = await db
           .select({
             id: moduleItemsTable.id,
@@ -540,8 +534,7 @@ export const campusRoutes = new Elysia({ name: "campus" })
   .get(
     "/preview/:moduleItemId/content",
     async (ctx) => {
-        requirePublished(ctx.tenant);
-
+        requireTenant(ctx.tenant);
         const [item] = await db
           .select({
             id: moduleItemsTable.id,

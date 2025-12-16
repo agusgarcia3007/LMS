@@ -192,24 +192,3 @@ export const tenantActivityOptions = (id: string, limit = 10) =>
     enabled: !!id,
   });
 
-export const usePublishTenantOptions = (tenantSlug: string) => {
-  const queryClient = useQueryClient();
-  return mutationOptions({
-    mutationFn: TenantsService.publish,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.TENANT(tenantSlug) });
-      toast.success(i18n.t("dashboard.onboarding.publish.success"));
-    },
-  });
-};
-
-export const useUnpublishTenantOptions = (tenantSlug: string) => {
-  const queryClient = useQueryClient();
-  return mutationOptions({
-    mutationFn: TenantsService.unpublish,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.TENANT(tenantSlug) });
-      toast.success(i18n.t("dashboard.onboarding.unpublish.success"));
-    },
-  });
-};
