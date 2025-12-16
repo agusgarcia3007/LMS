@@ -7,6 +7,7 @@ import { tenantsTable } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { stripe, isStripeConfigured } from "@/lib/stripe";
 import { env } from "@/lib/env";
+import { getTenantClientUrl } from "@/lib/utils";
 
 export const connectRoutes = new Elysia()
   .use(authPlugin)
@@ -75,10 +76,11 @@ export const connectRoutes = new Elysia()
         invalidateTenantCache(ctx.tenant.slug);
       }
 
+      const tenantUrl = getTenantClientUrl(ctx.tenant);
       const accountLink = await stripe.accountLinks.create({
         account: accountId,
-        refresh_url: `${env.CLIENT_URL}/${ctx.tenant.slug}/connect?refresh=true`,
-        return_url: `${env.CLIENT_URL}/${ctx.tenant.slug}/connect?success=true`,
+        refresh_url: `${tenantUrl}/connect?refresh=true`,
+        return_url: `${tenantUrl}/connect?success=true`,
         type: "account_onboarding",
         collection_options: {
           fields: "eventually_due",
@@ -105,10 +107,11 @@ export const connectRoutes = new Elysia()
         throw new AppError(ErrorCode.BAD_REQUEST, "No Connect account found", 400);
       }
 
+      const tenantUrl = getTenantClientUrl(ctx.tenant);
       const accountLink = await stripe.accountLinks.create({
         account: ctx.tenant.stripeConnectAccountId,
-        refresh_url: `${env.CLIENT_URL}/${ctx.tenant.slug}/connect?refresh=true`,
-        return_url: `${env.CLIENT_URL}/${ctx.tenant.slug}/connect?success=true`,
+        refresh_url: `${tenantUrl}/connect?refresh=true`,
+        return_url: `${tenantUrl}/connect?success=true`,
         type: "account_onboarding",
         collection_options: {
           fields: "eventually_due",

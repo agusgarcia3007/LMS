@@ -13,6 +13,7 @@ import {
 import { eq, and, inArray } from "drizzle-orm";
 import { stripe, calculatePlatformFee, isStripeConfigured } from "@/lib/stripe";
 import { env } from "@/lib/env";
+import { getTenantClientUrl } from "@/lib/utils";
 
 export const checkoutRoutes = new Elysia()
   .use(authPlugin)
@@ -166,8 +167,8 @@ export const checkoutRoutes = new Elysia()
                 userId: ctx.user.id,
               },
             },
-            success_url: `${env.CLIENT_URL}/${ctx.tenant.slug}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
-            cancel_url: `${env.CLIENT_URL}/courses`,
+            success_url: `${getTenantClientUrl(ctx.tenant)}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+            cancel_url: `${getTenantClientUrl(ctx.tenant)}/courses`,
             metadata: {
               paymentId: payment.id,
               tenantId: ctx.tenant.id,

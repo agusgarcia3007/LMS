@@ -11,7 +11,7 @@ import {
   getPriceIdForPlan,
   isStripeConfigured,
 } from "@/lib/stripe";
-import { env } from "@/lib/env";
+import { getTenantClientUrl } from "@/lib/utils";
 import type { TenantPlan } from "@/db/schema";
 
 export const billingRoutes = new Elysia()
@@ -125,8 +125,8 @@ export const billingRoutes = new Elysia()
               plan,
             },
           },
-          success_url: `${env.CLIENT_URL}/${ctx.tenant.slug}/billing?success=true`,
-          cancel_url: `${env.CLIENT_URL}/${ctx.tenant.slug}/billing?canceled=true`,
+          success_url: `${getTenantClientUrl(ctx.tenant)}/billing?success=true`,
+          cancel_url: `${getTenantClientUrl(ctx.tenant)}/billing?canceled=true`,
           metadata: {
             tenantId: ctx.tenant.id,
             plan,
@@ -164,7 +164,7 @@ export const billingRoutes = new Elysia()
 
       const session = await stripe.billingPortal.sessions.create({
         customer: ctx.tenant.stripeCustomerId,
-        return_url: `${env.CLIENT_URL}/${ctx.tenant.slug}/settings/billing`,
+        return_url: `${getTenantClientUrl(ctx.tenant)}/settings/billing`,
       });
 
       return { portalUrl: session.url };
