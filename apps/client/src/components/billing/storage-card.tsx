@@ -75,7 +75,7 @@ export function SidebarStorageCard() {
               </SidebarMenuButton>
             </TooltipTrigger>
             <TooltipContent side="right">
-              {t("billing.storage.usage", {
+              {t("subscription.storage.usage", {
                 used: usedFormatted,
                 limit: limitFormatted,
               })}
@@ -92,7 +92,7 @@ export function SidebarStorageCard() {
         <div className="flex items-center justify-between text-sm">
           <div className="flex items-center gap-2 font-medium">
             <HardDrive className="size-4 shrink-0" />
-            <span>{t("billing.storage.title")}</span>
+            <span>{t("subscription.storage.title")}</span>
           </div>
           <span className="text-muted-foreground text-xs">{usagePercent}%</span>
         </div>
@@ -107,7 +107,7 @@ export function SidebarStorageCard() {
           }`}
         />
         <p className="text-muted-foreground mt-1.5 text-xs">
-          {t("billing.storage.usage", {
+          {t("subscription.storage.usage", {
             used: usedFormatted,
             limit: limitFormatted,
           })}

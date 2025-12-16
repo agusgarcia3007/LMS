@@ -81,8 +81,8 @@ export function SidebarTrialCard({ tenantSlug }: SidebarTrialCardProps) {
             </TooltipTrigger>
             <TooltipContent side="right">
               {isPastDue
-                ? t("billing.trial.pastDue")
-                : t("billing.trial.daysRemaining", { count: daysRemaining })}
+                ? t("subscription.trial.pastDue")
+                : t("subscription.trial.daysRemaining", { count: daysRemaining })}
             </TooltipContent>
           </Tooltip>
         </SidebarMenuItem>
@@ -103,12 +103,12 @@ export function SidebarTrialCard({ tenantSlug }: SidebarTrialCardProps) {
           <Clock className="size-4 shrink-0" />
           <span>
             {isPastDue
-              ? t("billing.trial.pastDue")
-              : t("billing.trial.daysRemaining", { count: daysRemaining })}
+              ? t("subscription.trial.pastDue")
+              : t("subscription.trial.daysRemaining", { count: daysRemaining })}
           </span>
         </div>
         <p className="text-muted-foreground mt-1 text-xs">
-          {t("billing.trial.upgradeNow")}
+          {t("subscription.trial.upgradeNow")}
         </p>
         <Link
           to="/$tenantSlug/finance/subscription"
@@ -120,7 +120,7 @@ export function SidebarTrialCard({ tenantSlug }: SidebarTrialCardProps) {
             className="w-full"
             variant={isUrgent ? "destructive" : "primary"}
           >
-            {t("billing.trial.upgradeCta")}
+            {t("subscription.trial.upgradeCta")}
           </Button>
         </Link>
       </div>
