@@ -1,4 +1,4 @@
-import { createContext, useContext } from "react";
+import { createContext, useContext, useState } from "react";
 import { Outlet, createFileRoute, redirect } from "@tanstack/react-router";
 
 import { DashboardHeader } from "@/components/dashboard/header";
@@ -6,7 +6,6 @@ import { DashboardSidebar } from "@/components/dashboard/sidebar";
 import { OnboardingPanel } from "@/components/dashboard/onboarding-panel";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { setResolvedSlug } from "@/lib/tenant";
-import { cn } from "@/lib/utils";
 import { profileOptions } from "@/services/profile/options";
 import { tenantOptions } from "@/services/tenants/options";
 import { useGetOnboarding } from "@/services/tenants";
@@ -110,16 +109,17 @@ export const Route = createFileRoute("/$tenantSlug")({
 function TenantDashboardLayout() {
   const { user, tenant } = Route.useRouteContext();
   const { data: onboardingData, isLoading } = useGetOnboarding(tenant?.id ?? "");
+  const [isOpen, setIsOpen] = useState(true);
 
   const steps = onboardingData?.steps;
   const allStepsCompleted = steps && Object.values(steps).every(Boolean);
   const showOnboardingPanel = steps && !allStepsCompleted;
 
   const panelContext: OnboardingPanelContextType = {
-    isOpen: showOnboardingPanel ?? false,
-    open: () => {},
-    close: () => {},
-    toggle: () => {},
+    isOpen: showOnboardingPanel ? isOpen : false,
+    open: () => setIsOpen(true),
+    close: () => setIsOpen(false),
+    toggle: () => setIsOpen((prev) => !prev),
     steps,
     isLoading,
   };
@@ -136,14 +136,14 @@ function TenantDashboardLayout() {
     <OnboardingPanelContext.Provider value={panelContext}>
       <SidebarProvider>
         <DashboardSidebar tenant={tenant} user={user} />
-        <SidebarInset className={cn(showOnboardingPanel && "mr-80")}>
+        <SidebarInset>
           <DashboardHeader tenant={tenant} user={user} />
           <main className="flex-1 p-4">
             <Outlet />
           </main>
         </SidebarInset>
         {showOnboardingPanel && steps && (
-          <OnboardingPanel tenant={tenant} steps={steps} />
+          <OnboardingPanel tenant={tenant} steps={steps} isOpen={isOpen} onClose={() => setIsOpen(false)} onOpen={() => setIsOpen(true)} />
         )}
       </SidebarProvider>
     </OnboardingPanelContext.Provider>
