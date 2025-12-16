@@ -183,7 +183,9 @@ authRoutes.post(
       const { password: _, ...userWithoutPassword } = user;
 
       let tenantSlug: string | null = null;
-      if (user.tenantId) {
+      if (ctx.tenant) {
+        tenantSlug = ctx.tenant.slug;
+      } else if (user.tenantId) {
         const [tenant] = await db
           .select({ slug: tenantsTable.slug })
           .from(tenantsTable)
