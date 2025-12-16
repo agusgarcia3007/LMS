@@ -119,7 +119,9 @@ export function useOnboardingChat() {
   );
 
   const sendMessage = useCallback(
-    async (content: string, files?: File[]) => {
+    async (content?: string, files?: File[]) => {
+      const isInitialRequest = !content && messagesRef.current.length === 0;
+
       const processedAttachments: ChatAttachment[] | undefined = files?.length
         ? await Promise.all(
             files.filter((f) => f.type.startsWith("image/")).map(async (f) => ({
@@ -129,16 +131,20 @@ export function useOnboardingChat() {
           )
         : undefined;
 
-      const userMessage: ChatMessage = {
-        id: crypto.randomUUID(),
-        role: "user",
-        content,
-        timestamp: Date.now(),
-        attachments: processedAttachments,
-      };
+      let newMessages = [...messagesRef.current];
 
-      const newMessages = [...messagesRef.current, userMessage];
-      setMessages(newMessages);
+      if (content) {
+        const userMessage: ChatMessage = {
+          id: crypto.randomUUID(),
+          role: "user",
+          content,
+          timestamp: Date.now(),
+          attachments: processedAttachments,
+        };
+        newMessages = [...newMessages, userMessage];
+        setMessages(newMessages);
+      }
+
       setStatus("streaming");
       setError(null);
       setToolInvocations([]);

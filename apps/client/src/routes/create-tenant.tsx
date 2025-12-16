@@ -83,11 +83,11 @@ function CreateTenantPage() {
   }, [redirectTo, navigate]);
 
   useEffect(() => {
-    if (!initialMessageSent.current && messages.length === 0) {
+    if (!initialMessageSent.current && messages.length === 0 && !isStreaming) {
       initialMessageSent.current = true;
-      sendMessage("Hola");
+      sendMessage();
     }
-  }, [messages.length, sendMessage]);
+  }, [messages.length, isStreaming, sendMessage]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

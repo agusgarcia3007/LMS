@@ -103,7 +103,7 @@ export const chatOnboardingRoutes = new Elysia({ name: "ai-chat-onboarding" })
             ),
           })
         ),
-        tenantId: t.Optional(t.String({ format: "uuid" })),
+        tenantId: t.Optional(t.Union([t.String({ format: "uuid" }), t.Null()])),
       }),
       detail: {
         tags: ["AI"],
