@@ -607,7 +607,7 @@ export function AICoursePanel({
             </div>
           </div>
 
-          <div className="flex-1 overflow-hidden">
+          <div className="flex-1 min-h-0 overflow-hidden">
             {messages.length === 0 && !coursePreview ? (
               <EmptyState
                 suggestions={suggestions}

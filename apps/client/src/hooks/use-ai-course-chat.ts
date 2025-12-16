@@ -298,6 +298,7 @@ export function useAICourseChat() {
                 "course_published",
                 "course_unpublished",
                 "course_deleted",
+                "thumbnail_regenerated",
               ];
               if (courseUpdateTypes.includes(event.output?.type)) {
                 queryClient.invalidateQueries({ queryKey: COURSES_QUERY_KEYS.COURSES });
