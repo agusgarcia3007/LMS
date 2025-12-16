@@ -147,7 +147,7 @@
       "payouts": "Receive Payouts",
       "enabled": "Enabled",
       "disabled": "Disabled",
-      "dashboard": "Open Stripe Dashboard"
+      "dashboardInfo": "Manage your payments and payouts at dashboard.stripe.com"
     }
   },
   "common": {

@@ -147,7 +147,7 @@
       "payouts": "Receber Pagamentos",
       "enabled": "Habilitado",
       "disabled": "Desabilitado",
-      "dashboard": "Abrir Painel do Stripe"
+      "dashboardInfo": "Gerencie seus pagamentos e recebimentos em dashboard.stripe.com"
     }
   },
   "common": {

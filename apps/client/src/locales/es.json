@@ -147,7 +147,7 @@
       "payouts": "Recibir Pagos",
       "enabled": "Habilitado",
       "disabled": "Deshabilitado",
-      "dashboard": "Abrir Panel de Stripe"
+      "dashboardInfo": "Gestiona tus pagos y cobros en dashboard.stripe.com"
     }
   },
   "common": {
