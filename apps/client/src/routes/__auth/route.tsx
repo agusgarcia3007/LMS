@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import { Outlet, createFileRoute } from "@tanstack/react-router";
 import { LogoIcon } from "@/components/logo";
-import { Card, CardContent } from "@/components/ui/card";
 import FloatingLines from "@/components/FloatingLines";
 import { cn } from "@/lib/utils";
 import { setResolvedSlug } from "@/lib/tenant";
@@ -82,12 +81,10 @@ function AuthLayout() {
       </div>
 
       <div className="flex flex-1 flex-col justify-center px-4 py-10 lg:px-6">
-        <Card className="sm:mx-auto sm:w-full sm:max-w-md">
-          <CardContent>
-            <LogoIcon className="mx-auto size-12 mb-6" />
-            <Outlet />
-          </CardContent>
-        </Card>
+        <div className="sm:mx-auto sm:w-full sm:max-w-md">
+          <LogoIcon className="mx-auto size-12" />
+        </div>
+        <Outlet />
       </div>
     </div>
   );

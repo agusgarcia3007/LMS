@@ -274,15 +274,19 @@ export function useOnboardingChat() {
 
               case "tool-output-available": {
                 const toolResult = event.output;
-                setToolInvocations((prev) =>
-                  prev.map((t) =>
+                let matchedToolName: string | undefined;
+
+                setToolInvocations((prev) => {
+                  const invocation = prev.find((t) => t.id === event.toolCallId);
+                  matchedToolName = invocation?.toolName;
+                  return prev.map((t) =>
                     t.id === event.toolCallId
                       ? { ...t, state: "completed", result: toolResult }
                       : t
-                  )
-                );
+                  );
+                });
 
-                if (event.toolName === "createTenant" && toolResult?.success) {
+                if (matchedToolName === "createTenant" && toolResult?.success) {
                   const newTenantId = toolResult.tenant?.id;
                   if (newTenantId) {
                     setTenantId(newTenantId);
@@ -292,7 +296,7 @@ export function useOnboardingChat() {
                   }
                 }
 
-                if (event.toolName === "skipPersonalization" && toolResult?.success) {
+                if (matchedToolName === "skipPersonalization" && toolResult?.success) {
                   if (toolResult.redirectTo) {
                     setRedirectTo(toolResult.redirectTo);
                     setPhase("completed");

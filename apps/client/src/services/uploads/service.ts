@@ -7,7 +7,8 @@ export type UploadFolder =
   | "courses/videos"
   | "documents"
   | "chat-images"
-  | "learn-chat-images";
+  | "learn-chat-images"
+  | "onboarding-temp";
 
 export type PresignRequest = {
   folder: UploadFolder;
