@@ -221,10 +221,10 @@ function buildThemeSchema(styleConfig: StyleConfig, colorInstruction: string) {
       `Border radius CSS value. Use exactly: ${styleConfig.radius}`
     ),
     backgroundDark: z.string().describe(
-      "Dark mode page background. Very dark: L 0.12-0.16, C 0.005-0.01."
+      "Dark mode page background. MUST be almost neutral black. L 0.13-0.15, C 0.003-0.006 (almost zero chroma), H ~286. Example: oklch(0.141 0.005 286)."
     ),
     foregroundDark: z.string().describe(
-      "Dark mode text. Near white: L 0.98-0.99."
+      "Dark mode text. Near white with zero chroma. L 0.98-0.99, C 0. Example: oklch(0.985 0 0)."
     ),
     cardDark: z.string().describe(
       "Dark mode card background. Must be lighter than backgroundDark. L 0.19-0.22, C 0.005-0.008. Example: oklch(0.21 0.006 286)."
