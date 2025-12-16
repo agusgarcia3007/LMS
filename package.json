@@ -1,5 +1,5 @@
 {
-  "name": "Learnbase",
+  "name": "learnbase",
   "workspaces": [
     "apps/*"
   ],
@@ -14,4 +14,5 @@
   "devDependencies": {
     "concurrently": "^9.2.1"
   },
-  "packageManager": "bun@1.3.2"}
+  "packageManager": "bun@1.3.2"
+}

@@ -104,10 +104,6 @@ function TenantDashboardLayout() {
   const [isOpen, setIsOpen] = useState(false);
   const { data: onboardingData } = useGetOnboarding(tenant?.id ?? "");
 
-  if (!user || !tenant) {
-    return null;
-  }
-
   const steps = onboardingData?.steps;
 
   const panelContext: OnboardingPanelContextType = {
@@ -116,6 +112,14 @@ function TenantDashboardLayout() {
     close: () => setIsOpen(false),
     toggle: () => setIsOpen((prev) => !prev),
   };
+
+  if (!user || !tenant) {
+    return (
+      <OnboardingPanelContext.Provider value={panelContext}>
+        {null}
+      </OnboardingPanelContext.Provider>
+    );
+  }
 
   return (
     <OnboardingPanelContext.Provider value={panelContext}>
