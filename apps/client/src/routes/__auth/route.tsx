@@ -1,6 +1,8 @@
 import { useEffect } from "react";
 import { Outlet, createFileRoute } from "@tanstack/react-router";
 import { LogoIcon } from "@/components/logo";
+import { Card, CardContent } from "@/components/ui/card";
+import FloatingLines from "@/components/FloatingLines";
 import { cn } from "@/lib/utils";
 import { setResolvedSlug } from "@/lib/tenant";
 import { getTenantFromRequest } from "@/lib/tenant.server";
@@ -66,12 +68,26 @@ function AuthLayout() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center">
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden">
+      <div className="absolute inset-0 -z-10">
+        <FloatingLines
+          linesGradient={["#1e3a8a", "#3b82f6"]}
+          enabledWaves={["middle", "bottom"]}
+          lineCount={[5, 4]}
+          lineDistance={[6, 5]}
+          animationSpeed={0.6}
+          interactive={false}
+          parallax={false}
+        />
+      </div>
+
       <div className="flex flex-1 flex-col justify-center px-4 py-10 lg:px-6">
-        <div className="sm:mx-auto sm:w-full sm:max-w-md">
-          <LogoIcon className="mx-auto size-12" />
-        </div>
-        <Outlet />
+        <Card className="sm:mx-auto sm:w-full sm:max-w-md">
+          <CardContent>
+            <LogoIcon className="mx-auto size-12 mb-6" />
+            <Outlet />
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
