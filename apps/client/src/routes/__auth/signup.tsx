@@ -150,9 +150,7 @@ function SignupPage() {
         tenantSlug: isOnTenantDomain ? undefined : data.tenantSlug,
       },
       {
-        onSuccess: (response) => {
-          const { user } = response;
-
+        onSuccess: ({ user }) => {
           if (isOnTenantDomain) {
             const expectedSlug = tenant?.slug || getResolvedSlug();
             if (expectedSlug && user.tenantSlug !== expectedSlug) {
@@ -160,7 +158,10 @@ function SignupPage() {
               return;
             }
             navigate({ to: "/", search: { campus: undefined } });
-          } else if (user.tenantSlug) {
+            return;
+          }
+
+          if (user.tenantSlug) {
             window.location.href = `/${user.tenantSlug}`;
           }
         },

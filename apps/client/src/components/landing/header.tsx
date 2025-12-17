@@ -19,6 +19,12 @@ import { cn } from "@/lib/utils";
 import { siteData } from "@/lib/constants";
 import { LearnbaseLogo } from "./logo";
 
+const navLinks = [
+  { key: "features", href: "#features" },
+  { key: "pricing", href: "#pricing" },
+  { key: "faq", href: "#faq" },
+];
+
 export function LandingHeader() {
   const { t } = useTranslation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -39,12 +45,26 @@ export function LandingHeader() {
   return (
     <header className="fixed top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur-sm">
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
-        <Link to="/" className="flex items-center gap-2.5">
-          <LearnbaseLogo className="h-7 w-7" />
-          <span className="text-[15px] font-semibold tracking-tight text-foreground">
-            {siteData.name}
-          </span>
-        </Link>
+        <div className="flex items-center gap-8">
+          <Link to="/" search={{ campus: undefined }} className="flex items-center gap-2.5">
+            <LearnbaseLogo className="h-7 w-7" />
+            <span className="text-[15px] font-semibold tracking-tight text-foreground">
+              {siteData.name}
+            </span>
+          </Link>
+
+          <nav className="hidden items-center gap-1 md:flex">
+            {navLinks.map((link) => (
+              <a
+                key={link.key}
+                href={link.href}
+                className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+              >
+                {t(`landing.nav.${link.key}`)}
+              </a>
+            ))}
+          </nav>
+        </div>
 
         <div className="hidden items-center gap-3 md:flex">
           <ModeToggle />
@@ -148,6 +168,18 @@ export function LandingHeader() {
         )}
       >
         <nav className="flex flex-col gap-4">
+          <div className="flex flex-col gap-2 border-b border-border pb-4">
+            {navLinks.map((link) => (
+              <a
+                key={link.key}
+                href={link.href}
+                className="text-sm font-medium text-muted-foreground hover:text-foreground"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                {t(`landing.nav.${link.key}`)}
+              </a>
+            ))}
+          </div>
           {user ? (
             <div className="flex flex-col gap-3">
               <Link

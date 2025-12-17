@@ -16,6 +16,7 @@ import {
 import {
   LandingHeader,
   LandingHero,
+  ProblemSolution,
   LandingFeatures,
   LandingFooter,
   HowItWorks,
@@ -196,6 +197,7 @@ function MainHome() {
       <LandingHeader />
       <main className="pt-14">
         <LandingHero />
+        <ProblemSolution />
         <LandingFeatures />
         <HowItWorks />
         <Pricing />

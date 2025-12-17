@@ -1,32 +1,15 @@
-import { Link, ClientOnly } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
-import { lazy, Suspense } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-
-const LightRays = lazy(() => import("@/components/LightRays"));
 
 export function LandingHero() {
   const { t } = useTranslation();
 
   return (
     <section className="relative overflow-hidden">
-      <ClientOnly>
-        <div className="absolute inset-0">
-          <Suspense fallback={null}>
-            <LightRays
-              raysOrigin="top-center"
-              raysColor="#8b5cf6"
-              raysSpeed={0.8}
-              lightSpread={1.2}
-              rayLength={1.5}
-              fadeDistance={0.8}
-              mouseInfluence={0.05}
-            />
-          </Suspense>
-        </div>
-      </ClientOnly>
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,hsl(var(--primary)/0.08),transparent_50%)]" />
 
       <div className="relative mx-auto max-w-4xl px-6 py-20 md:py-28">
         <div className="text-center">

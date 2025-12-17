@@ -57,33 +57,32 @@ function LoginPage() {
 
   function onSubmit(data: LoginInput) {
     login(data, {
-      onSuccess: (response) => {
-        const { user } = response;
+      onSuccess: ({ user }) => {
         const currentTenant = getTenantFromHost();
-        const isOnTenantDomain = currentTenant.isCampus;
 
-        if (isOnTenantDomain) {
+        if (currentTenant.isCampus) {
           const expectedSlug = currentTenant.slug || getResolvedSlug();
           if (expectedSlug && user.tenantSlug !== expectedSlug) {
             clearTokens();
             return;
           }
           navigate({ to: "/", search: { campus: undefined } });
-        } else {
-          // Platform (main domain): stay in platform
-          if (user.role === "superadmin") {
-            navigate({ to: "/backoffice" });
-          } else if (user.role === "owner" && user.tenantId === null) {
-            navigate({ to: "/create-tenant" });
-          } else if (user.tenantSlug) {
-            // Owner with tenant → tenant backoffice on platform
-            navigate({ to: "/$tenantSlug", params: { tenantSlug: user.tenantSlug } });
-          } else {
-            const redirectPath = getRedirectPath();
-            clearRedirectPath();
-            navigate({ to: redirectPath || "/", search: { campus: undefined } });
-          }
+          return;
         }
+
+        if (user.role === "superadmin") {
+          navigate({ to: "/backoffice" });
+          return;
+        }
+
+        if (user.tenantSlug) {
+          navigate({ to: "/$tenantSlug", params: { tenantSlug: user.tenantSlug } });
+          return;
+        }
+
+        const redirectPath = getRedirectPath();
+        clearRedirectPath();
+        navigate({ to: redirectPath || "/", search: { campus: undefined } });
       },
     });
   }
