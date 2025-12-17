@@ -640,6 +640,7 @@
     },
     "faq": {
       "title": "FAQ",
+      "subtitle": "Respostas rapidas para perguntas frequentes sobre nossa plataforma.",
       "items": {
         "ai": {
           "question": "Como a IA analisa videos?",

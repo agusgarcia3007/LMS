@@ -511,6 +511,7 @@
     },
     "faq": {
       "title": "FAQ",
+      "subtitle": "Quick answers to common questions about our platform and features.",
       "items": {
         "ai": {
           "question": "How does the AI analyze videos?",
