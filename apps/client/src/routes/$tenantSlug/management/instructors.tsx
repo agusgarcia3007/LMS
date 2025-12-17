@@ -19,6 +19,16 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -43,10 +53,13 @@ import { useDataTableState } from "@/hooks/use-data-table-state";
 import {
   useGetInstructors,
   useInviteInstructor,
+  usePromoteInstructor,
   useUpdateInstructor,
   useDeleteInstructor,
   type Instructor,
+  type ExistingUser,
 } from "@/services/instructors";
+import { toast } from "sonner";
 import { createSeoMeta } from "@/lib/seo";
 
 export const Route = createFileRoute("/$tenantSlug/management/instructors")({
@@ -103,8 +116,13 @@ function InstructorsPage() {
   const [deleteInstructor, setDeleteInstructor] = useState<Instructor | null>(
     null
   );
+  const [existingUserToPromote, setExistingUserToPromote] = useState<{
+    user: ExistingUser;
+    formData: InviteFormData;
+  } | null>(null);
 
   const inviteMutation = useInviteInstructor();
+  const promoteMutation = usePromoteInstructor();
   const updateMutation = useUpdateInstructor();
   const deleteMutation = useDeleteInstructor();
 
@@ -190,10 +208,26 @@ function InstructorsPage() {
           name: values.name,
           title: values.title || undefined,
         },
-        { onSuccess: () => handleCloseInvite(false) }
+        {
+          onSuccess: (response) => {
+            if (response.userExists) {
+              if (response.existingUser.hasInstructorProfile) {
+                toast.error(t("instructors.invite.alreadyInstructor"));
+                handleCloseInvite(false);
+              } else {
+                setExistingUserToPromote({
+                  user: response.existingUser,
+                  formData: values,
+                });
+              }
+            } else {
+              handleCloseInvite(false);
+            }
+          },
+        }
       );
     },
-    [inviteMutation, handleCloseInvite]
+    [inviteMutation, handleCloseInvite, t]
   );
 
   const handleEditSubmit = useCallback(
@@ -230,6 +264,27 @@ function InstructorsPage() {
       onSuccess: () => setDeleteInstructor(null),
     });
   }, [deleteInstructor, deleteMutation]);
+
+  const handlePromote = useCallback(() => {
+    if (!existingUserToPromote) return;
+
+    promoteMutation.mutate(
+      {
+        userId: existingUserToPromote.user.id,
+        title: existingUserToPromote.formData.title || undefined,
+      },
+      {
+        onSuccess: () => {
+          setExistingUserToPromote(null);
+          handleCloseInvite(false);
+        },
+      }
+    );
+  }, [existingUserToPromote, promoteMutation, handleCloseInvite]);
+
+  const handleCancelPromote = useCallback(() => {
+    setExistingUserToPromote(null);
+  }, []);
 
   const columns = useMemo<ColumnDef<Instructor>[]>(
     () => [
@@ -634,6 +689,39 @@ function InstructorsPage() {
         onConfirm={handleDelete}
         isPending={deleteMutation.isPending}
       />
+
+      <AlertDialog
+        open={!!existingUserToPromote}
+        onOpenChange={(open) => !open && handleCancelPromote()}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {t("instructors.promote.title")}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("instructors.promote.description", {
+                name: existingUserToPromote?.user.name,
+                email: existingUserToPromote?.user.email,
+                currentRole: existingUserToPromote?.user.role,
+              })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleCancelPromote}>
+              {t("common.cancel")}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handlePromote}
+              disabled={promoteMutation.isPending}
+            >
+              {promoteMutation.isPending
+                ? t("instructors.promote.promoting")
+                : t("instructors.promote.confirm")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

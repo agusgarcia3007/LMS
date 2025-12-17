@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useCallback } from "react";
 import { Outlet, createFileRoute, redirect } from "@tanstack/react-router";
 
 import { DashboardHeader } from "@/components/dashboard/header";
@@ -11,12 +11,36 @@ import { tenantOptions } from "@/services/tenants/options";
 import { useGetOnboarding } from "@/services/tenants";
 import type { OnboardingSteps } from "@/services/tenants/service";
 
+const DEFAULT_MANUAL_STEPS: OnboardingSteps = {
+  basicInfo: false,
+  category: false,
+  instructor: false,
+  module: false,
+  course: false,
+};
+
+function getManualStepsKey(tenantId: string) {
+  return `onboarding-manual-steps-${tenantId}`;
+}
+
+function loadManualSteps(tenantId: string): OnboardingSteps {
+  const stored = localStorage.getItem(getManualStepsKey(tenantId));
+  if (!stored) return DEFAULT_MANUAL_STEPS;
+  return { ...DEFAULT_MANUAL_STEPS, ...JSON.parse(stored) };
+}
+
+function saveManualSteps(tenantId: string, steps: OnboardingSteps) {
+  localStorage.setItem(getManualStepsKey(tenantId), JSON.stringify(steps));
+}
+
 type OnboardingPanelContextType = {
   isOpen: boolean;
   open: () => void;
   close: () => void;
   toggle: () => void;
   steps: OnboardingSteps | undefined;
+  manualSteps: OnboardingSteps;
+  onToggleStep: (key: keyof OnboardingSteps) => void;
   isLoading: boolean;
 };
 
@@ -26,6 +50,8 @@ const defaultContext: OnboardingPanelContextType = {
   close: () => {},
   toggle: () => {},
   steps: undefined,
+  manualSteps: DEFAULT_MANUAL_STEPS,
+  onToggleStep: () => {},
   isLoading: false,
 };
 
@@ -110,9 +136,28 @@ function TenantDashboardLayout() {
   const { user, tenant } = Route.useRouteContext();
   const { data: onboardingData, isLoading } = useGetOnboarding(tenant?.id ?? "");
   const [isOpen, setIsOpen] = useState(true);
+  const [manualSteps, setManualSteps] = useState<OnboardingSteps>(() =>
+    tenant ? loadManualSteps(tenant.id) : DEFAULT_MANUAL_STEPS
+  );
+
+  const onToggleStep = useCallback(
+    (key: keyof OnboardingSteps) => {
+      if (!tenant) return;
+      setManualSteps((prev) => {
+        const updated = { ...prev, [key]: !prev[key] };
+        saveManualSteps(tenant.id, updated);
+        return updated;
+      });
+    },
+    [tenant]
+  );
 
   const steps = onboardingData?.steps;
-  const allStepsCompleted = steps && Object.values(steps).every(Boolean);
+  const allStepsCompleted =
+    steps &&
+    Object.keys(steps).every(
+      (key) => steps[key as keyof OnboardingSteps] || manualSteps[key as keyof OnboardingSteps]
+    );
   const showOnboardingPanel = steps && !allStepsCompleted;
 
   const panelContext: OnboardingPanelContextType = {
@@ -121,6 +166,8 @@ function TenantDashboardLayout() {
     close: () => setIsOpen(false),
     toggle: () => setIsOpen((prev) => !prev),
     steps,
+    manualSteps,
+    onToggleStep,
     isLoading,
   };
 
@@ -143,7 +190,15 @@ function TenantDashboardLayout() {
           </main>
         </SidebarInset>
         {showOnboardingPanel && steps && (
-          <OnboardingPanel tenant={tenant} steps={steps} isOpen={isOpen} onClose={() => setIsOpen(false)} onOpen={() => setIsOpen(true)} />
+          <OnboardingPanel
+            tenant={tenant}
+            steps={steps}
+            manualSteps={manualSteps}
+            onToggleStep={onToggleStep}
+            isOpen={isOpen}
+            onClose={() => setIsOpen(false)}
+            onOpen={() => setIsOpen(true)}
+          />
         )}
       </SidebarProvider>
     </OnboardingPanelContext.Provider>

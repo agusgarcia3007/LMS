@@ -11,6 +11,7 @@ import {
   type InstructorListParams,
   type InviteInstructorRequest,
   type UpdateInstructorRequest,
+  type PromoteInstructorRequest,
 } from "./service";
 
 export const instructorsListOptions = (params: InstructorListParams = {}) =>
@@ -31,9 +32,23 @@ export const useInviteInstructorOptions = () => {
   return mutationOptions({
     mutationFn: (payload: InviteInstructorRequest) =>
       InstructorsService.invite(payload),
+    onSuccess: (data) => {
+      if (!data.userExists) {
+        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.INSTRUCTORS });
+        toast.success(i18n.t("instructors.invite.success"));
+      }
+    },
+  });
+};
+
+export const usePromoteInstructorOptions = () => {
+  const queryClient = useQueryClient();
+  return mutationOptions({
+    mutationFn: (payload: PromoteInstructorRequest) =>
+      InstructorsService.promote(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.INSTRUCTORS });
-      toast.success(i18n.t("instructors.invite.success"));
+      toast.success(i18n.t("instructors.promote.success"));
     },
   });
 };

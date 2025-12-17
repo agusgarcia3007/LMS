@@ -234,11 +234,28 @@ export const instructorsRoutes = new Elysia()
         .limit(1);
 
       if (existing) {
-        throw new AppError(
-          ErrorCode.EMAIL_ALREADY_EXISTS,
-          "User with this email already exists in tenant",
-          409
-        );
+        const [existingProfile] = await db
+          .select()
+          .from(instructorProfilesTable)
+          .where(
+            and(
+              eq(instructorProfilesTable.userId, existing.id),
+              eq(instructorProfilesTable.tenantId, ctx.user!.tenantId!)
+            )
+          )
+          .limit(1);
+
+        return {
+          userExists: true as const,
+          existingUser: {
+            id: existing.id,
+            name: existing.name,
+            email: existing.email,
+            role: existing.role,
+            avatar: existing.avatar ? getPresignedUrl(existing.avatar) : null,
+            hasInstructorProfile: !!existingProfile,
+          },
+        };
       }
 
       const [tenant] = await db
@@ -304,6 +321,7 @@ export const instructorsRoutes = new Elysia()
       });
 
       return {
+        userExists: false as const,
         instructor: {
           id: profile.id,
           tenantId: profile.tenantId,
@@ -332,6 +350,105 @@ export const instructorsRoutes = new Elysia()
       detail: {
         tags: ["Instructors"],
         summary: "Invite a new instructor (creates user and sends email)",
+      },
+      requireAuth: true,
+      requireTenant: true,
+      requireRole: ["owner", "superadmin"],
+    }
+  )
+  .post(
+    "/promote/:userId",
+    async (ctx) => {
+      const [existingUser] = await db
+        .select()
+        .from(usersTable)
+        .where(
+          and(
+            eq(usersTable.id, ctx.params.userId),
+            eq(usersTable.tenantId, ctx.user!.tenantId!)
+          )
+        )
+        .limit(1);
+
+      if (!existingUser) {
+        throw new AppError(ErrorCode.NOT_FOUND, "User not found", 404);
+      }
+
+      const [existingProfile] = await db
+        .select()
+        .from(instructorProfilesTable)
+        .where(
+          and(
+            eq(instructorProfilesTable.userId, existingUser.id),
+            eq(instructorProfilesTable.tenantId, ctx.user!.tenantId!)
+          )
+        )
+        .limit(1);
+
+      if (existingProfile) {
+        throw new AppError(
+          ErrorCode.CONFLICT,
+          "User already has an instructor profile",
+          409
+        );
+      }
+
+      await db
+        .update(usersTable)
+        .set({ role: "instructor" })
+        .where(eq(usersTable.id, existingUser.id));
+
+      const [maxOrder] = await db
+        .select({ maxOrder: instructorProfilesTable.order })
+        .from(instructorProfilesTable)
+        .where(eq(instructorProfilesTable.tenantId, ctx.user!.tenantId!))
+        .orderBy(desc(instructorProfilesTable.order))
+        .limit(1);
+
+      const nextOrder = (maxOrder?.maxOrder ?? -1) + 1;
+
+      const [profile] = await db
+        .insert(instructorProfilesTable)
+        .values({
+          tenantId: ctx.user!.tenantId!,
+          userId: existingUser.id,
+          title: ctx.body.title,
+          order: nextOrder,
+        })
+        .returning();
+
+      return {
+        instructor: {
+          id: profile.id,
+          tenantId: profile.tenantId,
+          userId: existingUser.id,
+          name: existingUser.name,
+          email: existingUser.email,
+          avatar: existingUser.avatar
+            ? getPresignedUrl(existingUser.avatar)
+            : null,
+          bio: profile.bio,
+          title: profile.title,
+          website: profile.website,
+          socialLinks: profile.socialLinks,
+          order: profile.order,
+          isOwner: existingUser.role === "owner",
+          coursesCount: 0,
+          createdAt: profile.createdAt,
+          updatedAt: profile.updatedAt,
+        },
+      };
+    },
+    {
+      params: t.Object({
+        userId: t.String({ format: "uuid" }),
+      }),
+      body: t.Object({
+        title: t.Optional(t.String()),
+      }),
+      detail: {
+        tags: ["Instructors"],
+        summary: "Promote existing user to instructor role",
       },
       requireAuth: true,
       requireTenant: true,

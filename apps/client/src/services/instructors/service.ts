@@ -53,6 +53,24 @@ export type UpdateInstructorRequest = {
   order?: number;
 };
 
+export type ExistingUser = {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  avatar: string | null;
+  hasInstructorProfile: boolean;
+};
+
+export type InviteInstructorResponse =
+  | { userExists: false; instructor: Instructor }
+  | { userExists: true; existingUser: ExistingUser };
+
+export type PromoteInstructorRequest = {
+  userId: string;
+  title?: string;
+};
+
 export const QUERY_KEYS = {
   INSTRUCTORS: ["instructors"],
   INSTRUCTORS_LIST: (params: InstructorListParams) => [
@@ -86,9 +104,17 @@ export const InstructorsService = {
   },
 
   async invite(payload: InviteInstructorRequest) {
-    const { data } = await http.post<{ instructor: Instructor }>(
+    const { data } = await http.post<InviteInstructorResponse>(
       "/instructors/invite",
       payload
+    );
+    return data;
+  },
+
+  async promote(payload: PromoteInstructorRequest) {
+    const { data } = await http.post<{ instructor: Instructor }>(
+      `/instructors/promote/${payload.userId}`,
+      { title: payload.title }
     );
     return data;
   },

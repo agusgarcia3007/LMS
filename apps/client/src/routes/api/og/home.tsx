@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { svgToPng } from "@/lib/resvg.server";
 
 const WIDTH = 1200;
 const HEIGHT = 630;
@@ -22,9 +23,8 @@ export const Route = createFileRoute("/api/og/home")({
   server: {
     handlers: {
       GET: async () => {
-        const [{ default: satori }, { Resvg }, interBold, interRegular] = await Promise.all([
+        const [{ default: satori }, interBold, interRegular] = await Promise.all([
           import("satori"),
-          import("@resvg/resvg-js"),
           loadGoogleFont("Inter", 700),
           loadGoogleFont("Inter", 400),
         ]);
@@ -173,11 +173,7 @@ export const Route = createFileRoute("/api/og/home")({
           }
         );
 
-        const resvg = new Resvg(svg, {
-          fitTo: { mode: "width", value: WIDTH },
-        });
-        const pngData = resvg.render();
-        const pngBuffer = pngData.asPng();
+        const pngBuffer = await svgToPng(svg, WIDTH);
 
         return new Response(new Uint8Array(pngBuffer), {
           headers: {

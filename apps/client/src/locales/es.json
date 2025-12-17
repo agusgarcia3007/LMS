@@ -1863,9 +1863,17 @@
       "title": "Invitar instructor",
       "button": "Invitar instructor",
       "success": "Instructor invitado correctamente",
+      "alreadyInstructor": "El usuario ya tiene un perfil de instructor",
       "emailLabel": "Email",
       "nameLabel": "Nombre",
       "titleLabel": "Titulo profesional"
+    },
+    "promote": {
+      "title": "El usuario ya existe",
+      "description": "{{name}} ({{email}}) ya existe como {{currentRole}} en esta organizacion. ¿Deseas promoverlo a instructor?",
+      "confirm": "Promover a instructor",
+      "promoting": "Promoviendo...",
+      "success": "Usuario promovido a instructor correctamente"
     },
     "edit": {
       "title": "Editar instructor",

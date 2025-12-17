@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { getCampusCourseServer, getCampusTenantServer } from "@/services/campus/server";
 import { getTenantFromRequest } from "@/lib/tenant.server";
+import { svgToPng } from "@/lib/resvg.server";
 
 const WIDTH = 1200;
 const HEIGHT = 630;
@@ -45,9 +46,8 @@ export const Route = createFileRoute("/api/og/course/$slug")({
         const course = courseData.course;
         const tenant = tenantData?.tenant;
 
-        const [{ default: satori }, { Resvg }, interBold, interRegular] = await Promise.all([
+        const [{ default: satori }, interBold, interRegular] = await Promise.all([
           import("satori"),
-          import("@resvg/resvg-js"),
           loadGoogleFont("Inter", 700),
           loadGoogleFont("Inter", 400),
         ]);
@@ -212,11 +212,7 @@ export const Route = createFileRoute("/api/og/course/$slug")({
           }
         );
 
-        const resvg = new Resvg(svg, {
-          fitTo: { mode: "width", value: WIDTH },
-        });
-        const pngData = resvg.render();
-        const pngBuffer = pngData.asPng();
+        const pngBuffer = await svgToPng(svg, WIDTH);
 
         return new Response(new Uint8Array(pngBuffer), {
           headers: {
