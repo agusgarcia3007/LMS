@@ -25,7 +25,7 @@ export function getCertificateEmailHtml(params: CertificateEmailParams): string 
         <table role="presentation" style="width: 100%; max-width: 600px; border-collapse: collapse; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
           <tr>
             <td style="padding: 48px 40px; text-align: center;">
-              <div style="width: 80px; height: 80px; margin: 0 auto 24px; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+              <div style="width: 80px; height: 80px; margin: 0 auto 24px; background: linear-gradient(135deg, #0052cc 0%, #0065ff 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
                 <span style="font-size: 40px;">&#127942;</span>
               </div>
 
@@ -38,7 +38,7 @@ export function getCertificateEmailHtml(params: CertificateEmailParams): string 
               </p>
 
               <div style="background-color: #f9fafb; border-radius: 8px; padding: 24px; margin-bottom: 32px;">
-                <h2 style="margin: 0 0 8px; font-size: 20px; font-weight: 600; color: #6366f1;">
+                <h2 style="margin: 0 0 8px; font-size: 20px; font-weight: 600; color: #0052cc;">
                   ${courseName}
                 </h2>
                 <p style="margin: 0; font-size: 14px; color: #9ca3af;">
@@ -53,7 +53,7 @@ export function getCertificateEmailHtml(params: CertificateEmailParams): string 
               <table role="presentation" style="width: 100%; border-collapse: collapse;">
                 <tr>
                   <td style="padding: 8px;">
-                    <a href="${downloadUrl}" style="display: inline-block; padding: 14px 32px; background-color: #6366f1; color: #ffffff; text-decoration: none; font-weight: 600; font-size: 16px; border-radius: 8px;">
+                    <a href="${downloadUrl}" style="display: inline-block; padding: 14px 32px; background-color: #0052cc; color: #ffffff; text-decoration: none; font-weight: 600; font-size: 16px; border-radius: 8px;">
                       Download Certificate
                     </a>
                   </td>
@@ -75,7 +75,7 @@ export function getCertificateEmailHtml(params: CertificateEmailParams): string 
                 Share your achievement with others using this verification link:
               </p>
               <p style="margin: 0; font-size: 12px; color: #9ca3af; word-break: break-all;">
-                <a href="${verificationUrl}" style="color: #6366f1; text-decoration: none;">
+                <a href="${verificationUrl}" style="color: #0052cc; text-decoration: none;">
                   ${verificationUrl}
                 </a>
               </p>
@@ -142,7 +142,7 @@ export function getInvitationEmailHtml(params: InvitationEmailParams): string {
               <table role="presentation" style="width: 100%; border-collapse: collapse;">
                 <tr>
                   <td style="padding: 8px;">
-                    <a href="${resetUrl}" style="display: inline-block; padding: 14px 32px; background-color: #6366f1; color: #ffffff; text-decoration: none; font-weight: 600; font-size: 16px; border-radius: 8px;">
+                    <a href="${resetUrl}" style="display: inline-block; padding: 14px 32px; background-color: #0052cc; color: #ffffff; text-decoration: none; font-weight: 600; font-size: 16px; border-radius: 8px;">
                       Set Up Password
                     </a>
                   </td>
@@ -159,7 +159,7 @@ export function getInvitationEmailHtml(params: InvitationEmailParams): string {
             <td style="padding: 24px 40px; background-color: #f9fafb; border-radius: 0 0 12px 12px; text-align: center;">
               <p style="margin: 0; font-size: 12px; color: #9ca3af; word-break: break-all;">
                 If the button doesn't work, copy this link:<br>
-                <a href="${resetUrl}" style="color: #6366f1; text-decoration: none;">
+                <a href="${resetUrl}" style="color: #0052cc; text-decoration: none;">
                   ${resetUrl}
                 </a>
               </p>
@@ -740,7 +740,7 @@ export function getSuperadminNewSubscriberEmailHtml(
                     <span style="font-size: 14px; color: #6b7280;">Plan</span>
                   </td>
                   <td style="padding: 12px 0; border-bottom: 1px solid #e5e7eb; text-align: right;">
-                    <span style="font-size: 14px; font-weight: 600; color: #6366f1;">${plan}</span>
+                    <span style="font-size: 14px; font-weight: 600; color: #0052cc;">${plan}</span>
                   </td>
                 </tr>
                 <tr>
