@@ -105,7 +105,7 @@ export const Route = createFileRoute("/$tenantSlug")({
 
     const { user } = profileData;
 
-    if (user.role !== "owner" && user.role !== "superadmin") {
+    if (user.role !== "owner" && user.role !== "instructor" && user.role !== "superadmin") {
       throw redirect({ to: "/", search: { campus: undefined } });
     }
 
@@ -115,7 +115,7 @@ export const Route = createFileRoute("/$tenantSlug")({
 
     const { tenant } = tenantData;
 
-    if (user.role === "owner" && user.tenantId !== tenant.id) {
+    if ((user.role === "owner" || user.role === "instructor") && user.tenantId !== tenant.id) {
       throw redirect({ to: "/", search: { campus: undefined } });
     }
 

@@ -279,7 +279,7 @@ export const tenantsRoutes = new Elysia()
           return { tenant: transformTenant(tenant) };
         }
 
-        if (ctx.userRole === "owner" && ctx.user.tenantId === tenant.id) {
+        if ((ctx.userRole === "owner" || ctx.userRole === "instructor") && ctx.user.tenantId === tenant.id) {
           return { tenant: transformTenant(tenant) };
         }
 
@@ -302,10 +302,11 @@ export const tenantsRoutes = new Elysia()
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
 
-        const isOwnerViewingOwnTenant =
-          ctx.userRole === "owner" && ctx.user.tenantId === ctx.params.id;
+        const isAdminViewingOwnTenant =
+          (ctx.userRole === "owner" || ctx.userRole === "instructor") &&
+          ctx.user.tenantId === ctx.params.id;
 
-        if (ctx.userRole !== "superadmin" && !isOwnerViewingOwnTenant) {
+        if (ctx.userRole !== "superadmin" && !isAdminViewingOwnTenant) {
           throw new AppError(ErrorCode.FORBIDDEN, "Access denied", 403);
         }
 
@@ -408,10 +409,11 @@ export const tenantsRoutes = new Elysia()
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
 
-        const isOwnerViewingOwnTenant =
-          ctx.userRole === "owner" && ctx.user.tenantId === ctx.params.id;
+        const isAdminViewingOwnTenant =
+          (ctx.userRole === "owner" || ctx.userRole === "instructor") &&
+          ctx.user.tenantId === ctx.params.id;
 
-        if (ctx.userRole !== "superadmin" && !isOwnerViewingOwnTenant) {
+        if (ctx.userRole !== "superadmin" && !isAdminViewingOwnTenant) {
           throw new AppError(ErrorCode.FORBIDDEN, "Access denied", 403);
         }
 
@@ -481,10 +483,11 @@ export const tenantsRoutes = new Elysia()
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
 
-        const isOwnerViewingOwnTenant =
-          ctx.userRole === "owner" && ctx.user.tenantId === ctx.params.id;
+        const isAdminViewingOwnTenant =
+          (ctx.userRole === "owner" || ctx.userRole === "instructor") &&
+          ctx.user.tenantId === ctx.params.id;
 
-        if (ctx.userRole !== "superadmin" && !isOwnerViewingOwnTenant) {
+        if (ctx.userRole !== "superadmin" && !isAdminViewingOwnTenant) {
           throw new AppError(ErrorCode.FORBIDDEN, "Access denied", 403);
         }
 
@@ -556,10 +559,11 @@ export const tenantsRoutes = new Elysia()
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
 
-        const isOwnerViewingOwnTenant =
-          ctx.userRole === "owner" && ctx.user.tenantId === ctx.params.id;
+        const isAdminViewingOwnTenant =
+          (ctx.userRole === "owner" || ctx.userRole === "instructor") &&
+          ctx.user.tenantId === ctx.params.id;
 
-        if (ctx.userRole !== "superadmin" && !isOwnerViewingOwnTenant) {
+        if (ctx.userRole !== "superadmin" && !isAdminViewingOwnTenant) {
           throw new AppError(ErrorCode.FORBIDDEN, "Access denied", 403);
         }
 
@@ -612,10 +616,11 @@ export const tenantsRoutes = new Elysia()
           throw new AppError(ErrorCode.UNAUTHORIZED, "Unauthorized", 401);
         }
 
-        const isOwnerViewingOwnTenant =
-          ctx.userRole === "owner" && ctx.user.tenantId === ctx.params.id;
+        const isAdminViewingOwnTenant =
+          (ctx.userRole === "owner" || ctx.userRole === "instructor") &&
+          ctx.user.tenantId === ctx.params.id;
 
-        if (ctx.userRole !== "superadmin" && !isOwnerViewingOwnTenant) {
+        if (ctx.userRole !== "superadmin" && !isAdminViewingOwnTenant) {
           throw new AppError(ErrorCode.FORBIDDEN, "Access denied", 403);
         }
 
