@@ -1,6 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import satori from "satori";
-import { Resvg } from "@resvg/resvg-js";
 import { getCampusTenantServer } from "@/services/campus/server";
 import { getTenantFromRequest } from "@/lib/tenant.server";
 
@@ -41,7 +39,9 @@ export const Route = createFileRoute("/api/og/campus")({
 
         const tenant = tenantData.tenant;
 
-        const [interBold, interRegular] = await Promise.all([
+        const [{ default: satori }, { Resvg }, interBold, interRegular] = await Promise.all([
+          import("satori"),
+          import("@resvg/resvg-js"),
           loadGoogleFont("Inter", 700),
           loadGoogleFont("Inter", 400),
         ]);
@@ -182,7 +182,7 @@ export const Route = createFileRoute("/api/og/campus")({
         const pngData = resvg.render();
         const pngBuffer = pngData.asPng();
 
-        return new Response(pngBuffer, {
+        return new Response(new Uint8Array(pngBuffer), {
           headers: {
             "Content-Type": "image/png",
             "Cache-Control": "public, max-age=86400, s-maxage=604800",
