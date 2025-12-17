@@ -176,17 +176,17 @@ export function DashboardSidebar({ tenant, user }: DashboardSidebarProps) {
             icon: FolderTree,
             isActive: currentPath.endsWith("/content/categories"),
           },
-          {
-            title: t("dashboard.sidebar.instructors"),
-            url: `/${tenantSlug}/content/instructors`,
-            icon: UserCircle,
-            isActive: currentPath.endsWith("/content/instructors"),
-          },
         ],
       },
       {
         title: t("dashboard.sidebar.management"),
         items: [
+          {
+            title: t("dashboard.sidebar.instructors"),
+            url: `/${tenantSlug}/management/instructors`,
+            icon: UserCircle,
+            isActive: currentPath.endsWith("/management/instructors"),
+          },
           {
             title: t("dashboard.sidebar.users"),
             url: `/${tenantSlug}/management/users`,

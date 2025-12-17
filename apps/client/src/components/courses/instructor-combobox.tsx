@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { Check, Plus, Loader2 } from "lucide-react";
+import { Check, Loader2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button, ButtonArrow } from "@/components/ui/button";
 import {
@@ -10,12 +10,10 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-  CommandSeparator,
 } from "@/components/ui/command";
-import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useGetInstructors, useCreateInstructor } from "@/services/instructors";
+import { useGetInstructors } from "@/services/instructors";
 
 interface InstructorComboboxProps {
   value?: string | null;
@@ -40,14 +38,11 @@ export function InstructorCombobox({
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const [isCreating, setIsCreating] = useState(false);
-  const [newName, setNewName] = useState("");
 
   const { data, isLoading } = useGetInstructors({
     limit: 100,
     search: search || undefined,
   });
-  const createMutation = useCreateInstructor();
 
   const instructors = data?.instructors ?? [];
   const selectedInstructor = instructors.find((i) => i.id === value);
@@ -60,33 +55,6 @@ export function InstructorCombobox({
     },
     [onChange, value]
   );
-
-  const handleCreate = useCallback(async () => {
-    if (!newName.trim()) return;
-
-    createMutation.mutate(
-      { name: newName.trim() },
-      {
-        onSuccess: (data) => {
-          onChange(data.instructor.id);
-          setIsCreating(false);
-          setNewName("");
-          setOpen(false);
-        },
-      }
-    );
-  }, [newName, createMutation, onChange]);
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && newName.trim()) {
-      e.preventDefault();
-      handleCreate();
-    }
-    if (e.key === "Escape") {
-      setIsCreating(false);
-      setNewName("");
-    }
-  };
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -159,40 +127,6 @@ export function InstructorCombobox({
               )}
             </ScrollArea>
           </CommandList>
-          <CommandSeparator />
-          <CommandGroup>
-            {isCreating ? (
-              <div className="flex items-center gap-2 p-1">
-                <Input
-                  autoFocus
-                  value={newName}
-                  onChange={(e) => setNewName(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  placeholder={t("courses.form.instructorName")}
-                  className="h-8"
-                  disabled={createMutation.isPending}
-                />
-                <Button
-                  size="sm"
-                  onClick={handleCreate}
-                  disabled={!newName.trim() || createMutation.isPending}
-                  isLoading={createMutation.isPending}
-                >
-                  {t("common.add")}
-                </Button>
-              </div>
-            ) : (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="w-full justify-start font-normal px-2"
-                onClick={() => setIsCreating(true)}
-              >
-                <Plus className="size-4" />
-                {t("courses.form.createInstructor")}
-              </Button>
-            )}
-          </CommandGroup>
         </Command>
       </PopoverContent>
     </Popover>

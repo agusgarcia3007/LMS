@@ -8,7 +8,8 @@ import {
   cartItemsTable,
   coursesTable,
   courseCategoriesTable,
-  instructorsTable,
+  instructorProfilesTable,
+  usersTable,
   categoriesTable,
 } from "@/db/schema";
 import { eq, and, inArray } from "drizzle-orm";
@@ -46,12 +47,16 @@ const publicCartRoutes = new Elysia()
             originalPrice: coursesTable.originalPrice,
             currency: coursesTable.currency,
             instructor: {
-              name: instructorsTable.name,
-              avatar: instructorsTable.avatar,
+              name: usersTable.name,
+              avatar: usersTable.avatar,
             },
           })
           .from(coursesTable)
-          .leftJoin(instructorsTable, eq(coursesTable.instructorId, instructorsTable.id))
+          .leftJoin(
+            instructorProfilesTable,
+            eq(coursesTable.instructorId, instructorProfilesTable.id)
+          )
+          .leftJoin(usersTable, eq(instructorProfilesTable.userId, usersTable.id))
           .where(
             and(
               inArray(coursesTable.id, courseIds),
@@ -160,13 +165,17 @@ export const cartRoutes = new Elysia()
               currency: coursesTable.currency,
             },
             instructor: {
-              name: instructorsTable.name,
-              avatar: instructorsTable.avatar,
+              name: usersTable.name,
+              avatar: usersTable.avatar,
             },
           })
           .from(cartItemsTable)
           .innerJoin(coursesTable, eq(cartItemsTable.courseId, coursesTable.id))
-          .leftJoin(instructorsTable, eq(coursesTable.instructorId, instructorsTable.id))
+          .leftJoin(
+            instructorProfilesTable,
+            eq(coursesTable.instructorId, instructorProfilesTable.id)
+          )
+          .leftJoin(usersTable, eq(instructorProfilesTable.userId, usersTable.id))
           .where(
             and(
               eq(cartItemsTable.userId, ctx.user.id),

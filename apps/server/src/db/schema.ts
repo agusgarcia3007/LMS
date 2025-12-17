@@ -533,15 +533,16 @@ export const categoriesTable = pgTable(
   ]
 );
 
-export const instructorsTable = pgTable(
-  "instructors",
+export const instructorProfilesTable = pgTable(
+  "instructor_profiles",
   {
     id: uuid("id").primaryKey().defaultRandom(),
     tenantId: uuid("tenant_id")
       .notNull()
       .references(() => tenantsTable.id, { onDelete: "cascade" }),
-    name: text("name").notNull(),
-    avatar: text("avatar"),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => usersTable.id, { onDelete: "cascade" }),
     bio: text("bio"),
     title: text("title"),
     email: text("email"),
@@ -558,7 +559,14 @@ export const instructorsTable = pgTable(
       .defaultNow()
       .$onUpdate(() => new Date()),
   },
-  (table) => [index("instructors_tenant_id_idx").on(table.tenantId)]
+  (table) => [
+    index("instructor_profiles_tenant_id_idx").on(table.tenantId),
+    index("instructor_profiles_user_id_idx").on(table.userId),
+    uniqueIndex("instructor_profiles_tenant_user_idx").on(
+      table.tenantId,
+      table.userId
+    ),
+  ]
 );
 
 export const coursesTable = pgTable(
@@ -568,9 +576,10 @@ export const coursesTable = pgTable(
     tenantId: uuid("tenant_id")
       .notNull()
       .references(() => tenantsTable.id, { onDelete: "cascade" }),
-    instructorId: uuid("instructor_id").references(() => instructorsTable.id, {
-      onDelete: "set null",
-    }),
+    instructorId: uuid("instructor_id").references(
+      () => instructorProfilesTable.id,
+      { onDelete: "set null" }
+    ),
     categoryId: uuid("category_id").references(() => categoriesTable.id, {
       onDelete: "set null",
     }),
@@ -1075,8 +1084,8 @@ export type ModuleStatus = (typeof moduleStatusEnum.enumValues)[number];
 export type InsertCategory = typeof categoriesTable.$inferInsert;
 export type SelectCategory = typeof categoriesTable.$inferSelect;
 
-export type InsertInstructor = typeof instructorsTable.$inferInsert;
-export type SelectInstructor = typeof instructorsTable.$inferSelect;
+export type InsertInstructorProfile = typeof instructorProfilesTable.$inferInsert;
+export type SelectInstructorProfile = typeof instructorProfilesTable.$inferSelect;
 
 export type InsertCourse = typeof coursesTable.$inferInsert;
 export type SelectCourse = typeof coursesTable.$inferSelect;

@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
-import { BookOpen, Calendar, Ellipsis, Plus } from "lucide-react";
+import { BookOpen, Calendar, Ellipsis, Plus, Crown } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
@@ -42,14 +42,14 @@ import { DataTable, DeleteDialog } from "@/components/data-table";
 import { useDataTableState } from "@/hooks/use-data-table-state";
 import {
   useGetInstructors,
-  useCreateInstructor,
+  useInviteInstructor,
   useUpdateInstructor,
   useDeleteInstructor,
   type Instructor,
 } from "@/services/instructors";
 import { createSeoMeta } from "@/lib/seo";
 
-export const Route = createFileRoute("/$tenantSlug/content/instructors")({
+export const Route = createFileRoute("/$tenantSlug/management/instructors")({
   head: () =>
     createSeoMeta({
       title: "Instructors",
@@ -65,8 +65,13 @@ export const Route = createFileRoute("/$tenantSlug/content/instructors")({
   }),
 });
 
-const instructorSchema = z.object({
+const inviteSchema = z.object({
+  email: z.string().email(),
   name: z.string().min(1),
+  title: z.string().optional(),
+});
+
+const editSchema = z.object({
   title: z.string().optional(),
   email: z.string().email().optional().or(z.literal("")),
   bio: z.string().optional(),
@@ -76,7 +81,8 @@ const instructorSchema = z.object({
   github: z.string().optional(),
 });
 
-type InstructorFormData = z.infer<typeof instructorSchema>;
+type InviteFormData = z.infer<typeof inviteSchema>;
+type EditFormData = z.infer<typeof editSchema>;
 
 function InstructorsPage() {
   const { t } = useTranslation();
@@ -92,20 +98,28 @@ function InstructorsPage() {
     createdAt: tableState.serverParams.createdAt as string | undefined,
   });
 
-  const [editorOpen, setEditorOpen] = useState(false);
+  const [inviteOpen, setInviteOpen] = useState(false);
   const [editInstructor, setEditInstructor] = useState<Instructor | null>(null);
   const [deleteInstructor, setDeleteInstructor] = useState<Instructor | null>(
     null
   );
 
-  const createMutation = useCreateInstructor();
+  const inviteMutation = useInviteInstructor();
   const updateMutation = useUpdateInstructor();
   const deleteMutation = useDeleteInstructor();
 
-  const form = useForm<InstructorFormData>({
-    resolver: zodResolver(instructorSchema),
+  const inviteForm = useForm<InviteFormData>({
+    resolver: zodResolver(inviteSchema),
     defaultValues: {
+      email: "",
       name: "",
+      title: "",
+    },
+  });
+
+  const editForm = useForm<EditFormData>({
+    resolver: zodResolver(editSchema),
+    defaultValues: {
       title: "",
       email: "",
       bio: "",
@@ -118,8 +132,7 @@ function InstructorsPage() {
 
   useEffect(() => {
     if (editInstructor) {
-      form.reset({
-        name: editInstructor.name,
+      editForm.reset({
         title: editInstructor.title ?? "",
         email: editInstructor.email ?? "",
         bio: editInstructor.bio ?? "",
@@ -129,8 +142,7 @@ function InstructorsPage() {
         github: editInstructor.socialLinks?.github ?? "",
       });
     } else {
-      form.reset({
-        name: "",
+      editForm.reset({
         title: "",
         email: "",
         bio: "",
@@ -140,31 +152,54 @@ function InstructorsPage() {
         github: "",
       });
     }
-  }, [editInstructor, form]);
+  }, [editInstructor, editForm]);
 
-  const handleOpenCreate = useCallback(() => {
-    setEditInstructor(null);
-    setEditorOpen(true);
+  const handleOpenInvite = useCallback(() => {
+    setInviteOpen(true);
   }, []);
+
+  const handleCloseInvite = useCallback(
+    (open: boolean) => {
+      if (!open) {
+        setInviteOpen(false);
+        inviteForm.reset();
+      }
+    },
+    [inviteForm]
+  );
 
   const handleOpenEdit = useCallback((instructor: Instructor) => {
     setEditInstructor(instructor);
-    setEditorOpen(true);
   }, []);
 
-  const handleCloseEditor = useCallback(
+  const handleCloseEdit = useCallback(
     (open: boolean) => {
       if (!open) {
-        setEditorOpen(false);
         setEditInstructor(null);
-        form.reset();
+        editForm.reset();
       }
     },
-    [form]
+    [editForm]
   );
 
-  const handleSubmit = useCallback(
-    (values: InstructorFormData) => {
+  const handleInviteSubmit = useCallback(
+    (values: InviteFormData) => {
+      inviteMutation.mutate(
+        {
+          email: values.email,
+          name: values.name,
+          title: values.title || undefined,
+        },
+        { onSuccess: () => handleCloseInvite(false) }
+      );
+    },
+    [inviteMutation, handleCloseInvite]
+  );
+
+  const handleEditSubmit = useCallback(
+    (values: EditFormData) => {
+      if (!editInstructor) return;
+
       const socialLinks =
         values.twitter || values.linkedin || values.github
           ? {
@@ -174,27 +209,19 @@ function InstructorsPage() {
             }
           : undefined;
 
-      const payload = {
-        name: values.name,
-        title: values.title || undefined,
-        email: values.email || undefined,
-        bio: values.bio || undefined,
-        website: values.website || undefined,
-        socialLinks,
-      };
-
-      if (editInstructor) {
-        updateMutation.mutate(
-          { id: editInstructor.id, ...payload },
-          { onSuccess: () => handleCloseEditor(false) }
-        );
-      } else {
-        createMutation.mutate(payload, {
-          onSuccess: () => handleCloseEditor(false),
-        });
-      }
+      updateMutation.mutate(
+        {
+          id: editInstructor.id,
+          title: values.title || undefined,
+          email: values.email || undefined,
+          bio: values.bio || undefined,
+          website: values.website || undefined,
+          socialLinks,
+        },
+        { onSuccess: () => handleCloseEdit(false) }
+      );
     },
-    [editInstructor, createMutation, updateMutation, handleCloseEditor]
+    [editInstructor, updateMutation, handleCloseEdit]
   );
 
   const handleDelete = useCallback(() => {
@@ -203,8 +230,6 @@ function InstructorsPage() {
       onSuccess: () => setDeleteInstructor(null),
     });
   }, [deleteInstructor, deleteMutation]);
-
-  const isPending = createMutation.isPending || updateMutation.isPending;
 
   const columns = useMemo<ColumnDef<Instructor>[]>(
     () => [
@@ -227,8 +252,16 @@ function InstructorsPage() {
               <AvatarFallback>{getInitials(row.original.name)}</AvatarFallback>
             </Avatar>
             <div className="space-y-px">
-              <div className="font-medium text-foreground">
-                {row.original.name}
+              <div className="flex items-center gap-2">
+                <span className="font-medium text-foreground">
+                  {row.original.name}
+                </span>
+                {row.original.isOwner && (
+                  <Badge variant="secondary" size="sm" className="gap-1">
+                    <Crown className="size-3" />
+                    Owner
+                  </Badge>
+                )}
               </div>
               {row.original.title && (
                 <div className="text-muted-foreground text-xs">
@@ -331,13 +364,17 @@ function InstructorsPage() {
               <DropdownMenuItem onClick={() => handleOpenEdit(row.original)}>
                 {t("common.edit")}
               </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                variant="destructive"
-                onClick={() => setDeleteInstructor(row.original)}
-              >
-                {t("common.delete")}
-              </DropdownMenuItem>
+              {!row.original.isOwner && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    variant="destructive"
+                    onClick={() => setDeleteInstructor(row.original)}
+                  >
+                    {t("common.delete")}
+                  </DropdownMenuItem>
+                </>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         ),
@@ -370,9 +407,9 @@ function InstructorsPage() {
           <h1 className="text-2xl font-bold">{t("instructors.title")}</h1>
           <p className="text-muted-foreground">{t("instructors.description")}</p>
         </div>
-        <Button onClick={handleOpenCreate}>
+        <Button onClick={handleOpenInvite}>
           <Plus className="size-4" />
-          {t("instructors.create.button")}
+          {t("instructors.invite.button")}
         </Button>
       </div>
 
@@ -387,44 +424,96 @@ function InstructorsPage() {
           title: t("instructors.empty.title"),
           description: t("instructors.empty.description"),
           action: (
-            <Button onClick={handleOpenCreate}>
+            <Button onClick={handleOpenInvite}>
               <Plus className="size-4" />
-              {t("instructors.create.button")}
+              {t("instructors.invite.button")}
             </Button>
           ),
         }}
       />
 
-      <Dialog open={editorOpen} onOpenChange={handleCloseEditor}>
+      <Dialog open={inviteOpen} onOpenChange={handleCloseInvite}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t("instructors.invite.title")}</DialogTitle>
+          </DialogHeader>
+          <Form {...inviteForm}>
+            <form
+              onSubmit={inviteForm.handleSubmit(handleInviteSubmit)}
+              className="space-y-4"
+            >
+              <FormField
+                control={inviteForm.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t("instructors.invite.emailLabel")}</FormLabel>
+                    <FormControl>
+                      <Input {...field} type="email" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={inviteForm.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t("instructors.invite.nameLabel")}</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={inviteForm.control}
+                name="title"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t("instructors.invite.titleLabel")}</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        placeholder={t("instructors.form.titlePlaceholder")}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <div className="flex justify-end gap-2 pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => handleCloseInvite(false)}
+                >
+                  {t("common.cancel")}
+                </Button>
+                <Button type="submit" isLoading={inviteMutation.isPending}>
+                  {t("instructors.invite.button")}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!editInstructor} onOpenChange={handleCloseEdit}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>
-              {editInstructor
-                ? t("instructors.edit.title")
-                : t("instructors.create.title")}
-            </DialogTitle>
+            <DialogTitle>{t("instructors.edit.title")}</DialogTitle>
           </DialogHeader>
-          <Form {...form}>
+          <Form {...editForm}>
             <form
-              onSubmit={form.handleSubmit(handleSubmit)}
+              onSubmit={editForm.handleSubmit(handleEditSubmit)}
               className="space-y-4"
             >
               <div className="grid grid-cols-2 gap-4">
                 <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t("instructors.form.name")}</FormLabel>
-                      <FormControl>
-                        <Input {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
+                  control={editForm.control}
                   name="title"
                   render={({ field }) => (
                     <FormItem>
@@ -439,10 +528,8 @@ function InstructorsPage() {
                     </FormItem>
                   )}
                 />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
                 <FormField
-                  control={form.control}
+                  control={editForm.control}
                   name="email"
                   render={({ field }) => (
                     <FormItem>
@@ -454,22 +541,22 @@ function InstructorsPage() {
                     </FormItem>
                   )}
                 />
-                <FormField
-                  control={form.control}
-                  name="website"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t("instructors.form.website")}</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="https://" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
               </div>
               <FormField
-                control={form.control}
+                control={editForm.control}
+                name="website"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t("instructors.form.website")}</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="https://" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={editForm.control}
                 name="bio"
                 render={({ field }) => (
                   <FormItem>
@@ -485,7 +572,7 @@ function InstructorsPage() {
                 <FormLabel>{t("instructors.form.socialLinks")}</FormLabel>
                 <div className="grid grid-cols-3 gap-3">
                   <FormField
-                    control={form.control}
+                    control={editForm.control}
                     name="twitter"
                     render={({ field }) => (
                       <FormItem>
@@ -496,7 +583,7 @@ function InstructorsPage() {
                     )}
                   />
                   <FormField
-                    control={form.control}
+                    control={editForm.control}
                     name="linkedin"
                     render={({ field }) => (
                       <FormItem>
@@ -507,7 +594,7 @@ function InstructorsPage() {
                     )}
                   />
                   <FormField
-                    control={form.control}
+                    control={editForm.control}
                     name="github"
                     render={({ field }) => (
                       <FormItem>
@@ -523,12 +610,12 @@ function InstructorsPage() {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => handleCloseEditor(false)}
+                  onClick={() => handleCloseEdit(false)}
                 >
                   {t("common.cancel")}
                 </Button>
-                <Button type="submit" isLoading={isPending}>
-                  {editInstructor ? t("common.save") : t("common.create")}
+                <Button type="submit" isLoading={updateMutation.isPending}>
+                  {t("common.save")}
                 </Button>
               </div>
             </form>

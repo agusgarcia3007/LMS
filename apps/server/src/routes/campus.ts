@@ -10,7 +10,8 @@ import {
   modulesTable,
   moduleItemsTable,
   categoriesTable,
-  instructorsTable,
+  instructorProfilesTable,
+  usersTable,
   tenantsTable,
   videosTable,
   documentsTable,
@@ -174,10 +175,18 @@ export const campusRoutes = new Elysia({ name: "campus" })
         const coursesQuery = db
           .select({
             course: coursesTable,
-            instructor: instructorsTable,
+            instructorProfile: instructorProfilesTable,
+            instructorUser: {
+              name: usersTable.name,
+              avatar: usersTable.avatar,
+            },
           })
           .from(coursesTable)
-          .leftJoin(instructorsTable, eq(coursesTable.instructorId, instructorsTable.id))
+          .leftJoin(
+            instructorProfilesTable,
+            eq(coursesTable.instructorId, instructorProfilesTable.id)
+          )
+          .leftJoin(usersTable, eq(instructorProfilesTable.userId, usersTable.id))
           .where(whereClause)
           .orderBy(coursesTable.order)
           .limit(limitNum)
@@ -236,37 +245,45 @@ export const campusRoutes = new Elysia({ name: "campus" })
           categoriesByCourse.set(cat.courseId, existing);
         }
 
-        const courses = coursesData.map(({ course, instructor }) => ({
-          id: course.id,
-          slug: course.slug,
-          title: course.title,
-          shortDescription: course.shortDescription || "",
-          description: course.description || "",
-          thumbnail: course.thumbnail ? getPresignedUrl(course.thumbnail) : null,
-          previewVideoUrl: course.previewVideoUrl ? getPresignedUrl(course.previewVideoUrl) : null,
-          price: course.price,
-          originalPrice: course.originalPrice,
-          currency: course.currency,
-          level: course.level,
-          language: course.language || "es",
-          tags: course.tags || [],
-          features: course.features || [],
-          requirements: course.requirements || [],
-          objectives: course.objectives || [],
-          modulesCount: modulesCountMap.get(course.id) ?? 0,
-          studentsCount: 0,
-          rating: 0,
-          reviewsCount: 0,
-          categories: categoriesByCourse.get(course.id) ?? [],
-          instructor: instructor
-            ? {
-                name: instructor.name,
-                avatar: instructor.avatar,
-                title: instructor.title,
-                bio: instructor.bio,
-              }
-            : null,
-        }));
+        const courses = coursesData.map(
+          ({ course, instructorProfile, instructorUser }) => ({
+            id: course.id,
+            slug: course.slug,
+            title: course.title,
+            shortDescription: course.shortDescription || "",
+            description: course.description || "",
+            thumbnail: course.thumbnail
+              ? getPresignedUrl(course.thumbnail)
+              : null,
+            previewVideoUrl: course.previewVideoUrl
+              ? getPresignedUrl(course.previewVideoUrl)
+              : null,
+            price: course.price,
+            originalPrice: course.originalPrice,
+            currency: course.currency,
+            level: course.level,
+            language: course.language || "es",
+            tags: course.tags || [],
+            features: course.features || [],
+            requirements: course.requirements || [],
+            objectives: course.objectives || [],
+            modulesCount: modulesCountMap.get(course.id) ?? 0,
+            studentsCount: 0,
+            rating: 0,
+            reviewsCount: 0,
+            categories: categoriesByCourse.get(course.id) ?? [],
+            instructor: instructorProfile
+              ? {
+                  name: instructorUser?.name ?? null,
+                  avatar: instructorUser?.avatar
+                    ? getPresignedUrl(instructorUser.avatar)
+                    : null,
+                  title: instructorProfile.title,
+                  bio: instructorProfile.bio,
+                }
+              : null,
+          })
+        );
 
         return {
           courses,
@@ -296,10 +313,18 @@ export const campusRoutes = new Elysia({ name: "campus" })
       const [result] = await db
         .select({
           course: coursesTable,
-          instructor: instructorsTable,
+          instructorProfile: instructorProfilesTable,
+          instructorUser: {
+            name: usersTable.name,
+            avatar: usersTable.avatar,
+          },
         })
         .from(coursesTable)
-        .leftJoin(instructorsTable, eq(coursesTable.instructorId, instructorsTable.id))
+        .leftJoin(
+          instructorProfilesTable,
+          eq(coursesTable.instructorId, instructorProfilesTable.id)
+        )
+        .leftJoin(usersTable, eq(instructorProfilesTable.userId, usersTable.id))
         .where(
           and(
             eq(coursesTable.tenantId, ctx.tenant.id),
@@ -313,7 +338,7 @@ export const campusRoutes = new Elysia({ name: "campus" })
         throw new AppError(ErrorCode.NOT_FOUND, "Course not found", 404);
       }
 
-      const { course, instructor } = result;
+      const { course, instructorProfile, instructorUser } = result;
 
       const courseCategories = await db
         .select({
@@ -376,12 +401,14 @@ export const campusRoutes = new Elysia({ name: "campus" })
           rating: 0,
           reviewsCount: 0,
           categories: courseCategories,
-          instructor: instructor
+          instructor: instructorProfile
             ? {
-                name: instructor.name,
-                avatar: instructor.avatar,
-                title: instructor.title,
-                bio: instructor.bio,
+                name: instructorUser?.name ?? null,
+                avatar: instructorUser?.avatar
+                  ? getPresignedUrl(instructorUser.avatar)
+                  : null,
+                title: instructorProfile.title,
+                bio: instructorProfile.bio,
               }
             : null,
           modules,

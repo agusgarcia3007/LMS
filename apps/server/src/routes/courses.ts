@@ -9,7 +9,8 @@ import {
   courseCategoriesTable,
   modulesTable,
   moduleItemsTable,
-  instructorsTable,
+  instructorProfilesTable,
+  usersTable,
   categoriesTable,
   courseLevelEnum,
   courseStatusEnum,
@@ -99,9 +100,9 @@ export const coursesRoutes = new Elysia()
           .select({
             course: coursesTable,
             instructor: {
-              id: instructorsTable.id,
-              name: instructorsTable.name,
-              avatar: instructorsTable.avatar,
+              id: instructorProfilesTable.id,
+              name: usersTable.name,
+              avatar: usersTable.avatar,
             },
             modulesCount: modulesCountSq.modulesCount,
             enrollmentsCount: sql<number>`(
@@ -132,8 +133,12 @@ export const coursesRoutes = new Elysia()
           })
           .from(coursesTable)
           .leftJoin(
-            instructorsTable,
-            eq(coursesTable.instructorId, instructorsTable.id)
+            instructorProfilesTable,
+            eq(coursesTable.instructorId, instructorProfilesTable.id)
+          )
+          .leftJoin(
+            usersTable,
+            eq(instructorProfilesTable.userId, usersTable.id)
           )
           .leftJoin(modulesCountSq, eq(coursesTable.id, modulesCountSq.courseId))
           .where(whereClause)
@@ -224,12 +229,21 @@ export const coursesRoutes = new Elysia()
       const [result] = await db
           .select({
             course: coursesTable,
-            instructor: instructorsTable,
+            instructorProfile: instructorProfilesTable,
+            instructorUser: {
+              id: usersTable.id,
+              name: usersTable.name,
+              avatar: usersTable.avatar,
+            },
           })
           .from(coursesTable)
           .leftJoin(
-            instructorsTable,
-            eq(coursesTable.instructorId, instructorsTable.id)
+            instructorProfilesTable,
+            eq(coursesTable.instructorId, instructorProfilesTable.id)
+          )
+          .leftJoin(
+            usersTable,
+            eq(instructorProfilesTable.userId, usersTable.id)
           )
           .where(
             and(
@@ -294,12 +308,24 @@ export const coursesRoutes = new Elysia()
           },
         }));
 
+      const instructor = result.instructorProfile?.id
+        ? {
+            id: result.instructorProfile.id,
+            name: result.instructorUser?.name ?? null,
+            avatar: result.instructorUser?.avatar
+              ? getPresignedUrl(result.instructorUser.avatar)
+              : null,
+            bio: result.instructorProfile.bio,
+            title: result.instructorProfile.title,
+          }
+        : null;
+
       return {
         course: {
           ...result.course,
           thumbnail: result.course.thumbnail ? getPresignedUrl(result.course.thumbnail) : null,
           previewVideoUrl: result.course.previewVideoUrl ? getPresignedUrl(result.course.previewVideoUrl) : null,
-          instructor: result.instructor?.id ? result.instructor : null,
+          instructor,
           categories: courseCategories,
           modules: modulesWithItemsCount,
           modulesCount: courseModules.length,

@@ -10,7 +10,8 @@ import {
   courseModulesTable,
   categoriesTable,
   courseCategoriesTable,
-  instructorsTable,
+  instructorProfilesTable,
+  usersTable,
   enrollmentsTable,
 } from "@/db/schema";
 import { eq, and, desc, inArray, count, ilike } from "drizzle-orm";
@@ -316,9 +317,10 @@ export function createCourseTools(ctx: ToolContext) {
         let instructorName: string | null = null;
         if (courseResult.instructorId) {
           const [inst] = await db
-            .select({ name: instructorsTable.name })
-            .from(instructorsTable)
-            .where(eq(instructorsTable.id, courseResult.instructorId))
+            .select({ name: usersTable.name })
+            .from(instructorProfilesTable)
+            .innerJoin(usersTable, eq(instructorProfilesTable.userId, usersTable.id))
+            .where(eq(instructorProfilesTable.id, courseResult.instructorId))
             .limit(1);
           instructorName = inst?.name ?? null;
         }
@@ -486,15 +488,22 @@ export function createCourseTools(ctx: ToolContext) {
             updatedFields.push("instructorId");
           } else {
             const [instructor] = await db
-              .select({ id: instructorsTable.id })
-              .from(instructorsTable)
-              .where(and(eq(instructorsTable.tenantId, tenantId), eq(instructorsTable.id, updates.instructorId)))
+              .select({ id: instructorProfilesTable.id })
+              .from(instructorProfilesTable)
+              .where(
+                and(
+                  eq(instructorProfilesTable.tenantId, tenantId),
+                  eq(instructorProfilesTable.id, updates.instructorId)
+                )
+              )
               .limit(1);
             if (instructor) {
               updateData.instructorId = updates.instructorId;
               updatedFields.push("instructorId");
             } else {
-              logger.warn("updateCourse: invalid instructorId", { instructorId: updates.instructorId });
+              logger.warn("updateCourse: invalid instructorId", {
+                instructorId: updates.instructorId,
+              });
             }
           }
         }

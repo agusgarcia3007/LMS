@@ -1894,7 +1894,6 @@
       "createdAt": "Created at"
     },
     "form": {
-      "name": "Name",
       "title": "Professional title",
       "titlePlaceholder": "E.g.: Senior Developer",
       "email": "Email",
@@ -1902,10 +1901,13 @@
       "bio": "Biography",
       "socialLinks": "Social links"
     },
-    "create": {
-      "title": "New instructor",
-      "button": "New instructor",
-      "success": "Instructor created successfully"
+    "invite": {
+      "title": "Invite instructor",
+      "button": "Invite instructor",
+      "success": "Instructor invited successfully",
+      "emailLabel": "Email",
+      "nameLabel": "Name",
+      "titleLabel": "Professional title"
     },
     "edit": {
       "title": "Edit instructor",
@@ -1918,7 +1920,7 @@
     },
     "empty": {
       "title": "No instructors",
-      "description": "Create your first instructor to assign to your courses"
+      "description": "Invite your first instructor to assign to your courses"
     }
   },
   "videos": {

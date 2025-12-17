@@ -1,5 +1,10 @@
 import { db } from "@/db";
-import { usersTable, refreshTokensTable, tenantsTable } from "@/db/schema";
+import {
+  usersTable,
+  refreshTokensTable,
+  tenantsTable,
+  instructorProfilesTable,
+} from "@/db/schema";
 import { getWelcomeVerificationEmailHtml } from "@/lib/email-templates";
 import { AppError, ErrorCode } from "@/lib/errors";
 import { getTenantClientUrl, sendEmail } from "@/lib/utils";
@@ -144,6 +149,12 @@ authRoutes.post(
           .update(usersTable)
           .set({ tenantId: tenant.id })
           .where(eq(usersTable.id, user.id));
+
+        await db.insert(instructorProfilesTable).values({
+          tenantId: tenant.id,
+          userId: user.id,
+          order: 0,
+        });
 
         tenantSlug = tenant.slug;
         userTenantId = tenant.id;

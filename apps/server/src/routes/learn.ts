@@ -18,7 +18,8 @@ import {
   quizzesTable,
   quizQuestionsTable,
   quizOptionsTable,
-  instructorsTable,
+  instructorProfilesTable,
+  usersTable,
 } from "@/db/schema";
 import { getLanguageLabel } from "@/lib/languages";
 import { eq, and, count, inArray, asc, sql, ne, notInArray } from "drizzle-orm";
@@ -979,11 +980,15 @@ export const learnRoutes = new Elysia({ name: "learn" })
             shortDescription: coursesTable.shortDescription,
             price: coursesTable.price,
             currency: coursesTable.currency,
-            instructorName: instructorsTable.name,
-            instructorAvatar: instructorsTable.avatar,
+            instructorName: usersTable.name,
+            instructorAvatar: usersTable.avatar,
           })
           .from(coursesTable)
-          .leftJoin(instructorsTable, eq(coursesTable.instructorId, instructorsTable.id))
+          .leftJoin(
+            instructorProfilesTable,
+            eq(coursesTable.instructorId, instructorProfilesTable.id)
+          )
+          .leftJoin(usersTable, eq(instructorProfilesTable.userId, usersTable.id))
           .where(and(...conditions))
           .limit(4);
 

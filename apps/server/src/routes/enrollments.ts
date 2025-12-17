@@ -7,7 +7,8 @@ import {
   coursesTable,
   courseModulesTable,
   courseCategoriesTable,
-  instructorsTable,
+  instructorProfilesTable,
+  usersTable,
   categoriesTable,
   cartItemsTable,
 } from "@/db/schema";
@@ -58,17 +59,18 @@ export const enrollmentsRoutes = new Elysia({ name: "enrollments" })
               },
               modulesCount: modulesCountSq.modulesCount,
               instructor: {
-                name: instructorsTable.name,
-                avatar: instructorsTable.avatar,
+                name: usersTable.name,
+                avatar: usersTable.avatar,
               },
             })
             .from(enrollmentsTable)
             .innerJoin(coursesTable, eq(enrollmentsTable.courseId, coursesTable.id))
             .leftJoin(modulesCountSq, eq(modulesCountSq.courseId, coursesTable.id))
             .leftJoin(
-              instructorsTable,
-              eq(coursesTable.instructorId, instructorsTable.id)
+              instructorProfilesTable,
+              eq(coursesTable.instructorId, instructorProfilesTable.id)
             )
+            .leftJoin(usersTable, eq(instructorProfilesTable.userId, usersTable.id))
             .where(whereCondition)
             .orderBy(desc(enrollmentsTable.createdAt))
             .limit(limit)

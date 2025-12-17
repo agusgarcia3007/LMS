@@ -8,7 +8,7 @@ import {
   usersTable,
   coursesTable,
   categoriesTable,
-  instructorsTable,
+  instructorProfilesTable,
   modulesTable,
   enrollmentsTable,
   certificatesTable,
@@ -437,8 +437,8 @@ export const tenantsRoutes = new Elysia()
             .where(eq(categoriesTable.tenantId, ctx.params.id)),
           db
             .select({ count: count() })
-            .from(instructorsTable)
-            .where(eq(instructorsTable.tenantId, ctx.params.id)),
+            .from(instructorProfilesTable)
+            .where(eq(instructorProfilesTable.tenantId, ctx.params.id)),
           db
             .select({ count: count() })
             .from(modulesTable)

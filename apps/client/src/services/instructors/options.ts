@@ -9,7 +9,7 @@ import {
   InstructorsService,
   QUERY_KEYS,
   type InstructorListParams,
-  type CreateInstructorRequest,
+  type InviteInstructorRequest,
   type UpdateInstructorRequest,
 } from "./service";
 
@@ -26,14 +26,14 @@ export const instructorOptions = (id: string) =>
     enabled: !!id,
   });
 
-export const useCreateInstructorOptions = () => {
+export const useInviteInstructorOptions = () => {
   const queryClient = useQueryClient();
   return mutationOptions({
-    mutationFn: (payload: CreateInstructorRequest) =>
-      InstructorsService.create(payload),
+    mutationFn: (payload: InviteInstructorRequest) =>
+      InstructorsService.invite(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.INSTRUCTORS });
-      toast.success(i18n.t("instructors.create.success"));
+      toast.success(i18n.t("instructors.invite.success"));
     },
   });
 };
@@ -41,7 +41,10 @@ export const useCreateInstructorOptions = () => {
 export const useUpdateInstructorOptions = () => {
   const queryClient = useQueryClient();
   return mutationOptions({
-    mutationFn: ({ id, ...payload }: { id: string } & UpdateInstructorRequest) =>
+    mutationFn: ({
+      id,
+      ...payload
+    }: { id: string } & UpdateInstructorRequest) =>
       InstructorsService.update(id, payload),
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.INSTRUCTORS });

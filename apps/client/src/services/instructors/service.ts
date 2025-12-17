@@ -10,6 +10,7 @@ export type SocialLinks = {
 export type Instructor = {
   id: string;
   tenantId: string;
+  userId: string;
   name: string;
   avatar: string | null;
   bio: string | null;
@@ -18,6 +19,7 @@ export type Instructor = {
   website: string | null;
   socialLinks: SocialLinks | null;
   order: number;
+  isOwner: boolean;
   coursesCount: number;
   createdAt: string;
   updatedAt: string;
@@ -36,19 +38,13 @@ export type InstructorListResponse = {
   pagination: PaginationResult;
 };
 
-export type CreateInstructorRequest = {
+export type InviteInstructorRequest = {
+  email: string;
   name: string;
-  avatar?: string;
-  bio?: string;
   title?: string;
-  email?: string;
-  website?: string;
-  socialLinks?: SocialLinks;
 };
 
 export type UpdateInstructorRequest = {
-  name?: string;
-  avatar?: string | null;
   bio?: string | null;
   title?: string | null;
   email?: string | null;
@@ -59,7 +55,11 @@ export type UpdateInstructorRequest = {
 
 export const QUERY_KEYS = {
   INSTRUCTORS: ["instructors"],
-  INSTRUCTORS_LIST: (params: InstructorListParams) => ["instructors", "list", params],
+  INSTRUCTORS_LIST: (params: InstructorListParams) => [
+    "instructors",
+    "list",
+    params,
+  ],
   INSTRUCTOR: (id: string) => ["instructors", id],
 } as const;
 
@@ -79,13 +79,15 @@ export const InstructorsService = {
   },
 
   async getById(id: string) {
-    const { data } = await http.get<{ instructor: Instructor }>(`/instructors/${id}`);
+    const { data } = await http.get<{ instructor: Instructor }>(
+      `/instructors/${id}`
+    );
     return data;
   },
 
-  async create(payload: CreateInstructorRequest) {
+  async invite(payload: InviteInstructorRequest) {
     const { data } = await http.post<{ instructor: Instructor }>(
-      "/instructors",
+      "/instructors/invite",
       payload
     );
     return data;
@@ -100,7 +102,9 @@ export const InstructorsService = {
   },
 
   async delete(id: string) {
-    const { data } = await http.delete<{ success: boolean }>(`/instructors/${id}`);
+    const { data } = await http.delete<{ success: boolean }>(
+      `/instructors/${id}`
+    );
     return data;
   },
 } as const;
