@@ -14,6 +14,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ModeToggle } from "@/components/ui/theme-toggle";
+import {
+  canAccessBackoffice,
+  canAccessTenantDashboard,
+} from "@/lib/permissions";
 import { useGetProfile } from "@/services/profile/queries";
 import { useLogout } from "@/services/auth/mutations";
 
@@ -38,7 +42,7 @@ export function Header() {
     <header className="border-b">
       <div className="container mx-auto flex h-14 items-center justify-between px-4">
         <Link to="/" className="text-lg font-semibold">
-          LMS
+          Learnbase
         </Link>
 
         <nav className="flex items-center gap-2">
@@ -50,7 +54,10 @@ export function Header() {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="rounded-full">
                   <Avatar className="size-8">
-                    <AvatarImage src={user.avatar || ""} alt={t("header.userAvatar")} />
+                    <AvatarImage
+                      src={user.avatar || ""}
+                      alt={t("header.userAvatar")}
+                    />
                     <AvatarFallback>
                       {user.name?.charAt(0).toUpperCase() || "U"}
                     </AvatarFallback>
@@ -66,19 +73,18 @@ export function Header() {
                     {t("header.profile")}
                   </Link>
                 </DropdownMenuItem>
-                {(user.role === "owner" || user.role === "superadmin") &&
-                  tenant && (
-                    <DropdownMenuItem asChild>
-                      <Link
-                        to="/$tenantSlug"
-                        params={{ tenantSlug: tenant.slug }}
-                      >
-                        <LayoutDashboard />
-                        {t("dashboard.sidebar.adminPanel")}
-                      </Link>
-                    </DropdownMenuItem>
-                  )}
-                {user.role === "superadmin" && (
+                {canAccessTenantDashboard(user.role) && tenant && (
+                  <DropdownMenuItem asChild>
+                    <Link
+                      to="/$tenantSlug"
+                      params={{ tenantSlug: tenant.slug }}
+                    >
+                      <LayoutDashboard />
+                      {t("dashboard.sidebar.adminPanel")}
+                    </Link>
+                  </DropdownMenuItem>
+                )}
+                {canAccessBackoffice(user.role) && (
                   <DropdownMenuItem asChild>
                     <Link to="/backoffice">
                       <Shield />

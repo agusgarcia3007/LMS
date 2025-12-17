@@ -61,6 +61,12 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { getInitials } from "@/lib/format";
+import {
+  canAccessBackoffice,
+  canManageSite,
+  canViewFinance,
+  canViewStorage,
+} from "@/lib/permissions";
 import { useLogout } from "@/services/auth/mutations";
 import type { User } from "@/services/profile/service";
 import type { Tenant } from "@/services/tenants/service";
@@ -78,7 +84,7 @@ export function DashboardSidebar({ tenant, user }: DashboardSidebarProps) {
   const { t } = useTranslation();
   const { setOpenMobile } = useSidebar();
   const { data: subscription } = useSubscription({
-    enabled: user.role !== "instructor",
+    enabled: canViewFinance(user.role),
   });
 
   useEffect(() => {
@@ -203,7 +209,7 @@ export function DashboardSidebar({ tenant, user }: DashboardSidebarProps) {
           },
         ],
       },
-      ...(user.role !== "instructor"
+      ...(canManageSite(user.role)
         ? [
             {
               title: t("dashboard.sidebar.mySite"),
@@ -230,7 +236,7 @@ export function DashboardSidebar({ tenant, user }: DashboardSidebarProps) {
             },
           ]
         : []),
-      ...(user.role !== "instructor"
+      ...(canViewFinance(user.role)
         ? [
             {
               title: t("dashboard.sidebar.finance"),
@@ -355,7 +361,7 @@ export function DashboardSidebar({ tenant, user }: DashboardSidebarProps) {
         ))}
       </SidebarContent>
 
-      {user.role !== "instructor" && <SidebarStorageCard />}
+      {canViewStorage(user.role) && <SidebarStorageCard />}
 
       <SidebarFooter>
         <SidebarMenu>
@@ -390,7 +396,7 @@ export function DashboardSidebar({ tenant, user }: DashboardSidebarProps) {
                 align="end"
                 sideOffset={4}
               >
-                {subscription?.plan && user.role !== "instructor" && (
+                {subscription?.plan && canViewFinance(user.role) && (
                   <>
                     <div className="px-2 py-1.5">
                       <div className="flex items-center gap-2">
@@ -425,7 +431,7 @@ export function DashboardSidebar({ tenant, user }: DashboardSidebarProps) {
                     {t("common.backToHome")}
                   </Link>
                 </DropdownMenuItem>
-                {user.role !== "instructor" && (
+                {canViewFinance(user.role) && (
                   <DropdownMenuItem asChild>
                     <Link
                       to="/$tenantSlug/finance/subscription"
@@ -436,7 +442,7 @@ export function DashboardSidebar({ tenant, user }: DashboardSidebarProps) {
                     </Link>
                   </DropdownMenuItem>
                 )}
-                {user.role === "superadmin" && (
+                {canAccessBackoffice(user.role) && (
                   <DropdownMenuItem asChild>
                     <Link to="/backoffice">
                       <Shield />

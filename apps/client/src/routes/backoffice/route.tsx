@@ -3,6 +3,7 @@ import { Outlet, createFileRoute, redirect } from "@tanstack/react-router";
 import { BackofficeHeader } from "@/components/backoffice/header";
 import { BackofficeSidebar } from "@/components/backoffice/sidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { canAccessBackoffice } from "@/lib/permissions";
 import { profileOptions } from "@/services/profile/options";
 
 export const Route = createFileRoute("/backoffice")({
@@ -23,7 +24,7 @@ export const Route = createFileRoute("/backoffice")({
 
     const { user, tenant } = profileData;
 
-    if (user.role !== "superadmin") {
+    if (!canAccessBackoffice(user.role)) {
       throw redirect({ to: "/", search: { campus: undefined } });
     }
 

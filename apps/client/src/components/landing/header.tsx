@@ -16,6 +16,7 @@ import { ModeToggle } from "@/components/ui/theme-toggle";
 import { useGetProfile } from "@/services/profile/queries";
 import { useLogout } from "@/services/auth/mutations";
 import { cn } from "@/lib/utils";
+import { canAccessBackoffice, canAccessTenantDashboard } from "@/lib/permissions";
 import { siteData } from "@/lib/constants";
 import { LearnbaseLogo } from "./logo";
 
@@ -92,19 +93,18 @@ export function LandingHeader() {
                     {t("header.profile")}
                   </Link>
                 </DropdownMenuItem>
-                {(user.role === "owner" || user.role === "instructor" || user.role === "superadmin") &&
-                  tenant && (
-                    <DropdownMenuItem asChild>
-                      <Link
-                        to="/$tenantSlug"
-                        params={{ tenantSlug: tenant.slug }}
-                      >
-                        <LayoutDashboard />
-                        {t("dashboard.sidebar.adminPanel")}
-                      </Link>
-                    </DropdownMenuItem>
-                  )}
-                {user.role === "superadmin" && (
+                {canAccessTenantDashboard(user.role) && tenant && (
+                  <DropdownMenuItem asChild>
+                    <Link
+                      to="/$tenantSlug"
+                      params={{ tenantSlug: tenant.slug }}
+                    >
+                      <LayoutDashboard />
+                      {t("dashboard.sidebar.adminPanel")}
+                    </Link>
+                  </DropdownMenuItem>
+                )}
+                {canAccessBackoffice(user.role) && (
                   <DropdownMenuItem asChild>
                     <Link to="/backoffice">
                       <Shield />
@@ -189,17 +189,16 @@ export function LandingHeader() {
               >
                 {t("header.profile")}
               </Link>
-              {(user.role === "owner" || user.role === "instructor" || user.role === "superadmin") &&
-                tenant && (
-                  <Link
-                    to="/$tenantSlug"
-                    params={{ tenantSlug: tenant.slug }}
-                    className="text-sm font-medium text-muted-foreground hover:text-foreground"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    {t("dashboard.sidebar.adminPanel")}
-                  </Link>
-                )}
+              {canAccessTenantDashboard(user.role) && tenant && (
+                <Link
+                  to="/$tenantSlug"
+                  params={{ tenantSlug: tenant.slug }}
+                  className="text-sm font-medium text-muted-foreground hover:text-foreground"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  {t("dashboard.sidebar.adminPanel")}
+                </Link>
+              )}
               <button
                 onClick={() => {
                   logout(undefined, {

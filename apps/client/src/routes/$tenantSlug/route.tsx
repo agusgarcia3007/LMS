@@ -5,6 +5,7 @@ import { DashboardHeader } from "@/components/dashboard/header";
 import { DashboardSidebar } from "@/components/dashboard/sidebar";
 import { OnboardingPanel } from "@/components/dashboard/onboarding-panel";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { canAccessTenantDashboard, canManageSite } from "@/lib/permissions";
 import { setResolvedSlug } from "@/lib/tenant";
 import { profileOptions } from "@/services/profile/options";
 import { tenantOptions } from "@/services/tenants/options";
@@ -105,7 +106,7 @@ export const Route = createFileRoute("/$tenantSlug")({
 
     const { user } = profileData;
 
-    if (user.role !== "owner" && user.role !== "instructor" && user.role !== "superadmin") {
+    if (!canAccessTenantDashboard(user.role)) {
       throw redirect({ to: "/", search: { campus: undefined } });
     }
 
@@ -119,8 +120,8 @@ export const Route = createFileRoute("/$tenantSlug")({
       throw redirect({ to: "/", search: { campus: undefined } });
     }
 
-    const isSiteRoute = location.pathname.includes("/site/");
-    if (isSiteRoute && user.role === "instructor") {
+    const isSiteRoute = location.pathname.includes("/site");
+    if (isSiteRoute && !canManageSite(user.role)) {
       throw redirect({
         to: "/$tenantSlug",
         params: { tenantSlug: params.tenantSlug },
