@@ -1,5 +1,4 @@
-import Image from "next/image";
-
+export const dynamic = "force-dynamic";
 export default async function Home() {
   const response = await fetch(process.env.NEXT_API_URL as string);
   const data: { message: string; version: string } = await response.json();
