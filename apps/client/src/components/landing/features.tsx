@@ -21,27 +21,30 @@ export function LandingFeatures() {
   const { t } = useTranslation();
 
   return (
-    <section id="features" className="py-16 md:py-24">
-      <div className="mx-auto max-w-5xl px-6">
-        <div className="text-center">
-          <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
+    <section id="features" className="py-20">
+      <div className="mx-auto max-w-[1060px] px-4">
+        <div className="mb-16 space-y-4 text-center">
+          <h2 className="text-balance text-3xl font-bold sm:text-4xl md:text-5xl">
             {t("landing.features.title")}
           </h2>
-          <p className="mt-4 text-muted-foreground">
+          <p className="text-pretty text-lg text-muted-foreground">
             {t("landing.features.subtitle")}
           </p>
         </div>
 
-        <div className="mt-12 grid gap-8 md:mt-16 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {features.map((feature) => (
-            <div key={feature.key} className="group">
-              <div className="mb-4 inline-flex size-12 items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors group-hover:bg-primary/15">
-                <feature.icon className="size-6" aria-hidden />
+            <div
+              key={feature.key}
+              className="rounded-lg border border-border bg-card p-6 transition-shadow hover:shadow-md"
+            >
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
+                <feature.icon className="h-6 w-6 text-primary" />
               </div>
-              <h3 className="text-lg font-semibold">
+              <h3 className="mb-2 text-lg font-semibold">
                 {t(`landing.features.${feature.key}.title`)}
               </h3>
-              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+              <p className="text-sm leading-relaxed text-muted-foreground">
                 {t(`landing.features.${feature.key}.description`)}
               </p>
             </div>

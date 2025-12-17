@@ -1,54 +1,38 @@
 import { Link } from "@tanstack/react-router";
-import { ArrowRight } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { ColorBends } from "@/components/ui/color-bends";
 
 export function LandingHero() {
   const { t } = useTranslation();
 
   return (
-    <section className="relative overflow-hidden">
-      <div className="pointer-events-none absolute inset-0 opacity-30">
-        <ColorBends
-          colors={["#3b82f6", "#8b5cf6", "#06b6d4"]}
-          speed={0.15}
-          scale={1.2}
-          frequency={0.8}
-          warpStrength={0.6}
-          mouseInfluence={0.3}
-          noise={0.05}
-          transparent
-        />
-      </div>
+    <section className="relative overflow-hidden pt-24 pb-16">
+      <div className="mx-auto max-w-[1060px] px-4">
+        <div className="flex flex-col items-center gap-8">
+          <div className="flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-2">
+            <Sparkles className="h-4 w-4 text-primary" />
+            <span className="text-sm font-medium text-primary">
+              {t("landing.hero.badge")}
+            </span>
+          </div>
 
-      <div className="relative mx-auto max-w-4xl px-6 py-20 md:py-28">
-        <div className="text-center">
-          <Badge variant="secondary" className="mb-5">
-            {t("landing.hero.badge")}
-          </Badge>
+          <div className="flex max-w-[800px] flex-col items-center gap-6 text-center">
+            <h1 className="text-balance text-4xl font-bold leading-tight sm:text-5xl md:text-6xl lg:text-7xl">
+              {t("landing.hero.title")}
+            </h1>
+            <p className="max-w-[600px] text-pretty text-lg text-muted-foreground sm:text-xl">
+              {t("landing.hero.subtitle")}
+            </p>
+          </div>
 
-          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
-            {t("landing.hero.title")}
-          </h1>
-
-          <p className="mx-auto mt-4 max-w-xl text-base text-muted-foreground md:text-lg">
-            {t("landing.hero.subtitle")}
-          </p>
-
-          <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Link to="/signup">
-              <Button size="lg" className="gap-2">
-                {t("landing.hero.cta")}
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-            </Link>
-            <a href="#pricing">
-              <Button size="lg" variant="outline">
-                {t("landing.hero.ctaSecondary")}
-              </Button>
-            </a>
+          <div className="flex flex-col items-center gap-4 sm:flex-row">
+            <Button size="lg" className="px-8" asChild>
+              <Link to="/signup">{t("landing.hero.cta")}</Link>
+            </Button>
+            <Button size="lg" variant="outline" className="bg-transparent px-8" asChild>
+              <a href="#pricing">{t("landing.hero.ctaSecondary")}</a>
+            </Button>
           </div>
         </div>
       </div>

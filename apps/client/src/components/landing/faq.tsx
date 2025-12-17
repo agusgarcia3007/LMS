@@ -1,47 +1,50 @@
+import { useState } from "react";
+import { ChevronDown } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
 
 const faqItems = ["ai", "domain", "data", "pricing"];
 
 export function FAQ() {
   const { t } = useTranslation();
+  const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   return (
-    <section id="faq" className="py-16 md:py-24">
-      <div className="mx-auto max-w-5xl px-4 md:px-6">
-        <div className="mx-auto max-w-xl text-center">
-          <h2 className="text-balance text-3xl font-bold md:text-4xl">
-            {t("landing.faq.title")}
-          </h2>
-          <p className="mt-4 text-balance text-muted-foreground">
-            {t("landing.faq.subtitle")}
-          </p>
-        </div>
+    <section id="faq" className="bg-muted/30 py-20">
+      <div className="mx-auto max-w-[800px] px-4">
+        <h2 className="mb-16 text-center text-3xl font-bold sm:text-4xl md:text-5xl">
+          {t("landing.faq.title")}
+        </h2>
 
-        <div className="mx-auto mt-12 max-w-xl">
-          <Accordion
-            type="single"
-            collapsible
-            className="bg-card ring-muted w-full rounded-2xl border px-8 py-3 shadow-sm ring-4 dark:ring-0"
-          >
-            {faqItems.map((item) => (
-              <AccordionItem key={item} value={item} className="border-dashed">
-                <AccordionTrigger className="cursor-pointer text-base hover:no-underline">
+        <div className="space-y-4">
+          {faqItems.map((item, index) => (
+            <div
+              key={item}
+              className="overflow-hidden rounded-lg border border-border bg-card"
+            >
+              <button
+                onClick={() => setOpenIndex(openIndex === index ? null : index)}
+                className="flex w-full items-center justify-between px-6 py-4 text-left transition-colors hover:bg-muted/50"
+              >
+                <span className="pr-8 font-semibold">
                   {t(`landing.faq.items.${item}.question`)}
-                </AccordionTrigger>
-                <AccordionContent>
-                  <p className="text-base text-muted-foreground">
-                    {t(`landing.faq.items.${item}.answer`)}
-                  </p>
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
+                </span>
+                <ChevronDown
+                  className={`h-5 w-5 flex-shrink-0 text-muted-foreground transition-transform ${
+                    openIndex === index ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+              <div
+                className={`overflow-hidden transition-all duration-300 ${
+                  openIndex === index ? "max-h-96" : "max-h-0"
+                }`}
+              >
+                <div className="px-6 pb-4 text-sm leading-relaxed text-muted-foreground">
+                  {t(`landing.faq.items.${item}.answer`)}
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </section>
