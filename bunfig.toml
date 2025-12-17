@@ -1,0 +1,7 @@
+[install]
+linker = "isolated"
+lifecycle = false
+trustedDependencies = ["esbuild", "@swc/core"]
+
+[run]
+shell = "bun"

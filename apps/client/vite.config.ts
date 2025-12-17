@@ -1,10 +1,9 @@
 import { defineConfig } from "vite";
-import { devtools } from "@tanstack/devtools-vite";
-import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import react from "@vitejs/plugin-react";
 import viteTsConfigPaths from "vite-tsconfig-paths";
 import tailwindcss from "@tailwindcss/vite";
 import { nitro } from "nitro/vite";
+import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 
 const nativeModules = [
   "@resvg/resvg-js",
@@ -17,10 +16,8 @@ const nativeModules = [
 
 export default defineConfig({
   plugins: [
-    devtools(),
     nitro({
       preset: "bun",
-      noExternals: true,
       rollupConfig: {
         external: nativeModules,
       },
@@ -34,6 +31,12 @@ export default defineConfig({
   ],
   optimizeDeps: {
     exclude: nativeModules,
+    include: [
+      "react",
+      "react-dom",
+      "@tanstack/react-query",
+      "@tanstack/react-router",
+    ],
   },
   ssr: {
     external: nativeModules,
