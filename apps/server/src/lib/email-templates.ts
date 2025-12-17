@@ -508,7 +508,7 @@ export function getBuyerPurchaseConfirmationEmailHtml(
           <tr>
             <td style="padding: 48px 40px;">
               <div style="text-align: center; margin-bottom: 32px;">
-                <div style="width: 64px; height: 64px; margin: 0 auto 16px; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); border-radius: 50%; line-height: 64px; text-align: center;">
+                <div style="width: 64px; height: 64px; margin: 0 auto 16px; background: linear-gradient(135deg, #0052cc 0%, #0065ff 100%); border-radius: 50%; line-height: 64px; text-align: center;">
                   <span style="font-size: 28px; color: #ffffff;">&#10003;</span>
                 </div>
                 <h1 style="margin: 0 0 8px; font-size: 28px; font-weight: 700; color: #1f2937;">
@@ -543,7 +543,7 @@ export function getBuyerPurchaseConfirmationEmailHtml(
               <table role="presentation" style="width: 100%; border-collapse: collapse; text-align: center;">
                 <tr>
                   <td style="padding: 8px;">
-                    <a href="${dashboardUrl}" style="display: inline-block; padding: 14px 32px; background-color: #6366f1; color: #ffffff; text-decoration: none; font-weight: 600; font-size: 16px; border-radius: 8px;">
+                    <a href="${dashboardUrl}" style="display: inline-block; padding: 14px 32px; background-color: #0052cc; color: #ffffff; text-decoration: none; font-weight: 600; font-size: 16px; border-radius: 8px;">
                       Start Learning
                     </a>
                   </td>

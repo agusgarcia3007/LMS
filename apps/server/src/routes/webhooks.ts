@@ -132,7 +132,7 @@ async function sendSaleNotificationEmails(params: {
       courses: courseList,
       totalAmount: formatCurrency(grossAmount, currency),
       receiptUrl,
-      dashboardUrl: `${tenantUrl}/dashboard`,
+      dashboardUrl: `${tenantUrl}/my-courses`,
     }),
     senderName: tenant.name,
     replyTo: tenant.contactEmail ?? undefined,

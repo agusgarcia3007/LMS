@@ -442,6 +442,7 @@
     "nav": {
       "features": "Features",
       "pricing": "Pricing",
+      "faq": "FAQ",
       "testimonials": "Testimonials",
       "login": "Sign in",
       "getStarted": "Get started free"
