@@ -77,7 +77,9 @@ export function DashboardSidebar({ tenant, user }: DashboardSidebarProps) {
   const { mutate: logout, isPending } = useLogout();
   const { t } = useTranslation();
   const { setOpenMobile } = useSidebar();
-  const { data: subscription } = useSubscription();
+  const { data: subscription } = useSubscription({
+    enabled: user.role !== "instructor",
+  });
 
   useEffect(() => {
     setOpenMobile(false);
@@ -349,7 +351,7 @@ export function DashboardSidebar({ tenant, user }: DashboardSidebarProps) {
         ))}
       </SidebarContent>
 
-      <SidebarStorageCard />
+      {user.role !== "instructor" && <SidebarStorageCard />}
 
       <SidebarFooter>
         <SidebarMenu>

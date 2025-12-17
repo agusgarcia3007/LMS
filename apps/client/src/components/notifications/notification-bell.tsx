@@ -49,7 +49,9 @@ export function NotificationBell({
   emailVerified,
 }: NotificationBellProps) {
   const { t } = useTranslation();
-  const { data: subscription } = useSubscription();
+  const { data: subscription } = useSubscription({
+    enabled: userRole !== "instructor",
+  });
   const { mutate: resendVerification, isPending } = useResendVerification();
   const [readNotifications, setReadNotifications] = useState(getReadNotifications);
   const [open, setOpen] = useState(false);
