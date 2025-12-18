@@ -1,7 +1,6 @@
-import { GetApiInfo } from "@/actions/get-api-info";
-
 export default async function Home() {
-  const { message, version } = await GetApiInfo();
+  const response = await fetch(process.env.NEXT_API_URL!);
+  const { message, version } = await response.json();
   return (
     <div>
       <h1>{message}</h1>
