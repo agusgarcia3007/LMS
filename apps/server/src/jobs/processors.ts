@@ -4,7 +4,7 @@ import { stripe, isStripeConfigured } from "@/lib/stripe";
 import { db } from "@/db";
 import { tenantsTable } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import type { Job } from "./types";
+import type { Job, SendWelcomeEmailJob, CreateStripeCustomerJob } from "./types";
 
 export async function processJob(job: Job) {
   switch (job.type) {
@@ -15,12 +15,7 @@ export async function processJob(job: Job) {
   }
 }
 
-async function processWelcomeEmail(data: {
-  email: string;
-  userName: string;
-  verificationToken: string;
-  clientUrl: string;
-}) {
+async function processWelcomeEmail(data: SendWelcomeEmailJob["data"]) {
   const verificationUrl = `${data.clientUrl}/verify-email?token=${data.verificationToken}`;
   await sendEmail({
     to: data.email,
@@ -32,12 +27,7 @@ async function processWelcomeEmail(data: {
   });
 }
 
-async function processStripeCustomer(data: {
-  tenantId: string;
-  email: string;
-  name: string;
-  slug: string;
-}) {
+async function processStripeCustomer(data: CreateStripeCustomerJob["data"]) {
   if (!stripe || !isStripeConfigured()) return;
 
   const customer = await stripe.customers.create({

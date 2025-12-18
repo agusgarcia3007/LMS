@@ -1,4 +1,4 @@
-type SendWelcomeEmailJob = {
+export type SendWelcomeEmailJob = {
   type: "send-welcome-email";
   data: {
     email: string;
@@ -8,7 +8,7 @@ type SendWelcomeEmailJob = {
   };
 };
 
-type CreateStripeCustomerJob = {
+export type CreateStripeCustomerJob = {
   type: "create-stripe-customer";
   data: {
     tenantId: string;
