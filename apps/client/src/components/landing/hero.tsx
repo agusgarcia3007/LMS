@@ -4,7 +4,6 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Aurora } from "@/components/ui/aurora";
 import { SplitText } from "@/components/ui/split-text";
-import { MagneticButton } from "@/components/ui/magnetic-button";
 import { FadeIn } from "@/components/ui/fade-in";
 
 export function LandingHero() {
@@ -64,32 +63,22 @@ export function LandingHero() {
         </FadeIn>
 
         <FadeIn delay={1} className="flex flex-col items-center gap-4 sm:flex-row">
-          <MagneticButton strength={0.2}>
-            <Button
-              size="lg"
-              className="group relative h-14 overflow-hidden rounded-full px-10 text-base font-semibold shadow-lg shadow-primary/25 transition-all duration-300 hover:shadow-xl hover:shadow-primary/30"
-              asChild
-            >
-              <Link to="/signup">
-                <span className="relative z-10">{t("landing.hero.cta")}</span>
-                <motion.div
-                  className="absolute inset-0 bg-gradient-to-r from-primary via-primary/80 to-primary opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-                  initial={false}
-                />
-              </Link>
-            </Button>
-          </MagneticButton>
+          <Button
+            size="lg"
+            className="h-14 rounded-full px-10 text-base font-semibold shadow-lg shadow-primary/25 transition-shadow hover:shadow-xl hover:shadow-primary/30"
+            asChild
+          >
+            <Link to="/signup">{t("landing.hero.cta")}</Link>
+          </Button>
 
-          <MagneticButton strength={0.15}>
-            <Button
-              size="lg"
-              variant="outline"
-              className="h-14 rounded-full border-2 bg-background/50 px-10 text-base font-semibold backdrop-blur-sm transition-all duration-300 hover:border-primary/50 hover:bg-primary/5"
-              asChild
-            >
-              <a href="#pricing">{t("landing.hero.ctaSecondary")}</a>
-            </Button>
-          </MagneticButton>
+          <Button
+            size="lg"
+            variant="outline"
+            className="h-14 rounded-full border-2 bg-background/50 px-10 text-base font-semibold backdrop-blur-sm transition-colors hover:border-primary/50 hover:bg-primary/5"
+            asChild
+          >
+            <a href="#pricing">{t("landing.hero.ctaSecondary")}</a>
+          </Button>
         </FadeIn>
 
         <FadeIn delay={1.2} className="mt-20">
@@ -98,7 +87,7 @@ export function LandingHero() {
               <svg className="h-4 w-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
               </svg>
-              <span>No credit card required</span>
+              <span>7-day free trial</span>
             </div>
             <div className="h-4 w-px bg-border" />
             <div className="flex items-center gap-2">

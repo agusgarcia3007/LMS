@@ -4,7 +4,6 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { BlurText } from "@/components/ui/blur-text";
 import { FadeIn } from "@/components/ui/fade-in";
-import { MagneticButton } from "@/components/ui/magnetic-button";
 
 export function CTA() {
   const { t } = useTranslation();
@@ -59,29 +58,14 @@ export function CTA() {
           </p>
         </FadeIn>
 
-        <FadeIn delay={0.4}>
-          <MagneticButton strength={0.2} className="mt-10">
-            <Button
-              size="lg"
-              className="group relative h-14 overflow-hidden rounded-full px-12 text-base font-semibold shadow-lg shadow-primary/25"
-              asChild
-            >
-              <Link to="/signup">
-                <span className="relative z-10">{t("landing.cta.button")}</span>
-                <motion.div
-                  className="absolute inset-0 -z-10 bg-gradient-to-r from-primary via-violet-500 to-primary bg-[length:200%_100%]"
-                  animate={{
-                    backgroundPosition: ["0% 0%", "100% 0%", "0% 0%"],
-                  }}
-                  transition={{
-                    duration: 3,
-                    repeat: Infinity,
-                    ease: "linear",
-                  }}
-                />
-              </Link>
-            </Button>
-          </MagneticButton>
+        <FadeIn delay={0.4} className="mt-10">
+          <Button
+            size="lg"
+            className="h-14 rounded-full px-12 text-base font-semibold shadow-lg shadow-primary/25 transition-shadow hover:shadow-xl hover:shadow-primary/30"
+            asChild
+          >
+            <Link to="/signup">{t("landing.cta.button")}</Link>
+          </Button>
         </FadeIn>
       </div>
     </section>
