@@ -9,6 +9,7 @@ import {
   paymentItemsTable,
   enrollmentsTable,
   cartItemsTable,
+  tenantCustomersTable,
 } from "@/db/schema";
 import { eq, and, inArray } from "drizzle-orm";
 import { stripe, calculatePlatformFee, isStripeConfigured } from "@/lib/stripe";
@@ -142,6 +143,17 @@ export const checkoutRoutes = new Elysia()
           }))
         );
 
+        const [tenantCustomer] = await db
+          .select({ stripeCustomerId: tenantCustomersTable.stripeCustomerId })
+          .from(tenantCustomersTable)
+          .where(
+            and(
+              eq(tenantCustomersTable.tenantId, ctx.tenant.id),
+              eq(tenantCustomersTable.userId, ctx.user.id)
+            )
+          )
+          .limit(1);
+
         const session = await stripe.checkout.sessions.create(
           {
             mode: "payment",
@@ -175,7 +187,9 @@ export const checkoutRoutes = new Elysia()
               userId: ctx.user.id,
               courseIds: JSON.stringify(paidCourses.map((c) => c.id)),
             },
-            customer_email: ctx.user.email,
+            ...(tenantCustomer
+              ? { customer: tenantCustomer.stripeCustomerId }
+              : { customer_email: ctx.user.email }),
           },
           {
             stripeAccount: ctx.tenant.stripeConnectAccountId,

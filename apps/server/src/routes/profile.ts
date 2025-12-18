@@ -5,6 +5,7 @@ import { db } from "@/db";
 import { tenantsTable, usersTable } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { deleteFromS3, getPresignedUrl } from "@/lib/upload";
+import { enqueue } from "@/jobs";
 
 export const profileRoutes = new Elysia().use(authPlugin);
 
@@ -62,6 +63,17 @@ profileRoutes.put(
         .returning();
 
       invalidateUserCache(ctx.userId!);
+
+      if (ctx.body.name) {
+        await enqueue({
+          type: "sync-connected-customer",
+          data: {
+            userId: ctx.userId!,
+            email: updated.email,
+            name: updated.name,
+          },
+        });
+      }
 
       const { password: _, ...userWithoutPassword } = updated;
       return { user: withAvatarUrl(userWithoutPassword) };

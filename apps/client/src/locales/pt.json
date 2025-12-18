@@ -669,7 +669,7 @@
     },
     "footer": {
       "description": "Crie academias online com IA.",
-      "copyright": "© {{year}} LearnBase",
+      "copyright": "© {{year}} Learnbase LLC",
       "terms": "Termos",
       "privacy": "Privacidade"
     }
@@ -1215,7 +1215,9 @@
       "learning": "Aprendizado",
       "enrollments": "Inscricoes",
       "certificates": "Certificados",
-      "waitlist": "Lista de espera"
+      "waitlist": "Lista de espera",
+      "system": "Sistema",
+      "jobs": "Tarefas"
     },
     "dashboard": {
       "title": "Painel de controle",
@@ -1635,6 +1637,41 @@
       },
       "noPlan": "Sem plano",
       "noSubscription": "Sem assinatura"
+    },
+    "jobs": {
+      "title": "Painel de Tarefas",
+      "description": "Monitorar a execucao de tarefas em segundo plano",
+      "cleanup": "Limpar Tarefas Antigas",
+      "cleanupSuccess": "Foram excluidas {{count}} tarefas antigas",
+      "tabs": {
+        "pending": "Pendentes",
+        "executed": "Executadas"
+      },
+      "stats": {
+        "total": "Total",
+        "pending": "Pendentes",
+        "processing": "Processando",
+        "completed": "Concluidas",
+        "failed": "Falhas"
+      },
+      "status": {
+        "pending": "Pendente",
+        "processing": "Processando",
+        "completed": "Concluida",
+        "failed": "Falha"
+      },
+      "columns": {
+        "id": "ID",
+        "type": "Tipo",
+        "status": "Status",
+        "created": "Criada",
+        "duration": "Duracao",
+        "error": "Erro"
+      },
+      "empty": {
+        "title": "Sem tarefas",
+        "description": "Nenhuma tarefa encontrada com os filtros atuais"
+      }
     }
   },
   "content": {

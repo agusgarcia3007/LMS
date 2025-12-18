@@ -668,7 +668,7 @@
     },
     "footer": {
       "description": "Create online academies with AI.",
-      "copyright": "© {{year}} LearnBase",
+      "copyright": "© {{year}} Learnbase LLC",
       "terms": "Terms",
       "privacy": "Privacy"
     }
@@ -1218,7 +1218,9 @@
       "learning": "Learning",
       "enrollments": "Enrollments",
       "certificates": "Certificates",
-      "waitlist": "Waitlist"
+      "waitlist": "Waitlist",
+      "system": "System",
+      "jobs": "Jobs"
     },
     "dashboard": {
       "title": "Dashboard",
@@ -1638,6 +1640,41 @@
       },
       "noPlan": "No plan",
       "noSubscription": "No subscription"
+    },
+    "jobs": {
+      "title": "Jobs Dashboard",
+      "description": "Monitor background job execution",
+      "cleanup": "Cleanup Old Jobs",
+      "cleanupSuccess": "Deleted {{count}} old jobs",
+      "tabs": {
+        "pending": "Pending",
+        "executed": "Executed"
+      },
+      "stats": {
+        "total": "Total",
+        "pending": "Pending",
+        "processing": "Processing",
+        "completed": "Completed",
+        "failed": "Failed"
+      },
+      "status": {
+        "pending": "Pending",
+        "processing": "Processing",
+        "completed": "Completed",
+        "failed": "Failed"
+      },
+      "columns": {
+        "id": "ID",
+        "type": "Type",
+        "status": "Status",
+        "created": "Created",
+        "duration": "Duration",
+        "error": "Error"
+      },
+      "empty": {
+        "title": "No jobs",
+        "description": "No jobs found with the current filters"
+      }
     }
   },
   "content": {

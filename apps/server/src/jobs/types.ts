@@ -29,4 +29,29 @@ export type SendTenantWelcomeEmailJob = {
   };
 };
 
-export type Job = SendWelcomeEmailJob | CreateStripeCustomerJob | SendTenantWelcomeEmailJob;
+export type CreateConnectedCustomerJob = {
+  type: "create-connected-customer";
+  data: {
+    userId: string;
+    tenantId: string;
+    email: string;
+    name: string;
+    stripeConnectAccountId: string;
+  };
+};
+
+export type SyncConnectedCustomerJob = {
+  type: "sync-connected-customer";
+  data: {
+    userId: string;
+    email: string;
+    name: string;
+  };
+};
+
+export type Job =
+  | SendWelcomeEmailJob
+  | CreateStripeCustomerJob
+  | SendTenantWelcomeEmailJob
+  | CreateConnectedCustomerJob
+  | SyncConnectedCustomerJob;

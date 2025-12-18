@@ -139,6 +139,19 @@ authRoutes.post(
             logoUrl: ctx.tenant.logo ? getPresignedUrl(ctx.tenant.logo) : undefined,
           },
         });
+
+        if (ctx.tenant.stripeConnectAccountId) {
+          await enqueue({
+            type: "create-connected-customer",
+            data: {
+              userId: user.id,
+              tenantId: ctx.tenant.id,
+              email: user.email,
+              name: user.name,
+              stripeConnectAccountId: ctx.tenant.stripeConnectAccountId,
+            },
+          });
+        }
       }
 
       let tenantSlug: string | null = ctx.tenant?.slug ?? null;

@@ -655,7 +655,7 @@
     },
     "footer": {
       "description": "Crea academias online con IA.",
-      "copyright": "© {{year}} LearnBase",
+      "copyright": "© {{year}} Learnbase LLC",
       "terms": "Términos",
       "privacy": "Privacidad"
     }

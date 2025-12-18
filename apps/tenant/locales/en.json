@@ -670,7 +670,7 @@
     },
     "footer": {
       "description": "Create online academies with AI.",
-      "copyright": "© {{year}} LearnBase",
+      "copyright": "© {{year}} Learnbase LLC",
       "terms": "Terms",
       "privacy": "Privacy"
     }

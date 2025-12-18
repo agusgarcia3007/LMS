@@ -671,7 +671,7 @@
     },
     "footer": {
       "description": "Crie academias online com IA.",
-      "copyright": "© {{year}} LearnBase",
+      "copyright": "© {{year}} Learnbase LLC",
       "terms": "Termos",
       "privacy": "Privacidade"
     }

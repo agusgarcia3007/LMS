@@ -24,6 +24,7 @@ import {
   type DateFields,
 } from "@/lib/filters";
 import { getPresignedUrl } from "@/lib/upload";
+import { enqueue } from "@/jobs";
 
 type UserWithoutPassword = Omit<SelectUser, "password">;
 
@@ -384,6 +385,17 @@ export const usersRoutes = new Elysia()
 
         invalidateUserCache(ctx.params.id);
 
+        if (ctx.body.name !== undefined) {
+          await enqueue({
+            type: "sync-connected-customer",
+            data: {
+              userId: ctx.params.id,
+              email: updatedUser.email,
+              name: updatedUser.name,
+            },
+          });
+        }
+
         return { user: excludePassword(updatedUser) };
     },
     {
@@ -533,6 +545,17 @@ export const usersRoutes = new Elysia()
 
         invalidateUserCache(ctx.params.id);
 
+        if (ctx.body.name !== undefined) {
+          await enqueue({
+            type: "sync-connected-customer",
+            data: {
+              userId: ctx.params.id,
+              email: updatedUser.email,
+              name: updatedUser.name,
+            },
+          });
+        }
+
         return { user: excludePassword(updatedUser) };
     },
     {
@@ -636,6 +659,19 @@ export const usersRoutes = new Elysia()
           senderName: tenant.name,
           replyTo: tenant.contactEmail || undefined,
         });
+
+        if (tenant.stripeConnectAccountId) {
+          await enqueue({
+            type: "create-connected-customer",
+            data: {
+              userId: newUser.id,
+              tenantId: tenant.id,
+              email: newUser.email,
+              name: newUser.name,
+              stripeConnectAccountId: tenant.stripeConnectAccountId,
+            },
+          });
+        }
 
         return { user: excludePassword(newUser) };
     },

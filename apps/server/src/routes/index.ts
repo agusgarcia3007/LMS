@@ -15,6 +15,7 @@ import { coursesRoutes } from "./courses";
 import { documentsRoutes } from "./documents";
 import { enrollmentsRoutes } from "./enrollments";
 import { instructorsRoutes } from "./instructors";
+import { jobsRoutes } from "./jobs";
 import { learnRoutes } from "./learn";
 import { modulesRoutes } from "./modules";
 import { profileRoutes } from "./profile";
@@ -46,6 +47,7 @@ export const ROUTES = [
   { path: "/documents", name: "documents-routes", route: documentsRoutes },
   { path: "/enrollments", name: "enrollments-routes", route: enrollmentsRoutes },
   { path: "/instructors", name: "instructors-routes", route: instructorsRoutes },
+  { path: "/jobs", name: "jobs-routes", route: jobsRoutes },
   { path: "/learn", name: "learn-routes", route: learnRoutes },
   { path: "/modules", name: "modules-routes", route: modulesRoutes },
   { path: "/profile", name: "profile-routes", route: profileRoutes },

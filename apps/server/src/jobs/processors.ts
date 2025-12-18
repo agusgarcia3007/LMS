@@ -2,9 +2,16 @@ import { sendEmail } from "@/lib/utils";
 import { getWelcomeVerificationEmailHtml, getTenantWelcomeEmailHtml } from "@/lib/email-templates";
 import { stripe, isStripeConfigured } from "@/lib/stripe";
 import { db } from "@/db";
-import { tenantsTable } from "@/db/schema";
-import { eq } from "drizzle-orm";
-import type { Job, SendWelcomeEmailJob, CreateStripeCustomerJob, SendTenantWelcomeEmailJob } from "./types";
+import { tenantsTable, tenantCustomersTable } from "@/db/schema";
+import { eq, and } from "drizzle-orm";
+import type {
+  Job,
+  SendWelcomeEmailJob,
+  CreateStripeCustomerJob,
+  SendTenantWelcomeEmailJob,
+  CreateConnectedCustomerJob,
+  SyncConnectedCustomerJob,
+} from "./types";
 
 export async function processJob(job: Job) {
   switch (job.type) {
@@ -14,6 +21,10 @@ export async function processJob(job: Job) {
       return processStripeCustomer(job.data);
     case "send-tenant-welcome-email":
       return processTenantWelcomeEmail(job.data);
+    case "create-connected-customer":
+      return processCreateConnectedCustomer(job.data);
+    case "sync-connected-customer":
+      return processSyncConnectedCustomer(job.data);
   }
 }
 
@@ -60,4 +71,61 @@ async function processTenantWelcomeEmail(data: SendTenantWelcomeEmailJob["data"]
       logoUrl: data.logoUrl,
     }),
   });
+}
+
+async function processCreateConnectedCustomer(data: CreateConnectedCustomerJob["data"]) {
+  if (!stripe || !isStripeConfigured()) return;
+
+  const [existing] = await db
+    .select()
+    .from(tenantCustomersTable)
+    .where(
+      and(
+        eq(tenantCustomersTable.tenantId, data.tenantId),
+        eq(tenantCustomersTable.userId, data.userId)
+      )
+    )
+    .limit(1);
+
+  if (existing) return;
+
+  const customer = await stripe.customers.create(
+    {
+      email: data.email,
+      name: data.name,
+      metadata: { userId: data.userId, platform: "learnbase" },
+    },
+    { stripeAccount: data.stripeConnectAccountId }
+  );
+
+  await db.insert(tenantCustomersTable).values({
+    tenantId: data.tenantId,
+    userId: data.userId,
+    stripeCustomerId: customer.id,
+  });
+}
+
+async function processSyncConnectedCustomer(data: SyncConnectedCustomerJob["data"]) {
+  if (!stripe || !isStripeConfigured()) return;
+
+  const tenantCustomers = await db
+    .select({
+      stripeCustomerId: tenantCustomersTable.stripeCustomerId,
+      stripeConnectAccountId: tenantsTable.stripeConnectAccountId,
+    })
+    .from(tenantCustomersTable)
+    .innerJoin(tenantsTable, eq(tenantCustomersTable.tenantId, tenantsTable.id))
+    .where(eq(tenantCustomersTable.userId, data.userId));
+
+  await Promise.all(
+    tenantCustomers
+      .filter((tc) => tc.stripeConnectAccountId)
+      .map((tc) =>
+        stripe!.customers.update(
+          tc.stripeCustomerId,
+          { email: data.email, name: data.name },
+          { stripeAccount: tc.stripeConnectAccountId! }
+        )
+      )
+  );
 }

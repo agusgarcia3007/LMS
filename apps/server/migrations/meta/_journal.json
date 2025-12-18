@@ -379,6 +379,20 @@
       "when": 1765928619862,
       "tag": "0053_wise_carlie_cooper",
       "breakpoints": true
+    },
+    {
+      "idx": 54,
+      "version": "7",
+      "when": 1766084672135,
+      "tag": "0054_simple_doctor_doom",
+      "breakpoints": true
+    },
+    {
+      "idx": 55,
+      "version": "7",
+      "when": 1766084864510,
+      "tag": "0055_light_millenium_guard",
+      "breakpoints": true
     }
   ]
 }

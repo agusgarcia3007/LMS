@@ -333,6 +333,27 @@ export const refreshTokensTable = pgTable("refresh_tokens", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+export const tenantCustomersTable = pgTable(
+  "tenant_customers",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenantsTable.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => usersTable.id, { onDelete: "cascade" }),
+    stripeCustomerId: text("stripe_customer_id").notNull(),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => [
+    index("tenant_customers_tenant_id_idx").on(table.tenantId),
+    index("tenant_customers_user_id_idx").on(table.userId),
+    uniqueIndex("tenant_customers_tenant_user_idx").on(table.tenantId, table.userId),
+  ]
+);
+
 export const modulesTable = pgTable(
   "modules",
   {
@@ -1065,6 +1086,40 @@ export const aiFeedbackTable = pgTable(
   ]
 );
 
+export const jobStatusEnum = pgEnum("job_status", [
+  "pending",
+  "processing",
+  "completed",
+  "failed",
+]);
+
+export const jobTypeEnum = pgEnum("job_type", [
+  "send-welcome-email",
+  "create-stripe-customer",
+  "send-tenant-welcome-email",
+  "create-connected-customer",
+  "sync-connected-customer",
+]);
+
+export const jobsHistoryTable = pgTable(
+  "jobs_history",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    jobType: jobTypeEnum("job_type").notNull(),
+    jobData: jsonb("job_data").notNull(),
+    status: jobStatusEnum("status").notNull().default("pending"),
+    errorMessage: text("error_message"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    startedAt: timestamp("started_at"),
+    completedAt: timestamp("completed_at"),
+  },
+  (table) => [
+    index("jobs_history_status_idx").on(table.status),
+    index("jobs_history_job_type_idx").on(table.jobType),
+    index("jobs_history_created_at_idx").on(table.createdAt),
+  ]
+);
+
 // Type exports
 export type InsertTenant = typeof tenantsTable.$inferInsert;
 export type SelectTenant = typeof tenantsTable.$inferSelect;
@@ -1171,3 +1226,8 @@ export type AiTone = (typeof aiToneEnum.enumValues)[number];
 export type InsertAiFeedback = typeof aiFeedbackTable.$inferInsert;
 export type SelectAiFeedback = typeof aiFeedbackTable.$inferSelect;
 export type AiFeedbackType = (typeof aiFeedbackTypeEnum.enumValues)[number];
+
+export type InsertJobHistory = typeof jobsHistoryTable.$inferInsert;
+export type SelectJobHistory = typeof jobsHistoryTable.$inferSelect;
+export type JobStatus = (typeof jobStatusEnum.enumValues)[number];
+export type JobType = (typeof jobTypeEnum.enumValues)[number];
