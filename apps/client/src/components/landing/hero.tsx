@@ -2,12 +2,16 @@ import { Link } from "@tanstack/react-router";
 import { Sparkles } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
+import Threads from "@/components/Threads";
 
 export function LandingHero() {
   const { t } = useTranslation();
 
   return (
     <section className="relative overflow-hidden pt-24 pb-16">
+      <div className="absolute inset-0 -z-10">
+        <Threads color={[0.35, 0.2, 0.85]} amplitude={1.2} />
+      </div>
       <div className="mx-auto max-w-[1060px] px-4">
         <div className="flex flex-col items-center gap-8">
           <div className="flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-2">

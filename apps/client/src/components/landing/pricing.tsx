@@ -48,7 +48,7 @@ export function Pricing() {
                 </div>
                 <Button
                   className="w-full"
-                  variant={plan.featured ? "default" : "secondary"}
+                  variant={plan.featured ? "primary" : "secondary"}
                   asChild
                 >
                   <Link to="/signup">{t("landing.pricing.cta")}</Link>
