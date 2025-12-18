@@ -444,42 +444,42 @@
       "pricing": "Precios",
       "faq": "FAQ",
       "testimonials": "Testimonios",
-      "login": "Iniciar sesion",
+      "login": "Iniciar sesión",
       "getStarted": "Comenzar gratis"
     },
     "hero": {
       "badge": "Potenciado por IA",
-      "title": "Tu academia online. Lista en 1 minuto.",
-      "subtitle": "Subi un video, la IA genera el curso completo. Tu marca, tu dominio, tu precio.",
+      "title": "Convierte tu conocimiento en una academia online",
+      "subtitle": "Sube un video y la IA crea tu curso completo: lecciones, ejercicios y certificados. Listo para vender.",
       "cta": "Crear mi academia",
       "ctaSecondary": "Ver Precios"
     },
     "features": {
-      "title": "Lo que obtenes",
+      "title": "Lo que obtienes",
       "subtitle": "Todo lo que necesitas para tu academia online",
       "videoAnalysis": {
-        "title": "Subi video, obtene todo",
-        "description": "La IA transcribe en segundos, genera titulo y descripcion. Sin trabajo manual."
+        "title": "De video a curso en minutos",
+        "description": "Sube tu contenido y la IA genera transcripciones, títulos y descripciones automáticamente."
       },
       "quizGeneration": {
-        "title": "3 tipos de quiz, sin escribir",
-        "description": "Multiple choice, verdadero/falso, completar. La IA crea desde tu contenido."
+        "title": "Ejercicios que refuerzan el aprendizaje",
+        "description": "La IA crea preguntas y ejercicios basados en TU contenido. Tus alumnos aprenden mejor, sin trabajo extra para ti."
       },
       "aiAgent": {
-        "title": "Tu experto en contenido, 24/7",
-        "description": "Los alumnos preguntan, la IA responde desde TUS cursos. No es ChatGPT generico."
+        "title": "Un tutor que nunca duerme",
+        "description": "Tus alumnos preguntan, la IA responde con tu conocimiento. Soporte personalizado 24/7."
       },
       "whiteLabel": {
         "title": "Tu dominio, tu marca",
-        "description": "academia.tumarca.com - Logo, colores, fuentes. Cero branding de LearnBase."
+        "description": "Tu dominio personalizado, tu logo, tus colores. Todo con tu identidad."
       },
       "certificates": {
-        "title": "Credenciales automaticas",
-        "description": "Certificados PDF al completar. Tu marca, campos dinamicos."
+        "title": "Certificados profesionales",
+        "description": "Tus alumnos reciben certificados personalizados al completar. Tu marca, cero esfuerzo."
       },
       "payments": {
-        "title": "Stripe integrado",
-        "description": "Vende cursos, suscripciones, pagos unicos. Te quedas con el 95-100%."
+        "title": "Cobra desde el día uno",
+        "description": "Vende cursos o suscripciones. Pagos seguros directo a tu cuenta."
       }
     },
     "aiSection": {
@@ -492,56 +492,56 @@
           "description": "El agente aprende de tus cursos, materiales y documentos para dar respuestas precisas."
         },
         "personality": {
-          "title": "Personalidad unica",
-          "description": "Configura como habla tu agente: tono, estilo y personalidad que refleje tu marca."
+          "title": "Personalidad única",
+          "description": "Configura cómo habla tu agente: tono, estilo y personalidad que refleje tu marca."
         },
         "instant": {
-          "title": "Respuestas instantaneas",
+          "title": "Respuestas instantáneas",
           "description": "Disponible 24/7 para resolver dudas de tus alumnos en tiempo real."
         }
       },
       "chat": {
         "title": "Asistente Learnbase",
-        "status": "En linea",
-        "userMessage1": "Hola, tengo una duda sobre el modulo 3",
-        "botMessage1": "Claro, con gusto te ayudo. El modulo 3 cubre los fundamentos de React. ¿Que parte especifica te genera dudas?",
-        "userMessage2": "¿Como funcionan los hooks?",
-        "botMessage2": "Los hooks son funciones que te permiten usar estado y otras caracteristicas de React. useState es el mas basico para manejar estado local.",
+        "status": "En línea",
+        "userMessage1": "Hola, tengo una duda sobre el módulo 3",
+        "botMessage1": "Claro, con gusto te ayudo. El módulo 3 cubre los fundamentos de React. ¿Qué parte específica te genera dudas?",
+        "userMessage2": "¿Cómo funcionan los hooks?",
+        "botMessage2": "Los hooks son funciones que te permiten usar estado y otras características de React. useState es el más básico para manejar estado local.",
         "placeholder": "Escribe tu mensaje..."
       }
     },
     "problem": {
-      "title": "Crear una academia online es dificil... o lo era",
+      "title": "Crear una academia online es difícil... o lo era",
       "points": {
         "time": {
-          "title": "Semanas configurando plataformas",
-          "description": "Configurar tu LMS, disenar paginas, configurar pagos. Tiempo que podrias usar creando contenido."
+          "title": "Semanas armando la plataforma",
+          "description": "Elegir herramientas, diseñar páginas, configurar pagos. Tiempo que podrías usar creando contenido."
         },
         "content": {
           "title": "Horas escribiendo descripciones",
-          "description": "Cada curso necesita titulos, descripciones, objetivos. Trabajo manual repetitivo."
+          "description": "Cada curso necesita títulos, descripciones, objetivos. Trabajo manual repetitivo."
         },
         "quizzes": {
-          "title": "Dias creando quizzes",
-          "description": "Pensar preguntas, escribir opciones, marcar respuestas correctas. Agotador."
+          "title": "Días creando ejercicios",
+          "description": "Pensar preguntas, escribir opciones, revisar respuestas. Trabajo tedioso que nadie disfruta."
         }
       },
       "solution": {
-        "badge": "La Solucion",
+        "badge": "La Solución",
         "title": "Con LearnBase, la IA hace el trabajo pesado",
-        "description": "Sube tus videos y documentos. Nuestra IA genera todo: transcripciones, descripciones, quizzes y cursos completos. Tu enfocate en lo que importa: ensenar."
+        "description": "Sube tus videos y documentos. La IA genera todo: transcripciones, descripciones, ejercicios y cursos completos. Tú enfócate en enseñar."
       }
     },
     "howItWorks": {
-      "title": "Como funciona",
+      "title": "Cómo funciona",
       "steps": {
         "upload": {
-          "title": "Subi",
+          "title": "Sube",
           "description": "Arrastra tus videos, PDFs o presentaciones"
         },
         "process": {
           "title": "La IA procesa",
-          "description": "Transcripcion, quizzes, estructura del curso - listo en minutos"
+          "description": "Transcripciones, ejercicios, estructura del curso. Listo en minutos."
         },
         "publish": {
           "title": "Publica",
@@ -552,24 +552,24 @@
     "stats": {
       "courses": "Cursos creados",
       "students": "Estudiantes activos",
-      "satisfaction": "Tasa de satisfaccion",
+      "satisfaction": "Tasa de satisfacción",
       "hours": "Horas de contenido"
     },
     "waitlist": {
       "title": "Acceso anticipado",
-      "subtitle": "Se de los primeros en probar LearnBase",
-      "form_title": "Unite a la lista de espera",
+      "subtitle": "Sé de los primeros en probar LearnBase",
+      "form_title": "Únete a la lista de espera",
       "form_description": "Te avisamos cuando lancemos. Los primeros reciben descuento exclusivo.",
       "email_placeholder": "Tu email",
       "cta": "Quiero acceso",
       "privacy": "Sin spam. Solo novedades importantes.",
-      "success_title": "Estas en la lista!",
+      "success_title": "¡Estás en la lista!",
       "success_message": "Te avisamos apenas lancemos."
     },
     "pricing": {
       "title": "Precios simples",
       "subtitle": "Sin cargos ocultos. Cancela cuando quieras.",
-      "popular": "Mas popular",
+      "popular": "Más popular",
       "month": "mes",
       "cta": "Comenzar Gratis",
       "tiers": {
@@ -586,75 +586,75 @@
       "features": {
         "unlimited_students": "Estudiantes ilimitados",
         "unlimited_courses": "Cursos ilimitados",
-        "ai_standard": "Generacion IA estandar",
-        "ai_unlimited": "Generacion IA ilimitada",
+        "ai_standard": "Generación IA estándar",
+        "ai_unlimited": "Generación IA ilimitada",
         "storage_15": "15 GB almacenamiento",
         "storage_100": "100 GB almacenamiento",
         "storage_2tb": "2 TB almacenamiento",
         "custom_domain": "Dominio personalizado",
-        "fee_5": "5% comision por venta",
-        "fee_2": "2% comision por venta",
-        "fee_0": "0% comision por venta"
+        "fee_5": "5% comisión por venta",
+        "fee_2": "2% comisión por venta",
+        "fee_0": "0% comisión por venta"
       }
     },
     "testimonials": {
       "title": "Lo que dicen nuestros usuarios",
-      "subtitle": "Miles de creadores y empresas confian en LearnBase",
+      "subtitle": "Miles de creadores y empresas confían en LearnBase",
       "items": {
         "maria": {
-          "name": "Maria Garcia",
+          "name": "María García",
           "role": "Directora de RRHH, TechCorp",
-          "quote": "LearnBase transformo completamente nuestra capacitacion interna. El agente IA responde dudas 24/7."
+          "quote": "LearnBase transformó completamente nuestra capacitación interna. El agente IA responde dudas 24/7."
         },
         "carlos": {
-          "name": "Carlos Rodriguez",
+          "name": "Carlos Rodríguez",
           "role": "Creador de contenido",
-          "quote": "Ahorre mas de 50 horas por curso. La IA genera todo y yo solo reviso. Increible."
+          "quote": "Ahorré más de 50 horas por curso. La IA genera todo y yo solo reviso. Increíble."
         },
         "ana": {
-          "name": "Ana Martinez",
+          "name": "Ana Martínez",
           "role": "Coach de negocios",
-          "quote": "Migre mi academia desde otra plataforma en una semana. El soporte fue excepcional."
+          "quote": "Migré mi academia desde otra plataforma en una semana. El soporte fue excepcional."
         }
       }
     },
     "faq": {
       "title": "FAQ",
-      "subtitle": "Respuestas rapidas a preguntas frecuentes sobre nuestra plataforma.",
+      "subtitle": "Respuestas rápidas a preguntas frecuentes sobre nuestra plataforma.",
       "items": {
         "ai": {
-          "question": "Como analiza la IA los videos?",
-          "answer": "Extraemos audio con FFmpeg, transcribimos con Whisper, y usamos LLMs para generar titulos, descripciones y preguntas de quiz. El proceso toma 2-5 minutos por hora de video."
+          "question": "¿Cómo analiza la IA los videos?",
+          "answer": "Extraemos audio con FFmpeg, transcribimos con Whisper, y usamos LLMs para generar títulos, descripciones y preguntas de quiz. El proceso toma 2-5 minutos por hora de video."
         },
         "domain": {
-          "question": "Puedo usar mi propio dominio?",
-          "answer": "Si. Agrega un registro CNAME apuntando a nuestros servidores. Manejamos SSL automaticamente. Toma unos 5 minutos."
+          "question": "¿Puedo usar mi propio dominio?",
+          "answer": "Sí. Agrega un registro CNAME apuntando a nuestros servidores. Manejamos SSL automáticamente. Toma unos 5 minutos."
         },
         "data": {
-          "question": "Que pasa con mis datos?",
-          "answer": "Tu contenido es tuyo. No entrenamos IA con tus videos. Los datos estan encriptados. Eliminalos cuando quieras."
+          "question": "¿Qué pasa con mis datos?",
+          "answer": "Tu contenido es tuyo. No entrenamos IA con tus videos. Los datos están encriptados. Elimínalos cuando quieras."
         },
         "pricing": {
-          "question": "Que incluye cada plan?",
-          "answer": "Todos los planes incluyen analisis de video con IA, estudiantes y cursos ilimitados, y dominio personalizado. Los planes superiores tienen menores comisiones y mas almacenamiento."
+          "question": "¿Qué incluye cada plan?",
+          "answer": "Todos los planes incluyen análisis de video con IA, estudiantes y cursos ilimitados, y dominio personalizado. Los planes superiores tienen menores comisiones y más almacenamiento."
         }
       }
     },
     "cta": {
-      "title": "Tu academia esta a 5 minutos",
-      "subtitle": "Comenza gratis. Sin tarjeta de credito. Cancela cuando quieras.",
+      "title": "Tu academia está a un clic",
+      "subtitle": "Empieza gratis hoy. Sin tarjeta, sin compromiso.",
       "button": "Crear Tu Academia"
     },
     "finalCta": {
-      "title": "Tu academia esta a un clic",
-      "subtitle": "Unete a miles de creadores que ya transforman conocimiento en impacto",
+      "title": "Tu academia está a un clic",
+      "subtitle": "Únete a miles de creadores que ya transforman conocimiento en impacto",
       "cta": "Crear mi academia gratis",
-      "guarantee": "Sin tarjeta de credito, sin compromiso"
+      "guarantee": "Sin tarjeta, sin compromiso"
     },
     "footer": {
       "description": "Crea academias online con IA.",
       "copyright": "© {{year}} LearnBase",
-      "terms": "Terminos",
+      "terms": "Términos",
       "privacy": "Privacidad"
     }
   },

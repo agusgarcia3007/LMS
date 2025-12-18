@@ -449,8 +449,8 @@
     },
     "hero": {
       "badge": "AI-Powered",
-      "title": "Your online academy. Ready in 1 minute.",
-      "subtitle": "Upload a video, AI builds the full course. Your brand, your domain, your price.",
+      "title": "Turn your knowledge into an online academy",
+      "subtitle": "Upload a video and AI creates your complete course: lessons, exercises, and certificates. Ready to sell.",
       "cta": "Create my academy",
       "ctaSecondary": "See Pricing"
     },
@@ -458,22 +458,22 @@
       "title": "Creating an online academy is hard... or was",
       "points": {
         "time": {
-          "title": "Weeks configuring platforms",
-          "description": "Setting up your LMS, designing pages, configuring payments. Time you could spend creating content."
+          "title": "Weeks building the platform",
+          "description": "Choosing tools, designing pages, setting up payments. Time you could spend creating content."
         },
         "content": {
           "title": "Hours writing descriptions",
           "description": "Every course needs titles, descriptions, objectives. Repetitive manual work."
         },
         "quizzes": {
-          "title": "Days creating quizzes",
-          "description": "Thinking of questions, writing options, marking correct answers. Exhausting."
+          "title": "Days creating exercises",
+          "description": "Thinking of questions, writing options, reviewing answers. Tedious work nobody enjoys."
         }
       },
       "solution": {
         "badge": "The Solution",
         "title": "With LearnBase, AI does the heavy lifting",
-        "description": "Upload your videos and documents. Our AI generates everything: transcriptions, descriptions, quizzes, and complete courses. You focus on what matters: teaching."
+        "description": "Upload your videos and documents. AI generates everything: transcriptions, descriptions, exercises, and complete courses. You focus on teaching."
       }
     },
     "howItWorks": {
@@ -485,7 +485,7 @@
         },
         "process": {
           "title": "AI Processes",
-          "description": "Transcription, quizzes, course structure - done in minutes"
+          "description": "Transcriptions, exercises, course structure. Done in minutes."
         },
         "publish": {
           "title": "Publish",
@@ -536,34 +536,34 @@
       "title": "Your academy is one click away",
       "subtitle": "Join thousands of creators already transforming knowledge into impact",
       "cta": "Create my academy free",
-      "guarantee": "No credit card required, no commitment"
+      "guarantee": "No credit card, no commitment"
     },
     "features": {
       "title": "What you get",
       "subtitle": "Everything you need to run an online academy",
       "videoAnalysis": {
-        "title": "Upload video, get everything",
-        "description": "AI transcribes in seconds, generates title and description. No manual work."
+        "title": "From video to course in minutes",
+        "description": "Upload your content and AI generates transcriptions, titles, and descriptions automatically."
       },
       "quizGeneration": {
-        "title": "3 quiz types, zero writing",
-        "description": "Multiple choice, true/false, fill-in-blank. AI creates from your content."
+        "title": "Exercises that reinforce learning",
+        "description": "AI creates questions and exercises based on YOUR content. Your students learn better, with no extra work for you."
       },
       "aiAgent": {
-        "title": "Your content expert, 24/7",
-        "description": "Students ask questions, AI answers from YOUR courses. Not generic ChatGPT."
+        "title": "A tutor that never sleeps",
+        "description": "Your students ask, AI answers with your knowledge. Personalized support 24/7."
       },
       "whiteLabel": {
         "title": "Your domain, your brand",
-        "description": "academy.yourbrand.com - Custom logo, colors, fonts. Zero LearnBase branding."
+        "description": "Your custom domain, your logo, your colors. Everything with your identity."
       },
       "certificates": {
-        "title": "Automatic credentials",
-        "description": "PDF certificates on completion. Your branding, dynamic fields."
+        "title": "Professional certificates",
+        "description": "Your students receive personalized certificates on completion. Your brand, zero effort."
       },
       "payments": {
-        "title": "Stripe built-in",
-        "description": "Sell courses, subscriptions, one-time. You keep 95-100%."
+        "title": "Get paid from day one",
+        "description": "Sell courses or subscriptions. Secure payments straight to your account."
       }
     },
     "aiSection": {
@@ -662,8 +662,8 @@
       ]
     },
     "cta": {
-      "title": "Your academy is 5 minutes away",
-      "subtitle": "Start free. No credit card required. Cancel anytime.",
+      "title": "Your academy is one click away",
+      "subtitle": "Start free today. No card, no commitment.",
       "button": "Create Your Academy"
     },
     "footer": {
