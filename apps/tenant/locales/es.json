@@ -2548,6 +2548,40 @@
       "redirecting": "Redirigiendo..."
     }
   },
+  "learn": {
+    "loading": "Cargando curso...",
+    "progress": "Progreso",
+    "notFound": {
+      "title": "Curso no encontrado",
+      "description": "No pudimos encontrar este curso o no tienes acceso a el."
+    },
+    "loadingContent": "Cargando contenido...",
+    "contentError": {
+      "title": "Error al cargar",
+      "description": "No pudimos cargar el contenido. Intenta de nuevo."
+    },
+    "markComplete": "Marcar completo",
+    "video": {
+      "unavailable": "Video no disponible"
+    },
+    "document": {
+      "download": "Descargar archivo",
+      "unavailable": "Documento no disponible"
+    },
+    "quiz": {
+      "selectMultiple": "Selecciona todas las respuestas correctas",
+      "checkAnswer": "Verificar respuesta",
+      "next": "Siguiente",
+      "finish": "Finalizar",
+      "completed": "Quiz completado",
+      "completedDescription": "Has completado este quiz exitosamente.",
+      "explanation": "Explicacion:"
+    },
+    "navigation": {
+      "previous": "Anterior",
+      "next": "Siguiente"
+    }
+  },
   "legal": {
     "terms": {
       "title": "Terminos de Servicio",
