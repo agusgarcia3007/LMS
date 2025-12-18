@@ -1,10 +1,10 @@
 import "./instrumentation";
 
-import { cors } from "@elysiajs/cors";
 import { openapi } from "@elysiajs/openapi";
 import { Elysia } from "elysia";
 import { rateLimit } from "elysia-rate-limit";
-import { getCorsConfig } from "./lib/cors";
+import { startWorker, stopWorker } from "./jobs";
+import { corsPlugin } from "./lib/cors";
 import { env } from "./lib/env";
 import { errorHandler } from "./lib/errors";
 import { logger } from "./lib/logger";
@@ -17,8 +17,20 @@ const app = new Elysia({
   nativeStaticResponse: true,
 })
   .use(errorHandler)
-  .use(cors(getCorsConfig()))
-  .use(rateLimit({ max: 100, duration: 60_000 }))
+  .use(corsPlugin)
+  .use(
+    rateLimit({
+      max: 100,
+      duration: 60_000,
+      generator: (req) => {
+        const forwarded = req.headers.get("x-forwarded-for");
+        if (forwarded) return forwarded.split(",")[0].trim();
+        const realIp = req.headers.get("x-real-ip");
+        if (realIp) return realIp;
+        return "unknown";
+      },
+    })
+  )
   .use(
     openapi({
       documentation: {
@@ -45,11 +57,15 @@ const app = new Elysia({
 
     if (duration > 1000) {
       logger.warn(
-        `SLOW ${request.method} ${request.url} ${parseDuration(duration)} ${statusCode}`
+        `SLOW ${request.method} ${request.url} ${parseDuration(
+          duration
+        )} ${statusCode}`
       );
     } else {
       logger.info(
-        `${request.method} ${request.url} ${parseDuration(duration)} ${statusCode}`
+        `${request.method} ${request.url} ${parseDuration(
+          duration
+        )} ${statusCode}`
       );
     }
   })
@@ -57,7 +73,10 @@ const app = new Elysia({
   .get("/favicon.ico", async () => {
     const favicon = Bun.file("./public/favicon.ico");
     return new Response(favicon, {
-      headers: { "Content-Type": "image/x-icon", "Cache-Control": "public, max-age=31536000" },
+      headers: {
+        "Content-Type": "image/x-icon",
+        "Cache-Control": "public, max-age=31536000",
+      },
     });
   });
 
@@ -70,13 +89,16 @@ app.listen({
   maxRequestBodySize: 1024 * 1024 * 500,
 });
 
-logger.info(
+console.log(
   `📚 Learnbase API running at ${app.server?.hostname}:${app.server?.port}`
 );
+
+startWorker();
 
 const gracefulShutdown = async (signal: string) => {
   logger.info(`Received ${signal}, shutting down...`);
   app.server?.stop();
+  stopWorker();
 
   try {
     const { langfuseSpanProcessor, sdk } = await import("./instrumentation");
