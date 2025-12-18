@@ -11,12 +11,14 @@ apps/
 ## Commands
 
 ### Client (`apps/client`)
+
 - **Dev**: `bun run dev` - Start development server
 - **Build**: `bun run build` - Build for production (also type checks)
 - **Lint**: `bun run lint` - Run ESLint
 - **Preview**: `bun run preview` - Preview production build
 
 ### Server (`apps/server`)
+
 - **Dev**: `bun run dev` - Start with hot reload
 - **Start**: `bun run start` - Start production server
 - **DB Generate**: `bun run db:generate` - Generate Drizzle migrations
@@ -43,6 +45,7 @@ Note: No direct `tsc` - use IDE diagnostics or `bun run build` for type checking
 ### i18n
 
 All UI text must be translated using `useTranslation`:
+
 - Translations in `apps/client/src/locales/{en,es,pt}.json`
 - Use `t("key")` or `t("key", { param })` for interpolation
 
@@ -69,6 +72,7 @@ services/[resource]/
 ### File Uploads
 
 All file uploads must use the dropzone pattern with `useFileUpload` hook:
+
 - Use existing components: `ImageUpload`, `VideoUpload`, `AvatarUpload` from `@/components/file-upload/`
 - Never use URL input fields for file uploads
 - Files are uploaded as base64 to dedicated `POST /:id/<resource>` endpoints
@@ -99,30 +103,34 @@ import { AppError, ErrorCode } from "@/lib/errors";
 export const myRoutes = new Elysia()
   .use(authPlugin)
   .use(guardPlugin)
-  .get("/", async (ctx) => {
-    // Handler code here
-    return { data: [] };
-  }, {
-    query: t.Object({
-      page: t.Optional(t.String()),
-      limit: t.Optional(t.String()),
-    }),
-    detail: {
-      tags: ["MyResource"],
-      summary: "List resources",
+  .get(
+    "/",
+    async (ctx) => {
+      // Handler code here
+      return { data: [] };
     },
-    requireAuth: true,
-    requireTenant: true,
-  });
+    {
+      query: t.Object({
+        page: t.Optional(t.String()),
+        limit: t.Optional(t.String()),
+      }),
+      detail: {
+        tags: ["MyResource"],
+        summary: "List resources",
+      },
+      requireAuth: true,
+      requireTenant: true,
+    }
+  );
 ```
 
 ### Plugins
 
-| Plugin | Purpose | Provides |
-|--------|---------|----------|
-| `authPlugin` | JWT authentication | `ctx.user`, `ctx.userId`, `ctx.userRole` |
-| `tenantPlugin` | Multi-tenant resolution | `ctx.tenant` |
-| `guardPlugin` | Route-level authorization macros | `requireAuth`, `requireTenant`, `requireRole` |
+| Plugin         | Purpose                          | Provides                                      |
+| -------------- | -------------------------------- | --------------------------------------------- |
+| `authPlugin`   | JWT authentication               | `ctx.user`, `ctx.userId`, `ctx.userRole`      |
+| `tenantPlugin` | Multi-tenant resolution          | `ctx.tenant`                                  |
+| `guardPlugin`  | Route-level authorization macros | `requireAuth`, `requireTenant`, `requireRole` |
 
 ### Guard Macros
 
@@ -184,30 +192,54 @@ Use TypeBox schemas in route options:
 })
 ```
 
+### Redis
+
+Uses Bun's native Redis client (`bun:redis`). Connection via `REDIS_URL` env var.
+
+```typescript
+import { redis } from "bun";
+
+await redis.set("key", "value");
+const value = await redis.get("key");
+
+await redis.set("session:123", "active");
+await redis.expire("session:123", 3600);
+
+await redis.del("key");
+const exists = await redis.exists("key");
+
+await redis.incr("counter");
+await redis.decr("counter");
+```
+
 ### Database
 
 Add indexes on filter columns (foreign keys, WHERE clauses):
 
 ```typescript
-export const usersTable = pgTable("users", {
-  tenantId: uuid("tenant_id").references(() => tenantsTable.id),
-  role: userRoleEnum("role").notNull(),
-}, (table) => [
-  index("users_tenant_id_idx").on(table.tenantId),
-  index("users_role_idx").on(table.role),
-]);
+export const usersTable = pgTable(
+  "users",
+  {
+    tenantId: uuid("tenant_id").references(() => tenantsTable.id),
+    role: userRoleEnum("role").notNull(),
+  },
+  (table) => [
+    index("users_tenant_id_idx").on(table.tenantId),
+    index("users_role_idx").on(table.role),
+  ]
+);
 ```
 
 ### Filters
 
 Use `parseListParams` and `buildWhereClause` from `@/lib/filters`:
 
-| Type | URL | Behavior |
-|------|-----|----------|
-| Single | `role=admin` | `eq()` |
-| Multiple | `role=admin,owner` | `inArray()` |
-| Date range | `createdAt=2025-01-01,2025-01-31` | `gte() AND lte()` |
-| Search | `search=john` | `ilike()` on searchable fields |
+| Type       | URL                               | Behavior                       |
+| ---------- | --------------------------------- | ------------------------------ |
+| Single     | `role=admin`                      | `eq()`                         |
+| Multiple   | `role=admin,owner`                | `inArray()`                    |
+| Date range | `createdAt=2025-01-01,2025-01-31` | `gte() AND lte()`              |
+| Search     | `search=john`                     | `ilike()` on searchable fields |
 
 ### List Endpoint Pattern
 
@@ -243,69 +275,113 @@ export const resourcesRoutes = new Elysia()
   .use(authPlugin)
   .use(guardPlugin)
   // LIST
-  .get("/", async (ctx) => {
-    const resources = await db.select().from(resourcesTable)
-      .where(eq(resourcesTable.tenantId, ctx.user!.tenantId!));
-    return { resources };
-  }, { requireAuth: true, requireTenant: true })
+  .get(
+    "/",
+    async (ctx) => {
+      const resources = await db
+        .select()
+        .from(resourcesTable)
+        .where(eq(resourcesTable.tenantId, ctx.user!.tenantId!));
+      return { resources };
+    },
+    { requireAuth: true, requireTenant: true }
+  )
   // GET BY ID
-  .get("/:id", async (ctx) => {
-    const [resource] = await db.select().from(resourcesTable)
-      .where(and(
-        eq(resourcesTable.id, ctx.params.id),
-        eq(resourcesTable.tenantId, ctx.user!.tenantId!)
-      ));
-    if (!resource) throw new AppError(ErrorCode.NOT_FOUND, "Resource not found", 404);
-    return { resource };
-  }, {
-    params: t.Object({ id: t.String({ format: "uuid" }) }),
-    requireAuth: true, requireTenant: true,
-  })
+  .get(
+    "/:id",
+    async (ctx) => {
+      const [resource] = await db
+        .select()
+        .from(resourcesTable)
+        .where(
+          and(
+            eq(resourcesTable.id, ctx.params.id),
+            eq(resourcesTable.tenantId, ctx.user!.tenantId!)
+          )
+        );
+      if (!resource)
+        throw new AppError(ErrorCode.NOT_FOUND, "Resource not found", 404);
+      return { resource };
+    },
+    {
+      params: t.Object({ id: t.String({ format: "uuid" }) }),
+      requireAuth: true,
+      requireTenant: true,
+    }
+  )
   // CREATE
-  .post("/", async (ctx) => {
-    const [resource] = await db.insert(resourcesTable)
-      .values({ ...ctx.body, tenantId: ctx.user!.tenantId! })
-      .returning();
-    return { resource };
-  }, {
-    body: t.Object({ name: t.String({ minLength: 1 }) }),
-    requireAuth: true, requireTenant: true, requireRole: ["owner", "admin"],
-  })
+  .post(
+    "/",
+    async (ctx) => {
+      const [resource] = await db
+        .insert(resourcesTable)
+        .values({ ...ctx.body, tenantId: ctx.user!.tenantId! })
+        .returning();
+      return { resource };
+    },
+    {
+      body: t.Object({ name: t.String({ minLength: 1 }) }),
+      requireAuth: true,
+      requireTenant: true,
+      requireRole: ["owner", "admin"],
+    }
+  )
   // UPDATE
-  .put("/:id", async (ctx) => {
-    const [resource] = await db.update(resourcesTable)
-      .set(ctx.body)
-      .where(and(
-        eq(resourcesTable.id, ctx.params.id),
-        eq(resourcesTable.tenantId, ctx.user!.tenantId!)
-      ))
-      .returning();
-    if (!resource) throw new AppError(ErrorCode.NOT_FOUND, "Resource not found", 404);
-    return { resource };
-  }, {
-    params: t.Object({ id: t.String({ format: "uuid" }) }),
-    body: t.Object({ name: t.Optional(t.String({ minLength: 1 })) }),
-    requireAuth: true, requireTenant: true, requireRole: ["owner", "admin"],
-  })
+  .put(
+    "/:id",
+    async (ctx) => {
+      const [resource] = await db
+        .update(resourcesTable)
+        .set(ctx.body)
+        .where(
+          and(
+            eq(resourcesTable.id, ctx.params.id),
+            eq(resourcesTable.tenantId, ctx.user!.tenantId!)
+          )
+        )
+        .returning();
+      if (!resource)
+        throw new AppError(ErrorCode.NOT_FOUND, "Resource not found", 404);
+      return { resource };
+    },
+    {
+      params: t.Object({ id: t.String({ format: "uuid" }) }),
+      body: t.Object({ name: t.Optional(t.String({ minLength: 1 })) }),
+      requireAuth: true,
+      requireTenant: true,
+      requireRole: ["owner", "admin"],
+    }
+  )
   // DELETE
-  .delete("/:id", async (ctx) => {
-    const [deleted] = await db.delete(resourcesTable)
-      .where(and(
-        eq(resourcesTable.id, ctx.params.id),
-        eq(resourcesTable.tenantId, ctx.user!.tenantId!)
-      ))
-      .returning();
-    if (!deleted) throw new AppError(ErrorCode.NOT_FOUND, "Resource not found", 404);
-    return { success: true };
-  }, {
-    params: t.Object({ id: t.String({ format: "uuid" }) }),
-    requireAuth: true, requireTenant: true, requireRole: ["owner", "admin"],
-  });
+  .delete(
+    "/:id",
+    async (ctx) => {
+      const [deleted] = await db
+        .delete(resourcesTable)
+        .where(
+          and(
+            eq(resourcesTable.id, ctx.params.id),
+            eq(resourcesTable.tenantId, ctx.user!.tenantId!)
+          )
+        )
+        .returning();
+      if (!deleted)
+        throw new AppError(ErrorCode.NOT_FOUND, "Resource not found", 404);
+      return { success: true };
+    },
+    {
+      params: t.Object({ id: t.String({ format: "uuid" }) }),
+      requireAuth: true,
+      requireTenant: true,
+      requireRole: ["owner", "admin"],
+    }
+  );
 ```
 
 ## AI Prompts Security
 
 Never inject user input directly into prompts. Always use:
+
 - Predefined enum values for style/type parameters
 - Structured data passed as separate variables
 - Whitelist validation for any text that goes into prompts
@@ -331,13 +407,13 @@ Video (S3) → FFmpeg (2x speed audio) → Groq Whisper → Groq Llama 70b → {
 
 ### Components
 
-| File | Purpose |
-|------|---------|
-| `lib/ai/transcript.ts` | FFmpeg + Groq Whisper transcription |
-| `lib/ai/groq.ts` | Groq SDK client |
-| `lib/ai/models.ts` | Model IDs (whisper-large-v3-turbo, llama-3.3-70b-versatile) |
-| `lib/ai/prompts.ts` | System prompt for content generation |
-| `routes/ai.ts` | POST `/ai/videos/:id/analyze` endpoint |
+| File                   | Purpose                                                     |
+| ---------------------- | ----------------------------------------------------------- |
+| `lib/ai/transcript.ts` | FFmpeg + Groq Whisper transcription                         |
+| `lib/ai/groq.ts`       | Groq SDK client                                             |
+| `lib/ai/models.ts`     | Model IDs (whisper-large-v3-turbo, llama-3.3-70b-versatile) |
+| `lib/ai/prompts.ts`    | System prompt for content generation                        |
+| `routes/ai.ts`         | POST `/ai/videos/:id/analyze` endpoint                      |
 
 ### FFmpeg Audio Extraction
 
@@ -345,17 +421,17 @@ Video (S3) → FFmpeg (2x speed audio) → Groq Whisper → Groq Llama 70b → {
 ffmpeg -threads 0 -analyzeduration 0 -probesize 32768 -i <video_url> -vn -ac 1 -ar 16000 -af "silenceremove=1:0:-50dB:1:1:-50dB,atempo=2.0" -f mp3 -b:a 32k -
 ```
 
-| Flag | Effect |
-|------|--------|
-| `-threads 0` | Auto-detect CPU cores |
+| Flag                 | Effect                 |
+| -------------------- | ---------------------- |
+| `-threads 0`         | Auto-detect CPU cores  |
 | `-analyzeduration 0` | Skip duration analysis |
-| `-probesize 32768` | Smaller probe size |
-| `-vn` | No video |
-| `-ac 1` | Mono |
-| `-ar 16000` | 16kHz sample rate |
-| `silenceremove` | Remove silence |
-| `atempo=2.0` | 2x speed |
-| `-b:a 32k` | 32kbps bitrate |
+| `-probesize 32768`   | Smaller probe size     |
+| `-vn`                | No video               |
+| `-ac 1`              | Mono                   |
+| `-ar 16000`          | 16kHz sample rate      |
+| `silenceremove`      | Remove silence         |
+| `atempo=2.0`         | 2x speed               |
+| `-b:a 32k`           | 32kbps bitrate         |
 
 ### Deployment (Railway)
 

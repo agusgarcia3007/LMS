@@ -213,7 +213,9 @@
     "backoffice": "Backoffice",
     "adminDashboard": "Panel de Admin",
     "remove": "Eliminar",
-    "uploading": "Subiendo"
+    "uploading": "Subiendo",
+    "comingSoon": "Proximamente",
+    "featureInDevelopment": "Esta funcionalidad esta siendo desarrollada."
   },
   "dataTable": {
     "search": "Buscar...",
@@ -666,7 +668,8 @@
       "enrollments": "Inscripciones Activas",
       "totalEnrollments": "{{count}} inscripciones totales",
       "courses": "Cursos",
-      "coursesPublished": "{{count}} publicados"
+      "coursesPublished": "{{count}} publicados",
+      "completionRate": "Tasa de Completado"
     },
     "trends": {
       "title": "Tendencias de Inscripciones",

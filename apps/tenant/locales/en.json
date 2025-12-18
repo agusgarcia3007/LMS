@@ -213,7 +213,9 @@
     "backoffice": "Backoffice",
     "adminDashboard": "Admin Dashboard",
     "remove": "Remove",
-    "uploading": "Uploading"
+    "uploading": "Uploading",
+    "comingSoon": "Coming Soon",
+    "featureInDevelopment": "This feature is under development."
   },
   "dataTable": {
     "search": "Search...",
@@ -681,7 +683,8 @@
       "enrollments": "Active Enrollments",
       "totalEnrollments": "{{count}} total enrollments",
       "courses": "Courses",
-      "coursesPublished": "{{count}} published"
+      "coursesPublished": "{{count}} published",
+      "completionRate": "Completion Rate"
     },
     "trends": {
       "title": "Enrollment Trends",

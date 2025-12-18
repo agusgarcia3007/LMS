@@ -214,7 +214,9 @@
     "backoffice": "Backoffice",
     "adminDashboard": "Painel de Admin",
     "remove": "Remover",
-    "uploading": "Enviando"
+    "uploading": "Enviando",
+    "comingSoon": "Em breve",
+    "featureInDevelopment": "Esta funcionalidade esta em desenvolvimento."
   },
   "dataTable": {
     "search": "Buscar...",
@@ -682,7 +684,8 @@
       "enrollments": "Matriculas Ativas",
       "totalEnrollments": "{{count}} matriculas totais",
       "courses": "Cursos",
-      "coursesPublished": "{{count}} publicados"
+      "coursesPublished": "{{count}} publicados",
+      "completionRate": "Taxa de Conclusao"
     },
     "trends": {
       "title": "Tendencias de Matriculas",
