@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { Sparkles } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
-import Threads from "@/components/Threads";
+import Beams from "@/components/Beams";
 
 export function LandingHero() {
   const { t } = useTranslation();
@@ -10,7 +10,7 @@ export function LandingHero() {
   return (
     <section className="relative overflow-hidden pt-24 pb-16">
       <div className="absolute inset-0 -z-10">
-        <Threads color={[0.35, 0.2, 0.85]} amplitude={1.2} />
+        <Beams beamWidth={3} beamHeight={20} beamNumber={8} lightColor="#6366f1" speed={1.5} rotation={-15} />
       </div>
       <div className="mx-auto max-w-[1060px] px-4">
         <div className="flex flex-col items-center gap-8">
