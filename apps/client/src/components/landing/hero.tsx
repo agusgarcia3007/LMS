@@ -2,16 +2,13 @@ import { Link } from "@tanstack/react-router";
 import { Sparkles } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
-import Beams from "@/components/Beams";
 
 export function LandingHero() {
   const { t } = useTranslation();
 
   return (
     <section className="relative overflow-hidden pt-24 pb-16">
-      <div className="absolute inset-0 -z-10">
-        <Beams beamWidth={3} beamHeight={20} beamNumber={8} lightColor="#6366f1" speed={1.5} rotation={-15} />
-      </div>
+      <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,hsl(var(--primary)/0.15),transparent)]" />
       <div className="mx-auto max-w-[1060px] px-4">
         <div className="flex flex-col items-center gap-8">
           <div className="flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-2">
