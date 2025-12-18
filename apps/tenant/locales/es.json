@@ -2076,7 +2076,13 @@
       "expandAll": "Expandir todas las secciones",
       "sectionsAndClasses": "{{sections}} secciones - {{classes}} clases",
       "contentComingSoon": "El contenido del curso se agregara proximamente.",
-      "preview": "Vista previa"
+      "preview": "Vista previa",
+      "objectives": "Lo que aprenderas",
+      "curriculum": "Contenido del curso",
+      "sections": "secciones",
+      "classesAvailable": "clases disponibles",
+      "noClasses": "No hay clases en este modulo",
+      "noCurriculum": "Contenido proximamente"
     },
     "preview": {
       "title": "Vista previa del contenido",
@@ -2109,7 +2115,10 @@
     "emptyFiltered": {
       "title": "No se encontraron cursos",
       "description": "No hay cursos que coincidan con tu busqueda. Intenta con otros filtros."
-    }
+    },
+    "searchPlaceholder": "Buscar cursos...",
+    "allCategories": "Todas las categorias",
+    "clearFilters": "Limpiar filtros"
   },
   "enrollments": {
     "myCourses": "Mis Cursos",

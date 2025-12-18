@@ -2309,7 +2309,13 @@
       "expandAll": "Expand all sections",
       "sectionsAndClasses": "{{sections}} sections - {{classes}} classes",
       "contentComingSoon": "Course content will be added soon.",
-      "preview": "Preview"
+      "preview": "Preview",
+      "objectives": "What you'll learn",
+      "curriculum": "Course curriculum",
+      "sections": "sections",
+      "classesAvailable": "classes available",
+      "noClasses": "No classes in this module",
+      "noCurriculum": "Curriculum coming soon"
     },
     "preview": {
       "title": "Preview Content",
@@ -2342,7 +2348,10 @@
     "emptyFiltered": {
       "title": "No courses found",
       "description": "No courses match your search. Try different filters."
-    }
+    },
+    "searchPlaceholder": "Search courses...",
+    "allCategories": "All categories",
+    "clearFilters": "Clear filters"
   },
   "enrollments": {
     "myCourses": "My Courses",
