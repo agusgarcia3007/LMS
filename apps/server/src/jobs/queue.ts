@@ -6,17 +6,19 @@ import type { Job } from "./types";
 const QUEUE_KEY = "jobs:queue";
 
 export async function enqueue(job: Job): Promise<string> {
-  const [record] = await db
-    .insert(jobsHistoryTable)
-    .values({
+  const id = crypto.randomUUID();
+
+  await Promise.all([
+    db.insert(jobsHistoryTable).values({
+      id,
       jobType: job.type,
       jobData: job.data,
       status: "pending",
-    })
-    .returning({ id: jobsHistoryTable.id });
+    }),
+    redis.lpush(QUEUE_KEY, JSON.stringify({ ...job, id })),
+  ]);
 
-  await redis.lpush(QUEUE_KEY, JSON.stringify({ ...job, id: record.id }));
-  return record.id;
+  return id;
 }
 
 export async function dequeue(): Promise<(Job & { id?: string }) | null> {

@@ -4,6 +4,7 @@ import { tenantPlugin, invalidateTenantCache } from "@/plugins/tenant";
 import { jwtPlugin } from "@/plugins/jwt";
 import { AppError, ErrorCode } from "@/lib/errors";
 import { getTenantClientUrl, sendEmail } from "@/lib/utils";
+import { CLIENT_URL } from "@/lib/constants";
 import { getInvitationEmailHtml } from "@/lib/email-templates";
 import { db } from "@/db";
 import {
@@ -642,7 +643,8 @@ export const usersRoutes = new Elysia()
           .returning();
 
         const resetToken = await ctx.resetJwt.sign({ sub: newUser.id });
-        const resetUrl = `${getTenantClientUrl(tenant)}/reset-password?token=${resetToken}`;
+        const baseUrl = ctx.body.role === "instructor" ? CLIENT_URL : getTenantClientUrl(tenant);
+        const resetUrl = `${baseUrl}/reset-password?token=${resetToken}`;
 
         const logoUrl = tenant.logo ? getPresignedUrl(tenant.logo) : undefined;
 
