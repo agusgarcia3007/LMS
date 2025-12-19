@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import { CheckCircle, SpinnerGap, XCircle } from "@phosphor-icons/react";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useVerifyEmail } from "@/services/auth/mutations";
 
@@ -81,9 +81,9 @@ export default function VerifyEmailPage() {
             <p className="text-center text-sm text-muted-foreground">
               {t("auth.emailVerification.successDescription")}
             </p>
-            <Button asChild className="w-full">
-              <Link href="/login">{t("auth.emailVerification.goToDashboard")}</Link>
-            </Button>
+            <Link href="/login" className={buttonVariants({ className: "w-full" })}>
+              {t("auth.emailVerification.goToDashboard")}
+            </Link>
           </CardContent>
         </Card>
       </>

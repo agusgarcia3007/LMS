@@ -63,12 +63,12 @@ import {
 const inviteSchema = z.object({
   email: z.string().email("Invalid email"),
   name: z.string().min(1, "Name is required"),
-  role: z.enum(["admin", "student"]),
+  role: z.enum(["admin", "instructor", "student"]),
 });
 
 const editSchema = z.object({
   name: z.string().min(1, "Name is required"),
-  role: z.enum(["admin", "student"]),
+  role: z.enum(["admin", "instructor", "student"]),
 });
 
 type InviteFormData = z.infer<typeof inviteSchema>;
@@ -78,6 +78,7 @@ const ROLE_VARIANTS: Record<UserRole, "default" | "secondary" | "outline"> = {
   superadmin: "default",
   owner: "default",
   admin: "secondary",
+  instructor: "secondary",
   student: "outline",
 };
 

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslation } from "react-i18next";
+import { SpinnerGap } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -135,7 +136,8 @@ export default function ResetPasswordPage() {
                 )}
               />
 
-              <Button type="submit" className="w-full" isLoading={isPending}>
+              <Button type="submit" className="w-full" disabled={isPending}>
+                {isPending && <SpinnerGap className="mr-2 size-4 animate-spin" />}
                 {t("auth.resetPassword.resetPassword")}
               </Button>
             </form>

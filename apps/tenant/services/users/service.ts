@@ -38,13 +38,13 @@ export type UserListResponse = {
 export type InviteUserRequest = {
   email: string;
   name: string;
-  role: "admin" | "student";
+  role: "admin" | "instructor" | "student";
 };
 
 export type UpdateUserRequest = {
   id: string;
   name?: string;
-  role?: "admin" | "student";
+  role?: "admin" | "instructor" | "student";
 };
 
 export const QUERY_KEYS = {
