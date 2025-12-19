@@ -25,18 +25,19 @@ export function TrialBanner({ tenantSlug }: TrialBannerProps) {
     return null;
   }
 
-  const isTrialing = subscription.subscriptionStatus === "trialing";
   const isPastDue = subscription.subscriptionStatus === "past_due";
-
-  if (!isTrialing && !isPastDue) {
-    return null;
-  }
+  const isTrialing = subscription.subscriptionStatus === "trialing";
 
   const daysRemaining = subscription.trialEndsAt
     ? getDaysRemaining(subscription.trialEndsAt)
     : 0;
 
+  const isLastDays = daysRemaining <= 3;
   const isUrgent = isPastDue || daysRemaining <= 2;
+
+  if (!isPastDue && !(isTrialing && isLastDays)) {
+    return null;
+  }
 
   return (
     <Alert
