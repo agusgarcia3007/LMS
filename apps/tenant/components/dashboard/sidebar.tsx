@@ -28,7 +28,7 @@ import {
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { canManageSite, canViewFinance } from "@/lib/permissions";
+import { canManageSite, canViewFinance } from "@learnbase/core";
 import { useLogout } from "@/services/auth/mutations";
 import type { User } from "@/services/profile/service";
 import type { Tenant } from "@/services/tenants/service";

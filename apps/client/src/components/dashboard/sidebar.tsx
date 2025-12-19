@@ -66,7 +66,7 @@ import {
   canManageSite,
   canViewFinance,
   canViewStorage,
-} from "@/lib/permissions";
+} from "@learnbase/core";
 import { useLogout } from "@/services/auth/mutations";
 import type { User } from "@/services/profile/service";
 import type { Tenant } from "@/services/tenants/service";

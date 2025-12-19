@@ -1,6 +1,7 @@
 import { http } from "@/lib/http";
+import type { UserRole } from "@learnbase/core";
 
-export type UserRole = "superadmin" | "owner" | "admin" | "student";
+export type { UserRole };
 
 export type TenantUser = {
   id: string;

@@ -17,7 +17,7 @@ import { ModeToggle } from "@/components/ui/theme-toggle";
 import {
   canAccessBackoffice,
   canAccessTenantDashboard,
-} from "@/lib/permissions";
+} from "@learnbase/core";
 import { useGetProfile } from "@/services/profile/queries";
 import { useLogout } from "@/services/auth/mutations";
 

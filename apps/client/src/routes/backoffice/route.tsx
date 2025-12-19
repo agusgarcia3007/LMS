@@ -3,7 +3,7 @@ import { Outlet, createFileRoute, redirect } from "@tanstack/react-router";
 import { BackofficeHeader } from "@/components/backoffice/header";
 import { BackofficeSidebar } from "@/components/backoffice/sidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import { canAccessBackoffice } from "@/lib/permissions";
+import { canAccessBackoffice } from "@learnbase/core";
 import { profileOptions } from "@/services/profile/options";
 
 export const Route = createFileRoute("/backoffice")({

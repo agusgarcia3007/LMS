@@ -11,7 +11,7 @@ import {
   canAccessTenantDashboard,
   canManageSite,
   canViewFinance,
-} from "@/lib/permissions";
+} from "@learnbase/core";
 import { getAccessToken } from "@/lib/http";
 
 type DashboardLayoutClientProps = {

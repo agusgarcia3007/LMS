@@ -6,7 +6,7 @@ import { DashboardHeader } from "@/components/dashboard/header";
 import { DashboardSidebar } from "@/components/dashboard/sidebar";
 import { OnboardingPanel } from "@/components/dashboard/onboarding-panel";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import { canAccessTenantDashboard, canManageSite } from "@/lib/permissions";
+import { canAccessTenantDashboard, canManageSite } from "@learnbase/core";
 import { setResolvedSlug } from "@/lib/tenant";
 import { profileOptions } from "@/services/profile/options";
 import { tenantOptions } from "@/services/tenants/options";

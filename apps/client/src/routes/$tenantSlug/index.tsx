@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { createSeoMeta } from "@/lib/seo";
-import { canViewFinance } from "@/lib/permissions";
+import { canViewFinance } from "@learnbase/core";
 import {
   useGetTenantStats,
   useGetTenantActivity,

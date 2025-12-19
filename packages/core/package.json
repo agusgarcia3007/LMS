@@ -1,10 +1,10 @@
 {
-  "name": "@learnbase/shared",
+  "name": "@learnbase/core",
   "version": "0.0.1",
-  "module": "index.ts",
+  "module": "src/index.ts",
   "type": "module",
   "exports": {
-    ".": "./index.ts"
+    ".": "./src/index.ts"
   },
   "devDependencies": {
     "@types/bun": "latest"

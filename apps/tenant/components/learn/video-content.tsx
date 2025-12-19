@@ -3,7 +3,7 @@
 import { useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { CheckCircle } from "@phosphor-icons/react";
-import { formatDuration } from "@learnbase/shared";
+import { formatDuration } from "@learnbase/core";
 import { Button } from "@/components/ui/button";
 import type { VideoContent as VideoContentType } from "@/services/learn/service";
 

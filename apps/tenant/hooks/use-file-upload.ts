@@ -9,7 +9,7 @@ import {
   type DragEvent,
   type InputHTMLAttributes,
 } from "react";
-import { formatBytes } from "@learnbase/shared";
+import { formatBytes } from "@learnbase/core";
 
 export type FileMetadata = {
   name: string;

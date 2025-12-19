@@ -1,7 +1,8 @@
 import { http } from "@/lib/http";
 import type { PaginationResult } from "@/types/pagination";
+import type { UserRole } from "@learnbase/core";
 
-export type UserRole = "superadmin" | "owner" | "instructor" | "student";
+export type { UserRole };
 
 export type User = {
   id: string;
