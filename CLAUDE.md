@@ -23,8 +23,10 @@ apps/
 - **Start**: `bun run start` - Start production server
 - **DB Generate**: `bun run db:generate` - Generate Drizzle migrations
 - **DB Migrate**: `bun run db:migrate` - Run migrations
-- **DB Push**: `bun run db:push` - Push schema directly
+- **DB Push**: `bun run db:push` - Push schema directly (NEVER use unless explicitly asked)
 - **DB Studio**: `bun run db:studio` - Open Drizzle Studio
+
+**IMPORTANT**: Always use `db:generate` + `db:migrate` for schema changes. Never use `db:push` unless the user explicitly asks for it.
 
 Note: No direct `tsc` - use IDE diagnostics or `bun run build` for type checking
 
