@@ -58,7 +58,7 @@ export function ModuleItem({ item, isActive, onClick, courseSlug, moduleId }: Mo
       <div className="min-w-0 flex-1">
         <p
           className={cn(
-            "truncate text-sm transition-colors",
+            "line-clamp-2 text-sm leading-tight transition-colors sm:truncate sm:leading-normal",
             isActive ? "text-foreground font-medium" : "text-foreground/80"
           )}
         >

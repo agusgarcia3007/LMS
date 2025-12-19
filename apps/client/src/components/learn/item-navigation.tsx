@@ -33,7 +33,7 @@ export function ItemNavigation({
 
   return (
     <div className="border-t bg-background/50 backdrop-blur-sm">
-      <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3 lg:px-8">
+      <div className="mx-auto flex max-w-5xl items-center justify-between px-3 py-2 sm:px-4 sm:py-3 lg:px-8">
         <Button
           variant="ghost"
           size="sm"

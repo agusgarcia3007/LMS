@@ -303,9 +303,9 @@ function LearnPage({ tenant }: LearnPageProps) {
               onReviewCourse={() => setIsReviewing(true)}
             />
           ) : (
-            <div className="mx-auto max-w-9xl px-4 py-6 lg:px-8">
+            <div className="mx-auto max-w-9xl px-3 py-4 sm:px-4 sm:py-6 lg:px-8">
               {currentItemId ? (
-                <div className="space-y-4">
+                <div className="space-y-3 sm:space-y-4">
                   {contentLoading ? (
                     <div className="bg-muted aspect-video animate-pulse rounded-xl" />
                   ) : contentData?.type === "video" ? (
@@ -321,12 +321,12 @@ function LearnPage({ tenant }: LearnPageProps) {
                         availableSubtitles={availableSubtitles}
                         className="overflow-hidden rounded-xl shadow-lg"
                       />
-                      <div className="space-y-2">
-                        <h2 className="text-xl font-semibold">
+                      <div className="space-y-1.5 sm:space-y-2">
+                        <h2 className="text-lg font-semibold sm:text-xl">
                           {contentData.title}
                         </h2>
                         {contentData.description && (
-                          <p className="text-muted-foreground">
+                          <p className="text-muted-foreground text-sm sm:text-base">
                             {contentData.description}
                           </p>
                         )}
@@ -342,19 +342,19 @@ function LearnPage({ tenant }: LearnPageProps) {
                         onComplete={handleComplete}
                       />
                       {contentData.description && (
-                        <p className="text-muted-foreground mt-4">
+                        <p className="text-muted-foreground mt-3 text-sm sm:mt-4 sm:text-base">
                           {contentData.description}
                         </p>
                       )}
                     </>
                   ) : contentData?.type === "quiz" ? (
-                    <div className="space-y-4">
-                      <div className="rounded-lg border p-6">
-                        <h2 className="text-xl font-semibold">
+                    <div className="space-y-3 sm:space-y-4">
+                      <div className="rounded-lg border p-4 sm:p-6">
+                        <h2 className="text-lg font-semibold sm:text-xl">
                           {contentData.title}
                         </h2>
                         {contentData.description && (
-                          <p className="text-muted-foreground mt-2">
+                          <p className="text-muted-foreground mt-1.5 text-sm sm:mt-2 sm:text-base">
                             {contentData.description}
                           </p>
                         )}
