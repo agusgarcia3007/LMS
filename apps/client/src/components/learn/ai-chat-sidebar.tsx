@@ -11,6 +11,7 @@ import {
   PromptInputAttachments,
   PromptInputAttachment,
   PromptInputButton,
+  type PromptInputMessage,
 } from "@/components/ai-elements/prompt-input";
 import {
   Conversation,
@@ -60,6 +61,15 @@ function dataURLToBlob(dataUrl: string): Blob {
     u8arr[i] = bstr.charCodeAt(i);
   }
   return new Blob([u8arr], { type: mime });
+}
+
+function dataURLToFile(
+  dataUrl: string,
+  filename: string,
+  mimeType: string
+): File {
+  const blob = dataURLToBlob(dataUrl);
+  return new File([blob], filename, { type: mimeType || blob.type });
 }
 
 function captureVideoFrame(videoElement: HTMLVideoElement): File | null {
@@ -137,7 +147,7 @@ export function AIChatSidebar({
   }, [itemId, reset]);
 
   const handleSubmit = useCallback(
-    async ({ text, files }: { text: string; files?: File[] }) => {
+    async ({ text, files }: PromptInputMessage) => {
       if (!text.trim() && !files?.length) return;
 
       let contextFiles: File[] | undefined;
@@ -163,11 +173,19 @@ export function AIChatSidebar({
         }
       }
 
-      await sendMessage(
-        text,
-        files?.length ? files : undefined,
-        contextFiles
-      );
+      const userFiles: File[] | undefined = files?.length
+        ? files
+            .filter((f) => f.url)
+            .map((f) =>
+              dataURLToFile(
+                f.url,
+                f.filename || `attachment-${Date.now()}`,
+                f.mediaType || "application/octet-stream"
+              )
+            )
+        : undefined;
+
+      await sendMessage(text, userFiles, contextFiles);
     },
     [
       sendMessage,
@@ -234,11 +252,19 @@ export function AIChatSidebar({
                       {message.attachments.map((att, i) => (
                         <MessageAttachment
                           key={i}
-                          data={{
-                            type: "file",
-                            url: att.data,
-                            mediaType: att.mimeType,
-                          }}
+                          data={
+                            att.type === "image"
+                              ? {
+                                  type: "file",
+                                  url: `https://cdn.uselearnbase.com/${att.key}`,
+                                  mediaType: "image/jpeg",
+                                }
+                              : {
+                                  type: "file",
+                                  url: att.data,
+                                  mediaType: att.mimeType,
+                                }
+                          }
                         />
                       ))}
                     </MessageAttachments>
