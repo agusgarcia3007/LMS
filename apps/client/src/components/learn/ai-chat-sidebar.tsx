@@ -27,13 +27,13 @@ import {
 } from "@/components/ai-elements/message";
 import { Loader } from "@/components/ai-elements/loader";
 import {
-  DualSidebar,
-  DualSidebarHeader,
-  DualSidebarContent,
-  DualSidebarFooter,
+  Sidebar,
+  SidebarHeader,
+  SidebarContent,
+  SidebarFooter,
   SidebarToggleTab,
-  useDualSidebar,
-} from "@/components/ui/dual-sidebar";
+  useRightSidebar,
+} from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 import { useLearnChat } from "@/hooks/use-learn-chat";
 
@@ -112,7 +112,7 @@ export function AIChatSidebar({
   assistantName,
 }: AIChatSidebarProps) {
   const { t } = useTranslation();
-  const { right, isMobile } = useDualSidebar();
+  const { toggle, isMobile } = useRightSidebar();
   const {
     messages,
     isStreaming,
@@ -208,8 +208,8 @@ export function AIChatSidebar({
 
   return (
     <>
-      <DualSidebar side="right" collapsible="offcanvas">
-        <DualSidebarHeader className="from-primary/5 to-primary/10 border-b bg-gradient-to-r">
+      <Sidebar variant="floating" side="right" collapsible="offcanvas">
+        <SidebarHeader className="from-primary/5 to-primary/10 border-b bg-gradient-to-r">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="relative">
@@ -226,15 +226,15 @@ export function AIChatSidebar({
               variant="ghost"
               size="icon"
               className={cn("size-7", isMobile && "hidden")}
-              onClick={right.toggle}
+              onClick={toggle}
               aria-label={t("learn.closeAIChat")}
             >
               <ChevronRight className="size-4" />
             </Button>
           </div>
-        </DualSidebarHeader>
+        </SidebarHeader>
 
-        <DualSidebarContent className="flex flex-col">
+        <SidebarContent className="flex flex-col">
           <Conversation className="flex-1">
             <ConversationContent className="gap-4">
               {initialMessage && (
@@ -299,9 +299,9 @@ export function AIChatSidebar({
             </ConversationContent>
             <ConversationScrollButton />
           </Conversation>
-        </DualSidebarContent>
+        </SidebarContent>
 
-        <DualSidebarFooter className="border-t">
+        <SidebarFooter className="border-t">
           <PromptInput
             onSubmit={handleSubmit}
             accept="image/*"
@@ -333,8 +333,8 @@ export function AIChatSidebar({
               />
             </PromptInputFooter>
           </PromptInput>
-        </DualSidebarFooter>
-      </DualSidebar>
+        </SidebarFooter>
+      </Sidebar>
 
       <SidebarToggleTab
         side="right"

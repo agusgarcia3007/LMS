@@ -13,9 +13,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  DualSidebarProvider,
-  DualSidebarInset,
-} from "@/components/ui/dual-sidebar";
+  SidebarProvider,
+  SidebarInset,
+} from "@/components/ui/sidebar";
 import { CampusHeader } from "@/components/campus/header";
 import { LearnContentSidebar } from "@/components/learn/learn-content-sidebar";
 import { AIChatSidebar } from "@/components/learn/ai-chat-sidebar";
@@ -101,14 +101,14 @@ function LearnPageWrapper() {
   }
 
   return (
-    <DualSidebarProvider
-      defaultLeftOpen={true}
+    <SidebarProvider
+      defaultOpen={true}
       defaultRightOpen={false}
       className={themeClass}
       style={customStyles}
     >
       <LearnPage tenant={tenant} />
-    </DualSidebarProvider>
+    </SidebarProvider>
   );
 }
 
@@ -428,7 +428,7 @@ function LearnPage({ tenant }: LearnPageProps) {
 
 function LearnMainContent({ children }: { children: React.ReactNode }) {
   return (
-    <DualSidebarInset className="overflow-y-auto">{children}</DualSidebarInset>
+    <SidebarInset className="overflow-y-auto">{children}</SidebarInset>
   );
 }
 

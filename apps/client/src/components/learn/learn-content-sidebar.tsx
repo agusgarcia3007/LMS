@@ -5,12 +5,12 @@ import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import {
-  DualSidebar,
-  DualSidebarHeader,
-  DualSidebarContent,
+  Sidebar,
+  SidebarHeader,
+  SidebarContent,
   SidebarToggleTab,
-  useDualSidebar,
-} from "@/components/ui/dual-sidebar";
+  useSidebar,
+} from "@/components/ui/sidebar";
 import { ModuleAccordion } from "./module-accordion";
 import { cn } from "@/lib/utils";
 import { useCourseProgress } from "@/services/learn";
@@ -34,7 +34,7 @@ export function LearnContentSidebar({
   onItemSelect,
 }: LearnContentSidebarProps) {
   const { t } = useTranslation();
-  const { left, isMobile } = useDualSidebar();
+  const { isMobile, toggleSidebar } = useSidebar();
   const { data: progressData } = useCourseProgress(courseSlug);
 
   const moduleProgress = useMemo(() => {
@@ -53,8 +53,8 @@ export function LearnContentSidebar({
 
   return (
     <>
-      <DualSidebar side="left" collapsible="offcanvas">
-        <DualSidebarHeader className="bg-muted/30 border-b">
+      <Sidebar side="left" collapsible="offcanvas">
+        <SidebarHeader className="bg-muted/30 border-b">
           <div className="flex items-center justify-between gap-2">
             <div className="min-w-0 flex-1">
               <span className="text-muted-foreground text-xs font-medium uppercase tracking-wider">
@@ -71,15 +71,15 @@ export function LearnContentSidebar({
               variant="ghost"
               size="icon"
               className={cn("size-7 shrink-0", isMobile && "hidden")}
-              onClick={left.toggle}
+              onClick={toggleSidebar}
               aria-label={t("learn.toggleSidebar")}
             >
               <ChevronLeft className="size-4" />
             </Button>
           </div>
-        </DualSidebarHeader>
+        </SidebarHeader>
 
-        <DualSidebarContent className="p-3">
+        <SidebarContent className="p-3">
           <ScrollArea className="flex-1">
             <ModuleAccordion
               modules={modules}
@@ -90,8 +90,8 @@ export function LearnContentSidebar({
               courseSlug={courseSlug}
             />
           </ScrollArea>
-        </DualSidebarContent>
-      </DualSidebar>
+        </SidebarContent>
+      </Sidebar>
 
       <SidebarToggleTab
         side="left"

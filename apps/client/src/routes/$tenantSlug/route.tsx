@@ -205,7 +205,7 @@ function TenantDashboardLayout() {
 
   return (
     <OnboardingPanelContext.Provider value={panelContext}>
-      <SidebarProvider>
+      <SidebarProvider defaultRightOpen={false}>
         <DashboardSidebar tenant={tenant} user={user} />
         <SidebarInset>
           <DashboardHeader tenant={tenant} user={user} />

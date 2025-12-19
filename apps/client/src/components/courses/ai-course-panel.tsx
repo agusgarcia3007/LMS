@@ -4,10 +4,10 @@ import {
   BookOpen,
   Check,
   CheckCircle,
+  ChevronRight,
   ImageIcon,
   MessageSquarePlus,
   Paperclip,
-  PanelRightClose,
   RotateCcw,
   Send,
   Sparkles,
@@ -38,6 +38,14 @@ import { Suggestion, Suggestions } from "@/components/ai-elements/suggestion";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+  SidebarToggleTab,
+  useRightSidebar,
+} from "@/components/ui/sidebar";
 import {
   Tooltip,
   TooltipContent,
@@ -358,18 +366,15 @@ function SuccessBanner({
 }
 
 type AICourseCreatorProps = {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
   onGeneratingThumbnailChange?: (courseId: string | null) => void;
 };
 
 export function AICoursePanel({
-  open,
-  onOpenChange,
   onGeneratingThumbnailChange,
 }: AICourseCreatorProps) {
   const { t } = useTranslation();
   const { tenantSlug } = useParams({ strict: false });
+  const { open, toggle, isMobile } = useRightSidebar();
   const [isCreating, setIsCreating] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const [selectedCourses, setSelectedCourses] = useState<SelectedCourse[]>([]);
@@ -567,207 +572,201 @@ export function AICoursePanel({
   }, [videosData, documentsData, quizzesData, t]);
 
   return (
-    <AnimatePresence mode="wait">
-      {open && (
-        <motion.div
-          initial={{ width: 0, opacity: 0 }}
-          animate={{ width: 400, opacity: 1 }}
-          exit={{ width: 0, opacity: 0 }}
-          transition={{ type: "spring", bounce: 0.15, duration: 0.4 }}
-          className="relative h-full w-[400px] max-w-[400px] flex flex-col border-l bg-background overflow-hidden shrink-0"
-        >
-          <div className="border-b bg-muted/30 px-4 py-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10">
-                  <Sparkles className="size-4.5 text-primary" />
-                </div>
-                <div>
-                  <h2 className="font-semibold text-sm">
-                    {t("courses.aiCreator.toggle")}
-                  </h2>
-                  <p className="text-xs text-muted-foreground">
-                    {t("courses.aiCreator.emptyDescription")}
-                  </p>
-                </div>
+    <>
+      <Sidebar variant="floating" side="right" collapsible="offcanvas">
+        <SidebarHeader className="border-b bg-sidebar px-4 py-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10">
+                <Sparkles className="size-4.5 text-primary" />
               </div>
+              <div>
+                <h2 className="font-semibold text-sm">
+                  {t("courses.aiCreator.toggle")}
+                </h2>
+                <p className="text-xs text-muted-foreground">
+                  {t("courses.aiCreator.emptyDescription")}
+                </p>
+              </div>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              className={cn("size-8", isMobile && "hidden")}
+              onClick={toggle}
+            >
+              <ChevronRight className="size-4" />
+            </Button>
+          </div>
+        </SidebarHeader>
+
+        <SidebarContent className="flex flex-col">
+          {messages.length === 0 && !coursePreview ? (
+            <EmptyState
+              suggestions={suggestions}
+              onSuggestionClick={handleSuggestionClick}
+            />
+          ) : (
+            <ScrollArea className="h-full w-full" ref={scrollRef}>
+              <Conversation className="h-full">
+                <ConversationContent className="gap-4 p-4 w-full max-w-full">
+                  <AnimatePresence mode="popLayout">
+                    {sortedMessages.map((message) =>
+                      message.role === "user" ? (
+                        <UserBubble
+                          key={message.id}
+                          content={message.content}
+                          courses={message.contextCourses}
+                          attachments={message.attachments}
+                          userAvatar={profileData?.user.avatar}
+                          userName={profileData?.user.name}
+                        />
+                      ) : (
+                        <AssistantBubble
+                          key={message.id}
+                          content={message.content}
+                        />
+                      )
+                    )}
+                  </AnimatePresence>
+
+                  <ToolIndicator toolInvocations={toolInvocations} />
+
+                  {isStreaming &&
+                    toolInvocations.length === 0 &&
+                    !coursePreview && <LoadingBubble />}
+
+                  {coursePreview && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 12 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="ml-9 max-w-full overflow-hidden"
+                    >
+                      <CoursePreviewCard
+                        preview={coursePreview}
+                        onConfirm={handleConfirmCourse}
+                        onEdit={clearPreview}
+                        isCreating={isCreating}
+                      />
+                    </motion.div>
+                  )}
+
+                  {courseCreated && (
+                    <SuccessBanner
+                      courseCreated={courseCreated}
+                      isGeneratingThumbnail={isGeneratingThumbnail}
+                      tenantSlug={tenantSlug!}
+                      onReset={handleReset}
+                    />
+                  )}
+                </ConversationContent>
+              </Conversation>
+            </ScrollArea>
+          )}
+        </SidebarContent>
+
+        <SidebarFooter className="border-t bg-sidebar p-3">
+          <div className="flex items-center gap-2">
+            {messages.length > 0 && (
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
+                    type="button"
                     variant="ghost"
                     size="icon"
+                    onClick={handleReset}
+                    disabled={isStreaming}
                     className="size-8"
-                    onClick={() => onOpenChange(false)}
                   >
-                    <PanelRightClose className="size-4" />
+                    <RotateCcw className="size-4" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent side="left">Cerrar panel</TooltipContent>
+                <TooltipContent>{t("courses.aiCreator.reset")}</TooltipContent>
               </Tooltip>
-            </div>
-          </div>
-
-          <div className="flex-1 min-h-0 overflow-hidden">
-            {messages.length === 0 && !coursePreview ? (
-              <EmptyState
-                suggestions={suggestions}
-                onSuggestionClick={handleSuggestionClick}
-              />
-            ) : (
-              <ScrollArea className="h-full w-full" ref={scrollRef}>
-                <Conversation className="h-full">
-                  <ConversationContent className="gap-4 p-4 w-full max-w-full">
-                    <AnimatePresence mode="popLayout">
-                      {sortedMessages.map((message) =>
-                        message.role === "user" ? (
-                          <UserBubble
-                            key={message.id}
-                            content={message.content}
-                            courses={message.contextCourses}
-                            attachments={message.attachments}
-                            userAvatar={profileData?.user.avatar}
-                            userName={profileData?.user.name}
-                          />
-                        ) : (
-                          <AssistantBubble
-                            key={message.id}
-                            content={message.content}
-                          />
-                        )
-                      )}
-                    </AnimatePresence>
-
-                    <ToolIndicator toolInvocations={toolInvocations} />
-
-                    {isStreaming &&
-                      toolInvocations.length === 0 &&
-                      !coursePreview && <LoadingBubble />}
-
-                    {coursePreview && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 12 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="ml-9 max-w-full overflow-hidden"
-                      >
-                        <CoursePreviewCard
-                          preview={coursePreview}
-                          onConfirm={handleConfirmCourse}
-                          onEdit={clearPreview}
-                          isCreating={isCreating}
-                        />
-                      </motion.div>
-                    )}
-
-                    {courseCreated && (
-                      <SuccessBanner
-                        courseCreated={courseCreated}
-                        isGeneratingThumbnail={isGeneratingThumbnail}
-                        tenantSlug={tenantSlug!}
-                        onReset={handleReset}
-                      />
-                    )}
-                  </ConversationContent>
-                </Conversation>
-              </ScrollArea>
             )}
-          </div>
 
-          <div className="border-t bg-muted/30 p-3">
-            <div className="flex items-center gap-2">
-              {messages.length > 0 && (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      onClick={handleReset}
-                      disabled={isStreaming}
-                      className="size-8"
-                    >
-                      <RotateCcw className="size-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>{t("courses.aiCreator.reset")}</TooltipContent>
-                </Tooltip>
-              )}
+            <div className="relative flex-1">
+              <CourseMentionPopover
+                open={mention.isOpen}
+                searchQuery={mention.searchQuery}
+                onSelect={handleMentionSelect}
+                excludeIds={selectedCourseIds}
+              />
+              <PromptInput
+                onSubmit={handleSendMessage}
+                accept="image/*"
+                maxFiles={1}
+                maxFileSize={5 * 1024 * 1024}
+                className="rounded-xl border bg-background focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/20"
+              >
+                <PromptInputAttachments>
+                  {(file) => <PromptInputAttachment data={file} />}
+                </PromptInputAttachments>
 
-              <div className="relative flex-1">
-                <CourseMentionPopover
-                  open={mention.isOpen}
-                  searchQuery={mention.searchQuery}
-                  onSelect={handleMentionSelect}
-                  excludeIds={selectedCourseIds}
-                />
-                <PromptInput
-                  onSubmit={handleSendMessage}
-                  accept="image/*"
-                  maxFiles={1}
-                  maxFileSize={5 * 1024 * 1024}
-                  className="rounded-xl border bg-background focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/20"
-                >
-                  <PromptInputAttachments>
-                    {(file) => <PromptInputAttachment data={file} />}
-                  </PromptInputAttachments>
-
-                  {selectedCourses.length > 0 && (
-                    <div
-                      data-align="block-start"
-                      className="flex w-full flex-wrap justify-start gap-1.5 px-3 pt-2 pb-1"
-                    >
-                      {selectedCourses.map((course) => (
-                        <motion.span
-                          key={course.id}
-                          initial={{ scale: 0.9, opacity: 0 }}
-                          animate={{ scale: 1, opacity: 1 }}
-                          exit={{ scale: 0.9, opacity: 0 }}
-                          className="inline-flex items-center gap-1 rounded-full border border-primary/20 bg-primary/5 px-2 py-0.5 text-xs font-medium text-primary"
+                {selectedCourses.length > 0 && (
+                  <div
+                    data-align="block-start"
+                    className="flex w-full flex-wrap justify-start gap-1.5 px-3 pt-2 pb-1"
+                  >
+                    {selectedCourses.map((course) => (
+                      <motion.span
+                        key={course.id}
+                        initial={{ scale: 0.9, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 0.9, opacity: 0 }}
+                        className="inline-flex items-center gap-1 rounded-full border border-primary/20 bg-primary/5 px-2 py-0.5 text-xs font-medium text-primary"
+                      >
+                        <BookOpen className="size-3" />
+                        <span className="max-w-[100px] truncate">
+                          {course.title}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleCourseRemove(course.id)}
+                          disabled={isStreaming}
+                          className="opacity-60 hover:opacity-100 disabled:pointer-events-none transition-opacity"
                         >
-                          <BookOpen className="size-3" />
-                          <span className="max-w-[100px] truncate">
-                            {course.title}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => handleCourseRemove(course.id)}
-                            disabled={isStreaming}
-                            className="opacity-60 hover:opacity-100 disabled:pointer-events-none transition-opacity"
-                          >
-                            <X className="size-2.5" />
-                          </button>
-                        </motion.span>
-                      ))}
-                    </div>
-                  )}
+                          <X className="size-2.5" />
+                        </button>
+                      </motion.span>
+                    ))}
+                  </div>
+                )}
 
-                  <PromptInputTextarea
-                    ref={textareaRef}
-                    placeholder={t("courses.aiCreator.placeholder")}
-                    disabled={isStreaming}
-                    className="min-h-10 resize-none bg-transparent text-sm"
-                    value={inputValue}
-                    onChange={handleInputChange}
-                    onKeyDown={handleTextareaKeyDown}
-                  />
+                <PromptInputTextarea
+                  ref={textareaRef}
+                  placeholder={t("courses.aiCreator.placeholder")}
+                  disabled={isStreaming}
+                  className="min-h-10 resize-none bg-transparent text-sm"
+                  value={inputValue}
+                  onChange={handleInputChange}
+                  onKeyDown={handleTextareaKeyDown}
+                />
 
-                  <PromptInputFooter className="border-t-0 pt-1">
-                    <div className="flex-1" />
-                    <AttachmentButton disabled={isStreaming} />
-                    <PromptInputSubmit
-                      status={isStreaming ? "streaming" : undefined}
-                      onClick={isStreaming ? cancel : undefined}
-                      type={isStreaming ? "button" : "submit"}
-                      className={cn(!isStreaming && "bg-primary hover:bg-primary/90")}
-                    >
-                      {!isStreaming && <Send className="size-4" />}
-                    </PromptInputSubmit>
-                  </PromptInputFooter>
-                </PromptInput>
-              </div>
+                <PromptInputFooter className="border-t-0 pt-1">
+                  <div className="flex-1" />
+                  <AttachmentButton disabled={isStreaming} />
+                  <PromptInputSubmit
+                    status={isStreaming ? "streaming" : undefined}
+                    onClick={isStreaming ? cancel : undefined}
+                    type={isStreaming ? "button" : "submit"}
+                    className={cn(!isStreaming && "bg-primary hover:bg-primary/90")}
+                  >
+                    {!isStreaming && <Send className="size-4" />}
+                  </PromptInputSubmit>
+                </PromptInputFooter>
+              </PromptInput>
             </div>
           </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+        </SidebarFooter>
+      </Sidebar>
+
+      <SidebarToggleTab
+        side="right"
+        icon={<Sparkles className="text-primary size-4" />}
+        label="AI"
+        showOnMobile
+      />
+    </>
   );
 }

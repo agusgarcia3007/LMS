@@ -2,7 +2,7 @@
 import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
-import { PanelLeftIcon } from "lucide-react";
+import { PanelLeftIcon, PanelRightIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -28,9 +28,19 @@ import {
 const SIDEBAR_COOKIE_NAME = "sidebar_state";
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
 const SIDEBAR_WIDTH = "16rem";
+const SIDEBAR_WIDTH_RIGHT = "22rem";
 const SIDEBAR_WIDTH_MOBILE = "18rem";
 const SIDEBAR_WIDTH_ICON = "3rem";
 const SIDEBAR_KEYBOARD_SHORTCUT = "b";
+
+type SidebarState = {
+  state: "expanded" | "collapsed";
+  open: boolean;
+  setOpen: (open: boolean) => void;
+  openMobile: boolean;
+  setOpenMobile: (open: boolean) => void;
+  toggle: () => void;
+};
 
 type SidebarContextProps = {
   state: "expanded" | "collapsed";
@@ -40,6 +50,7 @@ type SidebarContextProps = {
   setOpenMobile: (open: boolean) => void;
   isMobile: boolean;
   toggleSidebar: () => void;
+  right: SidebarState;
 };
 
 const SidebarContext = React.createContext<SidebarContextProps | null>(null);
@@ -53,8 +64,21 @@ function useSidebar() {
   return context;
 }
 
+function useRightSidebar() {
+  const context = React.useContext(SidebarContext);
+  if (!context) {
+    throw new Error("useRightSidebar must be used within a SidebarProvider.");
+  }
+
+  return {
+    ...context.right,
+    isMobile: context.isMobile,
+  };
+}
+
 function SidebarProvider({
   defaultOpen = true,
+  defaultRightOpen = false,
   open: openProp,
   onOpenChange: setOpenProp,
   className,
@@ -63,6 +87,7 @@ function SidebarProvider({
   ...props
 }: React.ComponentProps<"div"> & {
   defaultOpen?: boolean;
+  defaultRightOpen?: boolean;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
 }) {
@@ -88,6 +113,22 @@ function SidebarProvider({
     [setOpenProp, open]
   );
 
+  // Right sidebar state (no cookie persistence - contextual to page)
+  const [rightOpen, setRightOpenState] = React.useState(defaultRightOpen);
+  const [rightOpenMobile, setRightOpenMobile] = React.useState(false);
+
+  const setRightOpen = React.useCallback((value: boolean) => {
+    setRightOpenState(value);
+  }, []);
+
+  const toggleRightSidebar = React.useCallback(() => {
+    if (isMobile) {
+      setRightOpenMobile((prev) => !prev);
+    } else {
+      setRightOpenState((prev) => !prev);
+    }
+  }, [isMobile]);
+
   // Helper to toggle the sidebar.
   const toggleSidebar = React.useCallback(() => {
     return isMobile ? setOpenMobile((open) => !open) : setOpen((open) => !open);
@@ -101,17 +142,34 @@ function SidebarProvider({
         (event.metaKey || event.ctrlKey)
       ) {
         event.preventDefault();
-        toggleSidebar();
+        if (event.shiftKey) {
+          toggleRightSidebar();
+        } else {
+          toggleSidebar();
+        }
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [toggleSidebar]);
+  }, [toggleSidebar, toggleRightSidebar]);
 
   // We add a state so that we can do data-state="expanded" or "collapsed".
   // This makes it easier to style the sidebar with Tailwind classes.
   const state = open ? "expanded" : "collapsed";
+  const rightState = rightOpen ? "expanded" : "collapsed";
+
+  const right: SidebarState = React.useMemo(
+    () => ({
+      state: rightState,
+      open: rightOpen,
+      setOpen: setRightOpen,
+      openMobile: rightOpenMobile,
+      setOpenMobile: setRightOpenMobile,
+      toggle: toggleRightSidebar,
+    }),
+    [rightState, rightOpen, setRightOpen, rightOpenMobile, toggleRightSidebar]
+  );
 
   const contextValue = React.useMemo<SidebarContextProps>(
     () => ({
@@ -122,8 +180,18 @@ function SidebarProvider({
       openMobile,
       setOpenMobile,
       toggleSidebar,
+      right,
     }),
-    [state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar]
+    [
+      state,
+      open,
+      setOpen,
+      isMobile,
+      openMobile,
+      setOpenMobile,
+      toggleSidebar,
+      right,
+    ]
   );
 
   return (
@@ -163,7 +231,14 @@ function Sidebar({
   variant?: "sidebar" | "floating" | "inset";
   collapsible?: "offcanvas" | "icon" | "none";
 }) {
-  const { isMobile, state, openMobile, setOpenMobile } = useSidebar();
+  const context = useSidebar();
+  const isRight = side === "right";
+  const isMobile = context.isMobile;
+  const state = isRight ? context.right.state : context.state;
+  const openMobile = isRight ? context.right.openMobile : context.openMobile;
+  const setOpenMobile = isRight
+    ? context.right.setOpenMobile
+    : context.setOpenMobile;
 
   if (collapsible === "none") {
     return (
@@ -190,7 +265,9 @@ function Sidebar({
           className="bg-sidebar text-sidebar-foreground w-(--sidebar-width) p-0 [&>button]:hidden"
           style={
             {
-              "--sidebar-width": SIDEBAR_WIDTH_MOBILE,
+              "--sidebar-width": isRight
+                ? SIDEBAR_WIDTH_RIGHT
+                : SIDEBAR_WIDTH_MOBILE,
             } as React.CSSProperties
           }
           side={side}
@@ -213,6 +290,11 @@ function Sidebar({
       data-variant={variant}
       data-side={side}
       data-slot="sidebar"
+      style={
+        isRight
+          ? ({ "--sidebar-width": SIDEBAR_WIDTH_RIGHT } as React.CSSProperties)
+          : undefined
+      }
     >
       {/* This is what handles the sidebar gap on desktop */}
       <div
@@ -610,7 +692,6 @@ function SidebarMenuSkeleton({
 }) {
   // Random width between 50 to 90%.
   const width = React.useMemo(
-     
     () => `${Math.floor(Math.random() * 40) + 50}%`,
     []
   );
@@ -702,6 +783,85 @@ function SidebarMenuSubButton({
   );
 }
 
+function SidebarRightTrigger({
+  className,
+  onClick,
+  ...props
+}: React.ComponentProps<typeof Button>) {
+  const { t } = useTranslation();
+  const { right } = useSidebar();
+
+  return (
+    <Button
+      data-sidebar="trigger"
+      data-slot="sidebar-trigger"
+      data-side="right"
+      variant="ghost"
+      size="icon"
+      className={cn("size-7", className)}
+      onClick={(event) => {
+        onClick?.(event);
+        right.toggle();
+      }}
+      {...props}
+    >
+      <PanelRightIcon />
+      <span className="sr-only">{t("common.toggleSidebar")}</span>
+    </Button>
+  );
+}
+
+function SidebarToggleTab({
+  side,
+  icon,
+  label,
+  showOnMobile = false,
+  className,
+}: {
+  side: "left" | "right";
+  icon: React.ReactNode;
+  label?: string;
+  showOnMobile?: boolean;
+  className?: string;
+}) {
+  const { t } = useTranslation();
+  const context = useSidebar();
+  const isRight = side === "right";
+  const sidebarState = isRight
+    ? context.right
+    : { open: context.open, toggle: context.toggleSidebar };
+
+  if ((context.isMobile && !showOnMobile) || sidebarState.open) return null;
+
+  return (
+    <button
+      onClick={sidebarState.toggle}
+      aria-label={t("common.toggleSidebar")}
+      className={cn(
+        "fixed top-1/2 z-30 -translate-y-1/2",
+        "flex flex-col items-center justify-center gap-1",
+        "bg-background border shadow-lg",
+        "transition-all duration-200",
+        "hover:bg-accent",
+        side === "left"
+          ? "left-0 rounded-r-xl border-l-0 py-4 pr-2 pl-1"
+          : "right-0 rounded-l-xl border-r-0 py-4 pl-2 pr-1",
+        className
+      )}
+    >
+      {icon}
+      {label && (
+        <span
+          className="text-muted-foreground text-[10px] font-medium tracking-wide"
+          style={{ writingMode: "vertical-rl", textOrientation: "mixed" }}
+        >
+          {label}
+        </span>
+      )}
+    </button>
+  );
+}
+
 export {
   Sidebar,
   SidebarContent,
@@ -724,7 +884,10 @@ export {
   SidebarMenuSubItem,
   SidebarProvider,
   SidebarRail,
+  SidebarRightTrigger,
   SidebarSeparator,
+  SidebarToggleTab,
   SidebarTrigger,
+  useRightSidebar,
   useSidebar,
 };

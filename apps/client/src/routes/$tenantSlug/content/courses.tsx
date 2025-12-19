@@ -41,6 +41,7 @@ import {
 
 import { DataTable, DeleteDialog } from "@/components/data-table";
 import { CourseEditor, AICoursePanel } from "@/components/courses";
+import { useRightSidebar } from "@/components/ui/sidebar";
 import { createSeoMeta } from "@/lib/seo";
 import type { CoursePreview } from "@/hooks/use-ai-course-chat";
 import { useDataTableState } from "@/hooks/use-data-table-state";
@@ -114,7 +115,7 @@ function CoursesPage() {
   const [deleteCourse, setDeleteCourse] = useState<Course | null>(null);
   const [aiPreview, setAiPreview] = useState<CoursePreview | null>(null);
   const [generatingThumbnailCourseId, setGeneratingThumbnailCourseId] = useState<string | null>(null);
-  const [aiPanelOpen, setAiPanelOpen] = useState(false);
+  const { open: aiPanelOpen, toggle: toggleAiPanel } = useRightSidebar();
 
   const deleteMutation = useDeleteCourse();
 
@@ -656,7 +657,7 @@ function CoursesPage() {
                 <TooltipTrigger asChild>
                   <Button
                     variant={aiPanelOpen ? "secondary" : "outline"}
-                    onClick={() => setAiPanelOpen(!aiPanelOpen)}
+                    onClick={toggleAiPanel}
                     className={cn(
                       "gap-2",
                       aiPanelOpen && "bg-primary/10 border-primary/30 text-primary"
@@ -699,8 +700,6 @@ function CoursesPage() {
       </div>
 
       <AICoursePanel
-        open={aiPanelOpen}
-        onOpenChange={setAiPanelOpen}
         onGeneratingThumbnailChange={setGeneratingThumbnailCourseId}
       />
 
