@@ -57,7 +57,8 @@ const defaultContext: OnboardingPanelContextType = {
   isLoading: false,
 };
 
-const OnboardingPanelContext = createContext<OnboardingPanelContextType>(defaultContext);
+const OnboardingPanelContext =
+  createContext<OnboardingPanelContextType>(defaultContext);
 
 export function useOnboardingPanel() {
   return useContext(OnboardingPanelContext);
@@ -117,7 +118,10 @@ export const Route = createFileRoute("/$tenantSlug")({
 
     const { tenant } = tenantData;
 
-    if ((user.role === "owner" || user.role === "instructor") && user.tenantId !== tenant.id) {
+    if (
+      (user.role === "owner" || user.role === "instructor") &&
+      user.tenantId !== tenant.id
+    ) {
       throw redirect({ to: "/", search: { campus: undefined } });
     }
 
@@ -129,8 +133,14 @@ export const Route = createFileRoute("/$tenantSlug")({
       });
     }
 
-    const isSubscriptionRoute = location.pathname.includes("/finance/subscription");
-    if (!isSubscriptionRoute && user.role === "owner" && !hasValidSubscription(tenant)) {
+    const isSubscriptionRoute = location.pathname.includes(
+      "/finance/subscription"
+    );
+    if (
+      !isSubscriptionRoute &&
+      user.role === "owner" &&
+      !hasValidSubscription(tenant)
+    ) {
       throw redirect({
         to: "/$tenantSlug/finance/subscription",
         params: { tenantSlug: params.tenantSlug },
@@ -144,7 +154,9 @@ export const Route = createFileRoute("/$tenantSlug")({
 
 function TenantDashboardLayout() {
   const { user, tenant } = Route.useRouteContext();
-  const { data: onboardingData, isLoading } = useGetOnboarding(tenant?.id ?? "");
+  const { data: onboardingData, isLoading } = useGetOnboarding(
+    tenant?.id ?? ""
+  );
   const [isOpen, setIsOpen] = useState(true);
   const [manualSteps, setManualSteps] = useState<OnboardingSteps>(() =>
     tenant ? loadManualSteps(tenant.id) : DEFAULT_MANUAL_STEPS
@@ -166,7 +178,9 @@ function TenantDashboardLayout() {
   const allStepsCompleted =
     steps &&
     Object.keys(steps).every(
-      (key) => steps[key as keyof OnboardingSteps] || manualSteps[key as keyof OnboardingSteps]
+      (key) =>
+        steps[key as keyof OnboardingSteps] ||
+        manualSteps[key as keyof OnboardingSteps]
     );
   const showOnboardingPanel = steps && !allStepsCompleted;
 
@@ -196,7 +210,7 @@ function TenantDashboardLayout() {
         <SidebarInset>
           <DashboardHeader tenant={tenant} user={user} />
           <TrialBanner tenantSlug={tenant.slug} />
-          <main className="flex-1 p-4">
+          <main className="flex-1 md:overflow-hidden p-4">
             <Outlet />
           </main>
         </SidebarInset>

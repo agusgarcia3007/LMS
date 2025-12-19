@@ -266,7 +266,7 @@ export function DashboardSidebar({ tenant, user }: DashboardSidebarProps) {
   );
 
   return (
-    <Sidebar collapsible="icon">
+    <Sidebar variant="floating" collapsible="icon">
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
