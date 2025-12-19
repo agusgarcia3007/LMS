@@ -14,28 +14,10 @@ import {
   type AnyColumn,
 } from "drizzle-orm";
 import type { PgTable } from "drizzle-orm/pg-core";
+import type { ListParams, SortParams, SortOrder, FilterOperator } from "@learnbase/core";
 
-export type SortOrder = "asc" | "desc";
-
-export type SortParams = {
-  field: string;
-  order: SortOrder;
-};
-
-export type PaginationResult = {
-  page: number;
-  limit: number;
-  total: number;
-  totalPages: number;
-};
-
-export type ListParams = {
-  page: number;
-  limit: number;
-  sort?: SortParams;
-  search?: string;
-  filters: Record<string, string | undefined>;
-};
+export type { SortOrder, SortParams, ListParams, FilterOperator } from "@learnbase/core";
+export type { PaginationResult } from "@learnbase/core";
 
 export type FieldMap<T extends PgTable> = {
   [key: string]: AnyColumn;
@@ -44,8 +26,6 @@ export type FieldMap<T extends PgTable> = {
 export type SearchableFields<T extends PgTable> = AnyColumn[];
 
 export type DateFields = Set<string>;
-
-type FilterOperator = "is" | "is_not" | "contains" | "not_contains";
 
 function parseFilterValue(value: string): {
   operator: FilterOperator;
@@ -238,7 +218,7 @@ export function calculatePagination(
   total: number,
   page: number,
   limit: number
-): PaginationResult {
+) {
   return {
     page,
     limit,
