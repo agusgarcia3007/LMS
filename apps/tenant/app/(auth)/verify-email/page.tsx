@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
-import { CheckCircle, Loader2, XCircle } from "lucide-react";
+import { CheckCircle, SpinnerGap, XCircle } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useVerifyEmail } from "@/services/auth/mutations";
@@ -58,7 +58,7 @@ export default function VerifyEmailPage() {
 
         <Card className="mt-4 sm:mx-auto sm:w-full sm:max-w-md">
           <CardContent className="flex flex-col items-center gap-4">
-            <Loader2 className="size-12 animate-spin text-primary" />
+            <SpinnerGap className="size-12 animate-spin text-primary" />
             <p className="text-center text-sm text-muted-foreground">
               {t("auth.emailVerification.verifying")}
             </p>

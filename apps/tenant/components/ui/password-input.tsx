@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeSlash } from "@phosphor-icons/react";
 import {
   InputGroup,
   InputGroupAddon,
@@ -30,7 +30,7 @@ const PasswordInput = React.forwardRef<
           tabIndex={-1}
         >
           {showPassword ? (
-            <EyeOff className="size-4" />
+            <EyeSlash className="size-4" />
           ) : (
             <Eye className="size-4" />
           )}
