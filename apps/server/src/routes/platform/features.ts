@@ -330,8 +330,29 @@ export const featuresRoutes = new Elysia()
         },
       });
 
-      const result = await getFeatureWithDetails(feature.id, ctx.userId);
-      return { feature: result };
+      const attachments = ctx.body.attachmentKeys?.map((key) => ({
+        id: crypto.randomUUID(),
+        featureId: feature.id,
+        fileKey: key.fileKey,
+        fileName: key.fileName,
+        fileSize: key.fileSize,
+        mimeType: key.mimeType,
+        url: getPresignedUrl(key.fileKey),
+      })) ?? [];
+
+      return {
+        feature: {
+          ...feature,
+          voteCount: 0,
+          userVote: null,
+          submittedBy: {
+            id: ctx.user!.id,
+            name: ctx.user!.name,
+            avatar: ctx.user!.avatar,
+          },
+          attachments,
+        },
+      };
     },
     {
       body: t.Object({
@@ -387,8 +408,19 @@ export const featuresRoutes = new Elysia()
         })
         .returning();
 
-      const result = await getFeatureWithDetails(feature.id, ctx.userId);
-      return { feature: result };
+      return {
+        feature: {
+          ...feature,
+          voteCount: 0,
+          userVote: null,
+          submittedBy: {
+            id: ctx.user!.id,
+            name: ctx.user!.name,
+            avatar: ctx.user!.avatar,
+          },
+          attachments: [],
+        },
+      };
     },
     {
       body: t.Object({
