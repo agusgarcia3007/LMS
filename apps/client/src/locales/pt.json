@@ -214,7 +214,8 @@
     "backoffice": "Backoffice",
     "adminDashboard": "Painel de Admin",
     "remove": "Remover",
-    "uploading": "Enviando"
+    "uploading": "Enviando",
+    "download": "Baixar"
   },
   "dataTable": {
     "search": "Buscar...",

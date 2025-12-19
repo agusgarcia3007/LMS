@@ -446,26 +446,36 @@ export const campusRoutes = new Elysia({ name: "campus" })
     "/stats",
     async (ctx) => {
       requireTenant(ctx.tenant);
-      const [coursesCount] = await db
-        .select({ count: count() })
-        .from(coursesTable)
-        .where(
-          and(
-            eq(coursesTable.tenantId, ctx.tenant.id),
-            eq(coursesTable.status, "published")
-          )
-        );
-
-      const [categoriesCount] = await db
-        .select({ count: count() })
-        .from(categoriesTable)
-        .where(eq(categoriesTable.tenantId, ctx.tenant.id));
+      const [coursesCount, studentsCount, categoriesCount] = await Promise.all([
+        db
+          .select({ count: count() })
+          .from(coursesTable)
+          .where(
+            and(
+              eq(coursesTable.tenantId, ctx.tenant.id),
+              eq(coursesTable.status, "published")
+            )
+          ),
+        db
+          .select({ count: count() })
+          .from(usersTable)
+          .where(
+            and(
+              eq(usersTable.tenantId, ctx.tenant.id),
+              eq(usersTable.role, "student")
+            )
+          ),
+        db
+          .select({ count: count() })
+          .from(categoriesTable)
+          .where(eq(categoriesTable.tenantId, ctx.tenant.id)),
+      ]);
 
       return {
         stats: {
-          totalCourses: coursesCount.count,
-          totalStudents: 0,
-          categories: categoriesCount.count,
+          totalCourses: coursesCount[0].count,
+          totalStudents: studentsCount[0].count,
+          categories: categoriesCount[0].count,
         },
       };
     },

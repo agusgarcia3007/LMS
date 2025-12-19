@@ -74,13 +74,13 @@ export function LandingHero() {
         </motion.div>
 
         <motion.div
-          className="mt-16 md:mt-20"
+          className="mt-16 md:mt-24"
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
         >
-          <div className="relative mx-auto max-w-4xl">
-            <div className="overflow-hidden rounded-xl border border-[var(--landing-border)] bg-[var(--landing-card)] shadow-2xl shadow-black/5">
+          <div className="relative mx-auto max-w-5xl">
+            <div className="overflow-hidden rounded-xl border border-[var(--landing-border)] bg-[var(--landing-card)] shadow-2xl shadow-black/10">
               <div className="flex items-center gap-2 border-b border-[var(--landing-border)] bg-[var(--landing-bg-alt)] px-4 py-3">
                 <div className="flex gap-1.5">
                   <div className="h-3 w-3 rounded-full bg-red-400/80" />
@@ -91,17 +91,15 @@ export function LandingHero() {
                   <div className="mx-auto h-5 w-64 rounded-md bg-[var(--landing-border)]" />
                 </div>
               </div>
-              <div className="aspect-[16/9] bg-[var(--landing-bg-alt)]">
+              <div className="aspect-video bg-[var(--landing-bg-alt)]">
                 <img
                   src="/images/hero-screenshot.png"
                   alt="LearnBase Dashboard"
-                  className="h-full w-full object-cover object-top"
+                  className="h-full w-full object-contain"
                   loading="eager"
                 />
               </div>
             </div>
-
-            <div className="absolute -bottom-4 left-1/2 -z-10 h-[80%] w-[90%] -translate-x-1/2 rounded-xl bg-[var(--landing-accent)] opacity-5 blur-3xl" />
           </div>
         </motion.div>
       </div>

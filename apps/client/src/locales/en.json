@@ -213,7 +213,8 @@
     "backoffice": "Backoffice",
     "adminDashboard": "Admin Dashboard",
     "remove": "Remove",
-    "uploading": "Uploading"
+    "uploading": "Uploading",
+    "download": "Download"
   },
   "dataTable": {
     "search": "Search...",

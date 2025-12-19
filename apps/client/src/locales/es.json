@@ -213,7 +213,8 @@
     "backoffice": "Backoffice",
     "adminDashboard": "Panel de Admin",
     "remove": "Eliminar",
-    "uploading": "Subiendo"
+    "uploading": "Subiendo",
+    "download": "Descargar"
   },
   "dataTable": {
     "search": "Buscar...",

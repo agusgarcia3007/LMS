@@ -236,7 +236,7 @@ function CampusHome({ tenant, courses, stats, themeClass, customStyles }: Campus
 
   return (
     <div
-      className={cn("flex min-h-screen flex-col", themeClass)}
+      className={cn("flex min-h-screen flex-col scrollbar-none", themeClass)}
       style={customStyles}
     >
       <CampusHeader tenant={tenant} />
