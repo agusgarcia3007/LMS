@@ -2,7 +2,6 @@ import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
-import { FadeIn, StaggerContainer, StaggerItem } from "@/components/ui/fade-in";
 
 const faqItems = ["ai", "domain", "data", "pricing"];
 
@@ -11,68 +10,69 @@ export function FAQ() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   return (
-    <section id="faq" className="relative overflow-hidden py-24 md:py-32">
-      <div className="absolute inset-0 bg-gradient-to-b from-muted/30 via-muted/50 to-muted/30" />
-
-      <div className="relative mx-auto max-w-[800px] px-6">
-        <FadeIn className="mb-16 text-center">
-          <h2 className="text-balance text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
+    <section id="faq" className="bg-[var(--landing-bg)] py-20 md:py-28">
+      <div className="mx-auto max-w-3xl px-6">
+        <motion.div
+          className="mb-12 text-center"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+        >
+          <h2 className="mb-4 text-3xl font-bold tracking-tight text-[var(--landing-text)] sm:text-4xl">
             {t("landing.faq.title")}
           </h2>
-        </FadeIn>
+        </motion.div>
 
-        <StaggerContainer staggerDelay={0.1} className="space-y-4">
+        <div className="space-y-3">
           {faqItems.map((item, index) => {
             const isOpen = openIndex === index;
 
             return (
-              <StaggerItem key={item}>
-                <motion.div
-                  className="overflow-hidden rounded-2xl border border-border/50 bg-card/80 backdrop-blur-sm"
-                  animate={{
-                    borderColor: isOpen
-                      ? "hsl(var(--primary) / 0.3)"
-                      : "hsl(var(--border) / 0.5)",
-                  }}
-                  transition={{ duration: 0.2 }}
+              <motion.div
+                key={item}
+                className="overflow-hidden rounded-xl border border-[var(--landing-border)] bg-[var(--landing-card)]"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: index * 0.05 }}
+              >
+                <button
+                  onClick={() => setOpenIndex(isOpen ? null : index)}
+                  className="flex w-full items-center justify-between gap-4 px-6 py-5 text-left transition-colors hover:bg-[var(--landing-bg-alt)]"
                 >
-                  <button
-                    onClick={() => setOpenIndex(isOpen ? null : index)}
-                    className="flex w-full items-center justify-between gap-4 p-6 text-left transition-colors hover:bg-muted/30"
+                  <span className="font-medium text-[var(--landing-text)]">
+                    {t(`landing.faq.items.${item}.question`)}
+                  </span>
+                  <motion.div
+                    animate={{ rotate: isOpen ? 180 : 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="flex-shrink-0"
                   >
-                    <span className="text-lg font-semibold">
-                      {t(`landing.faq.items.${item}.question`)}
-                    </span>
-                    <motion.div
-                      animate={{ rotate: isOpen ? 180 : 0 }}
-                      transition={{ duration: 0.3, ease: "easeInOut" }}
-                      className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-muted"
-                    >
-                      <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                    </motion.div>
-                  </button>
+                    <ChevronDown className="h-5 w-5 text-[var(--landing-text-muted)]" />
+                  </motion.div>
+                </button>
 
-                  <AnimatePresence initial={false}>
-                    {isOpen && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.3, ease: "easeInOut" }}
-                      >
-                        <div className="border-t border-border/50 px-6 py-4">
-                          <p className="leading-relaxed text-muted-foreground">
-                            {t(`landing.faq.items.${item}.answer`)}
-                          </p>
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </motion.div>
-              </StaggerItem>
+                <AnimatePresence initial={false}>
+                  {isOpen && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <div className="border-t border-[var(--landing-border)] px-6 py-4">
+                        <p className="text-sm leading-relaxed text-[var(--landing-text-muted)]">
+                          {t(`landing.faq.items.${item}.answer`)}
+                        </p>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
             );
           })}
-        </StaggerContainer>
+        </div>
       </div>
     </section>
   );

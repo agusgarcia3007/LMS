@@ -453,7 +453,19 @@
       "title": "Sua academia online. Pronta em 1 minuto.",
       "subtitle": "Envie um vídeo, a IA cria o curso completo. Sua marca, seu domínio, seu preço.",
       "cta": "Criar minha academia",
-      "ctaSecondary": "Ver Preços"
+      "ctaSecondary": "Ver Preços",
+      "trust1": "7 dias de teste gratis",
+      "trust2": "Configure em 5 minutos",
+      "trust3": "Sem cartao de credito"
+    },
+    "productDemo": {
+      "title": "Veja em acao",
+      "subtitle": "Tudo que voce precisa para criar e vender cursos online",
+      "tabs": {
+        "courses": "Cursos",
+        "ai": "Analise IA",
+        "students": "Alunos"
+      }
     },
     "problem": {
       "title": "Criar uma academia online é difícil... ou era",

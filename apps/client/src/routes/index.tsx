@@ -16,6 +16,7 @@ import {
 import {
   LandingHeader,
   LandingHero,
+  ProductDemo,
   ProblemSolution,
   LandingFeatures,
   LandingFooter,
@@ -193,10 +194,11 @@ function RouteComponent() {
 
 function MainHome() {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-[var(--landing-bg)]">
       <LandingHeader />
-      <main className="pt-14">
+      <main className="pt-16">
         <LandingHero />
+        <ProductDemo />
         <ProblemSolution />
         <LandingFeatures />
         <HowItWorks />

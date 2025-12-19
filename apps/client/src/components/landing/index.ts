@@ -1,5 +1,6 @@
 export { LandingHeader } from "./header";
 export { LandingHero } from "./hero";
+export { ProductDemo } from "./product-demo";
 export { ProblemSolution } from "./problem-solution";
 export { LandingFeatures } from "./features";
 export { LandingFooter } from "./footer";

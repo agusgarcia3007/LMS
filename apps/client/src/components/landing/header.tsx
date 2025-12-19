@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { LayoutDashboard, LogOut, Menu, Shield, User, X } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -26,18 +26,6 @@ const navLinks = [
   { key: "pricing", href: "#pricing" },
   { key: "faq", href: "#faq" },
 ];
-
-function NavLink({ href, children }: { href: string; children: React.ReactNode }) {
-  return (
-    <a
-      href={href}
-      className="group relative px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-    >
-      {children}
-      <span className="absolute bottom-1 left-3 right-3 h-px origin-left scale-x-0 bg-primary transition-transform duration-300 group-hover:scale-x-100" />
-    </a>
-  );
-}
 
 export function LandingHeader() {
   const { t } = useTranslation();
@@ -66,33 +54,32 @@ export function LandingHeader() {
   }, []);
 
   return (
-    <motion.header
+    <header
       className={cn(
         "fixed top-0 z-50 w-full transition-all duration-300",
         hasScrolled
-          ? "border-b border-border/50 bg-background/80 backdrop-blur-xl"
+          ? "border-b border-[var(--landing-border)] bg-[var(--landing-card)]/90 backdrop-blur-md"
           : "bg-transparent"
       )}
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      transition={{ duration: 0.5, ease: "easeOut" }}
     >
-      <div className="mx-auto flex h-16 max-w-[1200px] items-center justify-between px-6">
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
         <div className="flex items-center gap-10">
           <Link to="/" search={{ campus: undefined }} className="flex items-center gap-2.5">
-            <motion.div whileHover={{ rotate: 10 }} transition={{ type: "spring", stiffness: 300 }}>
-              <LearnbaseLogo className="h-8 w-8" />
-            </motion.div>
-            <span className="text-base font-semibold tracking-tight">
+            <LearnbaseLogo className="h-7 w-7" />
+            <span className="text-base font-semibold text-[var(--landing-text)]">
               {siteData.name}
             </span>
           </Link>
 
-          <nav className="hidden items-center md:flex">
+          <nav className="hidden items-center gap-1 md:flex">
             {navLinks.map((link) => (
-              <NavLink key={link.key} href={link.href}>
+              <a
+                key={link.key}
+                href={link.href}
+                className="px-4 py-2 text-sm font-medium text-[var(--landing-text-muted)] transition-colors hover:text-[var(--landing-text)]"
+              >
                 {t(`landing.nav.${link.key}`)}
-              </NavLink>
+              </a>
             ))}
           </nav>
         </div>
@@ -103,12 +90,12 @@ export function LandingHeader() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="rounded-full">
-                  <Avatar className="size-8 ring-2 ring-primary/20 transition-all hover:ring-primary/40">
+                  <Avatar className="size-8">
                     <AvatarImage
                       src={user.avatar || ""}
                       alt={t("header.userAvatar")}
                     />
-                    <AvatarFallback className="bg-primary/10 text-primary">
+                    <AvatarFallback className="bg-[var(--landing-accent-light)] text-[var(--landing-accent)]">
                       {user.name?.charAt(0).toUpperCase() || "U"}
                     </AvatarFallback>
                   </Avatar>
@@ -162,7 +149,7 @@ export function LandingHeader() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-9 px-4 text-sm font-medium text-muted-foreground hover:text-foreground"
+                  className="h-9 px-4 text-sm font-medium text-[var(--landing-text-muted)] hover:text-[var(--landing-text)]"
                 >
                   {t("landing.nav.login")}
                 </Button>
@@ -170,7 +157,7 @@ export function LandingHeader() {
               <Link to="/signup">
                 <Button
                   size="sm"
-                  className="h-9 rounded-full px-5 text-sm font-medium shadow-lg shadow-primary/20 transition-shadow hover:shadow-xl hover:shadow-primary/30"
+                  className="h-9 rounded-full px-5 text-sm font-medium"
                 >
                   {t("landing.nav.getStarted")}
                 </Button>
@@ -184,7 +171,7 @@ export function LandingHeader() {
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             aria-label="Toggle menu"
-            className="flex h-9 w-9 items-center justify-center rounded-lg transition-colors hover:bg-muted"
+            className="flex h-9 w-9 items-center justify-center rounded-lg text-[var(--landing-text-muted)] transition-colors hover:bg-[var(--landing-bg-alt)] hover:text-[var(--landing-text)]"
           >
             {isMenuOpen ? (
               <X className="h-5 w-5" />
@@ -198,19 +185,19 @@ export function LandingHeader() {
       <AnimatePresence>
         {isMenuOpen && (
           <motion.div
-            className="absolute left-0 right-0 top-16 border-b border-border/50 bg-background/95 backdrop-blur-xl md:hidden"
+            className="absolute left-0 right-0 top-16 border-b border-[var(--landing-border)] bg-[var(--landing-card)] md:hidden"
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.2 }}
           >
             <nav className="flex flex-col gap-4 p-6">
-              <div className="flex flex-col gap-2 border-b border-border/50 pb-4">
+              <div className="flex flex-col gap-2 border-b border-[var(--landing-border)] pb-4">
                 {navLinks.map((link) => (
                   <a
                     key={link.key}
                     href={link.href}
-                    className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                    className="rounded-lg px-3 py-2 text-sm font-medium text-[var(--landing-text-muted)] transition-colors hover:bg-[var(--landing-bg-alt)] hover:text-[var(--landing-text)]"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     {t(`landing.nav.${link.key}`)}
@@ -221,7 +208,7 @@ export function LandingHeader() {
                 <div className="flex flex-col gap-2">
                   <Link
                     to="/profile"
-                    className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+                    className="rounded-lg px-3 py-2 text-sm font-medium text-[var(--landing-text-muted)] hover:bg-[var(--landing-bg-alt)] hover:text-[var(--landing-text)]"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     {t("header.profile")}
@@ -230,7 +217,7 @@ export function LandingHeader() {
                     <Link
                       to="/$tenantSlug"
                       params={{ tenantSlug: tenant.slug }}
-                      className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+                      className="rounded-lg px-3 py-2 text-sm font-medium text-[var(--landing-text-muted)] hover:bg-[var(--landing-bg-alt)] hover:text-[var(--landing-text)]"
                       onClick={() => setIsMenuOpen(false)}
                     >
                       {t("dashboard.sidebar.adminPanel")}
@@ -244,7 +231,7 @@ export function LandingHeader() {
                       setIsMenuOpen(false);
                     }}
                     disabled={isLoggingOut}
-                    className="rounded-lg px-3 py-2 text-left text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+                    className="rounded-lg px-3 py-2 text-left text-sm font-medium text-[var(--landing-text-muted)] hover:bg-[var(--landing-bg-alt)] hover:text-[var(--landing-text)]"
                   >
                     {t("common.logOut")}
                   </button>
@@ -252,7 +239,7 @@ export function LandingHeader() {
               ) : (
                 <div className="flex gap-3">
                   <Link to="/login" className="flex-1" onClick={() => setIsMenuOpen(false)}>
-                    <Button variant="outline" size="sm" className="w-full">
+                    <Button variant="outline" size="sm" className="w-full border-[var(--landing-border)]">
                       {t("landing.nav.login")}
                     </Button>
                   </Link>
@@ -267,6 +254,6 @@ export function LandingHeader() {
           </motion.div>
         )}
       </AnimatePresence>
-    </motion.header>
+    </header>
   );
 }

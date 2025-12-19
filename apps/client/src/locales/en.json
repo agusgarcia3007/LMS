@@ -452,7 +452,19 @@
       "title": "Your online academy. Ready in 1 minute.",
       "subtitle": "Upload a video, AI builds the full course. Your brand, your domain, your price.",
       "cta": "Create my academy",
-      "ctaSecondary": "See Pricing"
+      "ctaSecondary": "See Pricing",
+      "trust1": "7-day free trial",
+      "trust2": "Setup in 5 minutes",
+      "trust3": "No credit card required"
+    },
+    "productDemo": {
+      "title": "See it in action",
+      "subtitle": "Everything you need to create and sell courses online",
+      "tabs": {
+        "courses": "Courses",
+        "ai": "AI Analysis",
+        "students": "Students"
+      }
     },
     "problem": {
       "title": "Creating an online academy is hard... or was",
