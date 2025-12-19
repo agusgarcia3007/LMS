@@ -13,6 +13,7 @@
     "check": "prettier --write . && eslint --fix"
   },
   "dependencies": {
+    "@learnbase/ui": "workspace:*",
     "@tailwindcss/vite": "^4.0.6",
     "@tanstack/react-query": "^5.66.5",
     "@tanstack/react-router": "^1.132.0",

@@ -5,17 +5,17 @@
   "tsx": true,
   "tailwind": {
     "config": "",
-    "css": "src/styles.css",
+    "css": "src/styles/globals.css",
     "baseColor": "neutral",
     "cssVariables": true,
     "prefix": ""
   },
   "aliases": {
-    "components": "@/components",
+    "components": "@learnbase/ui/components",
     "utils": "@learnbase/ui/lib/utils",
     "ui": "@learnbase/ui/components",
-    "lib": "@/lib",
-    "hooks": "@/hooks"
+    "lib": "@learnbase/ui/lib",
+    "hooks": "@learnbase/ui/hooks"
   },
   "iconLibrary": "lucide"
 }
