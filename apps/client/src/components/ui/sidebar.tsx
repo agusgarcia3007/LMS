@@ -8,7 +8,7 @@ import { useTranslation } from "react-i18next";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import { Button } from "@learnbase/ui";
-import { Input } from "@/components/ui/input";
+import { Input } from "@learnbase/ui";
 import { Separator } from "@learnbase/ui";
 import {
   Sheet,
@@ -16,7 +16,7 @@ import {
   SheetDescription,
   SheetHeader,
   SheetTitle,
-} from "@/components/ui/sheet";
+} from "@learnbase/ui";
 import { Skeleton } from "@learnbase/ui";
 import {
   Tooltip,
@@ -207,7 +207,7 @@ function SidebarProvider({
             } as React.CSSProperties
           }
           className={cn(
-            "group/sidebar-wrapper has-data-[variant=inset]:bg-sidebar flex min-h-svh w-full",
+            "group/sidebar-wrapper has-data-[variant=inset]:bg-sidebar flex min-h-svh w-full flex-col",
             className
           )}
           {...props}

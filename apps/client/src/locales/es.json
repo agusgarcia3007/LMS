@@ -78,6 +78,9 @@
     "delete": {
       "success": "Funcion eliminada"
     },
+    "search": {
+      "placeholder": "Buscar funciones..."
+    },
     "detail": {
       "submittedBy": "Enviado por {{name}}",
       "attachments": "Adjuntos"

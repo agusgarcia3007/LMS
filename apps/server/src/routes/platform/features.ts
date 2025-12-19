@@ -11,7 +11,7 @@ import {
   usersTable,
   type SelectFeature,
 } from "@/db/schema";
-import { count, eq, and, desc, sql, inArray, ne } from "drizzle-orm";
+import { count, eq, and, desc, sql, inArray, ne, or, ilike, asc, gt } from "drizzle-orm";
 import { enqueue } from "@/jobs";
 import { getPresignedUrl } from "@/lib/upload";
 
@@ -100,109 +100,234 @@ async function getFeatureWithDetails(
   };
 }
 
+const FEATURES_PER_COLUMN = 20;
+
+async function enrichFeatures(
+  features: SelectFeature[],
+  userId?: string | null
+): Promise<FeatureWithVotes[]> {
+  if (features.length === 0) return [];
+
+  const featureIds = features.map((f) => f.id);
+  const submitterIds = [...new Set(features.map((f) => f.submittedById))];
+
+  const [submitters, voteSums, userVotesResult, attachments] =
+    await Promise.all([
+      db
+        .select({
+          id: usersTable.id,
+          name: usersTable.name,
+          avatar: usersTable.avatar,
+        })
+        .from(usersTable)
+        .where(inArray(usersTable.id, submitterIds)),
+      db
+        .select({
+          featureId: featureVotesTable.featureId,
+          total: sql<number>`COALESCE(SUM(${featureVotesTable.value}), 0)`,
+        })
+        .from(featureVotesTable)
+        .where(inArray(featureVotesTable.featureId, featureIds))
+        .groupBy(featureVotesTable.featureId),
+      userId
+        ? db
+            .select({
+              featureId: featureVotesTable.featureId,
+              value: featureVotesTable.value,
+            })
+            .from(featureVotesTable)
+            .where(
+              and(
+                inArray(featureVotesTable.featureId, featureIds),
+                eq(featureVotesTable.userId, userId)
+              )
+            )
+        : Promise.resolve([]),
+      db
+        .select()
+        .from(featureAttachmentsTable)
+        .where(inArray(featureAttachmentsTable.featureId, featureIds)),
+    ]);
+
+  const submitterMap = new Map(submitters.map((s) => [s.id, s]));
+  const voteMap = new Map(voteSums.map((v) => [v.featureId, Number(v.total)]));
+  const userVotes = new Map(userVotesResult.map((v) => [v.featureId, v.value]));
+  const attachmentMap = new Map<string, typeof attachments>();
+  for (const a of attachments) {
+    const list = attachmentMap.get(a.featureId) || [];
+    list.push(a);
+    attachmentMap.set(a.featureId, list);
+  }
+
+  return features.map((f) => ({
+    ...f,
+    voteCount: voteMap.get(f.id) ?? 0,
+    userVote: userVotes.get(f.id) ?? null,
+    submittedBy: submitterMap.get(f.submittedById) || {
+      id: f.submittedById,
+      name: "Unknown",
+      avatar: null,
+    },
+    attachments: (attachmentMap.get(f.id) || []).map((a) => ({
+      ...a,
+      url: getPresignedUrl(a.fileKey),
+    })),
+  }));
+}
+
 export const featuresRoutes = new Elysia()
   .use(authPlugin)
   .use(guardPlugin)
   .get(
     "/",
     async (ctx) => {
+      const search = ctx.query.search?.trim();
+      const limit = Math.min(Number(ctx.query.limit) || FEATURES_PER_COLUMN, 50);
+
       const visibleStatuses = ["ideas", "in_progress", "shipped"] as const;
+
+      const baseConditions = search
+        ? and(
+            inArray(featuresTable.status, [...visibleStatuses]),
+            or(
+              ilike(featuresTable.title, `%${search}%`),
+              ilike(featuresTable.description, `%${search}%`)
+            )
+          )
+        : inArray(featuresTable.status, [...visibleStatuses]);
+
+      const [ideasRaw, inProgressRaw, shippedRaw, counts] = await Promise.all([
+        db
+          .select()
+          .from(featuresTable)
+          .where(and(baseConditions, eq(featuresTable.status, "ideas")))
+          .orderBy(asc(featuresTable.order), desc(featuresTable.createdAt))
+          .limit(limit + 1),
+        db
+          .select()
+          .from(featuresTable)
+          .where(and(baseConditions, eq(featuresTable.status, "in_progress")))
+          .orderBy(asc(featuresTable.order), desc(featuresTable.createdAt))
+          .limit(limit + 1),
+        db
+          .select()
+          .from(featuresTable)
+          .where(and(baseConditions, eq(featuresTable.status, "shipped")))
+          .orderBy(asc(featuresTable.order), desc(featuresTable.createdAt))
+          .limit(limit + 1),
+        db
+          .select({
+            status: featuresTable.status,
+            count: count(),
+          })
+          .from(featuresTable)
+          .where(baseConditions)
+          .groupBy(featuresTable.status),
+      ]);
+
+      const hasMoreIdeas = ideasRaw.length > limit;
+      const hasMoreInProgress = inProgressRaw.length > limit;
+      const hasMoreShipped = shippedRaw.length > limit;
+
+      const ideasData = hasMoreIdeas ? ideasRaw.slice(0, limit) : ideasRaw;
+      const inProgressData = hasMoreInProgress ? inProgressRaw.slice(0, limit) : inProgressRaw;
+      const shippedData = hasMoreShipped ? shippedRaw.slice(0, limit) : shippedRaw;
+
+      const allFeatures = [...ideasData, ...inProgressData, ...shippedData];
+      const enriched = await enrichFeatures(allFeatures, ctx.userId);
+
+      const enrichedMap = new Map(enriched.map((f) => [f.id, f]));
+
+      const countMap = new Map(counts.map((c) => [c.status, Number(c.count)]));
+
+      return {
+        features: {
+          ideas: ideasData.map((f) => enrichedMap.get(f.id)!),
+          inProgress: inProgressData.map((f) => enrichedMap.get(f.id)!),
+          shipped: shippedData.map((f) => enrichedMap.get(f.id)!),
+        },
+        hasMore: {
+          ideas: hasMoreIdeas,
+          inProgress: hasMoreInProgress,
+          shipped: hasMoreShipped,
+        },
+        totals: {
+          ideas: countMap.get("ideas") ?? 0,
+          inProgress: countMap.get("in_progress") ?? 0,
+          shipped: countMap.get("shipped") ?? 0,
+        },
+      };
+    },
+    {
+      query: t.Object({
+        search: t.Optional(t.String()),
+        limit: t.Optional(t.String()),
+      }),
+      detail: {
+        tags: ["Features"],
+        summary: "Get visible features grouped by status with pagination",
+      },
+    }
+  )
+  .get(
+    "/column/:status",
+    async (ctx) => {
+      const { status } = ctx.params;
+      const search = ctx.query.search?.trim();
+      const cursor = ctx.query.cursor ? Number(ctx.query.cursor) : 0;
+      const limit = Math.min(Number(ctx.query.limit) || FEATURES_PER_COLUMN, 50);
+
+      const baseConditions = search
+        ? and(
+            eq(featuresTable.status, status),
+            or(
+              ilike(featuresTable.title, `%${search}%`),
+              ilike(featuresTable.description, `%${search}%`)
+            )
+          )
+        : eq(featuresTable.status, status);
+
+      const whereClause = cursor > 0
+        ? and(baseConditions, gt(featuresTable.order, cursor))
+        : baseConditions;
 
       const features = await db
         .select()
         .from(featuresTable)
-        .where(inArray(featuresTable.status, [...visibleStatuses]))
-        .orderBy(featuresTable.order, desc(featuresTable.createdAt));
+        .where(whereClause)
+        .orderBy(asc(featuresTable.order), desc(featuresTable.createdAt))
+        .limit(limit + 1);
 
-      const featureIds = features.map((f) => f.id);
+      const hasMore = features.length > limit;
+      const data = hasMore ? features.slice(0, limit) : features;
+      const enriched = await enrichFeatures(data, ctx.userId);
 
-      const submitterIds = [...new Set(features.map((f) => f.submittedById))];
+      const nextCursor = hasMore && data.length > 0
+        ? data[data.length - 1].order
+        : null;
 
-      const [submitters, voteSums, userVotesResult, attachments] =
-        await Promise.all([
-          submitterIds.length > 0
-            ? db
-                .select({
-                  id: usersTable.id,
-                  name: usersTable.name,
-                  avatar: usersTable.avatar,
-                })
-                .from(usersTable)
-                .where(inArray(usersTable.id, submitterIds))
-            : Promise.resolve([]),
-          featureIds.length > 0
-            ? db
-                .select({
-                  featureId: featureVotesTable.featureId,
-                  total: sql<number>`COALESCE(SUM(${featureVotesTable.value}), 0)`,
-                })
-                .from(featureVotesTable)
-                .where(inArray(featureVotesTable.featureId, featureIds))
-                .groupBy(featureVotesTable.featureId)
-            : Promise.resolve([]),
-          ctx.userId && featureIds.length > 0
-            ? db
-                .select({
-                  featureId: featureVotesTable.featureId,
-                  value: featureVotesTable.value,
-                })
-                .from(featureVotesTable)
-                .where(
-                  and(
-                    inArray(featureVotesTable.featureId, featureIds),
-                    eq(featureVotesTable.userId, ctx.userId)
-                  )
-                )
-            : Promise.resolve([]),
-          featureIds.length > 0
-            ? db
-                .select()
-                .from(featureAttachmentsTable)
-                .where(inArray(featureAttachmentsTable.featureId, featureIds))
-            : Promise.resolve([]),
-        ]);
-
-      const submitterMap = new Map(submitters.map((s) => [s.id, s]));
-      const voteMap = new Map(
-        voteSums.map((v) => [v.featureId, Number(v.total)])
-      );
-      const userVotes = new Map(
-        userVotesResult.map((v) => [v.featureId, v.value])
-      );
-      const attachmentMap = new Map<string, typeof attachments>();
-      for (const a of attachments) {
-        const list = attachmentMap.get(a.featureId) || [];
-        list.push(a);
-        attachmentMap.set(a.featureId, list);
-      }
-
-      const enrichedFeatures: FeatureWithVotes[] = features.map((f) => ({
-        ...f,
-        voteCount: voteMap.get(f.id) ?? 0,
-        userVote: userVotes.get(f.id) ?? null,
-        submittedBy: submitterMap.get(f.submittedById) || {
-          id: f.submittedById,
-          name: "Unknown",
-          avatar: null,
-        },
-        attachments: (attachmentMap.get(f.id) || []).map((a) => ({
-          ...a,
-          url: getPresignedUrl(a.fileKey),
-        })),
-      }));
-
-      const ideas = enrichedFeatures.filter((f) => f.status === "ideas");
-      const inProgress = enrichedFeatures.filter(
-        (f) => f.status === "in_progress"
-      );
-      const shipped = enrichedFeatures.filter((f) => f.status === "shipped");
-
-      return { features: { ideas, inProgress, shipped } };
+      return {
+        features: enriched,
+        hasMore,
+        nextCursor,
+      };
     },
     {
+      params: t.Object({
+        status: t.Union([
+          t.Literal("ideas"),
+          t.Literal("in_progress"),
+          t.Literal("shipped"),
+        ]),
+      }),
+      query: t.Object({
+        search: t.Optional(t.String()),
+        cursor: t.Optional(t.String()),
+        limit: t.Optional(t.String()),
+      }),
       detail: {
         tags: ["Features"],
-        summary: "Get all visible features grouped by status",
+        summary: "Get features for a specific column with cursor pagination",
       },
     }
   )

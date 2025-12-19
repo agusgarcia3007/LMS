@@ -78,6 +78,9 @@
     "delete": {
       "success": "Funcao excluida"
     },
+    "search": {
+      "placeholder": "Buscar funcoes..."
+    },
     "detail": {
       "submittedBy": "Enviado por {{name}}",
       "attachments": "Anexos"

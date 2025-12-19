@@ -44,6 +44,22 @@ export type FeatureBoardResponse = {
     inProgress: Feature[];
     shipped: Feature[];
   };
+  hasMore: {
+    ideas: boolean;
+    inProgress: boolean;
+    shipped: boolean;
+  };
+  totals: {
+    ideas: number;
+    inProgress: number;
+    shipped: number;
+  };
+};
+
+export type FeatureColumnResponse = {
+  features: Feature[];
+  hasMore: boolean;
+  nextCursor: number | null;
 };
 
 export type FeatureListResponse = {
@@ -96,9 +112,25 @@ export const QUERY_KEYS = {
   FEATURE: (id: string) => ["features", id],
 } as const;
 
+export type ColumnStatus = "ideas" | "in_progress" | "shipped";
+
 export const FeaturesService = {
-  async getBoard() {
-    const { data } = await http.get<FeatureBoardResponse>("/features");
+  async getBoard(search?: string) {
+    const params = new URLSearchParams();
+    if (search) params.set("search", search);
+    const query = params.toString();
+    const { data } = await http.get<FeatureBoardResponse>(`/features${query ? `?${query}` : ""}`);
+    return data;
+  },
+
+  async getColumn(status: ColumnStatus, cursor?: number, search?: string) {
+    const params = new URLSearchParams();
+    if (search) params.set("search", search);
+    if (cursor) params.set("cursor", String(cursor));
+    const query = params.toString();
+    const { data } = await http.get<FeatureColumnResponse>(
+      `/features/column/${status}${query ? `?${query}` : ""}`
+    );
     return data;
   },
 

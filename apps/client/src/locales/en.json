@@ -78,6 +78,9 @@
     "delete": {
       "success": "Feature deleted"
     },
+    "search": {
+      "placeholder": "Search features..."
+    },
     "detail": {
       "submittedBy": "Submitted by {{name}}",
       "attachments": "Attachments"

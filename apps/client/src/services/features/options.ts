@@ -1,6 +1,7 @@
 import {
   mutationOptions,
   queryOptions,
+  infiniteQueryOptions,
   useQueryClient,
 } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -14,12 +15,21 @@ import {
   type UpdateFeatureStatusRequest,
   type FeatureBoardResponse,
   type Feature,
+  type ColumnStatus,
 } from "./service";
 
-export const featuresBoardOptions = () =>
+export const featuresBoardOptions = (search?: string) =>
   queryOptions({
-    queryFn: () => FeaturesService.getBoard(),
-    queryKey: QUERY_KEYS.FEATURES_BOARD,
+    queryFn: () => FeaturesService.getBoard(search),
+    queryKey: [...QUERY_KEYS.FEATURES_BOARD, { search }],
+  });
+
+export const featuresColumnOptions = (status: ColumnStatus, search?: string) =>
+  infiniteQueryOptions({
+    queryFn: ({ pageParam }) => FeaturesService.getColumn(status, pageParam, search),
+    queryKey: [...QUERY_KEYS.FEATURES_BOARD, "column", status, { search }],
+    initialPageParam: undefined as number | undefined,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
   });
 
 export const featuresPendingOptions = () =>
@@ -123,42 +133,39 @@ export const useVoteFeatureOptions = () => {
       FeaturesService.vote(id, value),
     onMutate: async ({ id, value }) => {
       await queryClient.cancelQueries({ queryKey: QUERY_KEYS.FEATURES_BOARD });
-      const previous = queryClient.getQueryData<FeatureBoardResponse>(QUERY_KEYS.FEATURES_BOARD);
 
-      if (previous) {
-        const updateFeature = (feature: Feature): Feature => {
-          if (feature.id !== id) return feature;
-          const currentVote = feature.userVote;
-          let newVoteCount = feature.voteCount;
-          let newUserVote: 1 | -1 | null = value;
+      const updateFeature = (feature: Feature): Feature => {
+        if (feature.id !== id) return feature;
+        const currentVote = feature.userVote;
+        let newVoteCount = feature.voteCount;
+        let newUserVote: 1 | -1 | null = value;
 
-          if (currentVote === value) {
-            newVoteCount -= value;
-            newUserVote = null;
-          } else if (currentVote !== null) {
-            newVoteCount += value * 2;
-          } else {
-            newVoteCount += value;
-          }
+        if (currentVote === value) {
+          newVoteCount -= value;
+          newUserVote = null;
+        } else if (currentVote !== null) {
+          newVoteCount += value * 2;
+        } else {
+          newVoteCount += value;
+        }
 
-          return { ...feature, voteCount: newVoteCount, userVote: newUserVote };
-        };
+        return { ...feature, voteCount: newVoteCount, userVote: newUserVote };
+      };
 
-        queryClient.setQueryData<FeatureBoardResponse>(QUERY_KEYS.FEATURES_BOARD, {
-          features: {
-            ideas: previous.features.ideas.map(updateFeature),
-            inProgress: previous.features.inProgress.map(updateFeature),
-            shipped: previous.features.shipped.map(updateFeature),
-          },
-        });
-      }
-
-      return { previous };
-    },
-    onError: (_, __, context) => {
-      if (context?.previous) {
-        queryClient.setQueryData(QUERY_KEYS.FEATURES_BOARD, context.previous);
-      }
+      queryClient.setQueriesData<FeatureBoardResponse>(
+        { queryKey: QUERY_KEYS.FEATURES_BOARD },
+        (old) => {
+          if (!old) return old;
+          return {
+            ...old,
+            features: {
+              ideas: old.features.ideas.map(updateFeature),
+              inProgress: old.features.inProgress.map(updateFeature),
+              shipped: old.features.shipped.map(updateFeature),
+            },
+          };
+        }
+      );
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.FEATURES_BOARD });
