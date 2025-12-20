@@ -343,18 +343,18 @@ function QuizzesPage() {
             </DropdownMenuTrigger>
             <DropdownMenuContent side="bottom" align="end">
               <DropdownMenuItem
-                onClick={() => handleManageQuestions(row.original)}
+                onSelect={() => handleManageQuestions(row.original)}
               >
                 <Settings2 className="size-4" />
                 {t("quizzes.manageQuestions")}
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleOpenEdit(row.original)}>
+              <DropdownMenuItem onSelect={() => handleOpenEdit(row.original)}>
                 {t("common.edit")}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 variant="destructive"
-                onClick={() => setDeleteQuiz(row.original)}
+                onSelect={() => setDeleteQuiz(row.original)}
               >
                 {t("common.delete")}
               </DropdownMenuItem>

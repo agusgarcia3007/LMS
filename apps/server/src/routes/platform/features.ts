@@ -11,7 +11,7 @@ import {
   usersTable,
   type SelectFeature,
 } from "@/db/schema";
-import { count, eq, and, desc, sql, inArray, ne } from "drizzle-orm";
+import { eq, and, desc, sql, inArray } from "drizzle-orm";
 import { enqueue } from "@/jobs";
 import { getPresignedUrl } from "@/lib/upload";
 
@@ -37,63 +37,45 @@ async function getFeatureWithDetails(
   featureId: string,
   userId?: string | null
 ): Promise<FeatureWithVotes | null> {
-  const [feature] = await db
-    .select()
+  const [result] = await db
+    .select({
+      feature: featuresTable,
+      submitterId: usersTable.id,
+      submitterName: usersTable.name,
+      submitterAvatar: usersTable.avatar,
+      voteCount: sql<number>`COALESCE((
+        SELECT SUM(value) FROM feature_votes WHERE feature_id = ${featuresTable.id}
+      ), 0)`,
+      userVote: userId
+        ? sql<number | null>`(
+            SELECT value FROM feature_votes
+            WHERE feature_id = ${featuresTable.id} AND user_id = ${userId}
+            LIMIT 1
+          )`
+        : sql<null>`NULL`,
+    })
     .from(featuresTable)
+    .innerJoin(usersTable, eq(usersTable.id, featuresTable.submittedById))
     .where(eq(featuresTable.id, featureId))
     .limit(1);
 
-  if (!feature) return null;
+  if (!result) return null;
 
-  const [submitterResult, voteSumResult, userVoteResult, attachmentsResult] =
-    await Promise.all([
-      db
-        .select({
-          id: usersTable.id,
-          name: usersTable.name,
-          avatar: usersTable.avatar,
-        })
-        .from(usersTable)
-        .where(eq(usersTable.id, feature.submittedById))
-        .limit(1),
-      db
-        .select({
-          total: sql<number>`COALESCE(SUM(${featureVotesTable.value}), 0)`,
-        })
-        .from(featureVotesTable)
-        .where(eq(featureVotesTable.featureId, featureId)),
-      userId
-        ? db
-            .select({ value: featureVotesTable.value })
-            .from(featureVotesTable)
-            .where(
-              and(
-                eq(featureVotesTable.featureId, featureId),
-                eq(featureVotesTable.userId, userId)
-              )
-            )
-            .limit(1)
-        : Promise.resolve([]),
-      db
-        .select()
-        .from(featureAttachmentsTable)
-        .where(eq(featureAttachmentsTable.featureId, featureId)),
-    ]);
-
-  const submitter = submitterResult[0];
-  const voteSum = voteSumResult[0];
-  const userVote = userVoteResult[0]?.value ?? null;
+  const attachments = await db
+    .select()
+    .from(featureAttachmentsTable)
+    .where(eq(featureAttachmentsTable.featureId, featureId));
 
   return {
-    ...feature,
-    voteCount: Number(voteSum?.total ?? 0),
-    userVote,
-    submittedBy: submitter || {
-      id: feature.submittedById,
-      name: "Unknown",
-      avatar: null,
+    ...result.feature,
+    voteCount: Number(result.voteCount),
+    userVote: result.userVote ? Number(result.userVote) : null,
+    submittedBy: {
+      id: result.submitterId,
+      name: result.submitterName,
+      avatar: result.submitterAvatar,
     },
-    attachments: attachmentsResult.map((a) => ({
+    attachments: attachments.map((a) => ({
       ...a,
       url: getPresignedUrl(a.fileKey),
     })),
@@ -108,84 +90,53 @@ export const featuresRoutes = new Elysia()
     async (ctx) => {
       const visibleStatuses = ["ideas", "in_progress", "shipped"] as const;
 
-      const features = await db
-        .select()
+      const featuresQuery = db
+        .select({
+          feature: featuresTable,
+          submitterId: usersTable.id,
+          submitterName: usersTable.name,
+          submitterAvatar: usersTable.avatar,
+          voteCount: sql<number>`COALESCE((
+            SELECT SUM(value) FROM feature_votes WHERE feature_id = ${featuresTable.id}
+          ), 0)`,
+          userVote: ctx.userId
+            ? sql<number | null>`(
+                SELECT value FROM feature_votes
+                WHERE feature_id = ${featuresTable.id} AND user_id = ${ctx.userId}
+                LIMIT 1
+              )`
+            : sql<null>`NULL`,
+        })
         .from(featuresTable)
+        .innerJoin(usersTable, eq(usersTable.id, featuresTable.submittedById))
         .where(inArray(featuresTable.status, [...visibleStatuses]))
         .orderBy(featuresTable.order, desc(featuresTable.createdAt));
 
-      const featureIds = features.map((f) => f.id);
+      const [results, attachments] = await Promise.all([
+        featuresQuery,
+        db.select().from(featureAttachmentsTable),
+      ]);
 
-      const submitterIds = [...new Set(features.map((f) => f.submittedById))];
-
-      const [submitters, voteSums, userVotesResult, attachments] =
-        await Promise.all([
-          submitterIds.length > 0
-            ? db
-                .select({
-                  id: usersTable.id,
-                  name: usersTable.name,
-                  avatar: usersTable.avatar,
-                })
-                .from(usersTable)
-                .where(inArray(usersTable.id, submitterIds))
-            : Promise.resolve([]),
-          featureIds.length > 0
-            ? db
-                .select({
-                  featureId: featureVotesTable.featureId,
-                  total: sql<number>`COALESCE(SUM(${featureVotesTable.value}), 0)`,
-                })
-                .from(featureVotesTable)
-                .where(inArray(featureVotesTable.featureId, featureIds))
-                .groupBy(featureVotesTable.featureId)
-            : Promise.resolve([]),
-          ctx.userId && featureIds.length > 0
-            ? db
-                .select({
-                  featureId: featureVotesTable.featureId,
-                  value: featureVotesTable.value,
-                })
-                .from(featureVotesTable)
-                .where(
-                  and(
-                    inArray(featureVotesTable.featureId, featureIds),
-                    eq(featureVotesTable.userId, ctx.userId)
-                  )
-                )
-            : Promise.resolve([]),
-          featureIds.length > 0
-            ? db
-                .select()
-                .from(featureAttachmentsTable)
-                .where(inArray(featureAttachmentsTable.featureId, featureIds))
-            : Promise.resolve([]),
-        ]);
-
-      const submitterMap = new Map(submitters.map((s) => [s.id, s]));
-      const voteMap = new Map(
-        voteSums.map((v) => [v.featureId, Number(v.total)])
-      );
-      const userVotes = new Map(
-        userVotesResult.map((v) => [v.featureId, v.value])
-      );
-      const attachmentMap = new Map<string, typeof attachments>();
+      const attachmentMap = new Map<
+        string,
+        (typeof attachments)[number][]
+      >();
       for (const a of attachments) {
         const list = attachmentMap.get(a.featureId) || [];
         list.push(a);
         attachmentMap.set(a.featureId, list);
       }
 
-      const enrichedFeatures: FeatureWithVotes[] = features.map((f) => ({
-        ...f,
-        voteCount: voteMap.get(f.id) ?? 0,
-        userVote: userVotes.get(f.id) ?? null,
-        submittedBy: submitterMap.get(f.submittedById) || {
-          id: f.submittedById,
-          name: "Unknown",
-          avatar: null,
+      const enrichedFeatures: FeatureWithVotes[] = results.map((r) => ({
+        ...r.feature,
+        voteCount: Number(r.voteCount),
+        userVote: r.userVote ? Number(r.userVote) : null,
+        submittedBy: {
+          id: r.submitterId,
+          name: r.submitterName,
+          avatar: r.submitterAvatar,
         },
-        attachments: (attachmentMap.get(f.id) || []).map((a) => ({
+        attachments: (attachmentMap.get(r.feature.id) || []).map((a) => ({
           ...a,
           url: getPresignedUrl(a.fileKey),
         })),
@@ -209,53 +160,50 @@ export const featuresRoutes = new Elysia()
   .get(
     "/pending",
     async (ctx) => {
-      const features = await db
-        .select()
-        .from(featuresTable)
-        .where(eq(featuresTable.status, "pending"))
-        .orderBy(desc(featuresTable.createdAt));
-
-      const featureIds = features.map((f) => f.id);
-
-      const submitterIds = [...new Set(features.map((f) => f.submittedById))];
-
-      const [submitters, attachments] = await Promise.all([
-        submitterIds.length > 0
-          ? db
-              .select({
-                id: usersTable.id,
-                name: usersTable.name,
-                avatar: usersTable.avatar,
-              })
-              .from(usersTable)
-              .where(inArray(usersTable.id, submitterIds))
-          : Promise.resolve([]),
-        featureIds.length > 0
-          ? db
-              .select()
-              .from(featureAttachmentsTable)
-              .where(inArray(featureAttachmentsTable.featureId, featureIds))
-          : Promise.resolve([]),
+      const [results, attachments] = await Promise.all([
+        db
+          .select({
+            feature: featuresTable,
+            submitterId: usersTable.id,
+            submitterName: usersTable.name,
+            submitterAvatar: usersTable.avatar,
+          })
+          .from(featuresTable)
+          .innerJoin(usersTable, eq(usersTable.id, featuresTable.submittedById))
+          .where(eq(featuresTable.status, "pending"))
+          .orderBy(desc(featuresTable.createdAt)),
+        db
+          .select()
+          .from(featureAttachmentsTable)
+          .innerJoin(
+            featuresTable,
+            and(
+              eq(featureAttachmentsTable.featureId, featuresTable.id),
+              eq(featuresTable.status, "pending")
+            )
+          ),
       ]);
 
-      const submitterMap = new Map(submitters.map((s) => [s.id, s]));
-      const attachmentMap = new Map<string, typeof attachments>();
+      const attachmentMap = new Map<
+        string,
+        (typeof attachments)[number]["feature_attachments"][]
+      >();
       for (const a of attachments) {
-        const list = attachmentMap.get(a.featureId) || [];
-        list.push(a);
-        attachmentMap.set(a.featureId, list);
+        const list = attachmentMap.get(a.feature_attachments.featureId) || [];
+        list.push(a.feature_attachments);
+        attachmentMap.set(a.feature_attachments.featureId, list);
       }
 
-      const enrichedFeatures = features.map((f) => ({
-        ...f,
+      const enrichedFeatures = results.map((r) => ({
+        ...r.feature,
         voteCount: 0,
         userVote: null,
-        submittedBy: submitterMap.get(f.submittedById) || {
-          id: f.submittedById,
-          name: "Unknown",
-          avatar: null,
+        submittedBy: {
+          id: r.submitterId,
+          name: r.submitterName,
+          avatar: r.submitterAvatar,
         },
-        attachments: (attachmentMap.get(f.id) || []).map((a) => ({
+        attachments: (attachmentMap.get(r.feature.id) || []).map((a) => ({
           ...a,
           url: getPresignedUrl(a.fileKey),
         })),
@@ -717,68 +665,63 @@ export const featuresRoutes = new Elysia()
   .post(
     "/:id/vote",
     async (ctx) => {
-      const [existing] = await db
-        .select()
+      const featureId = ctx.params.id;
+      const userId = ctx.userId!;
+      const newValue = ctx.body.value;
+
+      const [result] = await db
+        .select({
+          featureStatus: featuresTable.status,
+          existingVoteId: featureVotesTable.id,
+          existingVoteValue: featureVotesTable.value,
+        })
         .from(featuresTable)
-        .where(eq(featuresTable.id, ctx.params.id))
+        .leftJoin(
+          featureVotesTable,
+          and(
+            eq(featureVotesTable.featureId, featuresTable.id),
+            eq(featureVotesTable.userId, userId)
+          )
+        )
+        .where(eq(featuresTable.id, featureId))
         .limit(1);
 
-      if (!existing || existing.status === "pending") {
+      if (!result || result.featureStatus === "pending") {
         throw new AppError(ErrorCode.NOT_FOUND, "Feature not found", 404);
       }
 
-      const [existingVote] = await db
-        .select()
-        .from(featureVotesTable)
-        .where(
-          and(
-            eq(featureVotesTable.featureId, ctx.params.id),
-            eq(featureVotesTable.userId, ctx.userId!)
-          )
-        )
-        .limit(1);
+      let userVote: number | null = newValue;
 
-      if (existingVote) {
-        if (existingVote.value === ctx.body.value) {
+      if (result.existingVoteId) {
+        if (result.existingVoteValue === newValue) {
           await db
             .delete(featureVotesTable)
-            .where(eq(featureVotesTable.id, existingVote.id));
+            .where(eq(featureVotesTable.id, result.existingVoteId));
+          userVote = null;
         } else {
           await db
             .update(featureVotesTable)
-            .set({ value: ctx.body.value })
-            .where(eq(featureVotesTable.id, existingVote.id));
+            .set({ value: newValue })
+            .where(eq(featureVotesTable.id, result.existingVoteId));
         }
       } else {
         await db.insert(featureVotesTable).values({
-          featureId: ctx.params.id,
-          userId: ctx.userId!,
-          value: ctx.body.value,
+          featureId,
+          userId,
+          value: newValue,
         });
       }
 
-      const [[voteSum], [currentVote]] = await Promise.all([
-        db
-          .select({
-            total: sql<number>`COALESCE(SUM(${featureVotesTable.value}), 0)`,
-          })
-          .from(featureVotesTable)
-          .where(eq(featureVotesTable.featureId, ctx.params.id)),
-        db
-          .select({ value: featureVotesTable.value })
-          .from(featureVotesTable)
-          .where(
-            and(
-              eq(featureVotesTable.featureId, ctx.params.id),
-              eq(featureVotesTable.userId, ctx.userId!)
-            )
-          )
-          .limit(1),
-      ]);
+      const [voteSum] = await db
+        .select({
+          total: sql<number>`COALESCE(SUM(${featureVotesTable.value}), 0)`,
+        })
+        .from(featureVotesTable)
+        .where(eq(featureVotesTable.featureId, featureId));
 
       return {
         voteCount: Number(voteSum?.total ?? 0),
-        userVote: currentVote?.value ?? null,
+        userVote,
       };
     },
     {

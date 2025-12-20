@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { ExternalLink } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
+import { TrialBadge } from "@/components/billing/trial-badge";
 import { Button } from "@/components/ui/button";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { NotificationBell } from "@/components/notifications/notification-bell";
@@ -30,7 +31,10 @@ export function DashboardHeader({ tenant, user, actions }: DashboardHeaderProps)
 
   return (
     <header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b px-4">
-      <SidebarTrigger className="-ml-1" />
+      <div className="flex items-center gap-2">
+        <SidebarTrigger className="-ml-1" />
+        {tenant && <TrialBadge tenantSlug={tenant.slug} />}
+      </div>
       <div className="flex items-center gap-2">
         {actions}
         {campusUrl && (

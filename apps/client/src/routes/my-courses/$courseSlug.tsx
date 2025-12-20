@@ -41,6 +41,7 @@ import { getTenantFromRequest } from "@/lib/tenant.server";
 import { getCampusTenantServer } from "@/services/campus/server";
 import { setResolvedSlug } from "@/lib/tenant";
 import { createSeoMeta } from "@/lib/seo";
+import { cn } from "@/lib/utils";
 import { LearnService } from "@/services/learn/service";
 import type { CampusTenant } from "@/services/campus/service";
 
@@ -106,7 +107,7 @@ function LearnPageWrapper() {
     <SidebarProvider
       defaultOpen={!isMobile}
       defaultRightOpen={false}
-      className={themeClass}
+      className={cn("flex-col", themeClass)}
       style={customStyles}
     >
       <LearnPage tenant={tenant} />

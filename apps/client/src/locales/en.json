@@ -137,9 +137,13 @@
     "trial": {
       "daysRemaining": "{{count}} day left in trial",
       "daysRemaining_other": "{{count}} days left in trial",
+      "daysBadge": "{{count}} day left",
+      "daysBadge_other": "{{count}} days left",
       "upgradeNow": "Upgrade to continue after trial ends",
       "upgradeCta": "Upgrade Now",
-      "pastDue": "Your subscription payment is past due"
+      "pastDue": "Your subscription payment is past due",
+      "pastDueBadge": "Past due",
+      "clickToUpgrade": "Click to upgrade"
     },
     "storage": {
       "title": "Storage",

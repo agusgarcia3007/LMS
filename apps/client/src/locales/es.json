@@ -137,9 +137,13 @@
     "trial": {
       "daysRemaining": "{{count}} dia restante de prueba",
       "daysRemaining_other": "{{count}} dias restantes de prueba",
+      "daysBadge": "{{count}}d restante",
+      "daysBadge_other": "{{count}}d restantes",
       "upgradeNow": "Actualiza para continuar despues de la prueba",
       "upgradeCta": "Actualizar Ahora",
-      "pastDue": "El pago de tu suscripcion esta vencido"
+      "pastDue": "El pago de tu suscripcion esta vencido",
+      "pastDueBadge": "Vencido",
+      "clickToUpgrade": "Clic para actualizar"
     },
     "storage": {
       "title": "Almacenamiento",

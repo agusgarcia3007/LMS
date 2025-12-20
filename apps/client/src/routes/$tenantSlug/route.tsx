@@ -1,7 +1,6 @@
 import { createContext, useContext, useState, useCallback } from "react";
 import { Outlet, createFileRoute, redirect } from "@tanstack/react-router";
 
-import { TrialBanner } from "@/components/billing/trial-banner";
 import { DashboardHeader } from "@/components/dashboard/header";
 import { DashboardSidebar } from "@/components/dashboard/sidebar";
 import { OnboardingPanel } from "@/components/dashboard/onboarding-panel";
@@ -210,7 +209,6 @@ function TenantDashboardLayout() {
         <DashboardSidebar tenant={tenant} user={user} />
         <SidebarInset>
           <DashboardHeader tenant={tenant} user={user} />
-          <TrialBanner tenantSlug={tenant.slug} />
           <main className="flex-1 md:overflow-hidden p-4">
             <Outlet />
           </main>

@@ -137,9 +137,13 @@
     "trial": {
       "daysRemaining": "{{count}} dia restante de avaliacao",
       "daysRemaining_other": "{{count}} dias restantes de avaliacao",
+      "daysBadge": "{{count}}d restante",
+      "daysBadge_other": "{{count}}d restantes",
       "upgradeNow": "Atualize para continuar apos a avaliacao",
       "upgradeCta": "Atualizar Agora",
-      "pastDue": "O pagamento da sua assinatura esta atrasado"
+      "pastDue": "O pagamento da sua assinatura esta atrasado",
+      "pastDueBadge": "Atrasado",
+      "clickToUpgrade": "Clique para atualizar"
     },
     "storage": {
       "title": "Armazenamento",
