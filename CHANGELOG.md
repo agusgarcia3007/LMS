@@ -384,6 +384,7 @@
 
 ### Styling
 
+- Improve changelog page design with timeline and badges
 - Classes
 - Replace hero
 - Change hero
