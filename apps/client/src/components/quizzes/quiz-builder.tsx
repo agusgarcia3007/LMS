@@ -143,13 +143,13 @@ export function QuizBuilder({ quizId }: QuizBuilderProps) {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent side="bottom" align="end">
-              <DropdownMenuItem onClick={() => handleEdit(row.original)}>
+              <DropdownMenuItem onSelect={() => handleEdit(row.original)}>
                 {t("common.edit")}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 variant="destructive"
-                onClick={() => handleDeleteQuestion(row.original.id)}
+                onSelect={() => handleDeleteQuestion(row.original.id)}
               >
                 {t("common.delete")}
               </DropdownMenuItem>
