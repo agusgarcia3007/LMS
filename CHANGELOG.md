@@ -4,6 +4,7 @@
 
 ### Bug Fixes
 
+- Enforce single correct answer for multiple_choice questions
 - Lock
 - Ai chat sidebar
 - Missing keys and images

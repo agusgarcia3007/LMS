@@ -13,7 +13,7 @@ export const createQuizSchema = z.object({
   title: z.string().describe("Quiz title"),
   description: z.string().optional().describe("Quiz description"),
   questions: z.array(z.object({
-    type: z.enum(["multiple_choice", "true_false"]).describe("Question type"),
+    type: z.enum(["multiple_choice", "multiple_select", "true_false"]).describe("Question type: multiple_choice (single answer), multiple_select (multiple correct answers), true_false"),
     questionText: z.string().describe("The question text"),
     explanation: z.string().optional().describe("Explanation shown after answering"),
     options: z.array(z.object({
@@ -265,7 +265,7 @@ export const deleteQuizSchema = z.object({
 // QUIZ QUESTIONS
 export const addQuizQuestionSchema = z.object({
   quizId: z.string().uuid().describe("Quiz ID to add question to"),
-  type: z.enum(["multiple_choice", "true_false"]).describe("Question type"),
+  type: z.enum(["multiple_choice", "multiple_select", "true_false"]).describe("Question type: multiple_choice (single answer), multiple_select (multiple correct answers), true_false"),
   questionText: z.string().min(1).describe("Question text"),
   explanation: z.string().optional().describe("Explanation after answering"),
   options: z.array(z.object({
@@ -276,6 +276,7 @@ export const addQuizQuestionSchema = z.object({
 
 export const updateQuizQuestionSchema = z.object({
   questionId: z.string().uuid().describe("Question ID to update"),
+  type: z.enum(["multiple_choice", "multiple_select", "true_false"]).optional().describe("Question type: multiple_choice (single answer), multiple_select (multiple correct answers)"),
   questionText: z.string().min(1).optional().describe("New question text"),
   explanation: z.string().nullable().optional().describe("New explanation"),
 });

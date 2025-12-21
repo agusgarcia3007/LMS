@@ -91,29 +91,38 @@ export function createQuizTools(ctx: ToolContext) {
           .set({ embedding })
           .where(eq(quizzesTable.id, quiz.id));
 
-        for (let i = 0; i < questions.length; i++) {
-          const q = questions[i];
-          const [question] = await db
-            .insert(quizQuestionsTable)
-            .values({
-              quizId: quiz.id,
-              tenantId,
-              type: q.type === "true_false" ? "true_false" : "multiple_choice",
-              questionText: q.questionText,
-              explanation: q.explanation ?? null,
-              order: i,
-            })
-            .returning();
+        const questionValues = questions.map((q, i) => {
+          const correctCount = q.options.filter((o) => o.isCorrect).length;
+          return {
+            quizId: quiz.id,
+            tenantId,
+            type: q.type === "true_false"
+              ? "true_false" as const
+              : correctCount > 1
+                ? "multiple_select" as const
+                : "multiple_choice" as const,
+            questionText: q.questionText,
+            explanation: q.explanation ?? null,
+            order: i,
+          };
+        });
 
-          for (let j = 0; j < q.options.length; j++) {
-            const opt = q.options[j];
-            await db.insert(quizOptionsTable).values({
-              questionId: question.id,
-              optionText: opt.optionText,
-              isCorrect: opt.isCorrect,
-              order: j,
-            });
-          }
+        const insertedQuestions = await db
+          .insert(quizQuestionsTable)
+          .values(questionValues)
+          .returning();
+
+        const optionValues = insertedQuestions.flatMap((question, i) =>
+          questions[i].options.map((opt, j) => ({
+            questionId: question.id,
+            optionText: opt.optionText,
+            isCorrect: opt.isCorrect,
+            order: j,
+          }))
+        );
+
+        if (optionValues.length > 0) {
+          await db.insert(quizOptionsTable).values(optionValues);
         }
 
         logger.info("createQuiz executed", {
@@ -267,26 +276,33 @@ export function createQuizTools(ctx: ToolContext) {
           .orderBy(desc(quizQuestionsTable.order))
           .limit(1);
 
+        const correctCount = options.filter((o) => o.isCorrect).length;
+        const questionType = type === "true_false"
+          ? "true_false"
+          : correctCount > 1
+            ? "multiple_select"
+            : "multiple_choice";
+
         const [question] = await db
           .insert(quizQuestionsTable)
           .values({
             quizId,
             tenantId,
-            type,
+            type: questionType,
             questionText,
             explanation: explanation ?? null,
             order: (maxOrder?.maxOrder ?? -1) + 1,
           })
           .returning();
 
-        for (let i = 0; i < options.length; i++) {
-          await db.insert(quizOptionsTable).values({
-            questionId: question.id,
-            optionText: options[i].optionText,
-            isCorrect: options[i].isCorrect,
-            order: i,
-          });
-        }
+        const optionValues = options.map((opt, i) => ({
+          questionId: question.id,
+          optionText: opt.optionText,
+          isCorrect: opt.isCorrect,
+          order: i,
+        }));
+
+        await db.insert(quizOptionsTable).values(optionValues);
 
         logger.info("addQuizQuestion executed", { quizId, questionId: question.id });
         return { type: "question_added" as const, questionId: question.id, optionsCount: options.length };
@@ -294,9 +310,9 @@ export function createQuizTools(ctx: ToolContext) {
     }),
 
     updateQuizQuestion: tool({
-      description: "Update a quiz question's text or explanation.",
+      description: "Update a quiz question's type, text, or explanation. Use this to fix questions that have the wrong type (e.g., change from multiple_choice to multiple_select when there are multiple correct answers).",
       inputSchema: updateQuizQuestionSchema,
-      execute: async ({ questionId, questionText, explanation }) => {
+      execute: async ({ questionId, type, questionText, explanation }) => {
         const [existing] = await db
           .select({ id: quizQuestionsTable.id, tenantId: quizQuestionsTable.tenantId })
           .from(quizQuestionsTable)
@@ -308,6 +324,7 @@ export function createQuizTools(ctx: ToolContext) {
         }
 
         const updateData: Record<string, unknown> = {};
+        if (type !== undefined) updateData.type = type;
         if (questionText !== undefined) updateData.questionText = questionText;
         if (explanation !== undefined) updateData.explanation = explanation;
 
@@ -317,7 +334,7 @@ export function createQuizTools(ctx: ToolContext) {
 
         await db.update(quizQuestionsTable).set(updateData).where(eq(quizQuestionsTable.id, questionId));
 
-        logger.info("updateQuizQuestion executed", { questionId });
+        logger.info("updateQuizQuestion executed", { questionId, updatedFields: Object.keys(updateData) });
         return { type: "question_updated" as const, questionId, updatedFields: Object.keys(updateData) };
       },
     }),
@@ -629,29 +646,34 @@ export function createQuizTools(ctx: ToolContext) {
           })
           .returning();
 
-        for (let i = 0; i < questions.length; i++) {
-          const q = questions[i];
-          const [question] = await db
-            .insert(quizQuestionsTable)
-            .values({
-              quizId: quiz.id,
-              tenantId,
-              type: q.type === "multiple_select" ? "multiple_choice" : q.type,
-              questionText: q.questionText,
-              explanation: q.explanation ?? null,
-              order: i,
-            })
-            .returning();
+        const questionValues = questions.map((q, i) => {
+          const correctCount = q.options.filter((o) => o.isCorrect).length;
+          return {
+            quizId: quiz.id,
+            tenantId,
+            type: correctCount > 1 ? "multiple_select" as const : "multiple_choice" as const,
+            questionText: q.questionText,
+            explanation: q.explanation ?? null,
+            order: i,
+          };
+        });
 
-          for (let j = 0; j < q.options.length; j++) {
-            const opt = q.options[j];
-            await db.insert(quizOptionsTable).values({
-              questionId: question.id,
-              optionText: opt.optionText,
-              isCorrect: opt.isCorrect,
-              order: j,
-            });
-          }
+        const insertedQuestions = await db
+          .insert(quizQuestionsTable)
+          .values(questionValues)
+          .returning();
+
+        const optionValues = insertedQuestions.flatMap((question, i) =>
+          questions[i].options.map((opt, j) => ({
+            questionId: question.id,
+            optionText: opt.optionText,
+            isCorrect: opt.isCorrect,
+            order: j,
+          }))
+        );
+
+        if (optionValues.length > 0) {
+          await db.insert(quizOptionsTable).values(optionValues);
         }
 
         let addedToModule = false;
