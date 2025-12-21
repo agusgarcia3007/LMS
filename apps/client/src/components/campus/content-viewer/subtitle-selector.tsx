@@ -53,7 +53,7 @@ export function SubtitleSelector({
           type="button"
           className={cn(
             "relative flex h-10 w-10 items-center justify-center p-2.5",
-            "text-white hover:bg-white/20",
+            "text-[--media-text-color] hover:bg-[--media-control-hover-background]",
             "rounded transition-colors",
             isLoading && "pointer-events-none opacity-50"
           )}

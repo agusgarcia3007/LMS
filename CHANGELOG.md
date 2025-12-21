@@ -1,5 +1,5 @@
 
-## Unreleased
+## 0.1.0 - December 21, 2025
 
 
 ### Bug Fixes
@@ -387,6 +387,7 @@
 
 ### Styling
 
+- Improve quiz question layout and sidebar checkbox
 - Improve sidebar width and item layout
 - Fix sidebar width
 - Improve changelog page design with timeline and badges

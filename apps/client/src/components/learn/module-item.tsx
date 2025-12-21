@@ -55,33 +55,30 @@ export function ModuleItem({ item, isActive, onClick, courseSlug, moduleId }: Mo
         <ContentIcon className="size-3.5" />
       </div>
 
-      <div className="min-w-0 flex-1 overflow-hidden">
-        <p
+      <span className="min-w-0 flex-1">
+        <span
           className={cn(
-            "truncate text-sm transition-colors",
+            "block truncate text-sm transition-colors",
             isActive ? "text-foreground font-medium" : "text-foreground/80"
           )}
           title={item.title}
         >
           {item.title}
-        </p>
+        </span>
         {item.duration && (
-          <p className="text-muted-foreground text-xs">
+          <span className="text-muted-foreground block text-xs">
             {formatDuration(item.duration)}
-          </p>
+          </span>
         )}
-      </div>
+      </span>
 
-      <div
+      <Checkbox
+        checked={item.status === "completed"}
+        disabled={isPending}
         onClick={handleCheckboxClick}
-        className="shrink-0 pl-2"
-      >
-        <Checkbox
-          checked={item.status === "completed"}
-          disabled={isPending}
-          size="sm"
-        />
-      </div>
+        className="shrink-0 ml-2"
+        size="sm"
+      />
     </button>
   );
 }
