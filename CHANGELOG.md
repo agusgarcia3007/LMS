@@ -1,5 +1,12 @@
 
-## Unreleased
+## 0.3.0 - December 21, 2025
+
+
+### Features
+
+- Add language toggle and update demo tenant to english
+
+## 0.2.0 - December 21, 2025
 
 
 ### Features
