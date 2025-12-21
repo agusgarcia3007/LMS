@@ -14,7 +14,7 @@ export function LandingFooter() {
   const { t } = useTranslation();
 
   return (
-    <footer className="border-t border-border/50 bg-background">
+    <footer className="bg-background">
       <div className="mx-auto max-w-6xl px-6 py-12">
         <div className="flex flex-col items-center gap-8">
           <Link

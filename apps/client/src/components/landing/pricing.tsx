@@ -39,7 +39,7 @@ export function Pricing() {
             <motion.div
               key={plan.key}
               className={cn(
-                "relative flex flex-col overflow-hidden rounded-2xl border bg-background p-8",
+                "relative flex flex-col rounded-2xl border bg-background p-8",
                 plan.featured
                   ? "border-primary shadow-xl shadow-primary/10"
                   : "border-border/50"
@@ -82,7 +82,7 @@ export function Pricing() {
                     ? ""
                     : "border-border/50"
                 )}
-                variant={plan.featured ? "default" : "outline"}
+                variant={plan.featured ? "primary" : "outline"}
                 size="lg"
                 asChild
               >

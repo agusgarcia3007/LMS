@@ -1,6 +1,5 @@
 import {
   Bot,
-  CreditCard,
   FileVideo,
   Globe,
   GraduationCap,
@@ -15,8 +14,7 @@ const features = [
   { key: "quizGeneration", icon: HelpCircle, span: "" },
   { key: "aiAgent", icon: Bot, span: "" },
   { key: "whiteLabel", icon: Globe, span: "lg:col-span-2" },
-  { key: "certificates", icon: GraduationCap, span: "" },
-  { key: "payments", icon: CreditCard, span: "" },
+  { key: "certificates", icon: GraduationCap, span: "lg:col-span-2" },
 ] as const;
 
 export function LandingFeatures() {
