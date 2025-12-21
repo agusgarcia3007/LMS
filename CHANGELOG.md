@@ -1,4 +1,11 @@
 
+## 0.4.0 - December 21, 2025
+
+
+### Features
+
+- Add language detection to ai prompts and update landing page
+
 ## 0.3.1 - December 21, 2025
 
 
