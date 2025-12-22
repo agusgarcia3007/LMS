@@ -1,4 +1,0 @@
-git fetch --tags origin main 2>/dev/null || true
-git show origin/main:CHANGELOG.md > CHANGELOG.md 2>/dev/null || true
-bun run changelog
-git add CHANGELOG.md
