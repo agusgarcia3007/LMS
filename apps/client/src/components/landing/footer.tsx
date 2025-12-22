@@ -49,8 +49,6 @@ export function LandingFooter() {
             ))}
           </nav>
 
-          <div className="h-px w-full max-w-xs bg-gradient-to-r from-transparent via-border to-transparent" />
-
           <p className="text-sm text-muted-foreground">
             {t("landing.footer.copyright", { year: new Date().getFullYear() })}
           </p>
