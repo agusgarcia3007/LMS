@@ -1,4 +1,11 @@
 
+## 0.4.1 - December 22, 2025
+
+
+### Styling
+
+- Remove background and improve copy
+
 ## 0.4.0 - December 21, 2025
 
 
