@@ -14,8 +14,17 @@ export function LandingFooter() {
   const { t } = useTranslation();
 
   return (
-    <footer className="bg-background">
-      <div className="mx-auto max-w-6xl px-6 py-12">
+    <footer className="relative overflow-hidden bg-background">
+      <div className="pointer-events-none absolute inset-0 flex items-end justify-center overflow-hidden">
+        <span
+          className="translate-y-[35%] select-none text-[20vw] font-bold leading-none tracking-tighter text-foreground/[0.03] dark:text-foreground/[0.04]"
+          aria-hidden="true"
+        >
+          {siteData.name}
+        </span>
+      </div>
+
+      <div className="relative mx-auto max-w-6xl px-6 py-12">
         <div className="flex flex-col items-center gap-8">
           <Link
             to="/"

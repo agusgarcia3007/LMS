@@ -1,9 +1,19 @@
+import { useEffect } from "react";
 import { createRouter } from "@tanstack/react-router";
 import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query";
 import * as TanstackQuery from "./integrations/tanstack-query/root-provider";
 import { ThemeProvider } from "@/components/ui/theme-provider";
 import { routeTree } from "./routeTree.gen";
 import { ErrorBoundary, NotFoundBoundary } from "@/components/error";
+import { detectAndSetLanguage } from "./i18n";
+
+function AppWrapper({ children }: { children: React.ReactNode }) {
+  useEffect(() => {
+    detectAndSetLanguage();
+  }, []);
+
+  return <>{children}</>;
+}
 
 export const getRouter = () => {
   const rqContext = TanstackQuery.getContext();
@@ -22,7 +32,7 @@ export const getRouter = () => {
       return (
         <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
           <TanstackQuery.Provider {...rqContext}>
-            {props.children}
+            <AppWrapper>{props.children}</AppWrapper>
           </TanstackQuery.Provider>
         </ThemeProvider>
       );
