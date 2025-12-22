@@ -32,9 +32,9 @@ export const Route = createRootRouteWithContext<RouterContext>()({
     ],
     scripts: [
       {
-        src: "https://umami-production-8b06.up.railway.app/script.js",
+        src: "https://cloud.umami.is/script.js",
         defer: true,
-        "data-website-id": "646425e8-50b6-4107-8959-4eb67bc6f625",
+        "data-website-id": "b2bbc089-d249-4f9f-a140-bc42e138b61d",
       },
     ],
   }),
