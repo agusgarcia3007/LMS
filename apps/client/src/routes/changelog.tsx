@@ -4,8 +4,9 @@ import { LandingHeader } from "@/components/landing/header";
 import { LandingFooter } from "@/components/landing/footer";
 import { createSeoMeta } from "@/lib/seo";
 import { Badge } from "@/components/ui/badge";
-import { Sparkles, Bug, Zap, RefreshCw, FileText, Palette } from "lucide-react";
-import changelogContent from "../../../../CHANGELOG.md?raw";
+import { Sparkles, Bug, Zap, RefreshCw, FileText, Palette, Loader2 } from "lucide-react";
+import { useGitHubReleases } from "@/services/github/queries";
+import type { GitHubRelease } from "@/services/github/service";
 
 export const Route = createFileRoute("/changelog")({
   component: ChangelogPage,
@@ -24,29 +25,20 @@ type ChangeGroup = {
 
 type ChangelogEntry = {
   version: string;
+  date: string;
   groups: ChangeGroup[];
 };
 
-function parseChangelog(content: string): ChangelogEntry[] {
-  const entries: ChangelogEntry[] = [];
-  const lines = content.split("\n");
+function parseReleaseBody(body: string): ChangeGroup[] {
+  const groups: ChangeGroup[] = [];
+  const lines = body.split("\n");
 
-  let currentEntry: ChangelogEntry | null = null;
   let currentGroup: ChangeGroup | null = null;
 
   for (const line of lines) {
-    if (line.startsWith("## ")) {
-      if (currentEntry) {
-        if (currentGroup && currentGroup.items.length > 0) {
-          currentEntry.groups.push(currentGroup);
-        }
-        entries.push(currentEntry);
-      }
-      currentEntry = { version: line.replace("## ", "").trim(), groups: [] };
-      currentGroup = null;
-    } else if (line.startsWith("### ") && currentEntry) {
+    if (line.startsWith("### ")) {
       if (currentGroup && currentGroup.items.length > 0) {
-        currentEntry.groups.push(currentGroup);
+        groups.push(currentGroup);
       }
       currentGroup = { title: line.replace("### ", "").trim(), items: [] };
     } else if (line.startsWith("- ") && currentGroup) {
@@ -54,14 +46,30 @@ function parseChangelog(content: string): ChangelogEntry[] {
     }
   }
 
-  if (currentEntry) {
-    if (currentGroup && currentGroup.items.length > 0) {
-      currentEntry.groups.push(currentGroup);
-    }
-    entries.push(currentEntry);
+  if (currentGroup && currentGroup.items.length > 0) {
+    groups.push(currentGroup);
   }
 
-  return entries;
+  return groups;
+}
+
+function formatDate(dateString: string): string {
+  return new Date(dateString).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+}
+
+function releasesToEntries(releases: GitHubRelease[]): ChangelogEntry[] {
+  return releases
+    .filter((release) => release.body)
+    .map((release) => ({
+      version: release.tag_name,
+      date: formatDate(release.published_at),
+      groups: parseReleaseBody(release.body),
+    }))
+    .filter((entry) => entry.groups.length > 0);
 }
 
 const groupConfig: Record<
@@ -102,7 +110,8 @@ const groupConfig: Record<
 
 function ChangelogPage() {
   const { t } = useTranslation();
-  const entries = parseChangelog(changelogContent);
+  const { data: releases, isLoading } = useGitHubReleases();
+  const entries = releases ? releasesToEntries(releases) : [];
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -118,59 +127,72 @@ function ChangelogPage() {
             </p>
           </div>
 
-          <div className="relative space-y-12">
-            <div className="absolute left-[19px] top-0 h-full w-px bg-border" />
+          {isLoading ? (
+            <div className="flex justify-center py-12">
+              <Loader2 className="size-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : entries.length === 0 ? (
+            <p className="text-center text-muted-foreground">
+              {t("changelog.empty", "No releases yet.")}
+            </p>
+          ) : (
+            <div className="relative space-y-12">
+              <div className="absolute left-[19px] top-0 h-full w-px bg-border" />
 
-            {entries.map((entry, entryIndex) => (
-              <div key={entryIndex} className="relative">
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="relative z-10 flex size-10 items-center justify-center rounded-full border bg-background">
-                    <div className="size-3 rounded-full bg-primary" />
+              {entries.map((entry, entryIndex) => (
+                <div key={entryIndex} className="relative">
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="relative z-10 flex size-10 items-center justify-center rounded-full border bg-background">
+                      <div className="size-3 rounded-full bg-primary" />
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-semibold">{entry.version}</h2>
+                      <p className="text-sm text-muted-foreground">{entry.date}</p>
+                    </div>
                   </div>
-                  <h2 className="text-xl font-semibold">{entry.version}</h2>
-                </div>
 
-                <div className="ml-14 space-y-6">
-                  {entry.groups.map((group, groupIndex) => {
-                    const config = groupConfig[group.title] || {
-                      icon: Sparkles,
-                      color: "text-gray-600",
-                      bgColor: "bg-gray-500/10",
-                    };
-                    const Icon = config.icon;
+                  <div className="ml-14 space-y-6">
+                    {entry.groups.map((group, groupIndex) => {
+                      const config = groupConfig[group.title] || {
+                        icon: Sparkles,
+                        color: "text-gray-600",
+                        bgColor: "bg-gray-500/10",
+                      };
+                      const Icon = config.icon;
 
-                    return (
-                      <div key={groupIndex}>
-                        <div className="flex items-center gap-2 mb-3">
-                          <Badge
-                            variant="secondary"
-                            className={`${config.bgColor} ${config.color} border-0 gap-1.5`}
-                          >
-                            <Icon className="size-3.5" />
-                            {group.title}
-                          </Badge>
-                          <span className="text-xs text-muted-foreground">
-                            {group.items.length} {group.items.length === 1 ? "change" : "changes"}
-                          </span>
-                        </div>
-                        <ul className="space-y-2">
-                          {group.items.map((item, itemIndex) => (
-                            <li
-                              key={itemIndex}
-                              className="flex items-start gap-2 text-sm text-muted-foreground"
+                      return (
+                        <div key={groupIndex}>
+                          <div className="flex items-center gap-2 mb-3">
+                            <Badge
+                              variant="secondary"
+                              className={`${config.bgColor} ${config.color} border-0 gap-1.5`}
                             >
-                              <span className="mt-2 size-1 shrink-0 rounded-full bg-muted-foreground/50" />
-                              <span>{item}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    );
-                  })}
+                              <Icon className="size-3.5" />
+                              {group.title}
+                            </Badge>
+                            <span className="text-xs text-muted-foreground">
+                              {group.items.length} {group.items.length === 1 ? "change" : "changes"}
+                            </span>
+                          </div>
+                          <ul className="space-y-2">
+                            {group.items.map((item, itemIndex) => (
+                              <li
+                                key={itemIndex}
+                                className="flex items-start gap-2 text-sm text-muted-foreground"
+                              >
+                                <span className="mt-2 size-1 shrink-0 rounded-full bg-muted-foreground/50" />
+                                <span>{item}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </main>
       <LandingFooter />
