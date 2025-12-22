@@ -9,6 +9,13 @@
 ## 0.4.1 - December 22, 2025
 
 
+### Features
+
+- Improve faq for seo with accurate product info
+
+## 0.4.1 - December 22, 2025
+
+
 ### Styling
 
 - Remove background and improve copy
