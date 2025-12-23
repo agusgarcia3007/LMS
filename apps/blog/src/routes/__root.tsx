@@ -13,15 +13,6 @@ import { ThemeProvider } from '@/components/theme-provider';
 import { I18nProvider } from '@/lib/i18n';
 import type { Locale } from '@/lib/i18n';
 
-const themeScript = `
-(function() {
-  const theme = localStorage.getItem('blog-theme') || 'system';
-  if (theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-    document.documentElement.classList.add('dark');
-  }
-})();
-`;
-
 export const Route = createRootRoute({
   head: () => ({
     meta: [
@@ -53,42 +44,51 @@ export const Route = createRootRoute({
         href: 'https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap',
       },
     ],
-    scripts: [
-      {
-        children: themeScript,
-      },
-    ],
   }),
+  shellComponent: RootShell,
   component: RootComponent,
 });
 
-function RootComponent() {
+function RootShell({ children }: { children: ReactNode }) {
   return (
-    <ThemeProvider defaultTheme="system">
-      <RootDocument>
-        <Outlet />
-      </RootDocument>
-    </ThemeProvider>
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <HeadContent />
+        <ThemeScript />
+      </head>
+      <body className="flex min-h-screen flex-col">
+        {children}
+        <Scripts />
+      </body>
+    </html>
   );
 }
 
-function RootDocument({ children }: { children: ReactNode }) {
+function ThemeScript() {
+  const script = `
+    (function() {
+      const theme = localStorage.getItem('blog-theme') || 'system';
+      if (theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+      }
+    })();
+  `;
+  return <script dangerouslySetInnerHTML={{ __html: script }} />;
+}
+
+function RootComponent() {
   const params = useParams({ strict: false }) as { lang?: Locale };
   const lang = params.lang || 'en';
 
   return (
-    <I18nProvider defaultLocale={lang}>
-      <html lang={lang} suppressHydrationWarning>
-        <head>
-          <HeadContent />
-        </head>
-        <body className="flex min-h-screen flex-col">
-          <Header />
-          <main className="flex-1">{children}</main>
-          <Footer />
-          <Scripts />
-        </body>
-      </html>
-    </I18nProvider>
+    <ThemeProvider defaultTheme="system">
+      <I18nProvider defaultLocale={lang}>
+        <Header />
+        <main className="flex-1">
+          <Outlet />
+        </main>
+        <Footer />
+      </I18nProvider>
+    </ThemeProvider>
   );
 }

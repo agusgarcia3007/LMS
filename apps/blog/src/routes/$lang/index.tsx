@@ -52,8 +52,10 @@ export const Route = createFileRoute('/$lang/')({
   },
 });
 
-const getPostsServerFn = createServerFn({ method: 'GET' }).handler(async (ctx: { data: string }) => {
-  const lang = ctx.data;
+const getPostsServerFn = createServerFn({ method: 'GET' })
+  .inputValidator((d: string) => d)
+  .handler(async ({ data }) => {
+    const lang = data;
   const pages = source.getPages();
   return pages
     .filter((page) => page.slugs[0] === lang)

@@ -1,6 +1,6 @@
 const BASE_URL = "https://uselearnbase.com";
 const DEFAULT_OG_IMAGE = `${BASE_URL}/og-image.png`;
-const LANDING_OG_IMAGE = `${BASE_URL}/api/og/home`;
+const LANDING_OG_IMAGE = `${BASE_URL}/og-image.png`;
 const CAMPUS_OG_IMAGE = `${BASE_URL}/api/og/campus`;
 const TWITTER_HANDLE = "@learnbase";
 
