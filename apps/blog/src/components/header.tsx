@@ -20,9 +20,13 @@ export function Header() {
   const currentLang = params.lang || "en";
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-background/80 backdrop-blur-sm">
+    <header className="sticky top-0 z-50 w-full backdrop-blur-sm">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
-        <Link to="/$lang" params={{ lang: currentLang }} className="flex items-center gap-2.5">
+        <Link
+          to="/$lang"
+          params={{ lang: currentLang }}
+          className="flex items-center gap-2.5"
+        >
           <img
             src="/logos/blue.png"
             alt="Learnbase"

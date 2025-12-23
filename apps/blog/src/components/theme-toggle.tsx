@@ -33,7 +33,7 @@ export function ThemeToggle() {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex size-8 items-center justify-center rounded-md border border-border bg-background text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+        className="flex size-8 items-center justify-center rounded-md bg-transparent text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
         aria-label={t("theme.toggle")}
       >
         <Sun className="size-4 scale-100 rotate-0 transition-transform dark:scale-0 dark:-rotate-90" />
@@ -41,7 +41,7 @@ export function ThemeToggle() {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 top-full z-50 mt-1 min-w-32 overflow-hidden rounded-md border border-border bg-background shadow-lg">
+        <div className="absolute right-0 top-full z-50 mt-1 min-w-32 overflow-hidden rounded-md bg-background shadow-lg">
           {options.map((option) => (
             <button
               key={option.value}
