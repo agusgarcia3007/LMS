@@ -157,9 +157,13 @@
     },
     "noPlan": "Sem assinatura",
     "noPlanDescription": "Escolha um plano para comecar",
+    "trialExpired": "Seu periodo de teste terminou",
+    "trialExpiredDescription": "Assine agora para continuar usando todos os recursos",
     "overlay": {
       "title": "Escolha seu plano",
-      "description": "Selecione o plano que melhor se adapta as suas necessidades e comece a construir sua academia hoje"
+      "titleTrialExpired": "Seu teste terminou",
+      "description": "Selecione o plano que melhor se adapta as suas necessidades e comece a construir sua academia hoje",
+      "descriptionTrialExpired": "Seu periodo de teste gratuito terminou. Escolha um plano para continuar acessando sua academia e todos os seus recursos."
     },
     "usage": {
       "storage": "Armazenamento",

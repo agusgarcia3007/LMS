@@ -134,6 +134,8 @@ export const subscriptionRoutes = new Elysia()
         invalidateTenantCache(ctx.tenant.slug);
       }
 
+      const hadTrial = Boolean(ctx.tenant.trialEndsAt);
+
       const session = await stripe.checkout.sessions.create({
         customer: customerId,
         mode: "subscription",
@@ -149,6 +151,7 @@ export const subscriptionRoutes = new Elysia()
             tenantId: ctx.tenant.id,
             plan,
           },
+          ...(hadTrial && { trial_period_days: 0 }),
         },
         success_url: `${CLIENT_URL}/${ctx.tenant.slug}?success=true`,
         cancel_url: `${CLIENT_URL}/${ctx.tenant.slug}/finance/subscription?canceled=true`,

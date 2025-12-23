@@ -268,6 +268,11 @@ function SubscriptionPage() {
   const canClose = hasValidSubscription && showPricingModal;
   const plans = plansData?.plans ?? [];
 
+  const trialExpired =
+    subscription?.trialEndsAt &&
+    new Date(subscription.trialEndsAt) <= new Date() &&
+    subscription.subscriptionStatus !== "active";
+
   return (
     <>
       <SubscriptionContent
@@ -284,6 +289,7 @@ function SubscriptionPage() {
           isLoading={isCreating}
           canClose={canClose}
           onClose={() => setShowPricingModal(false)}
+          trialExpired={Boolean(trialExpired)}
         />
       )}
     </>

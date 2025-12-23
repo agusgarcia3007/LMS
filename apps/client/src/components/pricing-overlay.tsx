@@ -13,6 +13,7 @@ type PricingOverlayProps = {
   isLoading: boolean;
   canClose?: boolean;
   onClose?: () => void;
+  trialExpired?: boolean;
 };
 
 function PlanFeatureItem({ children }: { children: React.ReactNode }) {
@@ -113,8 +114,25 @@ export function PricingOverlay({
   isLoading,
   canClose,
   onClose,
+  trialExpired,
 }: PricingOverlayProps) {
   const { t } = useTranslation();
+
+  const getBadgeText = () => {
+    if (canClose) return t("subscription.changePlan");
+    if (trialExpired) return t("subscription.trialExpired");
+    return t("subscription.noPlanDescription");
+  };
+
+  const getTitle = () => {
+    if (trialExpired && !canClose) return t("subscription.overlay.titleTrialExpired");
+    return t("subscription.overlay.title");
+  };
+
+  const getDescription = () => {
+    if (trialExpired && !canClose) return t("subscription.overlay.descriptionTrialExpired");
+    return t("subscription.overlay.description");
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-background/80 backdrop-blur-sm">
@@ -130,16 +148,17 @@ export function PricingOverlay({
       )}
       <div className="mx-auto max-w-5xl px-6 py-16">
         <div className="mx-auto max-w-2xl text-center">
-          <Badge variant="outline" className="mb-4">
-            {canClose
-              ? t("subscription.changePlan")
-              : t("subscription.noPlanDescription")}
+          <Badge
+            variant="outline"
+            className={cn("mb-4", trialExpired && !canClose && "border-destructive/50 text-destructive")}
+          >
+            {getBadgeText()}
           </Badge>
           <h2 className="text-balance text-3xl font-bold md:text-4xl">
-            {t("subscription.overlay.title")}
+            {getTitle()}
           </h2>
           <p className="text-muted-foreground mx-auto mt-4 max-w-xl text-balance text-lg">
-            {t("subscription.overlay.description")}
+            {getDescription()}
           </p>
         </div>
 

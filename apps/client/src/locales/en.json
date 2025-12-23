@@ -157,9 +157,13 @@
     },
     "noPlan": "No subscription",
     "noPlanDescription": "Choose a plan to get started",
+    "trialExpired": "Your free trial has ended",
+    "trialExpiredDescription": "Subscribe now to continue using all features",
     "overlay": {
       "title": "Choose your plan",
-      "description": "Select the plan that best fits your needs and start building your academy today"
+      "titleTrialExpired": "Your trial has ended",
+      "description": "Select the plan that best fits your needs and start building your academy today",
+      "descriptionTrialExpired": "Your free trial has ended. Choose a plan to continue accessing your academy and all its features."
     },
     "usage": {
       "storage": "Storage",

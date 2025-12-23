@@ -157,9 +157,13 @@
     },
     "noPlan": "Sin suscripcion",
     "noPlanDescription": "Elige un plan para comenzar",
+    "trialExpired": "Tu prueba gratuita ha terminado",
+    "trialExpiredDescription": "Suscribete ahora para continuar usando todas las funciones",
     "overlay": {
       "title": "Elige tu plan",
-      "description": "Selecciona el plan que mejor se adapte a tus necesidades y comienza a construir tu academia hoy"
+      "titleTrialExpired": "Tu prueba ha terminado",
+      "description": "Selecciona el plan que mejor se adapte a tus necesidades y comienza a construir tu academia hoy",
+      "descriptionTrialExpired": "Tu prueba gratuita ha terminado. Elige un plan para continuar accediendo a tu academia y todas sus funciones."
     },
     "usage": {
       "storage": "Almacenamiento",
