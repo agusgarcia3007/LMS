@@ -44,6 +44,13 @@ export const Route = createRootRoute({
         href: 'https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap',
       },
     ],
+    scripts: [
+      {
+        src: 'https://cloud.umami.is/script.js',
+        defer: true,
+        'data-website-id': '9bba808b-a9dd-403d-9c51-4d4b2b50e03a',
+      },
+    ],
   }),
   shellComponent: RootShell,
   component: RootComponent,
