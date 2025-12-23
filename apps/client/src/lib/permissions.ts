@@ -1,4 +1,11 @@
-import type { UserRole } from "./types";
+export const USER_ROLES = [
+  "student",
+  "instructor",
+  "owner",
+  "superadmin",
+] as const;
+
+export type UserRole = (typeof USER_ROLES)[number];
 
 export const PERMISSION_ROLES = {
   tenantDashboard: ["owner", "instructor", "superadmin"] as UserRole[],

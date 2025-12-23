@@ -14,10 +14,35 @@ import {
   type AnyColumn,
 } from "drizzle-orm";
 import type { PgTable } from "drizzle-orm/pg-core";
-import type { ListParams, SortParams, SortOrder, FilterOperator } from "@learnbase/core";
 
-export type { SortOrder, SortParams, ListParams, FilterOperator } from "@learnbase/core";
-export type { PaginationResult } from "@learnbase/core";
+export type SortOrder = "asc" | "desc";
+
+export type SortParams = {
+  field: string;
+  order: SortOrder;
+};
+
+export type ListParams = {
+  page: number;
+  limit: number;
+  sort?: SortParams;
+  search?: string;
+  filters: Record<string, string | undefined>;
+};
+
+export type FilterOperator = "is" | "is_not" | "contains" | "not_contains";
+
+export type PaginationResult = {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+};
+
+export type PaginatedResponse<T> = {
+  data: T[];
+  pagination: PaginationResult;
+};
 
 export type FieldMap<T extends PgTable> = {
   [key: string]: AnyColumn;

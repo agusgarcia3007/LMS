@@ -1,6 +1,6 @@
 import { http } from "@/lib/http";
 import type { PaginationResult } from "@/types/pagination";
-import type { UserRole } from "@learnbase/core";
+import type { UserRole } from "@/lib/permissions";
 
 export type { UserRole };
 

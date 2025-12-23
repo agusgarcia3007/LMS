@@ -26,7 +26,6 @@
     "@langfuse/client": "^4.4.9",
     "@langfuse/otel": "^4.4.9",
     "@langfuse/tracing": "^4.4.9",
-    "@learnbase/core": "workspace:*",
     "@napi-rs/canvas": "^0.1.84",
     "@opentelemetry/sdk-node": "^0.208.0",
     "@types/pdfkit": "^0.17.4",
