@@ -1,5 +1,4 @@
-export { enqueue } from "./queue";
-export { startWorker, stopWorker } from "./worker";
+export { enqueue, startWorker, stopWorker, bullBoardPlugin } from "./bullmq";
 export type {
   Job,
   SendWelcomeEmailJob,

@@ -3,7 +3,7 @@ import "./instrumentation";
 import { openapi } from "@elysiajs/openapi";
 import { Elysia } from "elysia";
 import { rateLimit } from "elysia-rate-limit";
-import { startWorker, stopWorker } from "./jobs";
+import { startWorker, stopWorker, bullBoardPlugin } from "./jobs";
 import { corsPlugin } from "./lib/cors";
 import { env } from "./lib/env";
 import { errorHandler } from "./lib/errors";
@@ -84,6 +84,8 @@ ROUTES.forEach(({ path, route }) => {
   app.group(path, (app) => app.use(route));
 });
 
+app.use(bullBoardPlugin);
+
 app.listen({
   port: env.PORT,
   maxRequestBodySize: 1024 * 1024 * 500,
@@ -102,9 +104,9 @@ const gracefulShutdown = async (signal: string) => {
 
   try {
     const { langfuseSpanProcessor, sdk } = await import("./instrumentation");
-    await langfuseSpanProcessor.forceFlush();
-    await sdk.shutdown();
-    logger.info("Langfuse spans flushed");
+    await langfuseSpanProcessor?.forceFlush();
+    await sdk?.shutdown();
+    if (sdk) logger.info("Langfuse spans flushed");
   } catch (error) {
     logger.error("Shutdown error", { error });
   }

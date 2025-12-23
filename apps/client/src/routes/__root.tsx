@@ -30,13 +30,15 @@ export const Route = createRootRouteWithContext<RouterContext>()({
       },
       { rel: "dns-prefetch", href: "https://api.dicebear.com" },
     ],
-    scripts: [
-      {
-        src: "https://cloud.umami.is/script.js",
-        defer: true,
-        "data-website-id": "b2bbc089-d249-4f9f-a140-bc42e138b61d",
-      },
-    ],
+    scripts: import.meta.env.PROD
+      ? [
+          {
+            src: "https://cloud.umami.is/script.js",
+            defer: true,
+            "data-website-id": "b2bbc089-d249-4f9f-a140-bc42e138b61d",
+          },
+        ]
+      : [],
   }),
 
   shellComponent: RootDocument,

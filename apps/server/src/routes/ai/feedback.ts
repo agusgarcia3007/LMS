@@ -59,7 +59,7 @@ export const aiFeedbackRoutes = new Elysia({ name: "ai-feedback" })
       if (traceId) {
         try {
           const langfuse = getLangfuseClient();
-          langfuse.score.create({
+          langfuse?.score.create({
             traceId,
             name: "user_feedback",
             value: type === "thumbs_up" ? 1 : type === "thumbs_down" ? -1 : 0,
