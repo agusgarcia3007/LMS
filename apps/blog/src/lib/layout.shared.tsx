@@ -4,12 +4,7 @@ export function baseOptions(): BaseLayoutProps {
   return {
     nav: {
       title: 'Learnbase Blog',
+      url: '/',
     },
-    links: [
-      {
-        text: 'Blog',
-        url: '/blog',
-      },
-    ],
   };
 }

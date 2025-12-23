@@ -7,7 +7,7 @@ import defaultMdxComponents from 'fumadocs-ui/mdx';
 import { baseOptions } from '@/lib/layout.shared';
 import { InlineTOC } from 'fumadocs-ui/components/inline-toc';
 
-export const Route = createFileRoute('/blog/$')({
+export const Route = createFileRoute('/$')({
   component: BlogPost,
   loader: async ({ params }) => {
     const slugs = params._splat?.split('/') ?? [];
@@ -28,6 +28,7 @@ const serverLoader = createServerFn({ method: 'GET' })
       title: page.data.title,
       description: page.data.description,
       author: page.data.author,
+      image: page.data.image,
       date: new Date(page.data.date).toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'long',
@@ -40,7 +41,7 @@ const clientLoader = browserCollections.blog.createClientLoader({
   component({ toc, default: MDX }) {
     return (
       <>
-        <InlineTOC items={toc} />
+        {toc.length > 0 && <InlineTOC items={toc} />}
         <div className="prose prose-neutral dark:prose-invert max-w-none mt-8">
           <MDX components={{ ...defaultMdxComponents }} />
         </div>
@@ -55,7 +56,7 @@ function BlogPost() {
 
   return (
     <HomeLayout {...baseOptions()}>
-      <article className="container max-w-3xl py-12">
+      <article className="container max-w-3xl py-12 px-4">
         <header className="mb-8">
           <h1 className="text-4xl font-bold">{data.title}</h1>
           {data.description && (
@@ -68,6 +69,13 @@ function BlogPost() {
             <span>{data.date}</span>
           </div>
         </header>
+        {data.image && (
+          <img
+            src={data.image}
+            alt={data.title}
+            className="w-full aspect-video object-cover rounded-lg mb-8"
+          />
+        )}
         <Content />
       </article>
     </HomeLayout>
