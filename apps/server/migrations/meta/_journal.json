@@ -414,6 +414,20 @@
       "when": 1766514212614,
       "tag": "0058_bored_jack_murdock",
       "breakpoints": true
+    },
+    {
+      "idx": 59,
+      "version": "7",
+      "when": 1766777401661,
+      "tag": "0059_ancient_catseye",
+      "breakpoints": true
+    },
+    {
+      "idx": 60,
+      "version": "7",
+      "when": 1766786203715,
+      "tag": "0060_curly_green_goblin",
+      "breakpoints": true
     }
   ]
 }

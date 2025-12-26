@@ -28,6 +28,7 @@ import {
 import { buildThumbnailPrompt } from "@/lib/ai/course-generation";
 import { createCourseCreatorTools } from "@/lib/ai/tools";
 import { getPresignedUrl, uploadBase64ToS3 } from "@/lib/upload";
+import { enqueue } from "@/jobs";
 import { logger } from "@/lib/logger";
 
 export const chatCreatorRoutes = new Elysia({ name: "ai-chat-creator" })
@@ -554,6 +555,16 @@ export const chatCreatorRoutes = new Elysia({ name: "ai-chat-creator" })
           courseId: course.id,
           moduleCount: finalModuleIds.length,
           hasThumbnail: !!thumbnailKey,
+        });
+
+        await enqueue({
+          type: "generate-course-embedding",
+          data: {
+            courseId: course.id,
+            title,
+            shortDescription,
+            description,
+          },
         });
 
       return {

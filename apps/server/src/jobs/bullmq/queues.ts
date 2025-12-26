@@ -26,3 +26,16 @@ export const stripeQueue = new Queue("stripe", {
     removeOnFail: { count: 5000 },
   },
 });
+
+export const embeddingsQueue = new Queue("embeddings", {
+  connection,
+  defaultJobOptions: {
+    attempts: 2,
+    backoff: {
+      type: "exponential",
+      delay: 3000,
+    },
+    removeOnComplete: { count: 500 },
+    removeOnFail: { count: 1000 },
+  },
+});

@@ -16,6 +16,7 @@ import {
 } from "@/db/schema";
 import { eq, and, desc, inArray, count, ilike } from "drizzle-orm";
 import { logger } from "@/lib/logger";
+import { enqueue } from "@/jobs";
 import { aiGateway } from "@/lib/ai/gateway";
 import { AI_MODELS } from "@/lib/ai/models";
 import { buildThumbnailPrompt, buildDynamicThumbnailPrompt, type ThumbnailStyle } from "@/lib/ai/prompts";
@@ -223,6 +224,16 @@ export function createCourseTools(ctx: ToolContext) {
               }))
             );
           }
+
+          await enqueue({
+            type: "generate-course-embedding",
+            data: {
+              courseId: course.id,
+              title,
+              shortDescription,
+              description,
+            },
+          });
 
           logger.info("createCourse executed", {
             courseId: course.id,
@@ -514,6 +525,35 @@ export function createCourseTools(ctx: ToolContext) {
 
         if (Object.keys(updateData).length > 0) {
           await db.update(coursesTable).set(updateData).where(eq(coursesTable.id, courseId));
+        }
+
+        const embeddingFieldsChanged =
+          updates.title !== undefined ||
+          updates.shortDescription !== undefined ||
+          updates.description !== undefined;
+
+        if (embeddingFieldsChanged) {
+          const [course] = await db
+            .select({
+              title: coursesTable.title,
+              shortDescription: coursesTable.shortDescription,
+              description: coursesTable.description,
+            })
+            .from(coursesTable)
+            .where(eq(coursesTable.id, courseId))
+            .limit(1);
+
+          if (course) {
+            await enqueue({
+              type: "generate-course-embedding",
+              data: {
+                courseId,
+                title: course.title,
+                shortDescription: course.shortDescription,
+                description: course.description,
+              },
+            });
+          }
         }
 
         logger.info("updateCourse executed", { courseId, updatedFields });

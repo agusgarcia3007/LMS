@@ -6,6 +6,7 @@ import { createQuizTools } from "./quiz-tools";
 import { createModuleTools } from "./module-tools";
 import { createCourseTools } from "./course-tools";
 import { createDocumentTools } from "./document-tools";
+import { createContentAnalysisTools } from "./content-analysis-tools";
 
 export * from "./schemas";
 export * from "./utils";
@@ -35,6 +36,7 @@ export function createCourseCreatorTools(
     ...createModuleTools(ctx),
     ...createCourseTools(ctx),
     ...createDocumentTools(ctx),
+    ...createContentAnalysisTools(ctx),
   };
 }
 

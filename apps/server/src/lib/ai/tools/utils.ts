@@ -4,6 +4,15 @@ import { generateEmbedding } from "../embeddings";
 export const SIMILARITY_THRESHOLDS = {
   SEARCH: 0.55,
   DEDUP_CREATE: 0.85,
+  COURSE_SIMILARITY_WARNING: 0.75,
+  COURSE_SIMILARITY_HIGH: 0.85,
+};
+
+export const CONTENT_SATURATION_THRESHOLDS = {
+  VIDEO_USAGE_WARNING: 3,
+  MODULE_USAGE_WARNING: 3,
+  VIDEO_USAGE_HIGH: 5,
+  MODULE_USAGE_HIGH: 5,
 };
 
 export const MAX_CACHE_SIZE = 100;

@@ -78,6 +78,16 @@ export type SendFeatureRejectedEmailJob = {
   };
 };
 
+export type GenerateCourseEmbeddingJob = {
+  type: "generate-course-embedding";
+  data: {
+    courseId: string;
+    title: string;
+    shortDescription: string | null;
+    description: string | null;
+  };
+};
+
 export type Job =
   | SendWelcomeEmailJob
   | CreateStripeCustomerJob
@@ -86,4 +96,5 @@ export type Job =
   | SyncConnectedCustomerJob
   | SendFeatureSubmissionEmailJob
   | SendFeatureApprovedEmailJob
-  | SendFeatureRejectedEmailJob;
+  | SendFeatureRejectedEmailJob
+  | GenerateCourseEmbeddingJob;

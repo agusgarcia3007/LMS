@@ -1,6 +1,6 @@
 import { db } from "@/db";
 import { jobsHistoryTable } from "@/db/schema";
-import { emailQueue, stripeQueue } from "./queues";
+import { emailQueue, stripeQueue, embeddingsQueue } from "./queues";
 import type { Job } from "../types";
 
 const EMAIL_JOBS = new Set([
@@ -16,6 +16,8 @@ const STRIPE_JOBS = new Set([
   "create-connected-customer",
   "sync-connected-customer",
 ]);
+
+const EMBEDDINGS_JOBS = new Set(["generate-course-embedding"]);
 
 export async function enqueue(job: Job): Promise<string> {
   const historyId = crypto.randomUUID();
@@ -33,6 +35,8 @@ export async function enqueue(job: Job): Promise<string> {
     await emailQueue.add(job.type, jobData);
   } else if (STRIPE_JOBS.has(job.type)) {
     await stripeQueue.add(job.type, jobData);
+  } else if (EMBEDDINGS_JOBS.has(job.type)) {
+    await embeddingsQueue.add(job.type, jobData);
   }
 
   return historyId;

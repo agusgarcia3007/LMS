@@ -644,6 +644,7 @@ export const coursesTable = pgTable(
     requirements: text("requirements").array(),
     objectives: text("objectives").array(),
     includeCertificate: boolean("include_certificate").notNull().default(false),
+    embedding: vector("embedding", { dimensions: 384 }),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at")
       .notNull()
@@ -658,6 +659,10 @@ export const coursesTable = pgTable(
     index("courses_slug_tenant_idx").on(table.slug, table.tenantId),
     index("courses_tenant_created_idx").on(table.tenantId, table.createdAt),
     index("courses_tenant_status_idx").on(table.tenantId, table.status),
+    index("courses_embedding_idx").using(
+      "hnsw",
+      table.embedding.op("vector_cosine_ops")
+    ),
   ]
 );
 
@@ -1124,6 +1129,7 @@ export const jobTypeEnum = pgEnum("job_type", [
   "send-feature-submission-email",
   "send-feature-approved-email",
   "send-feature-rejected-email",
+  "generate-course-embedding",
 ]);
 
 export const jobsHistoryTable = pgTable(

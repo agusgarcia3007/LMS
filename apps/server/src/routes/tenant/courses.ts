@@ -30,6 +30,7 @@ import {
 import { getPresignedUrl, deleteFromS3 } from "@/lib/upload";
 import { analyzeTenantCourses } from "@/lib/ai/profile-analysis";
 import { logger } from "@/lib/logger";
+import { enqueue } from "@/jobs";
 
 const courseFieldMap: FieldMap<typeof coursesTable> = {
   id: coursesTable.id,
@@ -403,6 +404,16 @@ export const coursesRoutes = new Elysia()
             .where(inArray(categoriesTable.id, ctx.body.categoryIds));
         }
 
+        await enqueue({
+          type: "generate-course-embedding",
+          data: {
+            courseId: course.id,
+            title: course.title,
+            shortDescription: course.shortDescription,
+            description: course.description,
+          },
+        });
+
       return { course: { ...course, categories, modulesCount: 0, modules: [] } };
     },
     {
@@ -537,6 +548,23 @@ export const coursesRoutes = new Elysia()
             .from(courseModulesTable)
             .where(eq(courseModulesTable.courseId, ctx.params.id)),
         ]);
+
+        const embeddingFieldsChanged =
+          ctx.body.title !== undefined ||
+          ctx.body.shortDescription !== undefined ||
+          ctx.body.description !== undefined;
+
+        if (embeddingFieldsChanged) {
+          await enqueue({
+            type: "generate-course-embedding",
+            data: {
+              courseId: updatedCourse.id,
+              title: updatedCourse.title,
+              shortDescription: updatedCourse.shortDescription,
+              description: updatedCourse.description,
+            },
+          });
+        }
 
         return {
           course: {

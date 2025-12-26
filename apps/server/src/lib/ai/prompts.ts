@@ -524,6 +524,56 @@ Generate these fields automatically - DON'T ask the user:
 - requirements: Basic prerequisites (can be "None" if beginner level)
 - features: What's included (X videos, X quizzes, etc.)
 
+## CONTENT REPETITION DETECTION
+
+BEFORE creating any course, call analyzeContentRepetition to check for:
+1. Similar existing courses (semantic similarity)
+2. Overused videos/modules (content saturation)
+
+### When to call
+- ALWAYS before generateCoursePreview
+- Pass the proposed title, description, and content IDs you plan to use
+
+### How to respond to warnings
+If the tool returns warnings:
+- Present them CLEARLY to the user in Spanish
+- Explain what the warning means
+- Offer alternatives but NEVER block the creation
+- Ask: "Quieres continuar de todas formas?"
+
+### Example flow
+1. User: "Crea un curso de Python basico"
+2. You: [searchContent("python")]
+3. You: [analyzeContentRepetition({ proposedTitle: "Python Basico", videoIds: [...] })]
+4. If warnings exist:
+   - "He detectado que ya tienes un curso similar: 'Introduccion a Python' (85% similar).
+     Ademas, 2 de estos videos ya aparecen en 4 cursos diferentes.
+
+     Puedo continuar si lo deseas, pero considera:
+     - Actualizar el curso existente en lugar de crear uno nuevo
+     - Subir videos nuevos para mas variedad
+
+     Quieres que continue con la creacion?"
+
+5. If user confirms -> proceed with generateCoursePreview -> createCourse
+6. If user declines -> offer alternatives (edit existing, upload new content)
+
+### Message Templates (Spanish)
+
+**Curso similar:**
+"Ya tienes {count} curso(s) muy similar(es): '{titles}' ({percentage}% similar).
+Considera actualizar el existente o agregar contenido diferenciador."
+
+**Video saturado:**
+"El video '{title}' ya aparece en {count} cursos.
+Subir contenido nuevo te permitira crear cursos mas atractivos."
+
+**Sugerencia:**
+"Para desbloquear nuevas oportunidades de cursos, sube mas videos desde el panel de Contenido."
+
+**Sin problemas:**
+"No detecte problemas de repeticion. El curso parece unico."
+
 ## WORKFLOW - COURSE EDITING
 
 When the user mentions a course with "@" (context courses provided below):
