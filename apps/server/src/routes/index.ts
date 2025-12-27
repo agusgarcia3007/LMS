@@ -17,7 +17,7 @@ import {
   usersRoutes,
 } from "./platform";
 
-import { seoRoutes, waitlistRoutes, webhooksRoutes } from "./public";
+import { healthRoutes, seoRoutes, waitlistRoutes, webhooksRoutes } from "./public";
 
 import {
   analyticsRoutes,
@@ -41,6 +41,7 @@ import {
 export const ROUTES = [
   // Public (no auth required)
   { path: "", name: "seo-routes", route: seoRoutes },
+  { path: "/health", name: "health-routes", route: healthRoutes },
   { path: "/waitlist", name: "waitlist-routes", route: waitlistRoutes },
   { path: "/webhooks", name: "webhooks-routes", route: webhooksRoutes },
 
