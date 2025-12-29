@@ -97,10 +97,7 @@ export const Route = createFileRoute("/$tenantSlug")({
       throw redirect({ to: "/login" });
     }
 
-    const [profileData, tenantData] = await Promise.all([
-      queryClient.ensureQueryData(profileOptions()),
-      queryClient.ensureQueryData(tenantOptions(params.tenantSlug)),
-    ]);
+    const profileData = await queryClient.ensureQueryData(profileOptions());
 
     if (!profileData?.user) {
       throw redirect({ to: "/login" });
@@ -109,6 +106,15 @@ export const Route = createFileRoute("/$tenantSlug")({
     const { user } = profileData;
 
     if (!canAccessTenantDashboard(user.role)) {
+      throw redirect({ to: "/", search: { campus: undefined } });
+    }
+
+    let tenantData;
+    try {
+      tenantData = await queryClient.ensureQueryData(
+        tenantOptions(params.tenantSlug)
+      );
+    } catch {
       throw redirect({ to: "/", search: { campus: undefined } });
     }
 
