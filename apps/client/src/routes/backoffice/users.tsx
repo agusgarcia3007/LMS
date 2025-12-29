@@ -22,7 +22,12 @@ import { EditUserDialog } from "@/components/backoffice/edit-user-dialog";
 import { DataTable, DeleteDialog } from "@/components/data-table";
 import { useDataTableState } from "@/hooks/use-data-table-state";
 import { createSeoMeta } from "@/lib/seo";
-import { useDeleteUser, useGetUsers, useUpdateUser } from "@/services/users";
+import {
+  useDeleteUser,
+  useGetUsers,
+  useUpdateUser,
+  useImpersonate,
+} from "@/services/users";
 import type { User, UserRole } from "@/services/users/service";
 
 export const Route = createFileRoute("/backoffice/users")({
@@ -64,6 +69,8 @@ function BackofficeUsers() {
 
   const updateMutation = useUpdateUser();
   const deleteMutation = useDeleteUser();
+  const { mutate: impersonate, isPending: isImpersonatePending } =
+    useImpersonate();
 
   const handleDelete = () => {
     if (!deleteUser) return;
@@ -218,6 +225,14 @@ function BackofficeUsers() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent side="bottom" align="end">
+              {row.original.role !== "superadmin" && (
+                <DropdownMenuItem
+                  onClick={() => impersonate(row.original.id)}
+                  disabled={isImpersonatePending}
+                >
+                  {t("backoffice.users.impersonate")}
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem onClick={() => setEditUser(row.original)}>
                 {t("common.edit")}
               </DropdownMenuItem>

@@ -7,6 +7,9 @@ import {
 
 import type { QueryClient } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/sonner";
+import { ImpersonationBanner } from "@/components/impersonation-banner";
+import { isImpersonating } from "@/lib/http";
+import { cn } from "@/lib/utils";
 
 import appCss from "../index.css?url";
 
@@ -62,7 +65,14 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 }
 
 function RootComponent() {
-  return <Outlet />;
+  return (
+    <>
+      <ImpersonationBanner />
+      <div className={cn(isImpersonating() && "pt-10")}>
+        <Outlet />
+      </div>
+    </>
+  );
 }
 
 function ThemeScript() {

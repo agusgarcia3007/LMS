@@ -12,6 +12,7 @@ import {
   tenantsTable,
   usersTable,
   userRoleEnum,
+  refreshTokensTable,
   type SelectUser,
 } from "@/db/schema";
 import { count, eq, ilike, and, inArray, sql } from "drizzle-orm";
@@ -431,6 +432,78 @@ export const usersRoutes = new Elysia()
       detail: {
         tags: ["Users"],
         summary: "Delete user (superadmin only)",
+      },
+      requireAuth: true,
+      requireRole: ["superadmin"],
+    }
+  )
+  .post(
+    "/:id/impersonate",
+    async (ctx) => {
+      const [targetUser] = await db
+        .select()
+        .from(usersTable)
+        .where(eq(usersTable.id, ctx.params.id))
+        .limit(1);
+
+      if (!targetUser) {
+        throw new AppError(ErrorCode.USER_NOT_FOUND, "User not found", 404);
+      }
+
+      if (targetUser.role === "superadmin") {
+        throw new AppError(
+          ErrorCode.FORBIDDEN,
+          "Cannot impersonate superadmins",
+          403
+        );
+      }
+
+      let tenantSlug: string | null = null;
+      if (targetUser.tenantId) {
+        const [tenant] = await db
+          .select({ slug: tenantsTable.slug })
+          .from(tenantsTable)
+          .where(eq(tenantsTable.id, targetUser.tenantId))
+          .limit(1);
+        tenantSlug = tenant?.slug ?? null;
+      }
+
+      const [accessToken, refreshToken] = await Promise.all([
+        ctx.jwt.sign({
+          sub: targetUser.id,
+          role: targetUser.role,
+          tenantId: targetUser.tenantId,
+        }),
+        ctx.refreshJwt.sign({
+          sub: targetUser.id,
+          role: targetUser.role,
+          tenantId: targetUser.tenantId,
+        }),
+      ]);
+
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 7);
+      await db.insert(refreshTokensTable).values({
+        token: refreshToken,
+        userId: targetUser.id,
+        expiresAt,
+      });
+
+      const { password: _, ...userWithoutPassword } = targetUser;
+
+      return {
+        user: { ...userWithoutPassword, tenantSlug },
+        accessToken,
+        refreshToken,
+      };
+    },
+    {
+      params: t.Object({
+        id: t.String({ format: "uuid" }),
+      }),
+      detail: {
+        tags: ["Users"],
+        summary: "Impersonate user (superadmin only)",
       },
       requireAuth: true,
       requireRole: ["superadmin"],

@@ -74,6 +74,12 @@ export type BulkUpdateRoleRequest = {
   role: "instructor" | "student";
 };
 
+export type ImpersonateResponse = {
+  user: Omit<User, "tenant"> & { tenantSlug: string | null };
+  accessToken: string;
+  refreshToken: string;
+};
+
 export type TenantUserListParams = Omit<UserListParams, "tenantId">;
 
 export const QUERY_KEYS = {
@@ -175,5 +181,12 @@ export const UsersService = {
       responseType: "blob",
     });
     return response.data as Blob;
+  },
+
+  async impersonate(userId: string) {
+    const { data } = await http.post<ImpersonateResponse>(
+      `/users/${userId}/impersonate`
+    );
+    return data;
   },
 } as const;

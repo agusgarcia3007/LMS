@@ -159,3 +159,50 @@ export async function ensureValidToken(): Promise<string | null> {
     return token;
   }
 }
+
+const IMPERSONATION_ORIGINAL_ACCESS = "impersonation_originalAccessToken";
+const IMPERSONATION_ORIGINAL_REFRESH = "impersonation_originalRefreshToken";
+const IMPERSONATION_TARGET = "impersonation_targetUser";
+
+export type ImpersonationTarget = {
+  id: string;
+  name: string;
+  role: string;
+  tenantSlug: string | null;
+};
+
+export const startImpersonation = (
+  originalAccess: string,
+  originalRefresh: string,
+  newAccess: string,
+  newRefresh: string,
+  target: ImpersonationTarget
+) => {
+  sessionStorage.setItem(IMPERSONATION_ORIGINAL_ACCESS, originalAccess);
+  sessionStorage.setItem(IMPERSONATION_ORIGINAL_REFRESH, originalRefresh);
+  sessionStorage.setItem(IMPERSONATION_TARGET, JSON.stringify(target));
+  localStorage.setItem(TOKEN_KEY, newAccess);
+  localStorage.setItem(REFRESH_TOKEN_KEY, newRefresh);
+};
+
+export const endImpersonation = (): boolean => {
+  const originalAccess = sessionStorage.getItem(IMPERSONATION_ORIGINAL_ACCESS);
+  const originalRefresh = sessionStorage.getItem(IMPERSONATION_ORIGINAL_REFRESH);
+  if (!originalAccess || !originalRefresh) return false;
+
+  localStorage.setItem(TOKEN_KEY, originalAccess);
+  localStorage.setItem(REFRESH_TOKEN_KEY, originalRefresh);
+  sessionStorage.removeItem(IMPERSONATION_ORIGINAL_ACCESS);
+  sessionStorage.removeItem(IMPERSONATION_ORIGINAL_REFRESH);
+  sessionStorage.removeItem(IMPERSONATION_TARGET);
+  return true;
+};
+
+export const isImpersonating = (): boolean => {
+  return sessionStorage.getItem(IMPERSONATION_ORIGINAL_ACCESS) !== null;
+};
+
+export const getImpersonationTarget = (): ImpersonationTarget | null => {
+  const data = sessionStorage.getItem(IMPERSONATION_TARGET);
+  return data ? JSON.parse(data) : null;
+};

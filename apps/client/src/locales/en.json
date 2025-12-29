@@ -26,7 +26,10 @@
       "action": "Resend"
     }
   },
-
+  "impersonation": {
+    "banner": "Viewing as {{name}}",
+    "end": "End session"
+  },
   "features": {
     "title": "Roadmap",
     "subtitle": "See what we're building next. Vote on features and submit your ideas.",
@@ -1378,6 +1381,7 @@
     "users": {
       "title": "User management",
       "description": "Manage all system users",
+      "impersonate": "View as user",
       "columns": {
         "name": "Name",
         "email": "Email",

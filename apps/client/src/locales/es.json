@@ -26,7 +26,10 @@
       "action": "Reenviar"
     }
   },
-
+  "impersonation": {
+    "banner": "Viendo como {{name}}",
+    "end": "Terminar sesion"
+  },
   "features": {
     "title": "Roadmap",
     "subtitle": "Mira lo que estamos construyendo. Vota por funciones y envia tus ideas.",
@@ -1360,6 +1363,7 @@
     "users": {
       "title": "Gestion de usuarios",
       "description": "Administra todos los usuarios del sistema",
+      "impersonate": "Ver como usuario",
       "columns": {
         "name": "Nombre",
         "email": "Email",
