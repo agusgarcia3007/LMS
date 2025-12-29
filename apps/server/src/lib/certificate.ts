@@ -1,4 +1,4 @@
-import { createCanvas, loadImage, GlobalFonts } from "@napi-rs/canvas";
+import { createCanvas, loadImage } from "@napi-rs/canvas";
 import PDFDocument from "pdfkit";
 import QRCode from "qrcode";
 import { eq, sql } from "drizzle-orm";
@@ -92,14 +92,6 @@ export async function generateCertificateImage(
   ctx.strokeStyle = `rgba(${primaryRgb.r}, ${primaryRgb.g}, ${primaryRgb.b}, 0.3)`;
   ctx.lineWidth = 2;
   ctx.strokeRect(60, 60, CERTIFICATE_WIDTH - 120, CERTIFICATE_HEIGHT - 120);
-
-  const cornerSize = 40;
-  ctx.fillStyle = primaryColor;
-  [[60, 60], [CERTIFICATE_WIDTH - 100, 60], [60, CERTIFICATE_HEIGHT - 100], [CERTIFICATE_WIDTH - 100, CERTIFICATE_HEIGHT - 100]].forEach(([x, y]) => {
-    ctx.beginPath();
-    ctx.arc(x, y, cornerSize / 2, 0, Math.PI * 2);
-    ctx.fill();
-  });
 
   let logoY = 150;
   if (tenantLogo) {
