@@ -150,12 +150,12 @@ export function AIChatSidebar({
     async ({ text, files }: PromptInputMessage) => {
       if (!text.trim() && !files?.length) return;
 
-      let contextFiles: File[] | undefined;
+      let contextFilesPromise: Promise<File[] | undefined> | File[] | undefined;
 
       if (itemType === "video" && videoElement) {
         const frame = captureVideoFrame(videoElement);
         if (frame) {
-          contextFiles = [frame];
+          contextFilesPromise = [frame];
         }
       } else if (
         itemType === "document" &&
@@ -163,14 +163,11 @@ export function AIChatSidebar({
         documentFileName &&
         documentMimeType
       ) {
-        const docFile = await fetchDocumentAsFile(
+        contextFilesPromise = fetchDocumentAsFile(
           documentUrl,
           documentFileName,
           documentMimeType
-        );
-        if (docFile) {
-          contextFiles = [docFile];
-        }
+        ).then((docFile) => (docFile ? [docFile] : undefined));
       }
 
       const userFiles: File[] | undefined = files?.length
@@ -185,7 +182,7 @@ export function AIChatSidebar({
             )
         : undefined;
 
-      await sendMessage(text, userFiles, contextFiles);
+      await sendMessage(text, userFiles, contextFilesPromise);
     },
     [
       sendMessage,

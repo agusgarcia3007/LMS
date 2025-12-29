@@ -38,6 +38,15 @@ export const getTranscriptSchema = z.object({
     ),
 });
 
+export const getQuizContentSchema = z.object({
+  questionNumber: z
+    .number()
+    .optional()
+    .describe(
+      "Optional specific question number (1-based) to get details about"
+    ),
+});
+
 export type LearnContext = {
   courseId: string;
   courseTitle: string;
@@ -296,6 +305,61 @@ export function createLearnAssistantTools(
           note:
             "This is the full transcript. The student is currently at " +
             formatTimestamp(context.currentTime),
+        };
+      },
+    }),
+
+    getQuizContent: tool({
+      description:
+        "Get the questions and options of the current quiz. Use this to help students understand quiz questions WITHOUT revealing correct answers. Provide hints and explanations about the underlying concepts instead.",
+      inputSchema: getQuizContentSchema,
+      execute: async ({ questionNumber }) => {
+        if (context.itemType !== "quiz") {
+          return {
+            available: false,
+            reason: "Current item is not a quiz",
+          };
+        }
+
+        if (!context.transcript) {
+          return {
+            available: false,
+            reason: "Quiz content not available",
+          };
+        }
+
+        logger.info("getQuizContent executed", {
+          itemId: context.itemId,
+          questionNumber,
+        });
+
+        const sanitizedContent = context.transcript
+          .replace(/\[CORRECT\]/g, "[ ]")
+          .replace(/Explanation:.*$/gm, "");
+
+        if (questionNumber) {
+          const questions = sanitizedContent.split(/Question \d+:/);
+          const targetQuestion = questions[questionNumber];
+          if (targetQuestion) {
+            return {
+              available: true,
+              quizTitle: context.itemTitle,
+              question: `Question ${questionNumber}:${targetQuestion.trim()}`,
+              totalQuestions: questions.length - 1,
+              instructions:
+                "Help the student understand the concept being tested. Do NOT reveal which option is correct. Use hints and guiding questions instead.",
+            };
+          }
+        }
+
+        return {
+          available: true,
+          quizTitle: context.itemTitle,
+          content: sanitizedContent,
+          totalQuestions: (sanitizedContent.match(/Question \d+:/g) || [])
+            .length,
+          instructions:
+            "Help the student understand the concepts being tested. Do NOT reveal which options are correct. Use hints and guiding questions instead. The purpose of the quiz is for the student to demonstrate their knowledge.",
         };
       },
     }),

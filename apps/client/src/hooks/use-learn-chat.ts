@@ -103,11 +103,34 @@ export function useLearnChat() {
   }, []);
 
   const sendMessage = useCallback(
-    async (content: string, files?: File[], contextFiles?: File[]) => {
+    async (
+      content: string,
+      files?: File[],
+      contextFilesOrPromise?: File[] | Promise<File[] | undefined>
+    ) => {
       if (!contextRef.current) {
         toast.error(i18n.t("learn.aiChat.contextError"));
         return;
       }
+
+      const userMessageId = crypto.randomUUID();
+      const userMessage: ChatMessage = {
+        id: userMessageId,
+        role: "user",
+        content,
+        timestamp: Date.now(),
+        attachments: undefined,
+      };
+
+      setMessages((prev) => [...prev, userMessage]);
+      setStatus("streaming");
+      setError(null);
+      setToolInvocations([]);
+
+      const contextFiles =
+        contextFilesOrPromise instanceof Promise
+          ? await contextFilesOrPromise
+          : contextFilesOrPromise;
 
       const processedAttachments: ChatAttachment[] | undefined = files?.length
         ? await Promise.all(files.map(processFile))
@@ -118,18 +141,15 @@ export function useLearnChat() {
           ? await Promise.all(contextFiles.map(processFile))
           : undefined;
 
-      const userMessage: ChatMessage = {
-        id: crypto.randomUUID(),
-        role: "user",
-        content,
-        timestamp: Date.now(),
-        attachments: processedAttachments,
-      };
-
-      setMessages((prev) => [...prev, userMessage]);
-      setStatus("streaming");
-      setError(null);
-      setToolInvocations([]);
+      if (processedAttachments?.length) {
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === userMessageId
+              ? { ...m, attachments: processedAttachments }
+              : m
+          )
+        );
+      }
 
       const allAttachments = [
         ...(processedContextFiles || []),

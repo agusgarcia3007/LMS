@@ -8,6 +8,7 @@
   "private": true,
   "scripts": {
     "dev": "bun run --filter '*' dev",
+    "dev:app": "bun run --filter learnbase-client --filter learnbase-server dev",
     "build": "bun run --filter '*' build",
     "dev:client": "bun run --filter client dev",
     "dev:server": "bun run --filter server dev",

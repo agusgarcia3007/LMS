@@ -390,9 +390,12 @@ export const chatLearnRoutes = new Elysia({ name: "ai-chat-learn" })
                 image: getPresignedUrl(att.key),
               });
             } else {
+              const base64Data = att.data.includes(",")
+                ? att.data.split(",")[1]
+                : att.data;
               contentParts.push({
                 type: "file" as const,
-                data: att.data,
+                data: base64Data,
                 mediaType: att.mediaType,
               });
             }
