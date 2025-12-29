@@ -400,6 +400,7 @@ export const campusRoutes = new Elysia({ name: "campus" })
           studentsCount: 0,
           rating: 0,
           reviewsCount: 0,
+          includeCertificate: course.includeCertificate,
           categories: courseCategories,
           instructor: instructorProfile
             ? {

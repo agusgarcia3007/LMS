@@ -1,9 +1,8 @@
 import { useState } from "react";
 import {
+  BookOpen,
   Check,
   FileText,
-  Heart,
-  Infinity as InfinityIcon,
   Layers,
   Play,
   Share2,
@@ -12,6 +11,7 @@ import {
   Trophy,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Image } from "@/components/ui/image";
@@ -48,7 +48,7 @@ export function CourseSidebar({ course }: CourseSidebarProps) {
     : 0;
 
   const isFree = course.price === 0;
-  const priceText = formatPrice(course.price, course.currency) ?? t("campus.course.free");
+  const priceText = isFree ? t("campus.course.free") : formatPrice(course.price, course.currency);
   const inCart = isInCart(course.id);
   const hasPreviewVideo = !!course.previewVideoUrl;
 
@@ -63,6 +63,22 @@ export function CourseSidebar({ course }: CourseSidebarProps) {
   const handleThumbnailClick = () => {
     if (hasPreviewVideo) {
       setIsVideoModalOpen(true);
+    }
+  };
+
+  const handleShare = async () => {
+    const url = window.location.href;
+    const shareData = {
+      title: course.title,
+      text: course.shortDescription ?? course.title,
+      url,
+    };
+
+    if (navigator.share && navigator.canShare?.(shareData)) {
+      await navigator.share(shareData);
+    } else {
+      await navigator.clipboard.writeText(url);
+      toast.success(t("campus.courseDetail.linkCopied"));
     }
   };
 
@@ -176,28 +192,29 @@ export function CourseSidebar({ course }: CourseSidebarProps) {
               <span>{t("campus.courseDetail.downloadableResources")}</span>
             </li>
             <li className="flex items-center gap-2.5">
-              <InfinityIcon className="size-4 shrink-0" />
-              <span>{t("campus.courseDetail.lifetimeAccess")}</span>
+              <BookOpen className="size-4 shrink-0" />
+              <span>{t("campus.courseDetail.courseAccess")}</span>
             </li>
             <li className="flex items-center gap-2.5">
               <Smartphone className="size-4 shrink-0" />
               <span>{t("campus.courseDetail.mobileAccess")}</span>
             </li>
-            <li className="flex items-center gap-2.5">
-              <Trophy className="size-4 shrink-0" />
-              <span>{t("campus.courseDetail.certificate")}</span>
-            </li>
+            {course.includeCertificate && (
+              <li className="flex items-center gap-2.5">
+                <Trophy className="size-4 shrink-0" />
+                <span>{t("campus.courseDetail.certificate")}</span>
+              </li>
+            )}
           </ul>
         </div>
 
-        <div className="mt-4 flex items-center justify-center gap-4 border-t pt-4">
-          <button className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
+        <div className="mt-4 flex items-center justify-center border-t pt-4">
+          <button
+            onClick={handleShare}
+            className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+          >
             <Share2 className="size-4" />
             <span>{t("campus.courseDetail.share")}</span>
-          </button>
-          <button className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
-            <Heart className="size-4" />
-            <span>{t("campus.courseDetail.favorite")}</span>
           </button>
         </div>
       </CardContent>

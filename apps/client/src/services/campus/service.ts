@@ -127,6 +127,7 @@ export type CampusCourseModule = {
 
 export type CampusCourseDetail = CampusCourse & {
   itemsCount: number;
+  includeCertificate: boolean;
   modules: CampusCourseModule[];
 };
 
