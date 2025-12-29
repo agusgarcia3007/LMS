@@ -484,7 +484,8 @@
       "invalidLinkDescription": "Este link para redefinir senha é inválido ou expirou.",
       "requestNewLink": "Solicitar novo link",
       "success": "Senha redefinida",
-      "successDescription": "Sua senha foi redefinida. Agora você pode entrar com sua nova senha."
+      "successDescription": "Sua senha foi redefinida. Agora você pode entrar com sua nova senha.",
+      "redirecting": "Entrando..."
     },
     "emailVerification": {
       "bannerTitle": "Verifique seu email",

@@ -428,6 +428,13 @@
       "when": 1766786203715,
       "tag": "0060_curly_green_goblin",
       "breakpoints": true
+    },
+    {
+      "idx": 61,
+      "version": "7",
+      "when": 1767032179616,
+      "tag": "0061_public_talkback",
+      "breakpoints": true
     }
   ]
 }

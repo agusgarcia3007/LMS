@@ -17,6 +17,7 @@ import { and, eq, gt, inArray, isNull } from "drizzle-orm";
 import { Elysia, t } from "elysia";
 import { rateLimit } from "elysia-rate-limit";
 import { isStripeConfigured } from "@/lib/stripe";
+import { logger } from "@/lib/logger";
 
 const RESERVED_SLUGS = ["www", "api", "admin", "app", "backoffice", "dashboard", "news"];
 
@@ -416,10 +417,14 @@ authRoutes.post(
         )
         .limit(1);
 
+      logger.info("forgot-password request", { tenant: ctx.tenant?.slug, email: ctx.body.email });
+
       if (!user) {
+        logger.info("forgot-password user not found", { email: ctx.body.email });
         return { message: "If the email exists, a reset link has been sent" };
       }
 
+      logger.info("forgot-password user found", { userId: user.id, email: user.email, role: user.role });
       const resetToken = await ctx.resetJwt.sign({ sub: user.id });
       const resetUrl = ctx.tenant
         ? `${getTenantClientUrl(ctx.tenant)}/reset-password?token=${resetToken}`
@@ -461,7 +466,6 @@ authRoutes.post(
         );
       }
 
-      // Fetch user and hash password in parallel (independent operations)
       const [[user], hashedPassword] = await Promise.all([
         db
           .select()
@@ -482,7 +486,45 @@ authRoutes.post(
 
       invalidateUserCache(user.id);
 
-      return { message: "Password has been reset successfully" };
+      const [accessToken, refreshToken] = await Promise.all([
+        ctx.jwt.sign({
+          sub: user.id,
+          role: user.role,
+          tenantId: user.tenantId,
+        }),
+        ctx.refreshJwt.sign({
+          sub: user.id,
+          role: user.role,
+          tenantId: user.tenantId,
+        }),
+      ]);
+
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 7);
+
+      await db.insert(refreshTokensTable).values({
+        token: refreshToken,
+        userId: user.id,
+        expiresAt,
+      });
+
+      let tenantSlug: string | null = null;
+      if (user.tenantId) {
+        const [tenant] = await db
+          .select({ slug: tenantsTable.slug })
+          .from(tenantsTable)
+          .where(eq(tenantsTable.id, user.tenantId))
+          .limit(1);
+        tenantSlug = tenant?.slug ?? null;
+      }
+
+      const { password: _, ...userWithoutPassword } = user;
+
+      return {
+        user: { ...userWithoutPassword, tenantSlug },
+        accessToken,
+        refreshToken,
+      };
     },
   {
     body: t.Object({

@@ -484,7 +484,8 @@
       "invalidLinkDescription": "Este enlace para restablecer contraseña es inválido o ha expirado.",
       "requestNewLink": "Solicitar nuevo enlace",
       "success": "Contraseña restablecida",
-      "successDescription": "Tu contraseña ha sido restablecida. Ahora puedes iniciar sesión con tu nueva contraseña."
+      "successDescription": "Tu contraseña ha sido restablecida. Ahora puedes iniciar sesión con tu nueva contraseña.",
+      "redirecting": "Iniciando sesión..."
     },
     "emailVerification": {
       "bannerTitle": "Verifica tu email",

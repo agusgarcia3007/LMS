@@ -94,10 +94,7 @@ export const AuthService = {
   },
 
   async resetPassword(payload: ResetPasswordRequest) {
-    const { data } = await http.post<{ message: string }>(
-      "/auth/reset-password",
-      payload
-    );
+    const { data } = await http.post<AuthResponse>("/auth/reset-password", payload);
     return data;
   },
 

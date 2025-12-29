@@ -294,6 +294,8 @@ export const tenantsTable = pgTable(
     payoutsEnabled: boolean("payouts_enabled").default(false),
     published: boolean("published").default(true).notNull(),
     publishedAt: timestamp("published_at"),
+    revenuecatWebhookSecret: text("revenuecat_webhook_secret"),
+    revenuecatDefaultCourseId: uuid("revenuecat_default_course_id"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at")
       .notNull()
@@ -1130,6 +1132,7 @@ export const jobTypeEnum = pgEnum("job_type", [
   "send-feature-approved-email",
   "send-feature-rejected-email",
   "generate-course-embedding",
+  "send-revenuecat-welcome-email",
 ]);
 
 export const jobsHistoryTable = pgTable(
@@ -1249,6 +1252,26 @@ export const userNotificationsTable = pgTable(
     index("user_notifications_user_id_idx").on(table.userId),
     index("user_notifications_is_read_idx").on(table.userId, table.isRead),
     index("user_notifications_created_at_idx").on(table.createdAt),
+  ]
+);
+
+export const revenuecatEventsTable = pgTable(
+  "revenuecat_events",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    eventId: text("event_id").notNull().unique(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenantsTable.id, { onDelete: "cascade" }),
+    eventType: text("event_type").notNull(),
+    appUserId: text("app_user_id").notNull(),
+    email: text("email"),
+    processedAt: timestamp("processed_at").notNull().defaultNow(),
+    metadata: jsonb("metadata"),
+  },
+  (table) => [
+    index("revenuecat_events_event_id_idx").on(table.eventId),
+    index("revenuecat_events_tenant_id_idx").on(table.tenantId),
   ]
 );
 
@@ -1378,3 +1401,6 @@ export type SelectFeatureAttachment = typeof featureAttachmentsTable.$inferSelec
 export type InsertUserNotification = typeof userNotificationsTable.$inferInsert;
 export type SelectUserNotification = typeof userNotificationsTable.$inferSelect;
 export type NotificationType = (typeof notificationTypeEnum.enumValues)[number];
+
+export type InsertRevenuecatEvent = typeof revenuecatEventsTable.$inferInsert;
+export type SelectRevenuecatEvent = typeof revenuecatEventsTable.$inferSelect;

@@ -1,4 +1,5 @@
-import { Elysia } from "elysia";
+import { Elysia, t } from "elysia";
+import { jwt } from "@elysiajs/jwt";
 import { logger } from "@/lib/logger";
 import { db } from "@/db";
 import {
@@ -10,7 +11,12 @@ import {
   cartItemsTable,
   usersTable,
   coursesTable,
+  revenuecatEventsTable,
 } from "@/db/schema";
+import { AppError, ErrorCode } from "@/lib/errors";
+import { enqueue } from "@/jobs/bullmq/enqueue";
+import { getPresignedUrl } from "@/lib/upload";
+import { RESET_SECRET } from "@/lib/constants";
 import { eq, and, inArray } from "drizzle-orm";
 import {
   stripe,
@@ -504,5 +510,154 @@ export const webhooksRoutes = new Elysia()
     },
     {
       parse: "none",
+    }
+  )
+  .use(
+    jwt({
+      name: "resetJwt",
+      secret: RESET_SECRET,
+      exp: "48h",
+    })
+  )
+  .post(
+    "/revenuecat/:tenantSlug",
+    async (ctx) => {
+      const payload = ctx.body as {
+        event: {
+          id: string;
+          type: string;
+          app_user_id: string;
+          subscriber_attributes?: {
+            $email?: { value: string };
+          };
+        };
+      };
+      const event = payload.event;
+
+      const HANDLED_EVENTS = new Set([
+        "INITIAL_PURCHASE",
+        "NON_RENEWING_PURCHASE",
+      ]);
+      if (!HANDLED_EVENTS.has(event.type)) {
+        return { received: true, skipped: true };
+      }
+
+      const email = event.subscriber_attributes?.$email?.value?.toLowerCase();
+      if (!email) {
+        throw new AppError(ErrorCode.BAD_REQUEST, "Missing email", 400);
+      }
+
+      const [tenantResult, existingEvent, existingUsers] = await Promise.all([
+        db
+          .select()
+          .from(tenantsTable)
+          .where(eq(tenantsTable.slug, ctx.params.tenantSlug))
+          .limit(1),
+        db
+          .select({ id: revenuecatEventsTable.id })
+          .from(revenuecatEventsTable)
+          .where(eq(revenuecatEventsTable.eventId, event.id))
+          .limit(1),
+        db
+          .select()
+          .from(usersTable)
+          .where(eq(usersTable.email, email))
+          .limit(10),
+      ]);
+
+      const tenant = tenantResult[0];
+      if (!tenant) {
+        throw new AppError(ErrorCode.NOT_FOUND, "Tenant not found", 404);
+      }
+
+      if (
+        !tenant.revenuecatWebhookSecret ||
+        !tenant.revenuecatDefaultCourseId
+      ) {
+        throw new AppError(
+          ErrorCode.BAD_REQUEST,
+          "RevenueCat not configured",
+          400
+        );
+      }
+
+      const authHeader = ctx.headers["authorization"];
+      if (authHeader !== `Bearer ${tenant.revenuecatWebhookSecret}`) {
+        throw new AppError(ErrorCode.UNAUTHORIZED, "Invalid webhook secret", 401);
+      }
+
+      if (existingEvent.length > 0) {
+        return { received: true, duplicate: true };
+      }
+
+      const user = existingUsers.find((u) => u.tenantId === tenant.id);
+      const isNewUser = !user;
+
+      const result = await db.transaction(async (tx) => {
+        let userId: string;
+
+        if (isNewUser) {
+          const hashedPassword = await Bun.password.hash(crypto.randomUUID());
+          const [newUser] = await tx
+            .insert(usersTable)
+            .values({
+              email,
+              password: hashedPassword,
+              name: email.split("@")[0],
+              role: "student",
+              tenantId: tenant.id,
+            })
+            .returning({ id: usersTable.id });
+          userId = newUser.id;
+        } else {
+          userId = user.id;
+        }
+
+        await Promise.all([
+          tx
+            .insert(enrollmentsTable)
+            .values({
+              userId,
+              courseId: tenant.revenuecatDefaultCourseId!,
+              tenantId: tenant.id,
+            })
+            .onConflictDoNothing(),
+          tx.insert(revenuecatEventsTable).values({
+            eventId: event.id,
+            tenantId: tenant.id,
+            eventType: event.type,
+            appUserId: event.app_user_id,
+            email,
+            metadata: event,
+          }),
+        ]);
+
+        return { userId };
+      });
+
+      if (isNewUser) {
+        const resetToken = await ctx.resetJwt.sign({ sub: result.userId });
+        const baseUrl = tenant.customDomain
+          ? `https://${tenant.customDomain}`
+          : `https://${tenant.slug}.${env.CLIENT_URL?.replace(/^https?:\/\//, "") || "uselearnbase.com"}`;
+        const resetUrl = `${baseUrl}/reset-password?token=${resetToken}`;
+        const logoUrl = tenant.logo ? await getPresignedUrl(tenant.logo) : null;
+
+        await enqueue({
+          type: "send-revenuecat-welcome-email",
+          data: {
+            email,
+            tenantName: tenant.name,
+            resetUrl,
+            tenantLogo: logoUrl,
+            tenantContactEmail: tenant.contactEmail,
+          },
+        });
+      }
+
+      return { received: true, userId: result.userId, isNewUser };
+    },
+    {
+      params: t.Object({ tenantSlug: t.String() }),
     }
   );

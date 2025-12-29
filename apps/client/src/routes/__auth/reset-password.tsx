@@ -102,19 +102,10 @@ function ResetPasswordPage() {
         <Card className="mt-4 sm:mx-auto sm:w-full sm:max-w-md">
           <CardContent>
             <p className="text-center text-sm text-muted-foreground">
-              {t("auth.resetPassword.successDescription")}
+              {t("auth.resetPassword.redirecting")}
             </p>
           </CardContent>
         </Card>
-
-        <p className="mt-6 text-center text-sm text-muted-foreground">
-          <Link
-            to="/login"
-            className="font-medium text-primary hover:text-primary/90"
-          >
-            {t("common.signIn")}
-          </Link>
-        </p>
       </>
     );
   }

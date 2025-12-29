@@ -88,6 +88,17 @@ export type GenerateCourseEmbeddingJob = {
   };
 };
 
+export type SendRevenueCatWelcomeEmailJob = {
+  type: "send-revenuecat-welcome-email";
+  data: {
+    email: string;
+    tenantName: string;
+    resetUrl: string;
+    tenantLogo: string | null;
+    tenantContactEmail: string | null;
+  };
+};
+
 export type Job =
   | SendWelcomeEmailJob
   | CreateStripeCustomerJob
@@ -97,4 +108,5 @@ export type Job =
   | SendFeatureSubmissionEmailJob
   | SendFeatureApprovedEmailJob
   | SendFeatureRejectedEmailJob
-  | GenerateCourseEmbeddingJob;
+  | GenerateCourseEmbeddingJob
+  | SendRevenueCatWelcomeEmailJob;

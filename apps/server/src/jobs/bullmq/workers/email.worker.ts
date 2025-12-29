@@ -11,6 +11,7 @@ import {
   getFeatureSubmissionEmailHtml,
   getFeatureApprovedEmailHtml,
   getFeatureRejectedEmailHtml,
+  getRevenueCatWelcomeEmailHtml,
 } from "@/lib/email-templates";
 import type {
   SendWelcomeEmailJob,
@@ -18,6 +19,7 @@ import type {
   SendFeatureSubmissionEmailJob,
   SendFeatureApprovedEmailJob,
   SendFeatureRejectedEmailJob,
+  SendRevenueCatWelcomeEmailJob,
 } from "../../types";
 
 type EmailJobData = { historyId: string } & (
@@ -26,6 +28,7 @@ type EmailJobData = { historyId: string } & (
   | SendFeatureSubmissionEmailJob["data"]
   | SendFeatureApprovedEmailJob["data"]
   | SendFeatureRejectedEmailJob["data"]
+  | SendRevenueCatWelcomeEmailJob["data"]
 );
 
 async function processWelcomeEmail(data: SendWelcomeEmailJob["data"] & { clientUrl: string; verificationToken: string }) {
@@ -88,6 +91,21 @@ async function processFeatureRejectedEmail(data: SendFeatureRejectedEmailJob["da
   });
 }
 
+async function processRevenueCatWelcomeEmail(data: SendRevenueCatWelcomeEmailJob["data"]) {
+  await sendEmail({
+    to: data.email,
+    subject: `Welcome to ${data.tenantName}`,
+    html: getRevenueCatWelcomeEmailHtml({
+      recipientName: data.email.split("@")[0],
+      tenantName: data.tenantName,
+      resetUrl: data.resetUrl,
+      logoUrl: data.tenantLogo ?? undefined,
+    }),
+    senderName: data.tenantName,
+    replyTo: data.tenantContactEmail ?? undefined,
+  });
+}
+
 export const emailWorker = new Worker<EmailJobData>(
   "emails",
   async (job) => {
@@ -111,6 +129,8 @@ export const emailWorker = new Worker<EmailJobData>(
         return await processFeatureApprovedEmail(job.data as SendFeatureApprovedEmailJob["data"]);
       case "send-feature-rejected-email":
         return await processFeatureRejectedEmail(job.data as SendFeatureRejectedEmailJob["data"]);
+      case "send-revenuecat-welcome-email":
+        return await processRevenueCatWelcomeEmail(job.data as SendRevenueCatWelcomeEmailJob["data"]);
       default:
         throw new Error(`Unknown email job: ${job.name}`);
     }

@@ -41,10 +41,18 @@ export const forgotPasswordOptions = () =>
     mutationFn: AuthService.forgotPassword,
   });
 
-export const resetPasswordOptions = () =>
-  mutationOptions({
+export const useResetPasswordOptions = () => {
+  const queryClient = useQueryClient();
+  return mutationOptions({
     mutationFn: AuthService.resetPassword,
+    onSuccess: (data) => {
+      setTokens(data.accessToken, data.refreshToken);
+      queryClient.refetchQueries({ queryKey: QUERY_KEYS.PROFILE });
+      queryClient.invalidateQueries({ queryKey: CART_QUERY_KEYS.CART });
+      window.location.href = "/my-courses";
+    },
   });
+};
 
 export const useLogoutOptions = () => {
   const queryClient = useQueryClient();

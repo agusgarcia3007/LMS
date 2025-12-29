@@ -4,7 +4,7 @@ import {
   useSignupOptions,
   refreshOptions,
   forgotPasswordOptions,
-  resetPasswordOptions,
+  useResetPasswordOptions,
   useLogoutOptions,
   verifyEmailOptions,
   useResendVerificationOptions,
@@ -20,7 +20,7 @@ export const useLogout = () => useMutation(useLogoutOptions());
 
 export const useForgotPassword = () => useMutation(forgotPasswordOptions());
 
-export const useResetPassword = () => useMutation(resetPasswordOptions());
+export const useResetPassword = () => useMutation(useResetPasswordOptions());
 
 export const useVerifyEmail = () => useMutation(verifyEmailOptions());
 

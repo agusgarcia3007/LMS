@@ -9,6 +9,7 @@ const EMAIL_JOBS = new Set([
   "send-feature-submission-email",
   "send-feature-approved-email",
   "send-feature-rejected-email",
+  "send-revenuecat-welcome-email",
 ]);
 
 const STRIPE_JOBS = new Set([

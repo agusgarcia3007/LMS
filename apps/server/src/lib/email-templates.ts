@@ -1045,3 +1045,85 @@ export function getFeatureRejectedEmailHtml(params: FeatureRejectedParams): stri
 </html>
 `.trim();
 }
+
+type RevenueCatWelcomeEmailParams = {
+  recipientName: string;
+  tenantName: string;
+  resetUrl: string;
+  logoUrl?: string;
+};
+
+export function getRevenueCatWelcomeEmailHtml(
+  params: RevenueCatWelcomeEmailParams
+): string {
+  const { recipientName, tenantName, resetUrl, logoUrl } = params;
+
+  const logoHtml = logoUrl
+    ? `<img src="${logoUrl}" alt="${tenantName}" style="max-height: 64px; max-width: 200px; margin-bottom: 24px;" />`
+    : "";
+
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcome to ${tenantName}</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f3f4f6;">
+  <table role="presentation" style="width: 100%; border-collapse: collapse;">
+    <tr>
+      <td align="center" style="padding: 40px 20px;">
+        <table role="presentation" style="width: 100%; max-width: 600px; border-collapse: collapse; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+          <tr>
+            <td style="padding: 48px 40px; text-align: center;">
+              ${logoHtml}
+              <h1 style="margin: 0 0 8px; font-size: 28px; font-weight: 700; color: #1f2937;">
+                Welcome to ${tenantName}!
+              </h1>
+
+              <p style="margin: 0 0 32px; font-size: 16px; color: #6b7280; line-height: 1.6;">
+                Hi ${recipientName}, thanks for your purchase!
+              </p>
+
+              <div style="background-color: #f9fafb; border-radius: 8px; padding: 24px; margin-bottom: 32px;">
+                <p style="margin: 0; font-size: 16px; color: #4b5563; line-height: 1.6;">
+                  Your account has been created and your course is ready. Set up your password to start learning.
+                </p>
+              </div>
+
+              <table role="presentation" style="width: 100%; border-collapse: collapse;">
+                <tr>
+                  <td style="padding: 8px;">
+                    <a href="${resetUrl}" style="display: inline-block; padding: 14px 32px; background-color: #0052cc; color: #ffffff; text-decoration: none; font-weight: 600; font-size: 16px; border-radius: 8px;">
+                      Set Up My Account
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="margin: 24px 0 0; font-size: 14px; color: #9ca3af;">
+                This link expires in 48 hours
+              </p>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding: 24px 40px; background-color: #f9fafb; border-radius: 0 0 12px 12px; text-align: center;">
+              <p style="margin: 0; font-size: 12px; color: #9ca3af;">
+                If you didn't make this purchase, please ignore this email
+              </p>
+            </td>
+          </tr>
+        </table>
+
+        <p style="margin: 24px 0 0; font-size: 12px; color: #9ca3af;">
+          This email was sent by ${tenantName}
+        </p>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+`.trim();
+}
