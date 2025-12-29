@@ -1,4 +1,3 @@
-import { Link } from "@tanstack/react-router";
 import { GraduationCap } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Image } from "@/components/ui/image";
@@ -95,30 +94,14 @@ export function CampusFooter({ tenant }: CampusFooterProps) {
             </div>
           )}
 
-          <div className="flex items-center gap-6 text-sm text-muted-foreground">
-            <Link to="/terms" className="transition-colors hover:text-foreground">
-              {t("campus.footer.terms")}
-            </Link>
-            <Link to="/privacy" className="transition-colors hover:text-foreground">
-              {t("campus.footer.privacy")}
-            </Link>
+          {tenant.contactEmail && (
             <a
-              href="https://blog.uselearnbase.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="transition-colors hover:text-foreground"
+              href={`mailto:${tenant.contactEmail}`}
+              className="text-sm text-muted-foreground transition-colors hover:text-foreground"
             >
-              Blog
+              {t("campus.footer.contact")}
             </a>
-            {tenant.contactEmail && (
-              <a
-                href={`mailto:${tenant.contactEmail}`}
-                className="transition-colors hover:text-foreground"
-              >
-                {t("campus.footer.contact")}
-              </a>
-            )}
-          </div>
+          )}
 
           <div className="flex flex-col items-center gap-2 pt-4">
             <div className="text-xs text-muted-foreground/60">
