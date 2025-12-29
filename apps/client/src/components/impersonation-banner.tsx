@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
@@ -7,6 +8,7 @@ import {
   isImpersonating,
   getImpersonationTarget,
   endImpersonation,
+  type ImpersonationTarget,
 } from "@/lib/http";
 import { QUERY_KEYS as PROFILE_KEYS } from "@/services/profile/service";
 
@@ -14,10 +16,14 @@ export function ImpersonationBanner() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [target, setTarget] = useState<ImpersonationTarget | null>(null);
 
-  if (!isImpersonating()) return null;
+  useEffect(() => {
+    if (isImpersonating()) {
+      setTarget(getImpersonationTarget());
+    }
+  }, []);
 
-  const target = getImpersonationTarget();
   if (!target) return null;
 
   const handleEnd = () => {

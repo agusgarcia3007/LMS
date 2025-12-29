@@ -199,10 +199,12 @@ export const endImpersonation = (): boolean => {
 };
 
 export const isImpersonating = (): boolean => {
+  if (!isClient()) return false;
   return sessionStorage.getItem(IMPERSONATION_ORIGINAL_ACCESS) !== null;
 };
 
 export const getImpersonationTarget = (): ImpersonationTarget | null => {
+  if (!isClient()) return null;
   const data = sessionStorage.getItem(IMPERSONATION_TARGET);
   return data ? JSON.parse(data) : null;
 };

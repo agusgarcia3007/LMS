@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import {
   HeadContent,
   Outlet,
@@ -65,10 +66,16 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 }
 
 function RootComponent() {
+  const [impersonating, setImpersonating] = useState(false);
+
+  useEffect(() => {
+    setImpersonating(isImpersonating());
+  }, []);
+
   return (
     <>
       <ImpersonationBanner />
-      <div className={cn(isImpersonating() && "pt-10")}>
+      <div className={cn(impersonating && "pt-10")}>
         <Outlet />
       </div>
     </>
