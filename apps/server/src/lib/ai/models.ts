@@ -2,7 +2,7 @@ export const AI_MODELS = {
   TRANSCRIPTION: "whisper-large-v3-turbo",
   CONTENT_GENERATION: "llama-3.3-70b-versatile",
   CONTENT_ANALYSIS: "llama-3.3-70b-versatile",
-  QUIZ_GENERATION: "llama-3.3-70b-versatile",
+  QUIZ_GENERATION: "gpt-4o-mini",
   COURSE_GENERATION: "llama-3.3-70b-versatile",
   IMAGE_GENERATION: "gemini-2.5-flash-image-preview",
   THEME_GENERATION: "gemini-2.5-flash",
