@@ -2,6 +2,8 @@ import { initializeApp, getApps, type FirebaseApp } from "firebase/app";
 import {
   getAuth,
   signInWithPopup,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
   GoogleAuthProvider,
   OAuthProvider,
   type Auth,
@@ -43,5 +45,23 @@ export async function signInWithGoogle(auth: Auth): Promise<string> {
 export async function signInWithApple(auth: Auth): Promise<string> {
   const provider = new OAuthProvider("apple.com");
   const result = await signInWithPopup(auth, provider);
+  return result.user.getIdToken();
+}
+
+export async function signInWithEmail(
+  auth: Auth,
+  email: string,
+  password: string
+): Promise<string> {
+  const result = await signInWithEmailAndPassword(auth, email, password);
+  return result.user.getIdToken();
+}
+
+export async function signUpWithEmail(
+  auth: Auth,
+  email: string,
+  password: string
+): Promise<string> {
+  const result = await createUserWithEmailAndPassword(auth, email, password);
   return result.user.getIdToken();
 }

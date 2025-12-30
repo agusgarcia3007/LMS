@@ -1,3 +1,5 @@
+import { useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -18,12 +20,13 @@ import { getTenantFromRequest } from "@/lib/tenant.server";
 import { getTenantFromHost, getResolvedSlug } from "@/lib/tenant";
 import { clearTokens } from "@/lib/http";
 import { getCampusTenantServer } from "@/services/campus/server";
-import { useLogin } from "@/services/auth/mutations";
+import { useLogin, useExternalLogin } from "@/services/auth/mutations";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { getRedirectPath, clearRedirectPath } from "@/lib/http";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
+import { getFirebaseAuth, signInWithEmail } from "@/lib/firebase";
 
 export const Route = createFileRoute("/__auth/login")({
   loader: async () => {
@@ -52,12 +55,18 @@ function LoginPage() {
   const navigate = useNavigate();
   const { tenant } = Route.useLoaderData();
   const { mutate: login, isPending } = useLogin();
+  const { mutate: externalLogin } = useExternalLogin();
+  const [isFirebaseEmailLoading, setIsFirebaseEmailLoading] = useState(false);
   const isFirebaseAuth = tenant?.authSettings?.provider === "firebase";
 
   const form = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
     defaultValues: { email: "", password: "" },
   });
+
+  const handleNavigateAfterLogin = () => {
+    navigate({ to: "/", search: { campus: undefined } });
+  };
 
   function onSubmit(data: LoginInput) {
     login(data, {
@@ -102,6 +111,20 @@ function LoginPage() {
         }
       : null;
 
+  async function onFirebaseEmailSubmit(data: LoginInput) {
+    if (!firebaseConfig || !tenant) return;
+    setIsFirebaseEmailLoading(true);
+    try {
+      const auth = getFirebaseAuth(tenant.slug, firebaseConfig);
+      const idToken = await signInWithEmail(auth, data.email, data.password);
+      externalLogin(idToken, { onSuccess: handleNavigateAfterLogin });
+    } catch (error) {
+      console.error("Firebase email sign-in error:", error);
+      toast.error(t("auth.social.error"));
+      setIsFirebaseEmailLoading(false);
+    }
+  }
+
   if (isFirebaseAuth && firebaseConfig && tenant) {
     return (
       <>
@@ -117,8 +140,64 @@ function LoginPage() {
             <FirebaseSocialButtons
               tenantSlug={tenant.slug}
               firebaseConfig={firebaseConfig}
-              onSuccess={() => navigate({ to: "/", search: { campus: undefined } })}
+              onSuccess={handleNavigateAfterLogin}
             />
+
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-card px-2 text-muted-foreground">
+                  {t("auth.social.or")}
+                </span>
+              </div>
+            </div>
+
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onFirebaseEmailSubmit)} className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("common.email")}</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="email"
+                          placeholder={t("auth.login.emailPlaceholder")}
+                          autoComplete="email"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("common.password")}</FormLabel>
+                      <FormControl>
+                        <PasswordInput
+                          placeholder={t("auth.login.passwordPlaceholder")}
+                          autoComplete="current-password"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <Button type="submit" className="w-full" isLoading={isFirebaseEmailLoading}>
+                  {t("common.signIn")}
+                </Button>
+              </form>
+            </Form>
           </CardContent>
         </Card>
 

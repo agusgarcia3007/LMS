@@ -513,7 +513,9 @@
     },
     "social": {
       "continueWithGoogle": "Continuar com Google",
-      "continueWithApple": "Continuar com Apple"
+      "continueWithApple": "Continuar com Apple",
+      "or": "ou",
+      "error": "Erro de autenticação. Tente novamente."
     }
   },
   "header": {
@@ -1242,7 +1244,17 @@
         "authDomain": "Dominio de Auth",
         "authDomainHelp": "Geralmente seu-projeto-id.firebaseapp.com",
         "firebaseWarning": "Quando Firebase Auth esta habilitado, os alunos farao login usando Google ou Apple atraves do seu projeto Firebase. Proprietarios, administradores e instrutores continuarao usando autenticacao LearnBase.",
-        "updateSuccess": "Configuracao de autenticacao atualizada com sucesso"
+        "updateSuccess": "Configuracao de autenticacao atualizada com sucesso",
+        "connected": "Conectado",
+        "configure": "Configurar",
+        "connect": "Conectar",
+        "disconnect": "Desconectar",
+        "connectFirebase": "Conectar Firebase",
+        "comingSoon": "Em breve",
+        "webhooks": "Webhooks",
+        "webhooksDescription": "Envie notificacoes em tempo real para seus servicos externos quando eventos ocorrerem",
+        "analytics": "Analiticas",
+        "analyticsDescription": "Conecte sua plataforma de analiticas preferida para rastrear o engajamento dos alunos"
       }
     },
     "users": {

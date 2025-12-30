@@ -96,6 +96,8 @@ interface IntegrationCardProps {
   isConnected?: boolean;
   isComingSoon?: boolean;
   accentColor?: string;
+  connectedLabel?: string;
+  comingSoonLabel?: string;
 }
 
 function IntegrationCard({
@@ -107,6 +109,8 @@ function IntegrationCard({
   isConnected,
   isComingSoon,
   accentColor = "primary",
+  connectedLabel,
+  comingSoonLabel,
 }: IntegrationCardProps) {
   return (
     <div
@@ -121,7 +125,7 @@ function IntegrationCard({
           variant="secondary"
           className="absolute right-3 top-3 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
         >
-          Connected
+          {connectedLabel}
         </Badge>
       )}
 
@@ -151,7 +155,7 @@ function IntegrationCard({
         onClick={onAction}
         disabled={isComingSoon}
       >
-        {isComingSoon ? "Coming Soon" : buttonLabel}
+        {isComingSoon ? comingSoonLabel : buttonLabel}
       </Button>
     </div>
   );
@@ -266,29 +270,32 @@ function IntegrationsPage() {
             icon={<Firebase className="size-8" />}
             name={t("dashboard.site.integrations.firebase")}
             description={t("dashboard.site.integrations.firebaseDescription")}
-            buttonLabel={isFirebaseConnected ? "Configure" : "Connect"}
+            buttonLabel={isFirebaseConnected ? t("dashboard.site.integrations.configure") : t("dashboard.site.integrations.connect")}
             onAction={handleOpenFirebaseDialog}
             isConnected={isFirebaseConnected}
+            connectedLabel={t("dashboard.site.integrations.connected")}
             accentColor="firebase"
           />
 
           <IntegrationCard
             icon={<Zap className="size-8 text-primary" />}
-            name="Webhooks"
-            description="Send real-time notifications to your external services when events occur"
-            buttonLabel="Configure"
+            name={t("dashboard.site.integrations.webhooks")}
+            description={t("dashboard.site.integrations.webhooksDescription")}
+            buttonLabel={t("dashboard.site.integrations.configure")}
             onAction={() => {}}
             isComingSoon
+            comingSoonLabel={t("dashboard.site.integrations.comingSoon")}
             accentColor="primary"
           />
 
           <IntegrationCard
             icon={<Sparkles className="size-8 text-primary" />}
-            name="Analytics"
-            description="Connect your preferred analytics platform to track student engagement"
-            buttonLabel="Configure"
+            name={t("dashboard.site.integrations.analytics")}
+            description={t("dashboard.site.integrations.analyticsDescription")}
+            buttonLabel={t("dashboard.site.integrations.configure")}
             onAction={() => {}}
             isComingSoon
+            comingSoonLabel={t("dashboard.site.integrations.comingSoon")}
             accentColor="primary"
           />
         </div>
@@ -322,7 +329,7 @@ function IntegrationsPage() {
                   <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-4">
                     <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
                       <Key className="size-4" />
-                      <span className="font-medium">Connected</span>
+                      <span className="font-medium">{t("dashboard.site.integrations.connected")}</span>
                     </div>
                     <p className="mt-1 text-sm text-muted-foreground">
                       Project ID: {tenant?.authSettings?.firebaseProjectId}
@@ -421,7 +428,7 @@ function IntegrationsPage() {
                     onClick={handleDisconnectFirebase}
                     isLoading={updateMutation.isPending}
                   >
-                    Disconnect
+                    {t("dashboard.site.integrations.disconnect")}
                   </Button>
                 ) : (
                   <Button
@@ -429,7 +436,7 @@ function IntegrationsPage() {
                     isLoading={updateMutation.isPending}
                     onClick={() => form.setValue("provider", "firebase")}
                   >
-                    Connect Firebase
+                    {t("dashboard.site.integrations.connectFirebase")}
                   </Button>
                 )}
               </DialogFooter>

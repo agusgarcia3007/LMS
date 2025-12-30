@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Google } from "@/components/ui/svgs/google";
 import { Apple } from "@/components/ui/svgs/apple";
@@ -33,7 +34,9 @@ export function FirebaseSocialButtons({
       const auth = getFirebaseAuth(tenantSlug, firebaseConfig);
       const idToken = await signInWithGoogle(auth);
       externalLogin(idToken, { onSuccess });
-    } catch {
+    } catch (error) {
+      console.error("Google sign-in error:", error);
+      toast.error(t("auth.social.error"));
       setIsGoogleLoading(false);
     }
   };
@@ -44,7 +47,9 @@ export function FirebaseSocialButtons({
       const auth = getFirebaseAuth(tenantSlug, firebaseConfig);
       const idToken = await signInWithApple(auth);
       externalLogin(idToken, { onSuccess });
-    } catch {
+    } catch (error) {
+      console.error("Apple sign-in error:", error);
+      toast.error(t("auth.social.error"));
       setIsAppleLoading(false);
     }
   };
