@@ -211,7 +211,7 @@ function CourseDetailPage() {
                     {t("campus.courseDetail.description")}
                   </h2>
                   <div className="prose prose-zinc max-w-none dark:prose-invert">
-                    <p className="leading-relaxed text-muted-foreground">
+                    <p className="whitespace-pre-line leading-relaxed text-muted-foreground">
                       {course.description}
                     </p>
                   </div>
