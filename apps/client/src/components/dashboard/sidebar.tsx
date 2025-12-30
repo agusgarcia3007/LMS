@@ -458,6 +458,12 @@ export function DashboardSidebar({ tenant, user }: DashboardSidebarProps) {
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link to="/profile">
+                    <UserCircle />
+                    {t("common.viewProfile")}
+                  </Link>
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => logout()} disabled={isPending}>
                   <LogOut />
                   {t("common.logOut")}

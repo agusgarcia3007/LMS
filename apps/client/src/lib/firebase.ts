@@ -36,16 +36,23 @@ export function getFirebaseAuth(
   return auth;
 }
 
-export async function signInWithGoogle(auth: Auth): Promise<string> {
+export type FirebaseSignInResult = {
+  idToken: string;
+  photoUrl: string | null;
+};
+
+export async function signInWithGoogle(auth: Auth): Promise<FirebaseSignInResult> {
   const provider = new GoogleAuthProvider();
   const result = await signInWithPopup(auth, provider);
-  return result.user.getIdToken();
+  const idToken = await result.user.getIdToken();
+  return { idToken, photoUrl: result.user.photoURL };
 }
 
-export async function signInWithApple(auth: Auth): Promise<string> {
+export async function signInWithApple(auth: Auth): Promise<FirebaseSignInResult> {
   const provider = new OAuthProvider("apple.com");
   const result = await signInWithPopup(auth, provider);
-  return result.user.getIdToken();
+  const idToken = await result.user.getIdToken();
+  return { idToken, photoUrl: result.user.photoURL };
 }
 
 export async function signInWithEmail(

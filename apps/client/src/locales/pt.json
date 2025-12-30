@@ -273,6 +273,7 @@
     "logIn": "Entrar",
     "logOut": "Sair",
     "backToHome": "Voltar ao inicio",
+    "viewProfile": "Ver perfil",
     "unexpected_error": "Ocorreu um erro inesperado. Por favor, tente novamente.",
     "cancel": "Cancelar",
     "close": "Fechar",
@@ -1254,7 +1255,10 @@
         "webhooks": "Webhooks",
         "webhooksDescription": "Envie notificacoes em tempo real para seus servicos externos quando eventos ocorrerem",
         "analytics": "Analiticas",
-        "analyticsDescription": "Conecte sua plataforma de analiticas preferida para rastrear o engajamento dos alunos"
+        "analyticsDescription": "Conecte sua plataforma de analiticas preferida para rastrear o engajamento dos alunos",
+        "authMethods": "Metodos de autenticacao",
+        "authMethodsHelp": "Selecione quais metodos de login os alunos podem usar",
+        "emailPassword": "Email e senha"
       }
     },
     "users": {

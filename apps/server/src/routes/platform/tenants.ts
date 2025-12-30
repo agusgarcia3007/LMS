@@ -77,6 +77,9 @@ function transformTenant(tenant: typeof tenantsTable.$inferSelect) {
           firebaseProjectId: tenant.authSettings.firebase?.projectId,
           firebaseApiKey: tenant.authSettings.firebase?.apiKey,
           firebaseAuthDomain: tenant.authSettings.firebase?.authDomain,
+          enableGoogle: tenant.authSettings.firebase?.enableGoogle ?? true,
+          enableApple: tenant.authSettings.firebase?.enableApple ?? true,
+          enableEmailPassword: tenant.authSettings.firebase?.enableEmailPassword ?? true,
         }
       : null,
   };
@@ -1024,8 +1027,15 @@ export const tenantsRoutes = new Elysia()
         throw new AppError(ErrorCode.TENANT_NOT_FOUND, "Tenant not found", 404);
       }
 
-      const { provider, firebaseProjectId, firebaseApiKey, firebaseAuthDomain } =
-        ctx.body;
+      const {
+        provider,
+        firebaseProjectId,
+        firebaseApiKey,
+        firebaseAuthDomain,
+        enableGoogle,
+        enableApple,
+        enableEmailPassword,
+      } = ctx.body;
 
       if (provider === "firebase") {
         if (!firebaseProjectId || !/^[a-z0-9-]+$/.test(firebaseProjectId)) {
@@ -1059,6 +1069,9 @@ export const tenantsRoutes = new Elysia()
                 projectId: firebaseProjectId!,
                 apiKey: firebaseApiKey!,
                 authDomain: firebaseAuthDomain!,
+                enableGoogle: enableGoogle ?? true,
+                enableApple: enableApple ?? true,
+                enableEmailPassword: enableEmailPassword ?? true,
               },
             }
           : { provider: "local" as const };
@@ -1082,6 +1095,9 @@ export const tenantsRoutes = new Elysia()
         firebaseProjectId: t.Optional(t.String()),
         firebaseApiKey: t.Optional(t.String()),
         firebaseAuthDomain: t.Optional(t.String()),
+        enableGoogle: t.Optional(t.Boolean()),
+        enableApple: t.Optional(t.Boolean()),
+        enableEmailPassword: t.Optional(t.Boolean()),
       }),
       detail: {
         tags: ["Tenants"],

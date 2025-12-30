@@ -107,6 +107,9 @@ export type TenantAuthSettings = {
   firebaseProjectId?: string;
   firebaseApiKey?: string;
   firebaseAuthDomain?: string;
+  enableGoogle?: boolean;
+  enableApple?: boolean;
+  enableEmailPassword?: boolean;
 };
 
 export type TenantStatus = "active" | "suspended" | "cancelled";
@@ -419,6 +422,9 @@ export const TenantsService = {
       firebaseProjectId?: string;
       firebaseApiKey?: string;
       firebaseAuthDomain?: string;
+      enableGoogle?: boolean;
+      enableApple?: boolean;
+      enableEmailPassword?: boolean;
     }
   ) {
     const { data } = await http.put<{ tenant: Tenant }>(

@@ -716,6 +716,76 @@ export const usersRoutes = new Elysia()
     }
   )
   .delete(
+    "/tenant/:id",
+    async (ctx) => {
+      const canDeleteUsers =
+        ctx.userRole === "owner" ||
+        ctx.userRole === "instructor" ||
+        ctx.userRole === "superadmin";
+
+      if (!canDeleteUsers) {
+        throw new AppError(
+          ErrorCode.FORBIDDEN,
+          "Only owners and instructors can delete tenant users",
+          403
+        );
+      }
+
+      const effectiveTenantId = ctx.user!.tenantId ?? ctx.tenant?.id;
+
+      if (!effectiveTenantId) {
+        throw new AppError(ErrorCode.TENANT_NOT_FOUND, "No tenant context", 404);
+      }
+
+      if (ctx.params.id === ctx.user!.id) {
+        throw new AppError(
+          ErrorCode.BAD_REQUEST,
+          "Cannot delete your own account",
+          400
+        );
+      }
+
+      const [existingUser] = await db
+        .select()
+        .from(usersTable)
+        .where(
+          and(
+            eq(usersTable.id, ctx.params.id),
+            eq(usersTable.tenantId, effectiveTenantId)
+          )
+        )
+        .limit(1);
+
+      if (!existingUser) {
+        throw new AppError(ErrorCode.USER_NOT_FOUND, "User not found in tenant", 404);
+      }
+
+      if (existingUser.role === "owner") {
+        throw new AppError(
+          ErrorCode.FORBIDDEN,
+          "Cannot delete owner account",
+          403
+        );
+      }
+
+      await db.delete(usersTable).where(eq(usersTable.id, ctx.params.id));
+
+      invalidateUserCache(ctx.params.id);
+
+      return { success: true };
+    },
+    {
+      params: t.Object({
+        id: t.String({ format: "uuid" }),
+      }),
+      detail: {
+        tags: ["Users"],
+        summary: "Delete tenant user (owner/instructor only)",
+      },
+      requireAuth: true,
+    }
+  )
+  .delete(
     "/tenant/bulk",
     async (ctx) => {
       if (ctx.userRole !== "owner" && ctx.userRole !== "superadmin") {

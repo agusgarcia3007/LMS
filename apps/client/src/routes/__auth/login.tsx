@@ -126,6 +126,12 @@ function LoginPage() {
   }
 
   if (isFirebaseAuth && firebaseConfig && tenant) {
+    const enableGoogle = tenant.authSettings?.enableGoogle ?? true;
+    const enableApple = tenant.authSettings?.enableApple ?? true;
+    const enableEmailPassword = tenant.authSettings?.enableEmailPassword ?? true;
+    const hasSocialMethods = enableGoogle || enableApple;
+    const showDivider = hasSocialMethods && enableEmailPassword;
+
     return (
       <>
         <h3 className="mt-2 text-center text-2xl font-bold tracking-tight">
@@ -141,63 +147,69 @@ function LoginPage() {
               tenantSlug={tenant.slug}
               firebaseConfig={firebaseConfig}
               onSuccess={handleNavigateAfterLogin}
+              enableGoogle={enableGoogle}
+              enableApple={enableApple}
             />
 
-            <div className="relative my-6">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t" />
+            {showDivider && (
+              <div className="relative my-6">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-card px-2 text-muted-foreground">
+                    {t("auth.social.or")}
+                  </span>
+                </div>
               </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-card px-2 text-muted-foreground">
-                  {t("auth.social.or")}
-                </span>
-              </div>
-            </div>
+            )}
 
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onFirebaseEmailSubmit)} className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t("common.email")}</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="email"
-                          placeholder={t("auth.login.emailPlaceholder")}
-                          autoComplete="email"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+            {enableEmailPassword && (
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onFirebaseEmailSubmit)} className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t("common.email")}</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="email"
+                            placeholder={t("auth.login.emailPlaceholder")}
+                            autoComplete="email"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t("common.password")}</FormLabel>
-                      <FormControl>
-                        <PasswordInput
-                          placeholder={t("auth.login.passwordPlaceholder")}
-                          autoComplete="current-password"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                  <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t("common.password")}</FormLabel>
+                        <FormControl>
+                          <PasswordInput
+                            placeholder={t("auth.login.passwordPlaceholder")}
+                            autoComplete="current-password"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                <Button type="submit" className="w-full" isLoading={isFirebaseEmailLoading}>
-                  {t("common.signIn")}
-                </Button>
-              </form>
-            </Form>
+                  <Button type="submit" className="w-full" isLoading={isFirebaseEmailLoading}>
+                    {t("common.signIn")}
+                  </Button>
+                </form>
+              </Form>
+            )}
           </CardContent>
         </Card>
 

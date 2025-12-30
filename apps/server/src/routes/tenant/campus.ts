@@ -77,6 +77,9 @@ export const campusRoutes = new Elysia({ name: "campus" })
                   firebaseProjectId: tenant.authSettings.firebase?.projectId,
                   firebaseApiKey: tenant.authSettings.firebase?.apiKey,
                   firebaseAuthDomain: tenant.authSettings.firebase?.authDomain,
+                  enableGoogle: tenant.authSettings.firebase?.enableGoogle ?? true,
+                  enableApple: tenant.authSettings.firebase?.enableApple ?? true,
+                  enableEmailPassword: tenant.authSettings.firebase?.enableEmailPassword ?? true,
                 }
               : null,
           },
@@ -124,6 +127,9 @@ export const campusRoutes = new Elysia({ name: "campus" })
                 firebaseProjectId: ctx.tenant.authSettings.firebase?.projectId,
                 firebaseApiKey: ctx.tenant.authSettings.firebase?.apiKey,
                 firebaseAuthDomain: ctx.tenant.authSettings.firebase?.authDomain,
+                enableGoogle: ctx.tenant.authSettings.firebase?.enableGoogle ?? true,
+                enableApple: ctx.tenant.authSettings.firebase?.enableApple ?? true,
+                enableEmailPassword: ctx.tenant.authSettings.firebase?.enableEmailPassword ?? true,
               }
             : null,
         },

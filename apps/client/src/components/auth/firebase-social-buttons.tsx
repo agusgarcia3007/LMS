@@ -1,9 +1,8 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { IconBrandGoogle, IconBrandApple } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
-import { Google } from "@/components/ui/svgs/google";
-import { Apple } from "@/components/ui/svgs/apple";
 import {
   getFirebaseAuth,
   signInWithGoogle,
@@ -16,12 +15,16 @@ interface FirebaseSocialButtonsProps {
   tenantSlug: string;
   firebaseConfig: FirebaseConfig;
   onSuccess: () => void;
+  enableGoogle?: boolean;
+  enableApple?: boolean;
 }
 
 export function FirebaseSocialButtons({
   tenantSlug,
   firebaseConfig,
   onSuccess,
+  enableGoogle = true,
+  enableApple = true,
 }: FirebaseSocialButtonsProps) {
   const { t } = useTranslation();
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
@@ -32,8 +35,8 @@ export function FirebaseSocialButtons({
     setIsGoogleLoading(true);
     try {
       const auth = getFirebaseAuth(tenantSlug, firebaseConfig);
-      const idToken = await signInWithGoogle(auth);
-      externalLogin(idToken, { onSuccess });
+      const { idToken, photoUrl } = await signInWithGoogle(auth);
+      externalLogin({ token: idToken, photoUrl }, { onSuccess });
     } catch (error) {
       console.error("Google sign-in error:", error);
       toast.error(t("auth.social.error"));
@@ -45,8 +48,8 @@ export function FirebaseSocialButtons({
     setIsAppleLoading(true);
     try {
       const auth = getFirebaseAuth(tenantSlug, firebaseConfig);
-      const idToken = await signInWithApple(auth);
-      externalLogin(idToken, { onSuccess });
+      const { idToken, photoUrl } = await signInWithApple(auth);
+      externalLogin({ token: idToken, photoUrl }, { onSuccess });
     } catch (error) {
       console.error("Apple sign-in error:", error);
       toast.error(t("auth.social.error"));
@@ -54,28 +57,36 @@ export function FirebaseSocialButtons({
     }
   };
 
+  if (!enableGoogle && !enableApple) {
+    return null;
+  }
+
   return (
     <div className="space-y-3">
-      <Button
-        variant="outline"
-        className="w-full"
-        onClick={handleGoogleSignIn}
-        disabled={isAppleLoading}
-        isLoading={isGoogleLoading}
-      >
-        {!isGoogleLoading && <Google className="mr-2 size-5" />}
-        {t("auth.social.continueWithGoogle")}
-      </Button>
-      <Button
-        variant="outline"
-        className="w-full"
-        onClick={handleAppleSignIn}
-        disabled={isGoogleLoading}
-        isLoading={isAppleLoading}
-      >
-        {!isAppleLoading && <Apple className="mr-2 size-5 fill-current" />}
-        {t("auth.social.continueWithApple")}
-      </Button>
+      {enableGoogle && (
+        <Button
+          variant="outline"
+          className="w-full"
+          onClick={handleGoogleSignIn}
+          disabled={isAppleLoading}
+          isLoading={isGoogleLoading}
+        >
+          {!isGoogleLoading && <IconBrandGoogle className="mr-2 size-5" />}
+          {t("auth.social.continueWithGoogle")}
+        </Button>
+      )}
+      {enableApple && (
+        <Button
+          variant="outline"
+          className="w-full"
+          onClick={handleAppleSignIn}
+          disabled={isGoogleLoading}
+          isLoading={isAppleLoading}
+        >
+          {!isAppleLoading && <IconBrandApple className="mr-2 size-5" />}
+          {t("auth.social.continueWithApple")}
+        </Button>
+      )}
     </div>
   );
 }

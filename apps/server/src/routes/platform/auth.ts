@@ -674,6 +674,9 @@ authRoutes.post(
       );
     }
 
+    const avatarFromClient = ctx.body?.photoUrl;
+    const avatar = firebaseUser.picture || avatarFromClient || null;
+
     let [user] = await db
       .select()
       .from(usersTable)
@@ -705,7 +708,7 @@ authRoutes.post(
             externalAuthProvider: "firebase",
             externalAuthId: firebaseUser.uid,
             emailVerified: firebaseUser.emailVerified || user.emailVerified,
-            avatar: user.avatar || firebaseUser.picture,
+            avatar: user.avatar || avatar,
           })
           .where(eq(usersTable.id, user.id))
           .returning();
@@ -720,7 +723,7 @@ authRoutes.post(
         .values({
           email: firebaseUser.email,
           name: firebaseUser.name || firebaseUser.email.split("@")[0],
-          avatar: firebaseUser.picture,
+          avatar,
           role: "student",
           tenantId: ctx.tenant.id,
           externalAuthProvider: "firebase",
@@ -771,6 +774,9 @@ authRoutes.post(
     };
   },
   {
+    body: t.Object({
+      photoUrl: t.Optional(t.Union([t.String(), t.Null()])),
+    }),
     detail: {
       tags: ["Auth"],
       summary: "Login or signup with external auth provider (Firebase)",

@@ -92,7 +92,7 @@ export function CourseHeader({ course, pattern = "grid" }: CourseHeaderProps) {
             <div className="mb-6 flex items-center gap-3">
               <span className="text-sm text-muted-foreground">{t("campus.course.createdBy")}</span>
               <div className="flex items-center gap-2">
-                <Avatar className="size-8 border-2 border-primary/20">
+                <Avatar className="size-8">
                   <AvatarImage src={course.instructor.avatar ?? undefined} alt={course.instructor.name} />
                   <AvatarFallback className="text-xs">
                     {getInitials(course.instructor.name)}

@@ -123,11 +123,11 @@ export const AuthService = {
     return data;
   },
 
-  async externalLogin(token: string) {
+  async externalLogin(payload: { token: string; photoUrl?: string | null }) {
     const { data } = await http.post<AuthResponse>(
       "/auth/external",
-      {},
-      { headers: { "X-Firebase-Token": token } }
+      { photoUrl: payload.photoUrl },
+      { headers: { "X-Firebase-Token": payload.token } }
     );
     return data;
   },

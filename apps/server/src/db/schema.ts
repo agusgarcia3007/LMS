@@ -276,6 +276,9 @@ export const tenantsTable = pgTable(
         projectId: string;
         apiKey: string;
         authDomain: string;
+        enableGoogle?: boolean;
+        enableApple?: boolean;
+        enableEmailPassword?: boolean;
       };
     }>(),
     maxUsers: integer("max_users"),

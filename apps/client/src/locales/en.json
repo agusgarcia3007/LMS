@@ -273,6 +273,7 @@
     "logIn": "Log in",
     "logOut": "Log out",
     "backToHome": "Back to home",
+    "viewProfile": "View profile",
     "unexpected_error": "An unexpected error occurred. Please try again.",
     "cancel": "Cancel",
     "close": "Close",
@@ -1254,7 +1255,10 @@
         "webhooks": "Webhooks",
         "webhooksDescription": "Send real-time notifications to your external services when events occur",
         "analytics": "Analytics",
-        "analyticsDescription": "Connect your preferred analytics platform to track student engagement"
+        "analyticsDescription": "Connect your preferred analytics platform to track student engagement",
+        "authMethods": "Authentication Methods",
+        "authMethodsHelp": "Select which sign-in methods students can use",
+        "emailPassword": "Email & Password"
       }
     },
     "users": {

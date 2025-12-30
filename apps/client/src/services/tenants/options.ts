@@ -183,18 +183,27 @@ export const useUpdateAuthSettingsOptions = (
       firebaseProjectId,
       firebaseApiKey,
       firebaseAuthDomain,
+      enableGoogle,
+      enableApple,
+      enableEmailPassword,
     }: {
       id: string;
       provider: "local" | "firebase";
       firebaseProjectId?: string;
       firebaseApiKey?: string;
       firebaseAuthDomain?: string;
+      enableGoogle?: boolean;
+      enableApple?: boolean;
+      enableEmailPassword?: boolean;
     }) =>
       TenantsService.updateAuthSettings(id, {
         provider,
         firebaseProjectId,
         firebaseApiKey,
         firebaseAuthDomain,
+        enableGoogle,
+        enableApple,
+        enableEmailPassword,
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.TENANT(tenantSlug) });

@@ -119,6 +119,10 @@ const URL_CACHE_TTL = 60 * 60 * 1000;
 const urlCache = new Cache<string>(URL_CACHE_TTL, 5000);
 
 export function getPresignedUrl(key: string): string {
+  if (key.startsWith("http://") || key.startsWith("https://")) {
+    return key;
+  }
+
   if (env.CDN_BASE_URL) {
     return `${env.CDN_BASE_URL}/${key}`;
   }

@@ -5,6 +5,7 @@ import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Key, Puzzle, Sparkles, Zap } from "lucide-react";
+import { IconBrandGoogle, IconBrandApple, IconMail } from "@tabler/icons-react";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -26,6 +27,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { createSeoMeta } from "@/lib/seo";
 import { useGetTenant, useUpdateAuthSettings } from "@/services/tenants";
 import { Firebase } from "@/components/ui/svgs/firebase";
@@ -37,6 +39,9 @@ const authSettingsSchema = z
     firebaseProjectId: z.string().optional(),
     firebaseApiKey: z.string().optional(),
     firebaseAuthDomain: z.string().optional(),
+    enableGoogle: z.boolean(),
+    enableApple: z.boolean(),
+    enableEmailPassword: z.boolean(),
   })
   .refine(
     (data) => {
@@ -178,6 +183,9 @@ function IntegrationsPage() {
       firebaseProjectId: tenant?.authSettings?.firebaseProjectId ?? "",
       firebaseApiKey: tenant?.authSettings?.firebaseApiKey ?? "",
       firebaseAuthDomain: tenant?.authSettings?.firebaseAuthDomain ?? "",
+      enableGoogle: tenant?.authSettings?.enableGoogle ?? true,
+      enableApple: tenant?.authSettings?.enableApple ?? true,
+      enableEmailPassword: tenant?.authSettings?.enableEmailPassword ?? true,
     },
   });
 
@@ -189,6 +197,9 @@ function IntegrationsPage() {
       firebaseProjectId: tenant?.authSettings?.firebaseProjectId ?? "",
       firebaseApiKey: tenant?.authSettings?.firebaseApiKey ?? "",
       firebaseAuthDomain: tenant?.authSettings?.firebaseAuthDomain ?? "",
+      enableGoogle: tenant?.authSettings?.enableGoogle ?? true,
+      enableApple: tenant?.authSettings?.enableApple ?? true,
+      enableEmailPassword: tenant?.authSettings?.enableEmailPassword ?? true,
     });
     setFirebaseDialogOpen(true);
   };
@@ -206,6 +217,9 @@ function IntegrationsPage() {
           values.provider === "firebase" ? values.firebaseApiKey : undefined,
         firebaseAuthDomain:
           values.provider === "firebase" ? values.firebaseAuthDomain : undefined,
+        enableGoogle: values.enableGoogle,
+        enableApple: values.enableApple,
+        enableEmailPassword: values.enableEmailPassword,
       },
       {
         onSuccess: () => {
@@ -420,16 +434,93 @@ function IntegrationsPage() {
                 </>
               )}
 
-              <DialogFooter>
+              <div className="space-y-4">
+                <FormLabel>{t("dashboard.site.integrations.authMethods")}</FormLabel>
+                <div className="space-y-3">
+                  <FormField
+                    control={form.control}
+                    name="enableGoogle"
+                    render={({ field }) => (
+                      <FormItem className="flex items-center gap-3 space-y-0">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <div className="flex items-center gap-2">
+                          <IconBrandGoogle className="size-4" />
+                          <FormLabel className="font-normal cursor-pointer">
+                            Google
+                          </FormLabel>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="enableApple"
+                    render={({ field }) => (
+                      <FormItem className="flex items-center gap-3 space-y-0">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <div className="flex items-center gap-2">
+                          <IconBrandApple className="size-4" />
+                          <FormLabel className="font-normal cursor-pointer">
+                            Apple
+                          </FormLabel>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="enableEmailPassword"
+                    render={({ field }) => (
+                      <FormItem className="flex items-center gap-3 space-y-0">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <div className="flex items-center gap-2">
+                          <IconMail className="size-4" />
+                          <FormLabel className="font-normal cursor-pointer">
+                            {t("dashboard.site.integrations.emailPassword")}
+                          </FormLabel>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <FormDescription>
+                  {t("dashboard.site.integrations.authMethodsHelp")}
+                </FormDescription>
+              </div>
+
+              <DialogFooter className="gap-2 sm:gap-0">
                 {isFirebaseConnected ? (
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    onClick={handleDisconnectFirebase}
-                    isLoading={updateMutation.isPending}
-                  >
-                    {t("dashboard.site.integrations.disconnect")}
-                  </Button>
+                  <>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleDisconnectFirebase}
+                      isLoading={updateMutation.isPending}
+                    >
+                      {t("dashboard.site.integrations.disconnect")}
+                    </Button>
+                    <Button
+                      type="submit"
+                      isLoading={updateMutation.isPending}
+                    >
+                      {t("common.saveChanges")}
+                    </Button>
+                  </>
                 ) : (
                   <Button
                     type="submit"
