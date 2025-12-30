@@ -811,8 +811,15 @@ export const chatCreatorRoutes = new Elysia({ name: "ai-chat-creator" })
             );
           }
 
+          const base64Data = `data:${imageFile.mediaType};base64,${imageFile.base64}`;
+          const thumbnailKey = await uploadBase64ToS3({
+            base64: base64Data,
+            folder: "thumbnails/generated",
+            userId: ctx.user!.id,
+          });
+
           return {
-            thumbnail: `data:${imageFile.mediaType};base64,${imageFile.base64}`,
+            thumbnail: thumbnailKey,
           };
         }
       );
