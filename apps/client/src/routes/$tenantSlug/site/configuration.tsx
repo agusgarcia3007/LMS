@@ -77,8 +77,31 @@ function ConfigurationPage() {
     !!tenant?.customDomain
   );
 
+  const formValues = tenant
+    ? {
+        slug: tenant.slug,
+        name: tenant.name,
+        description: tenant.description ?? "",
+        language: tenant.language ?? "en",
+        contactEmail: tenant.contactEmail ?? "",
+        contactPhone: tenant.contactPhone ?? "",
+        contactAddress: tenant.contactAddress ?? "",
+        twitter: tenant.socialLinks?.twitter ?? "",
+        facebook: tenant.socialLinks?.facebook ?? "",
+        instagram: tenant.socialLinks?.instagram ?? "",
+        linkedin: tenant.socialLinks?.linkedin ?? "",
+        youtube: tenant.socialLinks?.youtube ?? "",
+        seoTitle: tenant.seoTitle ?? "",
+        seoDescription: tenant.seoDescription ?? "",
+        seoKeywords: tenant.seoKeywords ?? "",
+        signatureTitle: tenant.certificateSettings?.signatureTitle ?? "",
+        customMessage: tenant.certificateSettings?.customMessage ?? "",
+      }
+    : undefined;
+
   const form = useForm<ConfigurationFormData>({
     resolver: zodResolver(configurationSchema),
+    values: formValues,
     defaultValues: {
       slug: "",
       name: "",
@@ -100,36 +123,15 @@ function ConfigurationPage() {
     },
   });
 
-
   const watchedSlug = form.watch("slug");
   const isSlugChanged = tenant && watchedSlug !== tenant.slug;
 
   useEffect(() => {
     if (tenant) {
-      form.reset({
-        slug: tenant.slug,
-        name: tenant.name,
-        description: tenant.description ?? "",
-        language: tenant.language ?? "en",
-        contactEmail: tenant.contactEmail ?? "",
-        contactPhone: tenant.contactPhone ?? "",
-        contactAddress: tenant.contactAddress ?? "",
-        twitter: tenant.socialLinks?.twitter ?? "",
-        facebook: tenant.socialLinks?.facebook ?? "",
-        instagram: tenant.socialLinks?.instagram ?? "",
-        linkedin: tenant.socialLinks?.linkedin ?? "",
-        youtube: tenant.socialLinks?.youtube ?? "",
-        seoTitle: tenant.seoTitle ?? "",
-        seoDescription: tenant.seoDescription ?? "",
-        seoKeywords: tenant.seoKeywords ?? "",
-        signatureTitle: tenant.certificateSettings?.signatureTitle ?? "",
-        customMessage: tenant.certificateSettings?.customMessage ?? "",
-      });
       setCustomDomain(tenant.customDomain ?? "");
       setSignatureUrl(tenant.certificateSettings?.signatureImageUrl ?? null);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tenant?.id]);
+  }, [tenant]);
 
   const handleSubmit = (values: ConfigurationFormData) => {
     if (!tenant) return;

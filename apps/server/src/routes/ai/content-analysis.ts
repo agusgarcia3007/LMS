@@ -14,6 +14,7 @@ import {
 } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { groq } from "@/lib/ai/groq";
+import { aiGateway } from "@/lib/ai/gateway";
 import { generateText } from "ai";
 import { AI_MODELS } from "@/lib/ai/models";
 import { VIDEO_ANALYSIS_PROMPT } from "@/lib/ai/prompts";
@@ -294,7 +295,7 @@ export const contentAnalysisRoutes = new Elysia({ name: "ai-content-analysis" })
             const generationStart = Date.now();
 
             const { text: responseText } = await generateText({
-              model: groq(AI_MODELS.QUIZ_GENERATION),
+              model: aiGateway(AI_MODELS.QUIZ_GENERATION),
               prompt,
               maxOutputTokens: 4000,
               temperature: 0.7,

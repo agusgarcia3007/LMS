@@ -127,7 +127,7 @@ export function GeneralTab({ isSlugChanged, isSaving }: GeneralTabProps) {
             <FormLabel>
               {t("dashboard.site.configuration.general.language")}
             </FormLabel>
-            <Select onValueChange={field.onChange} value={field.value || "en"}>
+            <Select onValueChange={field.onChange} value={field.value}>
               <FormControl>
                 <SelectTrigger className="w-full sm:w-48">
                   <SelectValue

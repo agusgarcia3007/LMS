@@ -261,9 +261,7 @@ function IntegrationsPage() {
         enableApple: values.enableApple,
         enableEmailPassword: values.enableEmailPassword,
         claimMappings:
-          values.provider === "firebase" && claimMappings.length > 0
-            ? claimMappings
-            : undefined,
+          values.provider === "firebase" ? claimMappings : undefined,
       },
       {
         onSuccess: () => {
@@ -585,39 +583,43 @@ function IntegrationsPage() {
                       })}
                     </div>
                   )}
-                  <div className="grid grid-cols-[1fr,1fr,auto] gap-2">
-                    <Input
-                      value={mappingClaim}
-                      onChange={(e) => setMappingClaim(e.target.value)}
-                      placeholder={t("dashboard.site.integrations.claimName")}
-                    />
-                    <Select
-                      value={mappingCourseId}
-                      onValueChange={setMappingCourseId}
-                    >
-                      <SelectTrigger>
-                        <SelectValue
-                          placeholder={t(
-                            "dashboard.site.integrations.selectCourse"
-                          )}
-                        />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {coursesData?.courses.map((course) => (
-                          <SelectItem key={course.id} value={course.id}>
-                            {course.title}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                  <div className="flex flex-col gap-2">
+                    <div className="grid grid-cols-2 gap-2">
+                      <Input
+                        value={mappingClaim}
+                        onChange={(e) => setMappingClaim(e.target.value)}
+                        placeholder={t("dashboard.site.integrations.claimName")}
+                      />
+                      <Select
+                        value={mappingCourseId}
+                        onValueChange={setMappingCourseId}
+                      >
+                        <SelectTrigger>
+                          <SelectValue
+                            placeholder={t(
+                              "dashboard.site.integrations.selectCourse"
+                            )}
+                          />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {coursesData?.courses.map((course) => (
+                            <SelectItem key={course.id} value={course.id}>
+                              {course.title}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                     <Button
                       type="button"
                       variant="outline"
-                      size="icon"
+                      size="sm"
                       onClick={handleAddMapping}
                       disabled={!mappingClaim.trim() || !mappingCourseId}
+                      className="w-full"
                     >
-                      <Plus className="size-4" />
+                      <Plus className="mr-2 size-4" />
+                      {t("common.add")}
                     </Button>
                   </div>
                   <FormDescription className="text-xs">
