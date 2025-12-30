@@ -140,7 +140,7 @@ export function CourseSidebar({ course }: CourseSidebarProps) {
         )}
 
         <div className="space-y-2.5">
-          {isFree || isEnrolled ? (
+          {isEnrolled ? (
             <EnrollButton
               courseId={course.id}
               courseSlug={course.slug}
@@ -156,6 +156,12 @@ export function CourseSidebar({ course }: CourseSidebarProps) {
               <Lock className="mr-2 size-4" />
               {t("campus.course.purchaseDisabled")}
             </Button>
+          ) : isFree ? (
+            <EnrollButton
+              courseId={course.id}
+              courseSlug={course.slug}
+              isFree={isFree}
+            />
           ) : isAuthenticated ? (
             <>
               <Button

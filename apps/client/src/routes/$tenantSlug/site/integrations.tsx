@@ -27,10 +27,18 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Firebase } from "@/components/ui/svgs/firebase";
 import { createSeoMeta } from "@/lib/seo";
 import { cn } from "@/lib/utils";
+import { useGetCourses } from "@/services/courses";
 import { useGetTenant, useUpdateAuthSettings } from "@/services/tenants";
 
 const authSettingsSchema = z
@@ -174,8 +182,14 @@ function IntegrationsPage() {
   const [firebaseDialogOpen, setFirebaseDialogOpen] = useState(false);
   const [claimInput, setClaimInput] = useState("");
   const [requiredClaims, setRequiredClaims] = useState<string[]>([]);
+  const [claimMappings, setClaimMappings] = useState<
+    Array<{ claim: string; courseId: string }>
+  >([]);
+  const [mappingClaim, setMappingClaim] = useState("");
+  const [mappingCourseId, setMappingCourseId] = useState("");
 
   const { data, isLoading } = useGetTenant(tenantSlug);
+  const { data: coursesData } = useGetCourses({ limit: 100 });
   const tenant = data?.tenant;
 
   const updateMutation = useUpdateAuthSettings(tenantSlug);
@@ -206,8 +220,30 @@ function IntegrationsPage() {
       enableEmailPassword: tenant?.authSettings?.enableEmailPassword ?? true,
     });
     setRequiredClaims(tenant?.authSettings?.requiredClaims ?? []);
+    setClaimMappings(tenant?.authSettings?.claimMappings ?? []);
     setClaimInput("");
+    setMappingClaim("");
+    setMappingCourseId("");
     setFirebaseDialogOpen(true);
+  };
+
+  const handleAddMapping = () => {
+    if (
+      mappingClaim.trim() &&
+      mappingCourseId &&
+      !claimMappings.some((m) => m.claim === mappingClaim.trim())
+    ) {
+      setClaimMappings([
+        ...claimMappings,
+        { claim: mappingClaim.trim(), courseId: mappingCourseId },
+      ]);
+      setMappingClaim("");
+      setMappingCourseId("");
+    }
+  };
+
+  const handleRemoveMapping = (claim: string) => {
+    setClaimMappings(claimMappings.filter((m) => m.claim !== claim));
   };
 
   const handleAddClaim = () => {
@@ -250,6 +286,10 @@ function IntegrationsPage() {
         requiredClaims:
           values.provider === "firebase" && requiredClaims.length > 0
             ? requiredClaims
+            : undefined,
+        claimMappings:
+          values.provider === "firebase" && claimMappings.length > 0
+            ? claimMappings
             : undefined,
       },
       {
@@ -584,6 +624,81 @@ function IntegrationsPage() {
                   )}
                   <FormDescription>
                     {t("dashboard.site.integrations.requiredClaimsHelp")}
+                  </FormDescription>
+                </div>
+              )}
+
+              {isFirebaseConnected && (
+                <div className="space-y-3">
+                  <FormLabel>
+                    {t("dashboard.site.integrations.claimMappings")}
+                  </FormLabel>
+                  <div className="flex gap-2">
+                    <Input
+                      value={mappingClaim}
+                      onChange={(e) => setMappingClaim(e.target.value)}
+                      placeholder={t("dashboard.site.integrations.claimName")}
+                      className="flex-1"
+                    />
+                    <Select
+                      value={mappingCourseId}
+                      onValueChange={setMappingCourseId}
+                    >
+                      <SelectTrigger className="flex-1">
+                        <SelectValue
+                          placeholder={t(
+                            "dashboard.site.integrations.selectCourse"
+                          )}
+                        />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {coursesData?.courses.map((course) => (
+                          <SelectItem key={course.id} value={course.id}>
+                            {course.title}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={handleAddMapping}
+                      disabled={!mappingClaim.trim() || !mappingCourseId}
+                    >
+                      <Plus className="size-4" />
+                    </Button>
+                  </div>
+                  {claimMappings.length > 0 && (
+                    <div className="space-y-2">
+                      {claimMappings.map((mapping) => {
+                        const course = coursesData?.courses.find(
+                          (c) => c.id === mapping.courseId
+                        );
+                        return (
+                          <div
+                            key={mapping.claim}
+                            className="flex items-center justify-between rounded-md border px-3 py-2"
+                          >
+                            <div className="flex items-center gap-2 text-sm">
+                              <Badge variant="outline">{mapping.claim}</Badge>
+                              <span className="text-muted-foreground">→</span>
+                              <span>{course?.title ?? mapping.courseId}</span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveMapping(mapping.claim)}
+                              className="rounded-full p-1 hover:bg-muted"
+                            >
+                              <X className="size-3" />
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                  <FormDescription>
+                    {t("dashboard.site.integrations.claimMappingsHelp")}
                   </FormDescription>
                 </div>
               )}

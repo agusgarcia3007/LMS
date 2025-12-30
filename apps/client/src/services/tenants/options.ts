@@ -187,6 +187,7 @@ export const useUpdateAuthSettingsOptions = (
       enableApple,
       enableEmailPassword,
       requiredClaims,
+      claimMappings,
     }: {
       id: string;
       provider: "local" | "firebase";
@@ -197,6 +198,7 @@ export const useUpdateAuthSettingsOptions = (
       enableApple?: boolean;
       enableEmailPassword?: boolean;
       requiredClaims?: string[];
+      claimMappings?: Array<{ claim: string; courseId: string }>;
     }) =>
       TenantsService.updateAuthSettings(id, {
         provider,
@@ -207,6 +209,7 @@ export const useUpdateAuthSettingsOptions = (
         enableApple,
         enableEmailPassword,
         requiredClaims,
+        claimMappings,
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.TENANT(tenantSlug) });

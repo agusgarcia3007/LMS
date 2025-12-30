@@ -12,7 +12,7 @@ import {
   categoriesTable,
   cartItemsTable,
 } from "@/db/schema";
-import { eq, and, count, desc, sql, inArray } from "drizzle-orm";
+import { eq, and, count, desc, inArray } from "drizzle-orm";
 import { getPresignedUrl } from "@/lib/upload";
 import { getPaginationParams, calculatePagination } from "@/lib/filters";
 
@@ -151,8 +151,12 @@ export const enrollmentsRoutes = new Elysia({ name: "enrollments" })
 
         const { courseId } = ctx.body;
 
-        const validCourseSubquery = db
-          .select({ id: coursesTable.id })
+        const [course] = await db
+          .select({
+            id: coursesTable.id,
+            price: coursesTable.price,
+            purchaseDisabled: coursesTable.purchaseDisabled,
+          })
           .from(coursesTable)
           .where(
             and(
@@ -160,14 +164,37 @@ export const enrollmentsRoutes = new Elysia({ name: "enrollments" })
               eq(coursesTable.tenantId, ctx.user.tenantId),
               eq(coursesTable.status, "published")
             )
+          )
+          .limit(1);
+
+        if (!course) {
+          throw new AppError(ErrorCode.NOT_FOUND, "Course not found", 404);
+        }
+
+        if (course.purchaseDisabled) {
+          throw new AppError(
+            ErrorCode.BAD_REQUEST,
+            "This course is not available for enrollment",
+            400
           );
+        }
+
+        if (course.price > 0) {
+          throw new AppError(
+            ErrorCode.BAD_REQUEST,
+            "This course requires payment. Please use checkout.",
+            400
+          );
+        }
 
         const [enrollment] = await db
           .insert(enrollmentsTable)
           .values({
             userId: ctx.user.id,
-            courseId: sql`(${validCourseSubquery})`,
+            courseId: course.id,
             tenantId: ctx.user.tenantId,
+            purchasePrice: 0,
+            purchaseCurrency: "USD",
           })
           .onConflictDoNothing({
             target: [enrollmentsTable.userId, enrollmentsTable.courseId],
@@ -175,25 +202,11 @@ export const enrollmentsRoutes = new Elysia({ name: "enrollments" })
           .returning();
 
         if (!enrollment) {
-          const [existing] = await db
-            .select({ id: enrollmentsTable.id })
-            .from(enrollmentsTable)
-            .where(
-              and(
-                eq(enrollmentsTable.userId, ctx.user.id),
-                eq(enrollmentsTable.courseId, courseId)
-              )
-            )
-            .limit(1);
-
-          if (existing) {
-            throw new AppError(
-              ErrorCode.BAD_REQUEST,
-              "Already enrolled in this course",
-              409
-            );
-          }
-          throw new AppError(ErrorCode.NOT_FOUND, "Course not found", 404);
+          throw new AppError(
+            ErrorCode.BAD_REQUEST,
+            "Already enrolled in this course",
+            409
+          );
         }
 
         return { enrollment };
@@ -256,31 +269,39 @@ export const enrollmentsRoutes = new Elysia({ name: "enrollments" })
           return { enrollments: [] };
         }
 
-        const validCoursesSubquery = db
-          .select({ id: coursesTable.id })
+        const courses = await db
+          .select({
+            id: coursesTable.id,
+            price: coursesTable.price,
+            currency: coursesTable.currency,
+            purchaseDisabled: coursesTable.purchaseDisabled,
+          })
           .from(coursesTable)
           .where(
             and(
-              sql`${coursesTable.id} IN ${courseIds}`,
+              inArray(coursesTable.id, courseIds),
               eq(coursesTable.tenantId, ctx.user.tenantId),
-              eq(coursesTable.status, "published")
+              eq(coursesTable.status, "published"),
+              eq(coursesTable.purchaseDisabled, false),
+              eq(coursesTable.price, 0)
             )
           );
 
-        const validCourses = await validCoursesSubquery;
-        const validCourseIds = validCourses.map((c) => c.id);
-
-        if (validCourseIds.length === 0) {
+        if (courses.length === 0) {
           return { enrollments: [] };
         }
+
+        const validCourseIds = courses.map((c) => c.id);
 
         const enrollments = await db
           .insert(enrollmentsTable)
           .values(
-            validCourseIds.map((courseId) => ({
+            courses.map((course) => ({
               userId: ctx.user!.id,
-              courseId,
-              tenantId: ctx.effectiveTenantId!,
+              courseId: course.id,
+              tenantId: ctx.user!.tenantId!,
+              purchasePrice: 0,
+              purchaseCurrency: course.currency,
             }))
           )
           .onConflictDoNothing({

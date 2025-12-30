@@ -1264,7 +1264,11 @@
         "authMethodsHelp": "Select which sign-in methods students can use",
         "emailPassword": "Email & Password",
         "requiredClaims": "Required Claims",
-        "requiredClaimsHelp": "Firebase custom claims that users must have to access this campus. Leave empty to allow all authenticated users."
+        "requiredClaimsHelp": "Firebase custom claims that users must have to access this campus. Leave empty to allow all authenticated users.",
+        "claimMappings": "Claim to Course Mappings",
+        "claimMappingsHelp": "Automatically enroll users in courses based on their Firebase claims. When a user logs in with the claim, they get access to the mapped course.",
+        "claimName": "Claim name",
+        "selectCourse": "Select course"
       }
     },
     "users": {

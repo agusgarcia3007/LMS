@@ -1,5 +1,5 @@
 import mammoth from "mammoth";
-import { PDFParse } from "pdf-parse";
+import { extractText } from "unpdf";
 import { logger } from "@/lib/logger";
 
 const MAX_TEXT_LENGTH = 50000;
@@ -33,10 +33,8 @@ export async function extractTextFromDocument(
   let text: string;
 
   if (mimeType === "application/pdf") {
-    const parser = new PDFParse({ data: new Uint8Array(buffer) });
-    const result = await parser.getText();
+    const result = await extractText(new Uint8Array(buffer), { mergePages: true });
     text = result.text;
-    await parser.destroy();
   } else if (
     mimeType ===
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||

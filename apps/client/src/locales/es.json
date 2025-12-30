@@ -1249,7 +1249,11 @@
         "authMethodsHelp": "Selecciona que metodos de inicio de sesion pueden usar los estudiantes",
         "emailPassword": "Email y contraseña",
         "requiredClaims": "Claims requeridos",
-        "requiredClaimsHelp": "Claims personalizados de Firebase que los usuarios deben tener para acceder a este campus. Dejar vacio para permitir todos los usuarios autenticados."
+        "requiredClaimsHelp": "Claims personalizados de Firebase que los usuarios deben tener para acceder a este campus. Dejar vacio para permitir todos los usuarios autenticados.",
+        "claimMappings": "Mapeo de Claims a Cursos",
+        "claimMappingsHelp": "Inscribir automaticamente a usuarios en cursos basandose en sus claims de Firebase. Cuando un usuario inicia sesion con el claim, obtiene acceso al curso mapeado.",
+        "claimName": "Nombre del claim",
+        "selectCourse": "Seleccionar curso"
       }
     },
     "users": {
