@@ -15,7 +15,7 @@ const LOCALHOST_PATTERNS = [
 ];
 
 const ALLOWED_HEADERS_STR =
-  "Content-Type, Authorization, X-Tenant-Slug, X-Requested-With, Accept, Origin";
+  "Content-Type, Authorization, X-Tenant-Slug, X-Firebase-Token, X-Requested-With, Accept, Origin";
 const EXPOSED_HEADERS_STR = "X-Total-Count, X-Total-Pages";
 const METHODS_STR = "GET, POST, PUT, PATCH, DELETE, OPTIONS";
 const MAX_AGE = "86400";
