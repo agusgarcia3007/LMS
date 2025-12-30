@@ -51,6 +51,7 @@ export const checkoutRoutes = new Elysia()
             price: coursesTable.price,
             currency: coursesTable.currency,
             thumbnail: coursesTable.thumbnail,
+            purchaseDisabled: coursesTable.purchaseDisabled,
           })
           .from(coursesTable)
           .where(
@@ -63,6 +64,15 @@ export const checkoutRoutes = new Elysia()
 
         if (courses.length !== courseIds.length) {
           throw new AppError(ErrorCode.BAD_REQUEST, "Some courses are not available", 400);
+        }
+
+        const disabledCourses = courses.filter((c) => c.purchaseDisabled);
+        if (disabledCourses.length > 0) {
+          throw new AppError(
+            ErrorCode.BAD_REQUEST,
+            "Some courses are not available for purchase",
+            400
+          );
         }
 
         const existingEnrollments = await db

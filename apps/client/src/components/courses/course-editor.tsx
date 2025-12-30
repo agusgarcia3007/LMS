@@ -95,6 +95,7 @@ const schema = z.object({
   requirements: z.array(z.string()).optional(),
   objectives: z.array(z.string()).optional(),
   includeCertificate: z.boolean().optional(),
+  purchaseDisabled: z.boolean().optional(),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -267,6 +268,7 @@ export function CourseEditor({
       requirements: [],
       objectives: [],
       includeCertificate: false,
+      purchaseDisabled: false,
     },
   });
 
@@ -295,6 +297,7 @@ export function CourseEditor({
           requirements: course.requirements || [],
           objectives: course.objectives || [],
           includeCertificate: course.includeCertificate || false,
+          purchaseDisabled: course.purchaseDisabled || false,
         });
       } else if (aiPreview) {
         form.reset({
@@ -316,6 +319,7 @@ export function CourseEditor({
           requirements: aiPreview.requirements,
           objectives: aiPreview.objectives,
           includeCertificate: false,
+          purchaseDisabled: false,
         });
         setCurrentStep(3);
         setKanbanData([]);
@@ -338,6 +342,7 @@ export function CourseEditor({
           features: [],
           requirements: [],
           objectives: [],
+          purchaseDisabled: false,
         });
         setKanbanData([]);
       }
@@ -428,6 +433,7 @@ export function CourseEditor({
       requirements: data.requirements?.length ? data.requirements : undefined,
       objectives: data.objectives?.length ? data.objectives : undefined,
       includeCertificate: data.includeCertificate,
+      purchaseDisabled: data.purchaseDisabled,
     };
 
     const confirmThumbnailIfNeeded = async (courseId: string) => {
@@ -782,6 +788,22 @@ export function CourseEditor({
                       checked={form.watch("includeCertificate") || false}
                       onCheckedChange={(checked) =>
                         form.setValue("includeCertificate", checked)
+                      }
+                      disabled={isPending}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-0.5">
+                      <Label>{t("courses.form.purchaseDisabled")}</Label>
+                      <p className="text-xs text-muted-foreground">
+                        {t("courses.form.purchaseDisabledDescription")}
+                      </p>
+                    </div>
+                    <Switch
+                      checked={form.watch("purchaseDisabled") || false}
+                      onCheckedChange={(checked) =>
+                        form.setValue("purchaseDisabled", checked)
                       }
                       disabled={isPending}
                     />

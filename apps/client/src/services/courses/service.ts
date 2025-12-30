@@ -40,6 +40,7 @@ export type Course = {
   requirements: string[] | null;
   objectives: string[] | null;
   includeCertificate: boolean;
+  purchaseDisabled: boolean;
   createdAt: string;
   updatedAt: string;
   instructor: Instructor | null;
@@ -93,6 +94,7 @@ export type CreateCourseRequest = {
   requirements?: string[];
   objectives?: string[];
   includeCertificate?: boolean;
+  purchaseDisabled?: boolean;
 };
 
 export type UpdateCourseRequest = {
@@ -116,6 +118,7 @@ export type UpdateCourseRequest = {
   requirements?: string[] | null;
   objectives?: string[] | null;
   includeCertificate?: boolean;
+  purchaseDisabled?: boolean;
 };
 
 export type UpdateCourseModulesRequest = {

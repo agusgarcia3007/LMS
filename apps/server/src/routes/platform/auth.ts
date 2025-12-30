@@ -4,6 +4,8 @@ import {
   refreshTokensTable,
   tenantsTable,
   instructorProfilesTable,
+  coursesTable,
+  enrollmentsTable,
 } from "@/db/schema";
 import { getWelcomeVerificationEmailHtml, getForgotPasswordEmailHtml } from "@/lib/email-templates";
 import { getEmailTranslations } from "@/lib/email-translations";
@@ -640,6 +642,67 @@ authRoutes.post(
   }
 );
 
+async function syncClaimBasedEnrollments(
+  userId: string,
+  tenantId: string,
+  customClaims: Record<string, unknown>,
+  claimMappings: Array<{ claim: string; courseId: string }>
+): Promise<void> {
+  if (!claimMappings?.length) return;
+
+  const activeCourseIds = claimMappings
+    .filter((m) => !!customClaims[m.claim])
+    .map((m) => m.courseId);
+
+  const inactiveCourseIds = claimMappings
+    .filter((m) => !customClaims[m.claim])
+    .map((m) => m.courseId);
+
+  const allCourseIds = [...new Set([...activeCourseIds, ...inactiveCourseIds])];
+  if (!allCourseIds.length) return;
+
+  const validCourses = await db
+    .select({ id: coursesTable.id })
+    .from(coursesTable)
+    .where(
+      and(eq(coursesTable.tenantId, tenantId), inArray(coursesTable.id, allCourseIds))
+    );
+  const validIds = new Set(validCourses.map((c) => c.id));
+
+  const toCreate = activeCourseIds
+    .filter((id) => validIds.has(id))
+    .map((courseId) => ({
+      userId,
+      courseId,
+      tenantId,
+      source: "claim" as const,
+    }));
+
+  if (toCreate.length) {
+    await db
+      .insert(enrollmentsTable)
+      .values(toCreate)
+      .onConflictDoNothing({
+        target: [enrollmentsTable.userId, enrollmentsTable.courseId],
+      });
+  }
+
+  const toRevoke = inactiveCourseIds.filter((id) => validIds.has(id));
+  if (toRevoke.length) {
+    await db
+      .update(enrollmentsTable)
+      .set({ status: "cancelled" })
+      .where(
+        and(
+          eq(enrollmentsTable.userId, userId),
+          eq(enrollmentsTable.tenantId, tenantId),
+          eq(enrollmentsTable.source, "claim"),
+          inArray(enrollmentsTable.courseId, toRevoke)
+        )
+      );
+  }
+}
+
 authRoutes.post(
   "/external",
   async (ctx) => {
@@ -776,6 +839,16 @@ authRoutes.post(
           locale: ctx.tenant.language ?? undefined,
         },
       });
+    }
+
+    const claimMappings = ctx.tenant.authSettings?.claimMappings;
+    if (claimMappings?.length) {
+      await syncClaimBasedEnrollments(
+        user.id,
+        ctx.tenant.id,
+        firebaseUser.customClaims,
+        claimMappings
+      );
     }
 
     const [accessToken, refreshToken] = await Promise.all([

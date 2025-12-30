@@ -294,6 +294,7 @@ export const campusRoutes = new Elysia({ name: "campus" })
             rating: 0,
             reviewsCount: 0,
             categories: categoriesByCourse.get(course.id) ?? [],
+            purchaseDisabled: course.purchaseDisabled,
             instructor: instructorProfile
               ? {
                   name: instructorUser?.name ?? null,
@@ -423,6 +424,7 @@ export const campusRoutes = new Elysia({ name: "campus" })
           rating: 0,
           reviewsCount: 0,
           includeCertificate: course.includeCertificate,
+          purchaseDisabled: course.purchaseDisabled,
           categories: courseCategories,
           instructor: instructorProfile
             ? {

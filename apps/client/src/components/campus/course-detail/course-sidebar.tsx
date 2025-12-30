@@ -4,6 +4,7 @@ import {
   Check,
   FileText,
   Layers,
+  Lock,
   Play,
   Share2,
   ShoppingCart,
@@ -112,26 +113,30 @@ export function CourseSidebar({ course }: CourseSidebarProps) {
         </div>
 
       <CardContent className="p-5">
-        <div className="mb-3 flex items-baseline gap-2">
-          <span className="text-3xl font-bold">
-            {priceText}
-          </span>
-          {hasDiscount && (
-            <>
-              <span className="text-base text-muted-foreground line-through">
-                {formatPrice(course.originalPrice!, course.currency)}
+        {!course.purchaseDisabled && (
+          <>
+            <div className="mb-3 flex items-baseline gap-2">
+              <span className="text-3xl font-bold">
+                {priceText}
               </span>
-              <span className="rounded bg-green-100 px-1.5 py-0.5 text-xs font-semibold text-green-700 dark:bg-green-900/30 dark:text-green-400">
-                {t("campus.courseDetail.discount", { percent: discountPercent })}
-              </span>
-            </>
-          )}
-        </div>
+              {hasDiscount && (
+                <>
+                  <span className="text-base text-muted-foreground line-through">
+                    {formatPrice(course.originalPrice!, course.currency)}
+                  </span>
+                  <span className="rounded bg-green-100 px-1.5 py-0.5 text-xs font-semibold text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                    {t("campus.courseDetail.discount", { percent: discountPercent })}
+                  </span>
+                </>
+              )}
+            </div>
 
-        {hasDiscount && (
-          <p className="mb-4 flex items-center gap-2 text-sm text-red-600 dark:text-red-400">
-            <span className="font-medium">{t("campus.courseDetail.offerEndsSoon")}</span>
-          </p>
+            {hasDiscount && (
+              <p className="mb-4 flex items-center gap-2 text-sm text-red-600 dark:text-red-400">
+                <span className="font-medium">{t("campus.courseDetail.offerEndsSoon")}</span>
+              </p>
+            )}
+          </>
         )}
 
         <div className="space-y-2.5">
@@ -141,6 +146,16 @@ export function CourseSidebar({ course }: CourseSidebarProps) {
               courseSlug={course.slug}
               isFree={isFree}
             />
+          ) : course.purchaseDisabled ? (
+            <Button
+              size="lg"
+              variant="outline"
+              className="w-full font-semibold"
+              disabled
+            >
+              <Lock className="mr-2 size-4" />
+              {t("campus.course.purchaseDisabled")}
+            </Button>
           ) : isAuthenticated ? (
             <>
               <Button

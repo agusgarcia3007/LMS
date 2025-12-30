@@ -111,6 +111,7 @@ export type TenantAuthSettings = {
   enableApple?: boolean;
   enableEmailPassword?: boolean;
   requiredClaims?: string[];
+  claimMappings?: Array<{ claim: string; courseId: string }>;
 };
 
 export type TenantStatus = "active" | "suspended" | "cancelled";
@@ -429,6 +430,7 @@ export const TenantsService = {
       enableApple?: boolean;
       enableEmailPassword?: boolean;
       requiredClaims?: string[];
+      claimMappings?: Array<{ claim: string; courseId: string }>;
     }
   ) {
     const { data } = await http.put<{ tenant: Tenant }>(

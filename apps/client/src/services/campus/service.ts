@@ -70,6 +70,7 @@ export type CampusCourse = {
   reviewsCount: number;
   categories: CampusCourseCategory[];
   instructor: CampusInstructor | null;
+  purchaseDisabled: boolean;
 };
 
 export type CampusModuleItem = {

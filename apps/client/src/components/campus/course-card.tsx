@@ -42,7 +42,7 @@ export function CourseCard({ course }: CourseCardProps) {
               <BookOpen className="size-12 text-muted-foreground" />
             </div>
           )}
-          {hasDiscount && (
+          {hasDiscount && !course.purchaseDisabled && (
             <div className="absolute right-3 top-3">
               <Badge variant="destructive" size="sm">
                 -{discountPercent}%
@@ -102,16 +102,18 @@ export function CourseCard({ course }: CourseCardProps) {
               </div>
             </div>
 
-            <div className="flex items-baseline gap-2 border-t border-border/50 pt-4">
-              <span className="text-xl font-bold">
-                {priceText}
-              </span>
-              {hasDiscount && (
-                <span className="text-sm text-muted-foreground line-through">
-                  {formatPrice(course.originalPrice!, course.currency)}
+            {!course.purchaseDisabled && (
+              <div className="flex items-baseline gap-2 border-t border-border/50 pt-4">
+                <span className="text-xl font-bold">
+                  {priceText}
                 </span>
-              )}
-            </div>
+                {hasDiscount && (
+                  <span className="text-sm text-muted-foreground line-through">
+                    {formatPrice(course.originalPrice!, course.currency)}
+                  </span>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </article>

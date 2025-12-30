@@ -64,6 +64,13 @@ export const enrollmentStatusEnum = pgEnum("enrollment_status", [
   "cancelled",
 ]);
 
+export const enrollmentSourceEnum = pgEnum("enrollment_source", [
+  "purchase",
+  "admin",
+  "claim",
+  "free",
+]);
+
 export const itemProgressStatusEnum = pgEnum("item_progress_status", [
   "not_started",
   "in_progress",
@@ -281,6 +288,10 @@ export const tenantsTable = pgTable(
         enableEmailPassword?: boolean;
       };
       requiredClaims?: string[];
+      claimMappings?: Array<{
+        claim: string;
+        courseId: string;
+      }>;
     }>(),
     maxUsers: integer("max_users"),
     maxCourses: integer("max_courses"),
@@ -666,6 +677,7 @@ export const coursesTable = pgTable(
     requirements: text("requirements").array(),
     objectives: text("objectives").array(),
     includeCertificate: boolean("include_certificate").notNull().default(false),
+    purchaseDisabled: boolean("purchase_disabled").notNull().default(false),
     embedding: vector("embedding", { dimensions: 1536 }),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at")
@@ -814,6 +826,7 @@ export const enrollmentsTable = pgTable(
     purchasePrice: integer("purchase_price"),
     purchaseCurrency: text("purchase_currency"),
     status: enrollmentStatusEnum("status").notNull().default("active"),
+    source: enrollmentSourceEnum("source").notNull().default("purchase"),
     progress: integer("progress").notNull().default(0),
     completedAt: timestamp("completed_at"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
@@ -827,6 +840,7 @@ export const enrollmentsTable = pgTable(
     index("enrollments_course_id_idx").on(table.courseId),
     index("enrollments_tenant_id_idx").on(table.tenantId),
     index("enrollments_status_idx").on(table.status),
+    index("enrollments_source_idx").on(table.source),
     index("enrollments_user_tenant_idx").on(table.userId, table.tenantId),
     index("enrollments_user_status_idx").on(table.userId, table.status),
     index("enrollments_tenant_status_created_idx").on(
@@ -1353,6 +1367,7 @@ export type ContentStatus = (typeof contentStatusEnum.enumValues)[number];
 export type InsertEnrollment = typeof enrollmentsTable.$inferInsert;
 export type SelectEnrollment = typeof enrollmentsTable.$inferSelect;
 export type EnrollmentStatus = (typeof enrollmentStatusEnum.enumValues)[number];
+export type EnrollmentSource = (typeof enrollmentSourceEnum.enumValues)[number];
 
 export type InsertItemProgress = typeof itemProgressTable.$inferInsert;
 export type SelectItemProgress = typeof itemProgressTable.$inferSelect;

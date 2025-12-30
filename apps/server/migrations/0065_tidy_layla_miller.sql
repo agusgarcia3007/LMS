@@ -1,0 +1,1 @@
+ALTER TABLE "courses" ADD COLUMN "purchase_disabled" boolean DEFAULT false NOT NULL;

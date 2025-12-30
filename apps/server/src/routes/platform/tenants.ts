@@ -13,7 +13,7 @@ import {
   enrollmentsTable,
   certificatesTable,
 } from "@/db/schema";
-import { count, eq, sql, and, ne, gte, desc } from "drizzle-orm";
+import { count, eq, sql, and, ne, gte, desc, inArray } from "drizzle-orm";
 import {
   uploadBase64ToS3,
   uploadFileToS3,
@@ -81,6 +81,7 @@ function transformTenant(tenant: typeof tenantsTable.$inferSelect) {
           enableApple: tenant.authSettings.firebase?.enableApple ?? true,
           enableEmailPassword: tenant.authSettings.firebase?.enableEmailPassword ?? true,
           requiredClaims: tenant.authSettings.requiredClaims ?? [],
+          claimMappings: tenant.authSettings.claimMappings ?? [],
         }
       : null,
   };
@@ -1043,6 +1044,7 @@ export const tenantsRoutes = new Elysia()
         enableApple,
         enableEmailPassword,
         requiredClaims,
+        claimMappings,
       } = ctx.body;
 
       if (provider === "firebase") {
@@ -1067,6 +1069,28 @@ export const tenantsRoutes = new Elysia()
             400
           );
         }
+
+        if (claimMappings?.length) {
+          const courseIds = claimMappings.map((m) => m.courseId);
+          const validCourses = await db
+            .select({ id: coursesTable.id })
+            .from(coursesTable)
+            .where(
+              and(
+                eq(coursesTable.tenantId, ctx.params.id),
+                inArray(coursesTable.id, courseIds)
+              )
+            );
+          const validIds = new Set(validCourses.map((c) => c.id));
+          const invalidIds = courseIds.filter((id) => !validIds.has(id));
+          if (invalidIds.length) {
+            throw new AppError(
+              ErrorCode.BAD_REQUEST,
+              `Invalid course IDs: ${invalidIds.join(", ")}`,
+              400
+            );
+          }
+        }
       }
 
       const authSettings =
@@ -1082,6 +1106,7 @@ export const tenantsRoutes = new Elysia()
                 enableEmailPassword: enableEmailPassword ?? true,
               },
               requiredClaims: requiredClaims ?? [],
+              claimMappings: claimMappings ?? [],
             }
           : { provider: "local" as const };
 
@@ -1108,6 +1133,14 @@ export const tenantsRoutes = new Elysia()
         enableApple: t.Optional(t.Boolean()),
         enableEmailPassword: t.Optional(t.Boolean()),
         requiredClaims: t.Optional(t.Array(t.String())),
+        claimMappings: t.Optional(
+          t.Array(
+            t.Object({
+              claim: t.String({ minLength: 1 }),
+              courseId: t.String({ format: "uuid" }),
+            })
+          )
+        ),
       }),
       detail: {
         tags: ["Tenants"],

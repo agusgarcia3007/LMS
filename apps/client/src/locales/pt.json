@@ -2181,7 +2181,9 @@
       "publish": "Publicar",
       "publishDescription": "O curso estara disponivel para os estudantes",
       "includeCertificate": "Incluir certificado",
-      "includeCertificateDescription": "Os estudantes receberao um certificado ao concluir o curso"
+      "includeCertificateDescription": "Os estudantes receberao um certificado ao concluir o curso",
+      "purchaseDisabled": "Desativar compra",
+      "purchaseDisabledDescription": "Os usuarios nao podem comprar este curso diretamente"
     },
     "editor": {
       "tabs": {
@@ -2317,7 +2319,8 @@
       "instructor": "Instrutor",
       "createdBy": "Criado por",
       "lastUpdated": "Atualizado recentemente",
-      "bestseller": "Mais vendido"
+      "bestseller": "Mais vendido",
+      "purchaseDisabled": "Nao disponivel para compra"
     },
     "courseDetail": {
       "enrollFree": "Inscrever-se gratis",
