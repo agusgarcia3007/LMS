@@ -966,7 +966,10 @@
           "namePlaceholder": "Mi Academia",
           "nameHelp": "El nombre que se mostrara en tu sitio",
           "descriptionLabel": "Descripcion del sitio",
-          "descriptionPlaceholder": "Una breve descripcion de tu academia"
+          "descriptionPlaceholder": "Una breve descripcion de tu academia",
+          "language": "Idioma de emails",
+          "languagePlaceholder": "Seleccionar idioma",
+          "languageHelp": "Idioma de los emails enviados a estudiantes"
         },
         "branding": {
           "title": "Marca",

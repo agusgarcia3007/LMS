@@ -19,6 +19,7 @@ import {
 } from "@/lib/filters";
 import { sendEmail } from "@/lib/utils";
 import { getInvitationEmailHtml } from "@/lib/email-templates";
+import { getEmailTranslations, interpolate } from "@/lib/email-translations";
 import { getPresignedUrl } from "@/lib/upload";
 import { CLIENT_URL } from "@/lib/constants";
 
@@ -305,16 +306,19 @@ export const instructorsRoutes = new Elysia()
       const resetUrl = `${CLIENT_URL}/reset-password?token=${resetToken}`;
 
       const logoUrl = tenant.logo ? getPresignedUrl(tenant.logo) : undefined;
+      const locale = tenant.language ?? undefined;
+      const t = getEmailTranslations(locale).invitation;
 
       await sendEmail({
         to: ctx.body.email,
-        subject: `You've been invited to ${tenant.name} as an instructor`,
+        subject: interpolate(t.subject, { tenantName: tenant.name }),
         html: getInvitationEmailHtml({
           recipientName: ctx.body.name,
           tenantName: tenant.name,
           inviterName: ctx.user!.name,
           resetUrl,
           logoUrl,
+          locale,
         }),
         senderName: tenant.name,
         replyTo: tenant.contactEmail || undefined,

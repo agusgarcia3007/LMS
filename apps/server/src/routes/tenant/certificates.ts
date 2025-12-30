@@ -11,6 +11,7 @@ import { eq, and, desc } from "drizzle-orm";
 import { getPresignedUrl } from "@/lib/upload";
 import { sendEmail } from "@/lib/utils";
 import { getCertificateEmailHtml } from "@/lib/email-templates";
+import { getEmailTranslations } from "@/lib/email-translations";
 import { env } from "@/lib/env";
 import {
   generateCertificatePreview,
@@ -210,6 +211,7 @@ export const certificatesRoutes = new Elysia({ name: "certificates" })
             slug: tenantsTable.slug,
             customDomain: tenantsTable.customDomain,
             contactEmail: tenantsTable.contactEmail,
+            language: tenantsTable.language,
           })
           .from(tenantsTable)
           .where(eq(tenantsTable.id, certificate.tenantId))
@@ -222,17 +224,20 @@ export const certificatesRoutes = new Elysia({ name: "certificates" })
           ? getPresignedUrl(certificate.imageKey)
           : verificationUrl;
 
+        const locale = tenant?.language ?? undefined;
+        const t = getEmailTranslations(locale).certificateEmail;
         const emailHtml = getCertificateEmailHtml({
           studentName: certificate.userName,
           courseName: certificate.courseName,
           verificationUrl,
           downloadUrl,
           tenantName: tenant?.name || "LMS",
+          locale,
         });
 
         await sendEmail({
           to: ctx.user.email,
-          subject: `Your Certificate of Completion - ${certificate.courseName}`,
+          subject: t.subject,
           html: emailHtml,
           senderName: tenant?.name,
           replyTo: tenant?.contactEmail || undefined,

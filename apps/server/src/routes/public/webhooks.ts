@@ -34,6 +34,7 @@ import {
   getSuperadminCommissionNotificationEmailHtml,
   getSuperadminNewSubscriberEmailHtml,
 } from "@/lib/email-templates";
+import { getEmailTranslations, interpolate } from "@/lib/email-translations";
 import type Stripe from "stripe";
 import type { TenantPlan, SubscriptionStatus, SelectTenant } from "@/db/schema";
 
@@ -111,10 +112,14 @@ async function sendSaleNotificationEmails(params: {
 
   const tenantUrl = getTenantUrl(tenant);
 
+  const locale = tenant.language ?? undefined;
+  const ownerT = getEmailTranslations(locale).ownerSale;
+  const buyerT = getEmailTranslations(locale).buyerConfirmation;
+
   if (owner) {
     sendEmail({
       to: owner.email,
-      subject: `New sale on ${tenant.name}`,
+      subject: interpolate(ownerT.subject, { tenantName: tenant.name }),
       html: getOwnerSaleNotificationEmailHtml({
         ownerName: owner.name,
         tenantName: tenant.name,
@@ -124,6 +129,7 @@ async function sendSaleNotificationEmails(params: {
         grossAmount: formatCurrency(grossAmount, currency),
         platformFee: formatCurrency(platformFee, currency),
         netEarnings: formatCurrency(netEarnings, currency),
+        locale,
       }),
       senderName: "Learnbase",
     });
@@ -131,7 +137,7 @@ async function sendSaleNotificationEmails(params: {
 
   sendEmail({
     to: buyer.email,
-    subject: `Your purchase from ${tenant.name}`,
+    subject: buyerT.subject,
     html: getBuyerPurchaseConfirmationEmailHtml({
       buyerName: buyer.name,
       tenantName: tenant.name,
@@ -139,6 +145,7 @@ async function sendSaleNotificationEmails(params: {
       totalAmount: formatCurrency(grossAmount, currency),
       receiptUrl,
       dashboardUrl: `${tenantUrl}/my-courses`,
+      locale,
     }),
     senderName: tenant.name,
     replyTo: tenant.contactEmail ?? undefined,
@@ -651,6 +658,7 @@ export const webhooksRoutes = new Elysia()
             resetUrl,
             tenantLogo: logoUrl,
             tenantContactEmail: tenant.contactEmail,
+            locale: tenant.language ?? undefined,
           },
         });
       }

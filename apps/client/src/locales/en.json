@@ -981,7 +981,10 @@
           "namePlaceholder": "My Academy",
           "nameHelp": "The name that will be displayed on your site",
           "descriptionLabel": "Site Description",
-          "descriptionPlaceholder": "A brief description of your academy"
+          "descriptionPlaceholder": "A brief description of your academy",
+          "language": "Email Language",
+          "languagePlaceholder": "Select language",
+          "languageHelp": "Language for emails sent to students"
         },
         "branding": {
           "title": "Branding",

@@ -548,7 +548,7 @@ function VideosPage() {
                     folder="videos"
                     isConfirming={editVideo ? confirmMutation.isPending : confirmStandaloneMutation.isPending}
                     isDeleting={deleteFileMutation.isPending}
-                    maxSize={250 * 1024 * 1024}
+                    maxSize={2 * 1024 * 1024 * 1024}
                   />
                 </FormItem>
                 {editVideo?.videoKey && (

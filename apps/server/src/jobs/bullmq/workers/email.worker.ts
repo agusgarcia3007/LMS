@@ -13,6 +13,7 @@ import {
   getFeatureRejectedEmailHtml,
   getRevenueCatWelcomeEmailHtml,
 } from "@/lib/email-templates";
+import { getEmailTranslations, interpolate } from "@/lib/email-translations";
 import type {
   SendWelcomeEmailJob,
   SendTenantWelcomeEmailJob,
@@ -44,14 +45,16 @@ async function processWelcomeEmail(data: SendWelcomeEmailJob["data"] & { clientU
 }
 
 async function processTenantWelcomeEmail(data: SendTenantWelcomeEmailJob["data"]) {
+  const t = getEmailTranslations(data.locale).tenantWelcome;
   await sendEmail({
     to: data.email,
-    subject: `Welcome to ${data.tenantName}!`,
+    subject: interpolate(t.subject, { tenantName: data.tenantName }),
     html: getTenantWelcomeEmailHtml({
       userName: data.userName,
       tenantName: data.tenantName,
       dashboardUrl: data.dashboardUrl,
       logoUrl: data.logoUrl,
+      locale: data.locale,
     }),
   });
 }
@@ -92,14 +95,16 @@ async function processFeatureRejectedEmail(data: SendFeatureRejectedEmailJob["da
 }
 
 async function processRevenueCatWelcomeEmail(data: SendRevenueCatWelcomeEmailJob["data"]) {
+  const t = getEmailTranslations(data.locale).revenueCatWelcome;
   await sendEmail({
     to: data.email,
-    subject: `Welcome to ${data.tenantName}`,
+    subject: interpolate(t.subject, { tenantName: data.tenantName }),
     html: getRevenueCatWelcomeEmailHtml({
       recipientName: data.email.split("@")[0],
       tenantName: data.tenantName,
       resetUrl: data.resetUrl,
       logoUrl: data.tenantLogo ?? undefined,
+      locale: data.locale,
     }),
     senderName: data.tenantName,
     replyTo: data.tenantContactEmail ?? undefined,

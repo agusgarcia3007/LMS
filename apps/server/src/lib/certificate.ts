@@ -18,6 +18,7 @@ import { sendEmail } from "./utils";
 import { logger } from "./logger";
 import { env } from "./env";
 import { getCertificateEmailHtml } from "./email-templates";
+import { getEmailTranslations, interpolate } from "./email-translations";
 import {
   getCertificateTranslations,
   formatDateByLocale,
@@ -402,17 +403,20 @@ export async function generateAndStoreCertificate(
   });
 
   const downloadUrl = getPresignedUrl(imageKey);
+  const locale = tenant.language ?? undefined;
+  const t = getEmailTranslations(locale).certificateEmail;
   const emailHtml = getCertificateEmailHtml({
     studentName: user.name,
     courseName: course.title,
     verificationUrl,
     downloadUrl,
     tenantName: tenant.name,
+    locale,
   });
 
   await sendEmail({
     to: user.email,
-    subject: `Your Certificate of Completion - ${course.title}`,
+    subject: t.subject,
     html: emailHtml,
     senderName: tenant.name,
     replyTo: tenant.contactEmail || undefined,

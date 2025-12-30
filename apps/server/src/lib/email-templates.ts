@@ -1,14 +1,18 @@
+import { getEmailTranslations, interpolate } from "./email-translations";
+
 type CertificateEmailParams = {
   studentName: string;
   courseName: string;
   verificationUrl: string;
   downloadUrl: string;
   tenantName: string;
+  locale?: string;
 };
 
 export function getCertificateEmailHtml(params: CertificateEmailParams): string {
-  const { studentName, courseName, verificationUrl, downloadUrl, tenantName } =
+  const { studentName, courseName, verificationUrl, downloadUrl, tenantName, locale } =
     params;
+  const t = getEmailTranslations(locale).certificateEmail;
 
   return `
 <!DOCTYPE html>
@@ -16,7 +20,7 @@ export function getCertificateEmailHtml(params: CertificateEmailParams): string 
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Certificate of Completion</title>
+  <title>${t.subject}</title>
 </head>
 <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f3f4f6;">
   <table role="presentation" style="width: 100%; border-collapse: collapse;">
@@ -30,11 +34,11 @@ export function getCertificateEmailHtml(params: CertificateEmailParams): string 
               </div>
 
               <h1 style="margin: 0 0 8px; font-size: 28px; font-weight: 700; color: #1f2937;">
-                Congratulations, ${studentName}!
+                ${interpolate(t.congratulations, { studentName })}
               </h1>
 
               <p style="margin: 0 0 32px; font-size: 16px; color: #6b7280; line-height: 1.6;">
-                You have successfully completed the course
+                ${t.completedCourse}
               </p>
 
               <div style="background-color: #f9fafb; border-radius: 8px; padding: 24px; margin-bottom: 32px;">
@@ -42,26 +46,26 @@ export function getCertificateEmailHtml(params: CertificateEmailParams): string 
                   ${courseName}
                 </h2>
                 <p style="margin: 0; font-size: 14px; color: #9ca3af;">
-                  Issued by ${tenantName}
+                  ${interpolate(t.issuedBy, { tenantName })}
                 </p>
               </div>
 
               <p style="margin: 0 0 24px; font-size: 16px; color: #4b5563; line-height: 1.6;">
-                Your certificate is ready! You can download it or share the verification link with others.
+                ${t.readyMessage}
               </p>
 
               <table role="presentation" style="width: 100%; border-collapse: collapse;">
                 <tr>
                   <td style="padding: 8px;">
                     <a href="${downloadUrl}" style="display: inline-block; padding: 14px 32px; background-color: #0052cc; color: #ffffff; text-decoration: none; font-weight: 600; font-size: 16px; border-radius: 8px;">
-                      Download Certificate
+                      ${t.downloadButton}
                     </a>
                   </td>
                 </tr>
                 <tr>
                   <td style="padding: 8px;">
                     <a href="${verificationUrl}" style="display: inline-block; padding: 14px 32px; background-color: #f3f4f6; color: #4b5563; text-decoration: none; font-weight: 600; font-size: 16px; border-radius: 8px; border: 1px solid #e5e7eb;">
-                      View Verification Page
+                      ${t.verifyButton}
                     </a>
                   </td>
                 </tr>
@@ -72,7 +76,7 @@ export function getCertificateEmailHtml(params: CertificateEmailParams): string 
           <tr>
             <td style="padding: 24px 40px; background-color: #f9fafb; border-radius: 0 0 12px 12px; text-align: center;">
               <p style="margin: 0 0 8px; font-size: 14px; color: #6b7280;">
-                Share your achievement with others using this verification link:
+                ${t.shareMessage}
               </p>
               <p style="margin: 0; font-size: 12px; color: #9ca3af; word-break: break-all;">
                 <a href="${verificationUrl}" style="color: #0052cc; text-decoration: none;">
@@ -84,7 +88,7 @@ export function getCertificateEmailHtml(params: CertificateEmailParams): string 
         </table>
 
         <p style="margin: 24px 0 0; font-size: 12px; color: #9ca3af;">
-          This email was sent by ${tenantName}
+          ${interpolate(t.footer, { tenantName })}
         </p>
       </td>
     </tr>
@@ -100,10 +104,12 @@ type InvitationEmailParams = {
   inviterName: string;
   resetUrl: string;
   logoUrl?: string;
+  locale?: string;
 };
 
 export function getInvitationEmailHtml(params: InvitationEmailParams): string {
-  const { recipientName, tenantName, inviterName, resetUrl, logoUrl } = params;
+  const { recipientName, tenantName, inviterName, resetUrl, logoUrl, locale } = params;
+  const t = getEmailTranslations(locale).invitation;
 
   const logoHtml = logoUrl
     ? `<img src="${logoUrl}" alt="${tenantName}" style="max-height: 64px; max-width: 200px; margin-bottom: 24px;" />`
@@ -115,7 +121,7 @@ export function getInvitationEmailHtml(params: InvitationEmailParams): string {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>You've been invited</title>
+  <title>${interpolate(t.title, { tenantName })}</title>
 </head>
 <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f3f4f6;">
   <table role="presentation" style="width: 100%; border-collapse: collapse;">
@@ -126,16 +132,16 @@ export function getInvitationEmailHtml(params: InvitationEmailParams): string {
             <td style="padding: 48px 40px; text-align: center;">
               ${logoHtml}
               <h1 style="margin: 0 0 8px; font-size: 28px; font-weight: 700; color: #1f2937;">
-                Welcome to ${tenantName}
+                ${interpolate(t.title, { tenantName })}
               </h1>
 
               <p style="margin: 0 0 32px; font-size: 16px; color: #6b7280; line-height: 1.6;">
-                Hi ${recipientName}, you've been invited by <strong>${inviterName}</strong>
+                ${interpolate(t.greeting, { recipientName, inviterName: `<strong>${inviterName}</strong>` })}
               </p>
 
               <div style="background-color: #f9fafb; border-radius: 8px; padding: 24px; margin-bottom: 32px;">
                 <p style="margin: 0; font-size: 16px; color: #4b5563; line-height: 1.6;">
-                  To get started, please set up your password by clicking the button below.
+                  ${t.setupMessage}
                 </p>
               </div>
 
@@ -143,14 +149,14 @@ export function getInvitationEmailHtml(params: InvitationEmailParams): string {
                 <tr>
                   <td style="padding: 8px;">
                     <a href="${resetUrl}" style="display: inline-block; padding: 14px 32px; background-color: #0052cc; color: #ffffff; text-decoration: none; font-weight: 600; font-size: 16px; border-radius: 8px;">
-                      Set Up Password
+                      ${t.button}
                     </a>
                   </td>
                 </tr>
               </table>
 
               <p style="margin: 24px 0 0; font-size: 14px; color: #9ca3af;">
-                This link will expire in 1 hour.
+                ${t.linkExpiry}
               </p>
             </td>
           </tr>
@@ -158,7 +164,7 @@ export function getInvitationEmailHtml(params: InvitationEmailParams): string {
           <tr>
             <td style="padding: 24px 40px; background-color: #f9fafb; border-radius: 0 0 12px 12px; text-align: center;">
               <p style="margin: 0; font-size: 12px; color: #9ca3af; word-break: break-all;">
-                If the button doesn't work, copy this link:<br>
+                ${t.fallbackText}<br>
                 <a href="${resetUrl}" style="color: #0052cc; text-decoration: none;">
                   ${resetUrl}
                 </a>
@@ -168,7 +174,7 @@ export function getInvitationEmailHtml(params: InvitationEmailParams): string {
         </table>
 
         <p style="margin: 24px 0 0; font-size: 12px; color: #9ca3af;">
-          If you didn't expect this invitation, you can safely ignore this email.
+          ${t.ignoreText}
         </p>
       </td>
     </tr>
@@ -183,10 +189,12 @@ type TenantWelcomeEmailParams = {
   tenantName: string;
   dashboardUrl: string;
   logoUrl?: string;
+  locale?: string;
 };
 
 export function getTenantWelcomeEmailHtml(params: TenantWelcomeEmailParams): string {
-  const { userName, tenantName, dashboardUrl, logoUrl } = params;
+  const { userName, tenantName, dashboardUrl, logoUrl, locale } = params;
+  const t = getEmailTranslations(locale).tenantWelcome;
 
   const logoHtml = logoUrl
     ? `<img src="${logoUrl}" alt="${tenantName}" style="max-height: 64px; max-width: 200px; margin-bottom: 24px;" />`
@@ -198,7 +206,7 @@ export function getTenantWelcomeEmailHtml(params: TenantWelcomeEmailParams): str
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Welcome to ${tenantName}</title>
+  <title>${interpolate(t.title, { tenantName })}</title>
 </head>
 <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f3f4f6;">
   <table role="presentation" style="width: 100%; border-collapse: collapse;">
@@ -209,16 +217,16 @@ export function getTenantWelcomeEmailHtml(params: TenantWelcomeEmailParams): str
             <td style="padding: 48px 40px; text-align: center;">
               ${logoHtml}
               <h1 style="margin: 0 0 8px; font-size: 28px; font-weight: 700; color: #1f2937;">
-                Welcome to ${tenantName}!
+                ${interpolate(t.title, { tenantName })}
               </h1>
 
               <p style="margin: 0 0 32px; font-size: 16px; color: #6b7280; line-height: 1.6;">
-                Hi ${userName}, your account has been created successfully.
+                ${interpolate(t.greeting, { userName })}
               </p>
 
               <div style="background-color: #f0f7ff; border-radius: 8px; padding: 24px; margin-bottom: 32px; border-left: 4px solid #0052cc;">
                 <p style="margin: 0; font-size: 16px; color: #4b5563; line-height: 1.6;">
-                  You now have access to all the courses and content available on our platform. Start exploring and learning today!
+                  ${t.accessMessage}
                 </p>
               </div>
 
@@ -226,7 +234,7 @@ export function getTenantWelcomeEmailHtml(params: TenantWelcomeEmailParams): str
                 <tr>
                   <td style="padding: 8px;">
                     <a href="${dashboardUrl}" style="display: inline-block; padding: 14px 32px; background-color: #0052cc; color: #ffffff; text-decoration: none; font-weight: 600; font-size: 16px; border-radius: 8px;">
-                      Start Learning
+                      ${t.button}
                     </a>
                   </td>
                 </tr>
@@ -237,7 +245,7 @@ export function getTenantWelcomeEmailHtml(params: TenantWelcomeEmailParams): str
           <tr>
             <td style="padding: 24px 40px; background-color: #f9fafb; border-radius: 0 0 12px 12px; text-align: center;">
               <p style="margin: 0; font-size: 12px; color: #9ca3af;">
-                This email was sent by ${tenantName}.
+                ${interpolate(t.footer, { tenantName })}
               </p>
             </td>
           </tr>
@@ -398,6 +406,7 @@ type OwnerSaleNotificationParams = {
   grossAmount: string;
   platformFee: string;
   netEarnings: string;
+  locale?: string;
 };
 
 export function getOwnerSaleNotificationEmailHtml(
@@ -412,7 +421,9 @@ export function getOwnerSaleNotificationEmailHtml(
     grossAmount,
     platformFee,
     netEarnings,
+    locale,
   } = params;
+  const t = getEmailTranslations(locale).ownerSale;
 
   const courseRows = courses
     .map(
@@ -435,7 +446,7 @@ export function getOwnerSaleNotificationEmailHtml(
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>New Sale</title>
+  <title>${interpolate(t.title, { tenantName })}</title>
 </head>
 <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f3f4f6;">
   <table role="presentation" style="width: 100%; border-collapse: collapse;">
@@ -449,16 +460,16 @@ export function getOwnerSaleNotificationEmailHtml(
                   <span style="font-size: 28px; color: #ffffff;">$</span>
                 </div>
                 <h1 style="margin: 0 0 8px; font-size: 28px; font-weight: 700; color: #1f2937;">
-                  New Sale on ${tenantName}
+                  ${interpolate(t.title, { tenantName })}
                 </h1>
               </div>
 
               <p style="margin: 0 0 24px; font-size: 16px; color: #4b5563; line-height: 1.6;">
-                Hi ${ownerName}, you have a new sale!
+                ${interpolate(t.greeting, { ownerName })}
               </p>
 
               <div style="background-color: #f9fafb; border-radius: 8px; padding: 20px; margin-bottom: 24px;">
-                <p style="margin: 0 0 4px; font-size: 14px; color: #6b7280;">Customer</p>
+                <p style="margin: 0 0 4px; font-size: 14px; color: #6b7280;">${t.customer}</p>
                 <p style="margin: 0 0 4px; font-size: 16px; font-weight: 600; color: #1f2937;">${buyerName}</p>
                 <p style="margin: 0; font-size: 14px; color: #6b7280;">${buyerEmail}</p>
               </div>
@@ -466,10 +477,10 @@ export function getOwnerSaleNotificationEmailHtml(
               <table role="presentation" style="width: 100%; border-collapse: collapse; margin-bottom: 24px;">
                 <tr>
                   <td style="padding: 12px 0; border-bottom: 2px solid #e5e7eb;">
-                    <span style="font-size: 12px; font-weight: 600; color: #6b7280; text-transform: uppercase;">Course</span>
+                    <span style="font-size: 12px; font-weight: 600; color: #6b7280; text-transform: uppercase;">${t.course}</span>
                   </td>
                   <td style="padding: 12px 0; border-bottom: 2px solid #e5e7eb; text-align: right;">
-                    <span style="font-size: 12px; font-weight: 600; color: #6b7280; text-transform: uppercase;">Price</span>
+                    <span style="font-size: 12px; font-weight: 600; color: #6b7280; text-transform: uppercase;">${t.price}</span>
                   </td>
                 </tr>
                 ${courseRows}
@@ -479,7 +490,7 @@ export function getOwnerSaleNotificationEmailHtml(
                 <table role="presentation" style="width: 100%; border-collapse: collapse;">
                   <tr>
                     <td style="padding: 4px 0;">
-                      <span style="font-size: 14px; color: #4b5563;">Gross</span>
+                      <span style="font-size: 14px; color: #4b5563;">${t.gross}</span>
                     </td>
                     <td style="padding: 4px 0; text-align: right;">
                       <span style="font-size: 14px; color: #1f2937;">${grossAmount}</span>
@@ -487,7 +498,7 @@ export function getOwnerSaleNotificationEmailHtml(
                   </tr>
                   <tr>
                     <td style="padding: 4px 0;">
-                      <span style="font-size: 14px; color: #4b5563;">Platform fee</span>
+                      <span style="font-size: 14px; color: #4b5563;">${t.platformFee}</span>
                     </td>
                     <td style="padding: 4px 0; text-align: right;">
                       <span style="font-size: 14px; color: #dc2626;">-${platformFee}</span>
@@ -495,7 +506,7 @@ export function getOwnerSaleNotificationEmailHtml(
                   </tr>
                   <tr>
                     <td style="padding: 12px 0 4px; border-top: 1px solid #bbf7d0;">
-                      <span style="font-size: 16px; font-weight: 600; color: #1f2937;">Net earnings</span>
+                      <span style="font-size: 16px; font-weight: 600; color: #1f2937;">${t.netEarnings}</span>
                     </td>
                     <td style="padding: 12px 0 4px; border-top: 1px solid #bbf7d0; text-align: right;">
                       <span style="font-size: 16px; font-weight: 600; color: #059669;">${netEarnings}</span>
@@ -509,7 +520,7 @@ export function getOwnerSaleNotificationEmailHtml(
           <tr>
             <td style="padding: 24px 40px; background-color: #f9fafb; border-radius: 0 0 12px 12px; text-align: center;">
               <p style="margin: 0; font-size: 12px; color: #9ca3af;">
-                You received this email because you are the owner of ${tenantName}.
+                ${interpolate(t.footer, { tenantName })}
               </p>
             </td>
           </tr>
@@ -529,13 +540,15 @@ type BuyerPurchaseConfirmationParams = {
   totalAmount: string;
   receiptUrl: string | null;
   dashboardUrl: string;
+  locale?: string;
 };
 
 export function getBuyerPurchaseConfirmationEmailHtml(
   params: BuyerPurchaseConfirmationParams
 ): string {
-  const { buyerName, tenantName, courses, totalAmount, receiptUrl, dashboardUrl } =
+  const { buyerName, tenantName, courses, totalAmount, receiptUrl, dashboardUrl, locale } =
     params;
+  const t = getEmailTranslations(locale).buyerConfirmation;
 
   const courseRows = courses
     .map(
@@ -557,7 +570,7 @@ export function getBuyerPurchaseConfirmationEmailHtml(
       <tr>
         <td style="padding: 8px;">
           <a href="${receiptUrl}" style="display: inline-block; padding: 14px 32px; background-color: #f3f4f6; color: #4b5563; text-decoration: none; font-weight: 600; font-size: 16px; border-radius: 8px; border: 1px solid #e5e7eb;">
-            View Receipt
+            ${t.receiptButton}
           </a>
         </td>
       </tr>
@@ -570,7 +583,7 @@ export function getBuyerPurchaseConfirmationEmailHtml(
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Purchase Confirmation</title>
+  <title>${t.title}</title>
 </head>
 <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f3f4f6;">
   <table role="presentation" style="width: 100%; border-collapse: collapse;">
@@ -584,27 +597,27 @@ export function getBuyerPurchaseConfirmationEmailHtml(
                   <span style="font-size: 28px; color: #ffffff;">&#10003;</span>
                 </div>
                 <h1 style="margin: 0 0 8px; font-size: 28px; font-weight: 700; color: #1f2937;">
-                  Thank you for your purchase!
+                  ${t.title}
                 </h1>
               </div>
 
               <p style="margin: 0 0 24px; font-size: 16px; color: #4b5563; line-height: 1.6;">
-                Hi ${buyerName}, your purchase from ${tenantName} has been confirmed.
+                ${interpolate(t.greeting, { buyerName, tenantName })}
               </p>
 
               <table role="presentation" style="width: 100%; border-collapse: collapse; margin-bottom: 24px;">
                 <tr>
                   <td style="padding: 12px 0; border-bottom: 2px solid #e5e7eb;">
-                    <span style="font-size: 12px; font-weight: 600; color: #6b7280; text-transform: uppercase;">Course</span>
+                    <span style="font-size: 12px; font-weight: 600; color: #6b7280; text-transform: uppercase;">${t.course}</span>
                   </td>
                   <td style="padding: 12px 0; border-bottom: 2px solid #e5e7eb; text-align: right;">
-                    <span style="font-size: 12px; font-weight: 600; color: #6b7280; text-transform: uppercase;">Price</span>
+                    <span style="font-size: 12px; font-weight: 600; color: #6b7280; text-transform: uppercase;">${t.price}</span>
                   </td>
                 </tr>
                 ${courseRows}
                 <tr>
                   <td style="padding: 16px 0;">
-                    <span style="font-size: 16px; font-weight: 600; color: #1f2937;">Total</span>
+                    <span style="font-size: 16px; font-weight: 600; color: #1f2937;">${t.total}</span>
                   </td>
                   <td style="padding: 16px 0; text-align: right;">
                     <span style="font-size: 16px; font-weight: 600; color: #1f2937;">${totalAmount}</span>
@@ -616,7 +629,7 @@ export function getBuyerPurchaseConfirmationEmailHtml(
                 <tr>
                   <td style="padding: 8px;">
                     <a href="${dashboardUrl}" style="display: inline-block; padding: 14px 32px; background-color: #0052cc; color: #ffffff; text-decoration: none; font-weight: 600; font-size: 16px; border-radius: 8px;">
-                      Start Learning
+                      ${t.startButton}
                     </a>
                   </td>
                 </tr>
@@ -628,7 +641,7 @@ export function getBuyerPurchaseConfirmationEmailHtml(
           <tr>
             <td style="padding: 24px 40px; background-color: #f9fafb; border-radius: 0 0 12px 12px; text-align: center;">
               <p style="margin: 0; font-size: 12px; color: #9ca3af;">
-                This email was sent by ${tenantName}.
+                ${interpolate(t.footer, { tenantName })}
               </p>
             </td>
           </tr>
@@ -1051,12 +1064,14 @@ type RevenueCatWelcomeEmailParams = {
   tenantName: string;
   resetUrl: string;
   logoUrl?: string;
+  locale?: string;
 };
 
 export function getRevenueCatWelcomeEmailHtml(
   params: RevenueCatWelcomeEmailParams
 ): string {
-  const { recipientName, tenantName, resetUrl, logoUrl } = params;
+  const { recipientName, tenantName, resetUrl, logoUrl, locale } = params;
+  const t = getEmailTranslations(locale).revenueCatWelcome;
 
   const logoHtml = logoUrl
     ? `<img src="${logoUrl}" alt="${tenantName}" style="max-height: 64px; max-width: 200px; margin-bottom: 24px;" />`
@@ -1068,7 +1083,7 @@ export function getRevenueCatWelcomeEmailHtml(
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Welcome to ${tenantName}</title>
+  <title>${interpolate(t.title, { tenantName })}</title>
 </head>
 <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f3f4f6;">
   <table role="presentation" style="width: 100%; border-collapse: collapse;">
@@ -1079,16 +1094,16 @@ export function getRevenueCatWelcomeEmailHtml(
             <td style="padding: 48px 40px; text-align: center;">
               ${logoHtml}
               <h1 style="margin: 0 0 8px; font-size: 28px; font-weight: 700; color: #1f2937;">
-                Welcome to ${tenantName}!
+                ${interpolate(t.title, { tenantName })}
               </h1>
 
               <p style="margin: 0 0 32px; font-size: 16px; color: #6b7280; line-height: 1.6;">
-                Hi ${recipientName}, thanks for your purchase!
+                ${interpolate(t.greeting, { recipientName })}
               </p>
 
               <div style="background-color: #f9fafb; border-radius: 8px; padding: 24px; margin-bottom: 32px;">
                 <p style="margin: 0; font-size: 16px; color: #4b5563; line-height: 1.6;">
-                  Your account has been created and your course is ready. Set up your password to start learning.
+                  ${t.purchaseMessage}
                 </p>
               </div>
 
@@ -1096,14 +1111,14 @@ export function getRevenueCatWelcomeEmailHtml(
                 <tr>
                   <td style="padding: 8px;">
                     <a href="${resetUrl}" style="display: inline-block; padding: 14px 32px; background-color: #0052cc; color: #ffffff; text-decoration: none; font-weight: 600; font-size: 16px; border-radius: 8px;">
-                      Set Up My Account
+                      ${t.button}
                     </a>
                   </td>
                 </tr>
               </table>
 
               <p style="margin: 24px 0 0; font-size: 14px; color: #9ca3af;">
-                This link expires in 48 hours
+                ${t.linkExpiry}
               </p>
             </td>
           </tr>
@@ -1111,14 +1126,14 @@ export function getRevenueCatWelcomeEmailHtml(
           <tr>
             <td style="padding: 24px 40px; background-color: #f9fafb; border-radius: 0 0 12px 12px; text-align: center;">
               <p style="margin: 0; font-size: 12px; color: #9ca3af;">
-                If you didn't make this purchase, please ignore this email
+                ${t.ignoreText}
               </p>
             </td>
           </tr>
         </table>
 
         <p style="margin: 24px 0 0; font-size: 12px; color: #9ca3af;">
-          This email was sent by ${tenantName}
+          ${interpolate(t.footer, { tenantName })}
         </p>
       </td>
     </tr>

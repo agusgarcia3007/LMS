@@ -30,17 +30,15 @@ export function CourseCard({ course }: CourseCardProps) {
       className="group block h-full"
     >
       <article className="flex h-full flex-col overflow-hidden rounded-xl border border-border/50 bg-card transition-all duration-300 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5">
-        <div className="relative aspect-video overflow-hidden">
+        <div className="relative overflow-hidden">
           {course.thumbnail ? (
-            <Image
+            <img
               src={course.thumbnail}
               alt={course.title}
-              layout="fullWidth"
-              aspectRatio={16 / 9}
-              className="transition-transform duration-500 group-hover:scale-105"
+              className="w-full transition-transform duration-500 group-hover:scale-105"
             />
           ) : (
-            <div className="flex h-full w-full items-center justify-center bg-muted">
+            <div className="flex aspect-video w-full items-center justify-center bg-muted">
               <BookOpen className="size-12 text-muted-foreground" />
             </div>
           )}

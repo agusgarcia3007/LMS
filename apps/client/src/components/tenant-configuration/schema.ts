@@ -164,6 +164,7 @@ export const configurationSchema = z.object({
     .regex(/^[a-z0-9-]+$/, "Only lowercase letters, numbers, and hyphens"),
   name: z.string().min(1),
   description: z.string().max(500).optional(),
+  language: z.enum(["en", "es", "pt"]).optional(),
   contactEmail: z.email().optional().or(z.literal("")),
   contactPhone: z.string().optional(),
   contactAddress: z.string().optional(),

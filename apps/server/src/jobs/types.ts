@@ -26,6 +26,7 @@ export type SendTenantWelcomeEmailJob = {
     tenantName: string;
     dashboardUrl: string;
     logoUrl?: string;
+    locale?: string;
   };
 };
 
@@ -96,6 +97,7 @@ export type SendRevenueCatWelcomeEmailJob = {
     resetUrl: string;
     tenantLogo: string | null;
     tenantContactEmail: string | null;
+    locale?: string;
   };
 };
 

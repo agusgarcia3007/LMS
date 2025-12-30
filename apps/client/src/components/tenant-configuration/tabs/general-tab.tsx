@@ -14,6 +14,13 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { TabsContent } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertIcon } from "@/components/ui/alert";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 import { SaveButton } from "../save-button";
 import type { ConfigurationFormData } from "../schema";
@@ -107,6 +114,38 @@ export function GeneralTab({ isSlugChanged, isSaving }: GeneralTabProps) {
                 className="resize-none"
               />
             </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="language"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>
+              {t("dashboard.site.configuration.general.language")}
+            </FormLabel>
+            <Select onValueChange={field.onChange} value={field.value}>
+              <FormControl>
+                <SelectTrigger className="w-full sm:w-48">
+                  <SelectValue
+                    placeholder={t(
+                      "dashboard.site.configuration.general.languagePlaceholder"
+                    )}
+                  />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                <SelectItem value="en">English</SelectItem>
+                <SelectItem value="es">Espanol</SelectItem>
+                <SelectItem value="pt">Portugues</SelectItem>
+              </SelectContent>
+            </Select>
+            <FormDescription>
+              {t("dashboard.site.configuration.general.languageHelp")}
+            </FormDescription>
             <FormMessage />
           </FormItem>
         )}

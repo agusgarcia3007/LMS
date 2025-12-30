@@ -88,7 +88,7 @@ app.use(bullBoardPlugin);
 
 app.listen({
   port: env.PORT,
-  maxRequestBodySize: 1024 * 1024 * 500,
+  maxRequestBodySize: 2 * 1024 * 1024 * 1024,
 });
 
 console.log(

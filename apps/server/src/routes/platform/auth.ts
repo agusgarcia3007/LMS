@@ -147,6 +147,7 @@ authRoutes.post(
             tenantName: ctx.tenant.name,
             dashboardUrl: getTenantClientUrl(ctx.tenant),
             logoUrl: ctx.tenant.logo ? getPresignedUrl(ctx.tenant.logo) : undefined,
+            locale: ctx.tenant.language ?? undefined,
           },
         });
 
@@ -739,6 +740,7 @@ authRoutes.post(
           userName: user.name,
           tenantName: ctx.tenant.name,
           dashboardUrl: getTenantClientUrl(ctx.tenant),
+          locale: ctx.tenant.language ?? undefined,
         },
       });
     }

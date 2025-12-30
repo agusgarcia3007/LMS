@@ -981,7 +981,10 @@
           "namePlaceholder": "Minha Academia",
           "nameHelp": "O nome que sera exibido no seu site",
           "descriptionLabel": "Descricao do site",
-          "descriptionPlaceholder": "Uma breve descricao da sua academia"
+          "descriptionPlaceholder": "Uma breve descricao da sua academia",
+          "language": "Idioma dos emails",
+          "languagePlaceholder": "Selecionar idioma",
+          "languageHelp": "Idioma dos emails enviados aos alunos"
         },
         "branding": {
           "title": "Marca",

@@ -43,7 +43,7 @@ export function VideoUpload({
   onConfirm,
   onDelete,
   folder,
-  maxSize = 500 * 1024 * 1024,
+  maxSize = 2 * 1024 * 1024 * 1024,
   className,
   disabled = false,
   isConfirming = false,

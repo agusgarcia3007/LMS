@@ -7,6 +7,7 @@ import { AppError, ErrorCode } from "@/lib/errors";
 import { getTenantClientUrl, sendEmail } from "@/lib/utils";
 import { CLIENT_URL } from "@/lib/constants";
 import { getInvitationEmailHtml } from "@/lib/email-templates";
+import { getEmailTranslations, interpolate } from "@/lib/email-translations";
 import { db } from "@/db";
 import {
   tenantsTable,
@@ -672,20 +673,23 @@ export const usersRoutes = new Elysia()
       const resetUrl = `${baseUrl}/reset-password?token=${resetToken}`;
 
       const logoUrl = tenant.logo ? getPresignedUrl(tenant.logo) : undefined;
+      const locale = tenant.language ?? undefined;
+      const t = getEmailTranslations(locale).invitation;
 
       await sendEmail({
         to: ctx.body.email,
-        subject: `You've been invited to ${tenant.name}`,
+        subject: interpolate(t.subject, { tenantName: tenant.name }),
         html: getInvitationEmailHtml({
           recipientName: ctx.body.name,
           tenantName: tenant.name,
           inviterName: ctx.user!.name,
-            resetUrl,
-            logoUrl,
-          }),
-          senderName: tenant.name,
-          replyTo: tenant.contactEmail || undefined,
-        });
+          resetUrl,
+          logoUrl,
+          locale,
+        }),
+        senderName: tenant.name,
+        replyTo: tenant.contactEmail || undefined,
+      });
 
         if (tenant.stripeConnectAccountId) {
           await enqueue({

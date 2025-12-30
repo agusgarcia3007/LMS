@@ -161,6 +161,7 @@ export type Tenant = {
   commissionRate: number;
   chargesEnabled: boolean;
   published: boolean;
+  language: "en" | "es" | "pt" | null;
   publishedAt: string | null;
   createdAt: string;
   updatedAt: string;
@@ -218,6 +219,7 @@ export type UpdateTenantRequest = {
   heroPattern?: BackgroundPattern | null;
   coursesPagePattern?: BackgroundPattern | null;
   showHeaderName?: boolean;
+  language?: "en" | "es" | "pt";
   customTheme?: CustomTheme | null;
   certificateSettings?: TenantCertificateSettings | null;
   aiAssistantSettings?: TenantAiAssistantSettings | null;
