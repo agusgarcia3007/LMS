@@ -70,7 +70,14 @@ export const campusRoutes = new Elysia({ name: "campus" })
             socialLinks: tenant.socialLinks,
             contactEmail: tenant.contactEmail,
             customTheme: tenant.customTheme,
-            aiAssistantSettings: tenant.aiAssistantSettings,
+            aiAssistantSettings: tenant.aiAssistantSettings
+              ? {
+                  ...tenant.aiAssistantSettings,
+                  avatarUrl: tenant.aiAssistantSettings.avatarKey
+                    ? getPresignedUrl(tenant.aiAssistantSettings.avatarKey)
+                    : null,
+                }
+              : null,
             authSettings: tenant.authSettings
               ? {
                   provider: tenant.authSettings.provider,
@@ -120,7 +127,14 @@ export const campusRoutes = new Elysia({ name: "campus" })
           socialLinks: ctx.tenant.socialLinks,
           contactEmail: ctx.tenant.contactEmail,
           customTheme: ctx.tenant.customTheme,
-          aiAssistantSettings: ctx.tenant.aiAssistantSettings,
+          aiAssistantSettings: ctx.tenant.aiAssistantSettings
+            ? {
+                ...ctx.tenant.aiAssistantSettings,
+                avatarUrl: ctx.tenant.aiAssistantSettings.avatarKey
+                  ? getPresignedUrl(ctx.tenant.aiAssistantSettings.avatarKey)
+                  : null,
+              }
+            : null,
           authSettings: ctx.tenant.authSettings
             ? {
                 provider: ctx.tenant.authSettings.provider,
