@@ -84,8 +84,19 @@ function AiConfigurationPage() {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [localPreview, setLocalPreview] = useState<string | null>(null);
 
+  const formValues = tenant
+    ? {
+        enabled: tenant.aiAssistantSettings?.enabled ?? true,
+        name: tenant.aiAssistantSettings?.name ?? "",
+        customPrompt: tenant.aiAssistantSettings?.customPrompt ?? "",
+        preferredLanguage: tenant.aiAssistantSettings?.preferredLanguage ?? "auto",
+        tone: tenant.aiAssistantSettings?.tone ?? "friendly",
+      }
+    : undefined;
+
   const form = useForm<AiConfigFormData>({
     resolver: zodResolver(aiConfigSchema),
+    values: formValues,
     defaultValues: {
       enabled: true,
       name: "",
@@ -97,18 +108,9 @@ function AiConfigurationPage() {
 
   useEffect(() => {
     if (tenant?.aiAssistantSettings) {
-      form.reset({
-        enabled: tenant.aiAssistantSettings.enabled ?? true,
-        name: tenant.aiAssistantSettings.name ?? "",
-        customPrompt: tenant.aiAssistantSettings.customPrompt ?? "",
-        preferredLanguage:
-          tenant.aiAssistantSettings.preferredLanguage ?? "auto",
-        tone: tenant.aiAssistantSettings.tone ?? "friendly",
-      });
       setAvatarUrl(tenant.aiAssistantSettings.avatarUrl ?? null);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tenant?.id]);
+  }, [tenant?.aiAssistantSettings?.avatarUrl]);
 
   const handleFilesAdded = useCallback(
     async (files: { file: File | { url: string } }[]) => {
@@ -160,6 +162,7 @@ function AiConfigurationPage() {
       id: tenant.id,
       name: tenant.name,
       aiAssistantSettings: {
+        ...tenant.aiAssistantSettings,
         enabled: values.enabled,
         name: values.name || undefined,
         customPrompt: values.customPrompt || undefined,
