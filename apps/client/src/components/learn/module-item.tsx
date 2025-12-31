@@ -39,7 +39,7 @@ export function ModuleItem({ item, isActive, onClick, courseSlug, moduleId }: Mo
       type="button"
       onClick={onClick}
       className={cn(
-        "group flex w-full items-center gap-2 rounded-md px-2 py-2 text-left transition-all",
+        "group flex w-full items-center gap-2 rounded-md py-2 pl-2 pr-3 text-left transition-all",
         "hover:bg-muted/70 focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-2",
         isActive && "bg-primary/10 ring-primary/20 ring-1"
       )}

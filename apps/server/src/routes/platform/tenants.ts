@@ -756,6 +756,25 @@ export const tenantsRoutes = new Elysia()
           }
         }
 
+        // Preserve image keys that are managed by separate endpoints
+        const certificateSettings = ctx.body.certificateSettings
+          ? {
+              ...ctx.body.certificateSettings,
+              signatureImageKey:
+                ctx.body.certificateSettings.signatureImageKey ??
+                existingTenant.certificateSettings?.signatureImageKey,
+            }
+          : ctx.body.certificateSettings;
+
+        const aiAssistantSettings = ctx.body.aiAssistantSettings
+          ? {
+              ...ctx.body.aiAssistantSettings,
+              avatarKey:
+                ctx.body.aiAssistantSettings.avatarKey ??
+                existingTenant.aiAssistantSettings?.avatarKey,
+            }
+          : ctx.body.aiAssistantSettings;
+
         const [updatedTenant] = await db
           .update(tenantsTable)
           .set({
@@ -781,8 +800,8 @@ export const tenantsRoutes = new Elysia()
             showHeaderName: ctx.body.showHeaderName,
             language: ctx.body.language,
             customTheme: ctx.body.customTheme,
-            certificateSettings: ctx.body.certificateSettings,
-            aiAssistantSettings: ctx.body.aiAssistantSettings,
+            certificateSettings,
+            aiAssistantSettings,
             maxUsers: ctx.body.maxUsers,
             maxCourses: ctx.body.maxCourses,
             maxStorageBytes: ctx.body.maxStorageBytes,
@@ -955,6 +974,7 @@ export const tenantsRoutes = new Elysia()
             t.Literal("casual"),
             t.Literal("academic"),
           ])),
+          avatarKey: t.Optional(t.String()),
         }))),
         status: t.Optional(t.Union([
           t.Literal("active"),
