@@ -27,6 +27,12 @@ import {
 import { getPresignedUrl } from "@/lib/upload";
 import { logger } from "@/lib/logger";
 
+function formatTimestamp(seconds: number): string {
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return `${mins}:${secs.toString().padStart(2, "0")}`;
+}
+
 export const chatLearnRoutes = new Elysia({ name: "ai-chat-learn" })
   .use(authPlugin)
   .post(
@@ -375,19 +381,54 @@ export const chatLearnRoutes = new Elysia({ name: "ai-chat-learn" })
         }
       }
 
-      const formattedMessages = processedMessages.map((m) => {
+      const formattedMessages = processedMessages.map((m, index) => {
         if (m.role === "user" && m.attachments?.length) {
+          const hasImages = m.attachments.some((a) => a.type === "image");
+          const isLastMessage = index === processedMessages.length - 1;
+
+          if (hasImages && isLastMessage) {
+            logger.info("Processing user message with image attachments", {
+              tenantId,
+              userId,
+              itemId: context.itemId,
+              itemType: learnContext.itemType,
+              currentTime: context.currentTime,
+              attachmentCount: m.attachments.length,
+              imageCount: m.attachments.filter((a) => a.type === "image").length,
+            });
+          }
+
           const contentParts: Array<
             | { type: "text"; text: string }
             | { type: "image"; image: string }
             | { type: "file"; data: string; mediaType: string }
-          > = [{ type: "text" as const, text: m.content || " " }];
+          > = [];
+
+          if (
+            hasImages &&
+            isLastMessage &&
+            learnContext.itemType === "video"
+          ) {
+            const imageContext = `[Visual Context: The student is currently at ${formatTimestamp(context.currentTime)} in the video "${learnContext.itemTitle}". The attached image shows exactly what they are seeing on screen right now. Please analyze this image to understand their question.]`;
+            contentParts.push({ type: "text" as const, text: imageContext });
+          }
+
+          contentParts.push({
+            type: "text" as const,
+            text: m.content || " ",
+          });
 
           for (const att of m.attachments) {
             if (att.type === "image") {
+              const imageUrl = getPresignedUrl(att.key);
+              logger.info("Adding image to message", {
+                tenantId,
+                userId,
+                imageUrl: imageUrl.substring(0, 100) + "...",
+              });
               contentParts.push({
                 type: "image" as const,
-                image: getPresignedUrl(att.key),
+                image: imageUrl,
               });
             } else {
               const base64Data = att.data.includes(",")
