@@ -38,6 +38,7 @@ export type UserListResponse = {
 export type TenantUser = Omit<User, "tenant"> & {
   enrollmentsCount: number;
   completedCount: number;
+  avgProgress: number;
   lastActivity: string | null;
   emailVerified: boolean;
 };

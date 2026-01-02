@@ -2767,7 +2767,6 @@
       "reviewed": "Completado",
       "correctAnswer": "Respuesta correcta",
       "explanation": "Explicacion",
-      "goToQuestion": "Ir a pregunta {{number}}",
       "results": {
         "title": "Resultados",
         "score": "Tu puntaje",
