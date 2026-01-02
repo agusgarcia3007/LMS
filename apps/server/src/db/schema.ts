@@ -137,6 +137,13 @@ export const aiFeedbackTypeEnum = pgEnum("ai_feedback_type", [
   "preference_stated",
 ]);
 
+export const aiConversationTypeEnum = pgEnum("ai_conversation_type", [
+  "learn",
+  "creator",
+]);
+
+export const aiMessageRoleEnum = pgEnum("ai_message_role", ["user", "assistant"]);
+
 export const featureStatusEnum = pgEnum("feature_status", [
   "pending",
   "ideas",
@@ -1161,6 +1168,85 @@ export const aiFeedbackTable = pgTable(
   ]
 );
 
+export type AiConversationMetadata = {
+  courseId?: string;
+  courseTitle?: string;
+  itemId?: string;
+  itemTitle?: string;
+  contextCourseIds?: string[];
+};
+
+export type AiMessageAttachment =
+  | { type: "image"; key: string }
+  | { type: "file"; data: string; mimeType: string; fileName?: string };
+
+export type AiMessageToolInvocation = {
+  id: string;
+  toolName: string;
+  args: Record<string, unknown>;
+  result?: unknown;
+};
+
+export const aiConversationsTable = pgTable(
+  "ai_conversations",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => usersTable.id, { onDelete: "cascade" }),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenantsTable.id, { onDelete: "cascade" }),
+    type: aiConversationTypeEnum("type").notNull(),
+    title: text("title"),
+    metadata: jsonb("metadata").$type<AiConversationMetadata>(),
+    messageCount: integer("message_count").notNull().default(0),
+    lastMessageAt: timestamp("last_message_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (table) => [
+    index("ai_conversations_user_id_idx").on(table.userId),
+    index("ai_conversations_tenant_id_idx").on(table.tenantId),
+    index("ai_conversations_type_idx").on(table.type),
+    index("ai_conversations_user_tenant_type_idx").on(
+      table.userId,
+      table.tenantId,
+      table.type
+    ),
+    index("ai_conversations_last_message_at_idx").on(table.lastMessageAt),
+  ]
+);
+
+export const aiMessagesTable = pgTable(
+  "ai_messages",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    conversationId: uuid("conversation_id")
+      .notNull()
+      .references(() => aiConversationsTable.id, { onDelete: "cascade" }),
+    role: aiMessageRoleEnum("role").notNull(),
+    content: text("content").notNull(),
+    attachments: jsonb("attachments").$type<AiMessageAttachment[]>(),
+    toolInvocations: jsonb("tool_invocations").$type<AiMessageToolInvocation[]>(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    index("ai_messages_conversation_id_idx").on(table.conversationId),
+    index("ai_messages_conversation_created_idx").on(
+      table.conversationId,
+      table.createdAt
+    ),
+  ]
+);
+
 export const jobStatusEnum = pgEnum("job_status", [
   "pending",
   "processing",
@@ -1183,6 +1269,7 @@ export const jobTypeEnum = pgEnum("job_type", [
   "video-embedding",
   "subtitle-generation",
   "subtitle-translation",
+  "save-ai-messages",
 ]);
 
 export const jobsHistoryTable = pgTable(
@@ -1455,3 +1542,11 @@ export type NotificationType = (typeof notificationTypeEnum.enumValues)[number];
 
 export type InsertRevenuecatEvent = typeof revenuecatEventsTable.$inferInsert;
 export type SelectRevenuecatEvent = typeof revenuecatEventsTable.$inferSelect;
+
+export type InsertAiConversation = typeof aiConversationsTable.$inferInsert;
+export type SelectAiConversation = typeof aiConversationsTable.$inferSelect;
+export type AiConversationType = (typeof aiConversationTypeEnum.enumValues)[number];
+
+export type InsertAiMessage = typeof aiMessagesTable.$inferInsert;
+export type SelectAiMessage = typeof aiMessagesTable.$inferSelect;
+export type AiMessageRole = (typeof aiMessageRoleEnum.enumValues)[number];

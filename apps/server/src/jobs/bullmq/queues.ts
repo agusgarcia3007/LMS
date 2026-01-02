@@ -52,3 +52,16 @@ export const videoAnalysisQueue = new Queue("video-analysis", {
     removeOnFail: { count: 500 },
   },
 });
+
+export const aiChatQueue = new Queue("ai-chat", {
+  connection,
+  defaultJobOptions: {
+    attempts: 3,
+    backoff: {
+      type: "exponential",
+      delay: 1000,
+    },
+    removeOnComplete: { count: 500 },
+    removeOnFail: { count: 1000 },
+  },
+});

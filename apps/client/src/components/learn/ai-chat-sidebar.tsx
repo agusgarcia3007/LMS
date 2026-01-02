@@ -1,6 +1,7 @@
 import { useEffect, useRef, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { Sparkles, ChevronRight, ImagePlus, CheckCircle } from "lucide-react";
+import { ConversationDropdown } from "@/components/ai-elements/conversation-dropdown";
 import { Button } from "@/components/ui/button";
 import {
   PromptInput,
@@ -51,7 +52,6 @@ type AIChatSidebarProps = {
   assistantName?: string;
   assistantAvatar?: string | null;
 };
-
 
 function dataURLToBlob(dataUrl: string): Blob {
   const arr = dataUrl.split(",");
@@ -119,11 +119,14 @@ export function AIChatSidebar({
     messages,
     isStreaming,
     toolInvocations,
+    conversationId,
     sendMessage,
     cancel,
     reset,
     setContext,
     updateCurrentTime,
+    loadConversation,
+    createNewConversation,
   } = useLearnChat();
 
   const prevItemIdRef = useRef<string | null>(null);
@@ -208,10 +211,10 @@ export function AIChatSidebar({
   return (
     <>
       <Sidebar variant="floating" side="right" collapsible="offcanvas">
-        <SidebarHeader className="from-primary/5 to-primary/10 border-b bg-gradient-to-r">
+        <SidebarHeader className="from-primary/5 to-primary/10 border-b bg-linear-to-r">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="relative">
+              <div>
                 {assistantAvatar ? (
                   <img
                     src={assistantAvatar}
@@ -221,13 +224,16 @@ export function AIChatSidebar({
                 ) : (
                   <Sparkles className="text-primary size-5" />
                 )}
-                {isStreaming && (
-                  <span className="bg-primary absolute -top-0.5 -right-0.5 size-2 animate-pulse rounded-full" />
-                )}
               </div>
               <span className="whitespace-nowrap font-semibold">
                 {assistantName || t("learn.aiAssistant")}
               </span>
+              <ConversationDropdown
+                type="learn"
+                currentConversationId={conversationId}
+                onSelectConversation={loadConversation}
+                onNewConversation={createNewConversation}
+              />
             </div>
             <Button
               variant="ghost"
@@ -291,8 +297,12 @@ export function AIChatSidebar({
                   )}
                   <span>
                     {toolInvocations.every((t) => t.state === "completed")
-                      ? `Used ${toolInvocations.length} resource${toolInvocations.length > 1 ? "s" : ""}`
-                      : `Using ${toolInvocations.length} resource${toolInvocations.length > 1 ? "s" : ""}...`}
+                      ? `Used ${toolInvocations.length} resource${
+                          toolInvocations.length > 1 ? "s" : ""
+                        }`
+                      : `Using ${toolInvocations.length} resource${
+                          toolInvocations.length > 1 ? "s" : ""
+                        }...`}
                   </span>
                 </div>
               )}

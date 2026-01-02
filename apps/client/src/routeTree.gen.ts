@@ -62,6 +62,7 @@ import { Route as TenantSlugContentDocumentsRouteImport } from './routes/$tenant
 import { Route as TenantSlugContentCoursesRouteImport } from './routes/$tenantSlug/content/courses'
 import { Route as TenantSlugContentCategoriesRouteImport } from './routes/$tenantSlug/content/categories'
 import { Route as TenantSlugCheckoutSuccessRouteImport } from './routes/$tenantSlug/checkout/success'
+import { Route as TenantSlugAiConversationsRouteImport } from './routes/$tenantSlug/ai/conversations'
 import { Route as TenantSlugContentQuizzesIndexRouteImport } from './routes/$tenantSlug/content/quizzes.index'
 import { Route as ApiOgCourseSlugRouteImport } from './routes/api/og/course.$slug'
 import { Route as TenantSlugContentQuizzesQuizIdRouteImport } from './routes/$tenantSlug/content/quizzes.$quizId'
@@ -345,6 +346,12 @@ const TenantSlugCheckoutSuccessRoute =
     path: '/checkout/success',
     getParentRoute: () => TenantSlugRouteRoute,
   } as any)
+const TenantSlugAiConversationsRoute =
+  TenantSlugAiConversationsRouteImport.update({
+    id: '/ai/conversations',
+    path: '/ai/conversations',
+    getParentRoute: () => TenantSlugRouteRoute,
+  } as any)
 const TenantSlugContentQuizzesIndexRoute =
   TenantSlugContentQuizzesIndexRouteImport.update({
     id: '/',
@@ -397,6 +404,7 @@ export interface FileRoutesByFullPath {
   '/backoffice/': typeof BackofficeIndexRoute
   '/courses/': typeof CoursesIndexRoute
   '/my-courses/': typeof MyCoursesIndexRoute
+  '/$tenantSlug/ai/conversations': typeof TenantSlugAiConversationsRoute
   '/$tenantSlug/checkout/success': typeof TenantSlugCheckoutSuccessRoute
   '/$tenantSlug/content/categories': typeof TenantSlugContentCategoriesRoute
   '/$tenantSlug/content/courses': typeof TenantSlugContentCoursesRoute
@@ -450,6 +458,7 @@ export interface FileRoutesByTo {
   '/backoffice': typeof BackofficeIndexRoute
   '/courses': typeof CoursesIndexRoute
   '/my-courses': typeof MyCoursesIndexRoute
+  '/$tenantSlug/ai/conversations': typeof TenantSlugAiConversationsRoute
   '/$tenantSlug/checkout/success': typeof TenantSlugCheckoutSuccessRoute
   '/$tenantSlug/content/categories': typeof TenantSlugContentCategoriesRoute
   '/$tenantSlug/content/courses': typeof TenantSlugContentCoursesRoute
@@ -508,6 +517,7 @@ export interface FileRoutesById {
   '/backoffice/': typeof BackofficeIndexRoute
   '/courses/': typeof CoursesIndexRoute
   '/my-courses/': typeof MyCoursesIndexRoute
+  '/$tenantSlug/ai/conversations': typeof TenantSlugAiConversationsRoute
   '/$tenantSlug/checkout/success': typeof TenantSlugCheckoutSuccessRoute
   '/$tenantSlug/content/categories': typeof TenantSlugContentCategoriesRoute
   '/$tenantSlug/content/courses': typeof TenantSlugContentCoursesRoute
@@ -567,6 +577,7 @@ export interface FileRouteTypes {
     | '/backoffice/'
     | '/courses/'
     | '/my-courses/'
+    | '/$tenantSlug/ai/conversations'
     | '/$tenantSlug/checkout/success'
     | '/$tenantSlug/content/categories'
     | '/$tenantSlug/content/courses'
@@ -620,6 +631,7 @@ export interface FileRouteTypes {
     | '/backoffice'
     | '/courses'
     | '/my-courses'
+    | '/$tenantSlug/ai/conversations'
     | '/$tenantSlug/checkout/success'
     | '/$tenantSlug/content/categories'
     | '/$tenantSlug/content/courses'
@@ -677,6 +689,7 @@ export interface FileRouteTypes {
     | '/backoffice/'
     | '/courses/'
     | '/my-courses/'
+    | '/$tenantSlug/ai/conversations'
     | '/$tenantSlug/checkout/success'
     | '/$tenantSlug/content/categories'
     | '/$tenantSlug/content/courses'
@@ -1094,6 +1107,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TenantSlugCheckoutSuccessRouteImport
       parentRoute: typeof TenantSlugRouteRoute
     }
+    '/$tenantSlug/ai/conversations': {
+      id: '/$tenantSlug/ai/conversations'
+      path: '/ai/conversations'
+      fullPath: '/$tenantSlug/ai/conversations'
+      preLoaderRoute: typeof TenantSlugAiConversationsRouteImport
+      parentRoute: typeof TenantSlugRouteRoute
+    }
     '/$tenantSlug/content/quizzes/': {
       id: '/$tenantSlug/content/quizzes/'
       path: '/'
@@ -1136,6 +1156,7 @@ const TenantSlugContentQuizzesRouteWithChildren =
 
 interface TenantSlugRouteRouteChildren {
   TenantSlugIndexRoute: typeof TenantSlugIndexRoute
+  TenantSlugAiConversationsRoute: typeof TenantSlugAiConversationsRoute
   TenantSlugCheckoutSuccessRoute: typeof TenantSlugCheckoutSuccessRoute
   TenantSlugContentCategoriesRoute: typeof TenantSlugContentCategoriesRoute
   TenantSlugContentCoursesRoute: typeof TenantSlugContentCoursesRoute
@@ -1157,6 +1178,7 @@ interface TenantSlugRouteRouteChildren {
 
 const TenantSlugRouteRouteChildren: TenantSlugRouteRouteChildren = {
   TenantSlugIndexRoute: TenantSlugIndexRoute,
+  TenantSlugAiConversationsRoute: TenantSlugAiConversationsRoute,
   TenantSlugCheckoutSuccessRoute: TenantSlugCheckoutSuccessRoute,
   TenantSlugContentCategoriesRoute: TenantSlugContentCategoriesRoute,
   TenantSlugContentCoursesRoute: TenantSlugContentCoursesRoute,

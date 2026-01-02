@@ -7,6 +7,42 @@
       "noVideo": "Upload a video first to generate text"
     }
   },
+  "conversations": {
+    "title": "Conversations",
+    "new": "New",
+    "newConversation": "New conversation",
+    "seeAll": "See all",
+    "empty": {
+      "title": "No conversations yet",
+      "description": "Start a chat to see it here"
+    },
+    "loading": "Loading...",
+    "admin": {
+      "title": "Student Conversations",
+      "description": "Monitor student AI assistant conversations",
+      "columns": {
+        "user": "User",
+        "type": "Type",
+        "title": "Title",
+        "messages": "Messages",
+        "createdAt": "Created"
+      },
+      "types": {
+        "learn": "Learning",
+        "creator": "Creator"
+      },
+      "analytics": {
+        "totalConversations": "Total Conversations",
+        "totalMessages": "Total Messages",
+        "last30Days": "Last 30 days",
+        "byType": "By Type"
+      },
+      "viewer": {
+        "title": "Conversation",
+        "noMessages": "No messages in this conversation"
+      }
+    }
+  },
   "notifications": {
     "title": "Notifications",
     "markAllRead": "Mark all as read",

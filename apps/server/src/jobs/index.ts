@@ -1,4 +1,10 @@
-export { enqueue, startWorker, stopWorker, bullBoardPlugin } from "./bullmq";
+export {
+  enqueue,
+  enqueueAiMessages,
+  startWorker,
+  stopWorker,
+  bullBoardPlugin,
+} from "./bullmq";
 export type {
   Job,
   SendWelcomeEmailJob,
@@ -9,4 +15,5 @@ export type {
   SendFeatureSubmissionEmailJob,
   SendFeatureApprovedEmailJob,
   SendFeatureRejectedEmailJob,
+  SaveAiMessagesJob,
 } from "./types";

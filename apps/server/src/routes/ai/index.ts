@@ -7,6 +7,7 @@ import { chatCreatorRoutes } from "./chat-creator";
 import { chatLearnRoutes } from "./chat-learn";
 import { subtitlesRoutes } from "./subtitles";
 import { aiFeedbackRoutes } from "./feedback";
+import { aiConversationsRoutes } from "./conversations";
 
 export const aiRoutes = new Elysia()
   .use(contentAnalysisRoutes)
@@ -16,4 +17,5 @@ export const aiRoutes = new Elysia()
   .use(chatCreatorRoutes)
   .use(chatLearnRoutes)
   .use(subtitlesRoutes)
-  .use(aiFeedbackRoutes);
+  .use(aiFeedbackRoutes)
+  .use(aiConversationsRoutes);

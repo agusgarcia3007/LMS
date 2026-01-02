@@ -11,16 +11,11 @@ const SERVER_SNAPSHOT: TenantInfo = {
   isCustomDomain: false,
 };
 
-let clientSnapshot: TenantInfo | null = null;
-
 const getTenantSnapshot = (): TenantInfo => {
   if (typeof window === "undefined") {
     return SERVER_SNAPSHOT;
   }
-  if (!clientSnapshot) {
-    clientSnapshot = getTenantFromHost();
-  }
-  return clientSnapshot;
+  return getTenantFromHost();
 };
 
 const getServerSnapshot = (): TenantInfo => SERVER_SNAPSHOT;

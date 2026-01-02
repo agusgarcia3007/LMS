@@ -47,14 +47,17 @@ import type { CampusTenant } from "@/services/campus/service";
 
 type CourseSearch = {
   item?: string;
+  campus?: string;
 };
 
 export const Route = createFileRoute("/my-courses/$courseSlug")({
   validateSearch: (search: Record<string, unknown>): CourseSearch => ({
     item: (search.item as string) || undefined,
+    campus: (search.campus as string) || undefined,
   }),
-  loader: async ({ params }) => {
-    const tenantInfo = await getTenantFromRequest({ data: {} });
+  loaderDeps: ({ search }) => ({ campusSlug: search.campus }),
+  loader: async ({ params, deps }) => {
+    const tenantInfo = await getTenantFromRequest({ data: { campusSlug: deps.campusSlug } });
     const [courseResult, tenantResult] = await Promise.all([
       LearnService.getCourseStructure(params.courseSlug).catch(() => ({ course: null })),
       tenantInfo.slug ? getCampusTenantServer({ data: { slug: tenantInfo.slug } }) : null,

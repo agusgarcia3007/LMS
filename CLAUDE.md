@@ -32,9 +32,9 @@ Note: No direct `tsc` - use IDE diagnostics or `bun run build` for type checking
 
 ## Multi-Tenant
 
-- Subdomain per tenant: `tenant1.domain.com`
+- Production: subdomain per tenant (`tenant1.uselearnbase.com`)
+- Development: subdomain localhost (`tenant1.localhost:5173`)
 - Users isolated by tenant, superadmin has global access
-- Dev: use `X-Tenant-Slug` header
 
 ## Code Style
 

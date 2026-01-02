@@ -12,6 +12,7 @@ const LOCALHOST_PATTERNS = [
   /^http:\/\/localhost(:\d+)?$/,
   /^http:\/\/127\.0\.0\.1(:\d+)?$/,
   /^http:\/\/\[::1\](:\d+)?$/,
+  /^http:\/\/[a-z0-9-]+\.localhost(:\d+)?$/,
 ];
 
 const ALLOWED_HEADERS_STR =

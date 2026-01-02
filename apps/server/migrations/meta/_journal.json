@@ -484,6 +484,20 @@
       "when": 1767208837150,
       "tag": "0068_groovy_virginia_dare",
       "breakpoints": true
+    },
+    {
+      "idx": 69,
+      "version": "7",
+      "when": 1767379038813,
+      "tag": "0069_sloppy_wiccan",
+      "breakpoints": true
+    },
+    {
+      "idx": 70,
+      "version": "7",
+      "when": 1767386864732,
+      "tag": "0070_watery_rocket_raccoon",
+      "breakpoints": true
     }
   ]
 }

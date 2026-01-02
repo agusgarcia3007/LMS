@@ -25,8 +25,12 @@ import { computeThemeStyles } from "@/lib/theme.server";
 import { setResolvedSlug } from "@/lib/tenant";
 
 export const Route = createFileRoute("/my-courses/")({
-  loader: async () => {
-    const tenantInfo = await getTenantFromRequest({ data: {} });
+  validateSearch: (search: Record<string, unknown>) => ({
+    campus: (search.campus as string) || undefined,
+  }),
+  loaderDeps: ({ search }) => ({ campusSlug: search.campus }),
+  loader: async ({ deps }) => {
+    const tenantInfo = await getTenantFromRequest({ data: { campusSlug: deps.campusSlug } });
     if (!tenantInfo.slug) {
       return { slug: null, tenant: null, themeClass: "", customStyles: undefined };
     }

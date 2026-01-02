@@ -143,6 +143,39 @@ export type VideoAnalysisJob =
   | SubtitleGenerationJob
   | SubtitleTranslationJob;
 
+export type SaveAiMessagesJob = {
+  type: "save-ai-messages";
+  data: {
+    conversationId: string;
+    tenantId: string;
+    userId: string;
+    conversationType: "learn" | "creator";
+    title?: string;
+    metadata?: {
+      courseId?: string;
+      courseTitle?: string;
+      itemId?: string;
+      itemTitle?: string;
+      contextCourseIds?: string[];
+    };
+    messages: Array<{
+      role: "user" | "assistant";
+      content: string;
+      attachments?: Array<
+        | { type: "image"; key: string }
+        | { type: "file"; data: string; mimeType: string; fileName?: string }
+      >;
+      toolInvocations?: Array<{
+        id: string;
+        toolName: string;
+        args: Record<string, unknown>;
+        result?: unknown;
+      }>;
+    }>;
+    isNewConversation: boolean;
+  };
+};
+
 export type Job =
   | SendWelcomeEmailJob
   | CreateStripeCustomerJob
@@ -154,4 +187,5 @@ export type Job =
   | SendFeatureRejectedEmailJob
   | GenerateCourseEmbeddingJob
   | SendRevenueCatWelcomeEmailJob
-  | VideoAnalysisJob;
+  | VideoAnalysisJob
+  | SaveAiMessagesJob;

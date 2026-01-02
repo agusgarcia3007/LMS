@@ -3,6 +3,11 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { getTenantFromHost, getResolvedSlug } from "@/lib/tenant";
 import { ensureValidToken } from "@/lib/http";
+import {
+  ConversationsService,
+  useCreateConversation,
+  useSaveMessages,
+} from "@/services/conversations";
 import { QUERY_KEYS as COURSES_QUERY_KEYS } from "@/services/courses/service";
 import { AIService } from "@/services/ai/service";
 import { UploadsService } from "@/services/uploads/service";
@@ -101,9 +106,41 @@ export function useAICourseChat() {
   const [toolInvocations, setToolInvocations] = useState<ToolInvocation[]>([]);
   const [courseCreated, setCourseCreated] = useState<{ courseId: string; title: string } | null>(null);
   const [isGeneratingThumbnail, setIsGeneratingThumbnail] = useState(false);
+  const [conversationId, setConversationId] = useState<string | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
 
+  const { mutate: createConversation } = useCreateConversation();
+  const { mutate: saveMessages } = useSaveMessages();
+
   messagesRef.current = messages;
+
+  const loadConversation = useCallback(async (id: string) => {
+    const { conversation, messages: loadedMessages } =
+      await ConversationsService.getById(id);
+    setMessages(
+      loadedMessages.map((m) => ({
+        id: m.id,
+        role: m.role,
+        content: m.content,
+        timestamp: new Date(m.createdAt).getTime(),
+        attachments: m.attachments as ChatAttachment[] | undefined,
+      }))
+    );
+    setConversationId(conversation.id);
+    setToolInvocations([]);
+    setError(null);
+    setCoursePreview(null);
+    setCourseCreated(null);
+  }, []);
+
+  const createNewConversation = useCallback(() => {
+    setMessages([]);
+    setConversationId(null);
+    setToolInvocations([]);
+    setError(null);
+    setCoursePreview(null);
+    setCourseCreated(null);
+  }, []);
 
   const sendMessage = useCallback(async (content: string, files?: File[], contextCourses?: ContextCourse[]) => {
     const processedAttachments: ChatAttachment[] | undefined = files?.length
@@ -132,7 +169,7 @@ export function useAICourseChat() {
     const allMessages = [...messagesRef.current, userMessage].map((m) => ({
       role: m.role,
       content: m.content,
-      attachments: m.attachments,
+      attachments: m.attachments?.length ? m.attachments : undefined,
     }));
 
     const token = await ensureValidToken();
@@ -353,6 +390,35 @@ export function useAICourseChat() {
 
         return prev;
       });
+
+      const finalMessages = messagesRef.current.map((m) => ({
+        role: m.role,
+        content: m.content,
+        attachments: m.attachments?.length ? m.attachments : undefined,
+      }));
+
+      if (conversationId) {
+        saveMessages({ id: conversationId, messages: finalMessages });
+      } else {
+        createConversation(
+          {
+            type: "creator",
+            title: content.slice(0, 100),
+            metadata: {
+              contextCourseIds: contextCourses?.map((c) => c.id),
+            },
+          },
+          {
+            onSuccess: (data) => {
+              setConversationId(data.conversation.id);
+              saveMessages({
+                id: data.conversation.id,
+                messages: finalMessages,
+              });
+            },
+          }
+        );
+      }
     } catch (err) {
       if (err instanceof Error && err.name === "AbortError") {
         setStatus("idle");
@@ -376,7 +442,7 @@ export function useAICourseChat() {
     } finally {
       abortControllerRef.current = null;
     }
-  }, [queryClient]);
+  }, [queryClient, conversationId, createConversation, saveMessages]);
 
   const cancel = useCallback(() => {
     if (abortControllerRef.current) {
@@ -394,6 +460,7 @@ export function useAICourseChat() {
     setError(null);
     setToolInvocations([]);
     setIsGeneratingThumbnail(false);
+    setConversationId(null);
   }, []);
 
   const clearPreview = useCallback(() => {
@@ -452,10 +519,13 @@ export function useAICourseChat() {
     courseCreated,
     error,
     toolInvocations,
+    conversationId,
     sendMessage,
     cancel,
     reset,
     clearPreview,
     createCourseFromPreview,
+    loadConversation,
+    createNewConversation,
   };
 }

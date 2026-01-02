@@ -7,6 +7,42 @@
       "noVideo": "Sube un video primero para generar textos"
     }
   },
+  "conversations": {
+    "title": "Conversaciones",
+    "new": "Nueva",
+    "newConversation": "Nueva conversacion",
+    "seeAll": "Ver todas",
+    "empty": {
+      "title": "Sin conversaciones",
+      "description": "Inicia un chat para verlo aqui"
+    },
+    "loading": "Cargando...",
+    "admin": {
+      "title": "Conversaciones de Estudiantes",
+      "description": "Monitorea las conversaciones de estudiantes con el asistente de IA",
+      "columns": {
+        "user": "Usuario",
+        "type": "Tipo",
+        "title": "Titulo",
+        "messages": "Mensajes",
+        "createdAt": "Creado"
+      },
+      "types": {
+        "learn": "Aprendizaje",
+        "creator": "Creador"
+      },
+      "analytics": {
+        "totalConversations": "Total de Conversaciones",
+        "totalMessages": "Total de Mensajes",
+        "last30Days": "Ultimos 30 dias",
+        "byType": "Por Tipo"
+      },
+      "viewer": {
+        "title": "Conversacion",
+        "noMessages": "Sin mensajes en esta conversacion"
+      }
+    }
+  },
   "notifications": {
     "title": "Notificaciones",
     "markAllRead": "Marcar todo como leido",

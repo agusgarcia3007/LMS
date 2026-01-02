@@ -25,19 +25,15 @@ export function getTenantFromHost(): TenantInfo {
     return { slug: null, isCampus: false, isCustomDomain: false };
   }
 
-  if (import.meta.env.DEV) {
-    const url = new URL(window.location.href);
-    const campusSlug = url.searchParams.get("campus");
-
-    if (campusSlug) {
-      return { slug: campusSlug, isCampus: true, isCustomDomain: false };
-    }
-  }
-
   const hostname = window.location.hostname;
 
   if (hostname === "localhost" || hostname === "127.0.0.1") {
     return { slug: null, isCampus: false, isCustomDomain: false };
+  }
+
+  if (hostname.endsWith(".localhost")) {
+    const slug = hostname.split(".")[0];
+    return { slug, isCampus: true, isCustomDomain: false };
   }
 
   if (isOurDomain(hostname)) {

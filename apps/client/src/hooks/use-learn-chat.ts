@@ -1,6 +1,11 @@
 import { i18n } from "@/i18n";
 import { ensureValidToken } from "@/lib/http";
 import { getResolvedSlug, getTenantFromHost } from "@/lib/tenant";
+import {
+  ConversationsService,
+  useCreateConversation,
+  useSaveMessages,
+} from "@/services/conversations";
 import { UploadsService } from "@/services/uploads/service";
 import { useCallback, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -80,9 +85,13 @@ export function useLearnChat() {
   const [status, setStatus] = useState<ChatStatus>("idle");
   const [error, setError] = useState<string | null>(null);
   const [toolInvocations, setToolInvocations] = useState<ToolInvocation[]>([]);
+  const [conversationId, setConversationId] = useState<string | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const contextRef = useRef<LearnChatContext | null>(null);
   const prevItemIdRef = useRef<string | null>(null);
+
+  const { mutate: createConversation } = useCreateConversation();
+  const { mutate: saveMessages } = useSaveMessages();
 
   messagesRef.current = messages;
 
@@ -91,6 +100,7 @@ export function useLearnChat() {
       setMessages([]);
       setToolInvocations([]);
       setError(null);
+      setConversationId(null);
     }
     prevItemIdRef.current = context.itemId;
     contextRef.current = context;
@@ -100,6 +110,30 @@ export function useLearnChat() {
     if (contextRef.current) {
       contextRef.current.currentTime = time;
     }
+  }, []);
+
+  const loadConversation = useCallback(async (id: string) => {
+    const { conversation, messages: loadedMessages } =
+      await ConversationsService.getById(id);
+    setMessages(
+      loadedMessages.map((m) => ({
+        id: m.id,
+        role: m.role,
+        content: m.content,
+        timestamp: new Date(m.createdAt).getTime(),
+        attachments: m.attachments,
+      }))
+    );
+    setConversationId(conversation.id);
+    setToolInvocations([]);
+    setError(null);
+  }, []);
+
+  const createNewConversation = useCallback(() => {
+    setMessages([]);
+    setConversationId(null);
+    setToolInvocations([]);
+    setError(null);
   }, []);
 
   const sendMessage = useCallback(
@@ -159,7 +193,7 @@ export function useLearnChat() {
       const allMessages = [...messagesRef.current, userMessage].map((m) => ({
         role: m.role,
         content: m.content,
-        attachments: m.attachments,
+        attachments: m.attachments?.length ? m.attachments : undefined,
       }));
 
       const lastMessageIndex = allMessages.length - 1;
@@ -327,6 +361,37 @@ export function useLearnChat() {
 
         setStatus("idle");
         setToolInvocations([]);
+
+        const finalMessages = messagesRef.current.map((m) => ({
+          role: m.role,
+          content: m.content,
+          attachments: m.attachments?.length ? m.attachments : undefined,
+        }));
+        const context = contextRef.current;
+
+        if (conversationId) {
+          saveMessages({ id: conversationId, messages: finalMessages });
+        } else if (context) {
+          createConversation(
+            {
+              type: "learn",
+              title: content.slice(0, 100),
+              metadata: {
+                courseId: context.courseId,
+                itemId: context.itemId,
+              },
+            },
+            {
+              onSuccess: (data) => {
+                setConversationId(data.conversation.id);
+                saveMessages({
+                  id: data.conversation.id,
+                  messages: finalMessages,
+                });
+              },
+            }
+          );
+        }
       } catch (err) {
         if (err instanceof Error && err.name === "AbortError") {
           setStatus("idle");
@@ -356,7 +421,7 @@ export function useLearnChat() {
         abortControllerRef.current = null;
       }
     },
-    []
+    [conversationId, createConversation, saveMessages]
   );
 
   const cancel = useCallback(() => {
@@ -372,6 +437,7 @@ export function useLearnChat() {
     setStatus("idle");
     setError(null);
     setToolInvocations([]);
+    setConversationId(null);
   }, []);
 
   return {
@@ -380,10 +446,13 @@ export function useLearnChat() {
     isStreaming: status === "streaming",
     error,
     toolInvocations,
+    conversationId,
     sendMessage,
     cancel,
     reset,
     setContext,
     updateCurrentTime,
+    loadConversation,
+    createNewConversation,
   };
 }

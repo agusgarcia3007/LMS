@@ -4,6 +4,7 @@ import { openapi } from "@elysiajs/openapi";
 import { Elysia } from "elysia";
 import { rateLimit } from "elysia-rate-limit";
 import { startWorker, stopWorker, bullBoardPlugin } from "./jobs";
+import { startConversationCleanup, stopConversationCleanup } from "./lib/cleanup";
 import { corsPlugin } from "./lib/cors";
 import { env } from "./lib/env";
 import { errorHandler } from "./lib/errors";
@@ -94,11 +95,13 @@ console.log(
 );
 
 startWorker();
+startConversationCleanup();
 
 const gracefulShutdown = async (signal: string) => {
   logger.info(`Received ${signal}, shutting down...`);
   app.server?.stop();
   stopWorker();
+  stopConversationCleanup();
 
   try {
     const { langfuseSpanProcessor, sdk } = await import("./instrumentation");

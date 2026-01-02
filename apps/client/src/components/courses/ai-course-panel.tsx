@@ -22,6 +22,7 @@ import {
   Conversation,
   ConversationContent,
 } from "@/components/ai-elements/conversation";
+import { ConversationDropdown } from "@/components/ai-elements/conversation-dropdown";
 import { CourseMentionPopover } from "@/components/ai-elements/course-mention-popover";
 import { Loader } from "@/components/ai-elements/loader";
 import { MessageResponse } from "@/components/ai-elements/message";
@@ -409,11 +410,14 @@ export function AICoursePanel({
     coursePreview,
     courseCreated,
     toolInvocations,
+    conversationId,
     sendMessage,
     cancel,
     reset,
     clearPreview,
     createCourseFromPreview,
+    loadConversation,
+    createNewConversation,
   } = useAICourseChat();
 
   const selectedCourseIds = useMemo(
@@ -585,9 +589,17 @@ export function AICoursePanel({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div>
-                <h2 className="font-semibold text-sm">
-                  {t("courses.aiCreator.toggle")}
-                </h2>
+                <div className="flex items-center gap-2">
+                  <h2 className="font-semibold text-sm">
+                    {t("courses.aiCreator.toggle")}
+                  </h2>
+                  <ConversationDropdown
+                    type="creator"
+                    currentConversationId={conversationId}
+                    onSelectConversation={loadConversation}
+                    onNewConversation={createNewConversation}
+                  />
+                </div>
                 <p className="text-xs text-muted-foreground">
                   {t("courses.aiCreator.emptyDescription")}
                 </p>

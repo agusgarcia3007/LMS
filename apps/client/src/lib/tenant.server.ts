@@ -28,6 +28,11 @@ export const getTenantFromRequest = createServerFn({ method: "GET" })
       return { slug: null, isCampus: false, isCustomDomain: false };
     }
 
+    if (hostname.endsWith(".localhost")) {
+      const slug = hostname.split(".")[0];
+      return { slug, isCampus: true, isCustomDomain: false };
+    }
+
     if (isOurDomain(hostname)) {
       const parts = hostname.split(".");
       if (parts.length >= 3 && !RESERVED_SUBDOMAINS.includes(parts[0])) {
