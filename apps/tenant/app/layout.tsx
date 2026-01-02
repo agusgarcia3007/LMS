@@ -1,19 +1,17 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Raleway } from "next/font/google";
 import { getTenant } from "@/lib/tenant";
 import "./globals.css";
 
-const raleway = Raleway({ subsets: ["latin"], variable: "--font-sans" });
+function generateGoogleFontsUrl(fonts: string[]): string | null {
+  const validFonts = fonts.filter(Boolean);
+  if (validFonts.length === 0) return null;
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
+  const families = validFonts
+    .map((font) => `family=${font.replace(/\s+/g, "+")}:wght@400;500;600;700`)
+    .join("&");
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+  return `https://fonts.googleapis.com/css2?${families}&display=swap`;
+}
 
 export async function generateMetadata(): Promise<Metadata> {
   const tenant = await getTenant();
@@ -48,10 +46,11 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-function generateThemeStyles(
-  customTheme: Record<string, string> | null
-): string {
-  if (!customTheme) return "";
+function generateThemeVars(
+  customTheme: Record<string, string> | null,
+  mode: "light" | "dark" | "auto" | null
+): React.CSSProperties {
+  if (!customTheme) return {};
 
   const toKebab = (str: string) =>
     str.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase();
@@ -92,35 +91,36 @@ function generateThemeStyles(
     radius: "--radius",
   };
 
-  const lightVars: string[] = [];
-  const darkVars: string[] = [];
+  const isDarkMode = mode === "dark";
+  const vars: Record<string, string> = {};
 
   for (const [key, value] of Object.entries(customTheme)) {
-    if (!value || key === "fontHeading" || key === "fontBody" || key.includes("shadow")) continue;
+    if (!value || key.includes("shadow")) continue;
 
-    const isDark = key.endsWith("Dark");
-    const baseKey = isDark ? key.slice(0, -4) : key;
+    if (key === "fontHeading") {
+      vars["--font-heading"] = `"${value}", system-ui, sans-serif`;
+      continue;
+    }
+    if (key === "fontBody") {
+      vars["--font-sans"] = `"${value}", system-ui, sans-serif`;
+      continue;
+    }
+
+    const isDarkVar = key.endsWith("Dark");
+    const baseKey = isDarkVar ? key.slice(0, -4) : key;
     const kebabKey = toKebab(baseKey);
     const cssVar = cssVarMap[kebabKey];
 
     if (cssVar) {
-      if (isDark) {
-        darkVars.push(`${cssVar}: ${value};`);
-      } else {
-        lightVars.push(`${cssVar}: ${value};`);
+      if (isDarkMode && isDarkVar) {
+        vars[cssVar] = value;
+      } else if (!isDarkMode && !isDarkVar) {
+        vars[cssVar] = value;
       }
     }
   }
 
-  let styles = "";
-  if (lightVars.length > 0) {
-    styles += `html:root { ${lightVars.join(" ")} }`;
-  }
-  if (darkVars.length > 0) {
-    styles += ` html.dark { ${darkVars.join(" ")} }`;
-  }
-
-  return styles;
+  return vars as React.CSSProperties;
 }
 
 function getThemeClass(mode: "light" | "dark" | "auto" | null): string {
@@ -135,21 +135,29 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const tenant = await getTenant();
-  const themeStyles = generateThemeStyles(tenant?.customTheme ?? null);
+  const themeVars = generateThemeVars(tenant?.customTheme ?? null, tenant?.mode ?? null);
   const themeClass = getThemeClass(tenant?.mode ?? null);
+
+  const fontHeading = tenant?.customTheme?.fontHeading;
+  const fontBody = tenant?.customTheme?.fontBody;
+  const fontsUrl = generateGoogleFontsUrl([fontHeading, fontBody].filter(Boolean) as string[]);
 
   return (
     <html
       lang={tenant?.aiAssistantSettings?.preferredLanguage || "en"}
-      className={`${raleway.variable} ${themeClass}`.trim()}
+      className={themeClass || undefined}
+      style={themeVars}
     >
-      <head />
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {themeStyles && (
-          <style dangerouslySetInnerHTML={{ __html: themeStyles }} />
+      <head>
+        {fontsUrl && (
+          <>
+            <link rel="preconnect" href="https://fonts.googleapis.com" />
+            <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+            <link rel="stylesheet" href={fontsUrl} />
+          </>
         )}
+      </head>
+      <body className="antialiased">
         {children}
       </body>
     </html>
