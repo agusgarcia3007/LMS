@@ -306,7 +306,7 @@ function LearnPage({ tenant }: LearnPageProps) {
               onReviewCourse={() => setIsReviewing(true)}
             />
           ) : (
-            <div className="mx-auto max-w-9xl px-4 py-6 lg:px-8">
+            <div className="max-w-9xl px-4 py-6 lg:px-8">
               {currentItemId ? (
                 <div className="space-y-4">
                   {contentLoading ? (
