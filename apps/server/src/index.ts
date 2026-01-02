@@ -12,8 +12,6 @@ import { parseDuration } from "./lib/utils";
 import { ROUTES } from "./routes";
 
 const app = new Elysia({
-  aot: true,
-  precompile: true,
   nativeStaticResponse: true,
 })
   .use(errorHandler)
