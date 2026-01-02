@@ -2,7 +2,6 @@ import { Link, useParams } from "@tanstack/react-router";
 import {
   BookOpen,
   Check,
-  CheckCircle,
   ChevronDown,
   ImageIcon,
   Paperclip,
@@ -21,9 +20,7 @@ import {
   ConversationContent,
 } from "@/components/ai-elements/conversation";
 import { CourseMentionPopover } from "@/components/ai-elements/course-mention-popover";
-import { Loader } from "@/components/ai-elements/loader";
 import { MessageResponse } from "@/components/ai-elements/message";
-import { Shimmer } from "@/components/ai-elements/shimmer";
 import {
   PromptInput,
   PromptInputAttachment,
@@ -33,6 +30,7 @@ import {
   PromptInputTextarea,
   usePromptInputAttachments,
 } from "@/components/ai-elements/prompt-input";
+import { Shimmer } from "@/components/ai-elements/shimmer";
 import { Suggestion, Suggestions } from "@/components/ai-elements/suggestion";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -45,15 +43,14 @@ import {
   useAICourseChat,
   type ChatAttachment,
   type ContextCourse,
-  type ToolInvocation,
 } from "@/hooks/use-ai-course-chat";
 import {
   useCourseMention,
   type SelectedCourse,
 } from "@/hooks/use-course-mention";
+import { siteData } from "@/lib/constants";
 import { getInitials } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import { siteData } from "@/lib/constants";
 import { useSubmitFeedback, type FeedbackType } from "@/services/ai";
 import { useDocumentsList } from "@/services/documents";
 import { useGetProfile } from "@/services/profile/queries";
@@ -137,7 +134,11 @@ function AssistantBubble({
   index: number;
   messageIndex: number;
   feedback?: FeedbackType | null;
-  onFeedback?: (messageIndex: number, type: FeedbackType, content: string) => void;
+  onFeedback?: (
+    messageIndex: number,
+    type: FeedbackType,
+    content: string
+  ) => void;
 }) {
   return (
     <div
@@ -160,17 +161,20 @@ function AssistantBubble({
               {content}
             </MessageResponse>
           </div>
-          <div className={cn(
-            "absolute -bottom-5 left-8 flex items-center gap-0.5 transition-opacity",
-            feedback ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-          )}>
+          <div
+            className={cn(
+              "absolute -bottom-5 left-8 flex items-center gap-0.5 transition-opacity",
+              feedback ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+            )}
+          >
             <button
               type="button"
               onClick={() => onFeedback?.(messageIndex, "thumbs_up", content)}
               disabled={!!feedback}
               className={cn(
                 "rounded p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:cursor-default",
-                feedback === "thumbs_up" && "text-green-600 hover:text-green-600"
+                feedback === "thumbs_up" &&
+                  "text-green-600 hover:text-green-600"
               )}
               title="Me gusta"
             >
@@ -191,35 +195,6 @@ function AssistantBubble({
           </div>
         </div>
       </div>
-    </div>
-  );
-}
-
-function ToolIndicator({
-  toolInvocations,
-}: {
-  toolInvocations: ToolInvocation[];
-}) {
-  if (toolInvocations.length === 0) return null;
-
-  const allCompleted = toolInvocations.every((t) => t.state === "completed");
-
-  return (
-    <div className="flex items-center gap-1.5 text-xs text-muted-foreground ml-9">
-      {allCompleted ? (
-        <CheckCircle className="size-3 text-green-600" />
-      ) : (
-        <Loader size={12} />
-      )}
-      <span>
-        {allCompleted
-          ? `Usó ${toolInvocations.length} herramienta${
-              toolInvocations.length > 1 ? "s" : ""
-            }`
-          : `Usando ${toolInvocations.length} herramienta${
-              toolInvocations.length > 1 ? "s" : ""
-            }...`}
-      </span>
     </div>
   );
 }
@@ -305,7 +280,9 @@ export function AICourseCreator({
   const [isCreating, setIsCreating] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const [selectedCourses, setSelectedCourses] = useState<SelectedCourse[]>([]);
-  const [messageFeedback, setMessageFeedback] = useState<Record<number, FeedbackType>>({});
+  const [messageFeedback, setMessageFeedback] = useState<
+    Record<number, FeedbackType>
+  >({});
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { mutate: submitFeedback } = useSubmitFeedback();
 
@@ -427,14 +404,17 @@ export function AICourseCreator({
     mention.close();
   };
 
-  const handleFeedback = useCallback((messageIndex: number, type: FeedbackType, content: string) => {
-    setMessageFeedback((prev) => ({ ...prev, [messageIndex]: type }));
-    submitFeedback({
-      type,
-      messageIndex,
-      originalContent: content,
-    });
-  }, [submitFeedback]);
+  const handleFeedback = useCallback(
+    (messageIndex: number, type: FeedbackType, content: string) => {
+      setMessageFeedback((prev) => ({ ...prev, [messageIndex]: type }));
+      submitFeedback({
+        type,
+        messageIndex,
+        originalContent: content,
+      });
+    },
+    [submitFeedback]
+  );
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newValue = e.target.value;
@@ -525,9 +505,6 @@ export function AICourseCreator({
         <div className="flex h-[550px] flex-col">
           {messages.length === 0 && !coursePreview ? (
             <div className="flex flex-1 flex-col items-center justify-center gap-5 p-6">
-              <div className="flex size-14 items-center justify-center rounded-2xl bg-muted">
-                <Sparkles className="size-7 text-muted-foreground" />
-              </div>
               <div className="text-center space-y-1.5">
                 <h3 className="text-lg font-semibold tracking-tight">
                   {t("courses.aiCreator.emptyTitle")}
@@ -603,7 +580,7 @@ export function AICourseCreator({
                             <div className="absolute inset-0 flex items-center justify-center">
                               <ImageIcon className="size-6 text-green-400 dark:text-green-600" />
                             </div>
-                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-green-200/50 dark:via-green-700/50 to-transparent animate-shimmer" />
+                            <div className="absolute inset-0 bg-linear-to-r from-transparent via-green-200/50 dark:via-green-700/50 to-transparent animate-shimmer" />
                           </div>
                         ) : null}
                         <div className="flex-1">

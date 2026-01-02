@@ -248,9 +248,9 @@ function EmptyState({
       <motion.div
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        className="flex size-14 items-center justify-center rounded-2xl bg-muted"
+        className="flex size-14 items-center relative justify-center rounded-2xl bg-muted"
       >
-        <Sparkles className="size-7 text-muted-foreground" />
+        <img src={siteData.logo} alt={siteData.name} className="size-9" />
       </motion.div>
 
       <motion.div
@@ -280,7 +280,7 @@ function EmptyState({
               onClick={onSuggestionClick}
               className="w-full justify-start text-left px-3 py-2.5 h-auto whitespace-normal rounded-xl border bg-card hover:bg-accent transition-colors group"
             >
-              <Zap className="size-3 shrink-0 text-primary opacity-0 group-hover:opacity-100 transition-opacity mr-2" />
+              <Zap className="size-4 shrink-0 text-primary mr-2" />
               <span className="text-left">{suggestion}</span>
             </Suggestion>
           </motion.div>
@@ -584,9 +584,6 @@ export function AICoursePanel({
         <SidebarHeader className="border-b bg-sidebar px-4 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10">
-                <Sparkles className="size-4.5 text-primary" />
-              </div>
               <div>
                 <h2 className="font-semibold text-sm">
                   {t("courses.aiCreator.toggle")}
@@ -757,7 +754,9 @@ export function AICoursePanel({
                     status={isStreaming ? "streaming" : undefined}
                     onClick={isStreaming ? cancel : undefined}
                     type={isStreaming ? "button" : "submit"}
-                    className={cn(!isStreaming && "bg-primary hover:bg-primary/90")}
+                    className={cn(
+                      !isStreaming && "bg-primary hover:bg-primary/90"
+                    )}
                   >
                     {!isStreaming && <Send className="size-4" />}
                   </PromptInputSubmit>
