@@ -404,7 +404,6 @@ export function ModuleEditor({
     );
   }, [moduleItems, generateMutation, setValue]);
 
-  const hasMoreContent = hasMoreVideos || hasMoreDocuments || hasMoreQuizzes;
   const isFetchingMore = isFetchingMoreVideos || isFetchingMoreDocuments || isFetchingMoreQuizzes;
 
   const handleAvailableScroll = useCallback(
@@ -578,6 +577,14 @@ export function ModuleEditor({
                       id={column.id}
                       className="flex-1"
                       onScroll={column.id === "available" ? handleAvailableScroll : undefined}
+                      footer={
+                        column.id === "available" && isFetchingMore ? (
+                          <div className="space-y-2">
+                            <Skeleton className="h-16 w-full rounded-md" />
+                            <Skeleton className="h-16 w-full rounded-md" />
+                          </div>
+                        ) : undefined
+                      }
                     >
                       {(item: KanbanItem) => (
                         <KanbanCard
@@ -590,13 +597,6 @@ export function ModuleEditor({
                         </KanbanCard>
                       )}
                     </KanbanCards>
-                    {column.id === "available" && hasMoreContent && (
-                      <div className="p-2 text-center text-xs text-muted-foreground">
-                        {isFetchingMore
-                          ? t("common.loading")
-                          : t("modules.editor.scrollForMore")}
-                      </div>
-                    )}
                   </KanbanBoard>
                 )}
               </KanbanProvider>
