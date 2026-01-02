@@ -81,7 +81,7 @@ export function FeatureKanban({
     const overFeature = data.find((f) => f.id === over.id);
     const newStatus = overColumn?.id ?? overFeature?.column;
 
-    if (newStatus && newStatus !== activeFeature.column) {
+    if (newStatus && newStatus !== activeFeature.status) {
       onStatusChange(activeFeature.id, newStatus as FeatureStatus);
     }
   };

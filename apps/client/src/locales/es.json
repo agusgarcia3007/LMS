@@ -112,6 +112,9 @@
     "update": {
       "success": "Funcion actualizada correctamente"
     },
+    "status": {
+      "error": "Error al cambiar el estado"
+    },
     "approve": {
       "success": "Funcion aprobada y movida a Ideas"
     },

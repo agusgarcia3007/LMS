@@ -21,6 +21,7 @@ import { Progress } from "@/components/ui/progress";
 import { DataTable, DeleteDialog } from "@/components/data-table";
 import { EditTenantDialog } from "@/components/backoffice/edit-tenant-dialog";
 import { useDataTableState } from "@/hooks/use-data-table-state";
+import { formatBytes } from "@/lib/format";
 import { createSeoMeta } from "@/lib/seo";
 import {
   useGetTenantsList,
@@ -28,14 +29,6 @@ import {
   useUpdateTenant,
 } from "@/services/tenants";
 import type { Tenant } from "@/services/tenants/service";
-
-function formatBytes(bytes: number): string {
-  if (bytes === 0) return "0 B";
-  const k = 1024;
-  const sizes = ["B", "KB", "MB", "GB", "TB"];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
-}
 
 function parseStorageLimit(maxStorageBytes: string | null): number | null {
   if (!maxStorageBytes) return null;

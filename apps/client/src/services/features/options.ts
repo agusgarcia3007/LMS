@@ -75,7 +75,51 @@ export const useUpdateFeatureStatusOptions = () => {
   return mutationOptions({
     mutationFn: ({ id, ...payload }: { id: string } & UpdateFeatureStatusRequest) =>
       FeaturesService.updateStatus(id, payload),
-    onSuccess: (_, { id }) => {
+    onMutate: async ({ id, status }) => {
+      await queryClient.cancelQueries({ queryKey: QUERY_KEYS.FEATURES_BOARD });
+      const previous = queryClient.getQueryData<FeatureBoardResponse>(QUERY_KEYS.FEATURES_BOARD);
+
+      if (previous) {
+        const statusToColumn: Record<string, keyof FeatureBoardResponse["features"]> = {
+          ideas: "ideas",
+          in_progress: "inProgress",
+          shipped: "shipped",
+        };
+
+        const allFeatures = [
+          ...previous.features.ideas,
+          ...previous.features.inProgress,
+          ...previous.features.shipped,
+        ];
+        const feature = allFeatures.find((f) => f.id === id);
+
+        if (feature) {
+          const updatedFeature = { ...feature, status };
+          const newColumn = statusToColumn[status];
+
+          const newFeatures = {
+            ideas: previous.features.ideas.filter((f) => f.id !== id),
+            inProgress: previous.features.inProgress.filter((f) => f.id !== id),
+            shipped: previous.features.shipped.filter((f) => f.id !== id),
+          };
+
+          newFeatures[newColumn] = [...newFeatures[newColumn], updatedFeature];
+
+          queryClient.setQueryData<FeatureBoardResponse>(QUERY_KEYS.FEATURES_BOARD, {
+            features: newFeatures,
+          });
+        }
+      }
+
+      return { previous };
+    },
+    onError: (_, __, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(QUERY_KEYS.FEATURES_BOARD, context.previous);
+      }
+      toast.error(i18n.t("features.status.error"));
+    },
+    onSettled: (_, __, { id }) => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.FEATURES });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.FEATURE(id) });
     },

@@ -112,6 +112,9 @@
     "update": {
       "success": "Feature updated successfully"
     },
+    "status": {
+      "error": "Failed to update status"
+    },
     "approve": {
       "success": "Feature approved and moved to Ideas"
     },
