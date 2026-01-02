@@ -310,7 +310,9 @@
     "adminDashboard": "Admin Dashboard",
     "remove": "Remove",
     "uploading": "Uploading",
-    "download": "Download"
+    "download": "Download",
+    "comingSoon": "Coming Soon",
+    "comingSoonDescription": "This feature is currently under development. Check back soon!"
   },
   "dataTable": {
     "search": "Search...",

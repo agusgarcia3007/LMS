@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { NotificationBell } from "@/components/notifications/notification-bell";
 import { getCampusUrl } from "@/lib/tenant";
+import { canViewFinance, type UserRole } from "@/lib/permissions";
 
 type Tenant = {
   slug: string;
@@ -14,7 +15,7 @@ type Tenant = {
 };
 
 type User = {
-  role: string;
+  role: UserRole;
   emailVerified: boolean;
 };
 
@@ -33,7 +34,9 @@ export function DashboardHeader({ tenant, user, actions }: DashboardHeaderProps)
     <header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b px-4">
       <div className="flex items-center gap-2">
         <SidebarTrigger className="-ml-1" />
-        {tenant && <TrialBadge tenantSlug={tenant.slug} />}
+        {tenant && user && canViewFinance(user.role) && (
+          <TrialBadge tenantSlug={tenant.slug} />
+        )}
       </div>
       <div className="flex items-center gap-2">
         {actions}

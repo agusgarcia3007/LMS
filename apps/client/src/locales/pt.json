@@ -311,7 +311,9 @@
     "adminDashboard": "Painel de Admin",
     "remove": "Remover",
     "uploading": "Enviando",
-    "download": "Baixar"
+    "download": "Baixar",
+    "comingSoon": "Em breve",
+    "comingSoonDescription": "Esta funcionalidade esta atualmente em desenvolvimento. Volte em breve!"
   },
   "dataTable": {
     "search": "Buscar...",

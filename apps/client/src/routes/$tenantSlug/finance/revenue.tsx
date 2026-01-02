@@ -11,6 +11,7 @@ import {
 import { DataTable } from "@/components/data-table";
 import { DataGridColumnHeader } from "@/components/ui/data-grid";
 import type { FilterFieldConfig } from "@/components/ui/filters";
+import { ComingSoonOverlay } from "@/components/coming-soon-overlay";
 import { createSeoMeta } from "@/lib/seo";
 import { useDataTableState } from "@/hooks/use-data-table-state";
 import {
@@ -382,27 +383,33 @@ function RevenuePageSkeleton() {
 
 function RevenuePage() {
   const { t } = useTranslation();
+  const { user } = Route.useRouteContext();
   const { data: earnings, isLoading: isLoadingEarnings } = useEarnings();
+
+  const isSuperadmin = user.role === "superadmin";
 
   if (isLoadingEarnings) {
     return <RevenuePageSkeleton />;
   }
 
   return (
-    <div className="space-y-8">
-      <div className="flex items-center gap-4">
-        <div className="flex size-12 items-center justify-center rounded-xl bg-primary/10">
-          <TrendingUp className="size-6 text-primary" />
+    <div className="relative">
+      {!isSuperadmin && <ComingSoonOverlay />}
+      <div className="space-y-8">
+        <div className="flex items-center gap-4">
+          <div className="flex size-12 items-center justify-center rounded-xl bg-primary/10">
+            <TrendingUp className="size-6 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold">{t("revenue.title")}</h1>
+            <p className="text-muted-foreground">{t("revenue.description")}</p>
+          </div>
         </div>
-        <div>
-          <h1 className="text-2xl font-bold">{t("revenue.title")}</h1>
-          <p className="text-muted-foreground">{t("revenue.description")}</p>
-        </div>
+
+        {earnings && <EarningsCards earnings={earnings} />}
+
+        <PaymentsTable />
       </div>
-
-      {earnings && <EarningsCards earnings={earnings} />}
-
-      <PaymentsTable />
     </div>
   );
 }

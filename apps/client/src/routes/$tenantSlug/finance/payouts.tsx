@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
+import { ComingSoonOverlay } from "@/components/coming-soon-overlay";
 import { createSeoMeta } from "@/lib/seo";
 import {
   usePayoutStatus,
@@ -126,6 +127,7 @@ function CapabilityCard({
 
 function PayoutsPage() {
   const { t } = useTranslation();
+  const { user } = Route.useRouteContext();
   const { data: status, isLoading } = usePayoutStatus();
   const { mutate: startOnboarding, isPending: isStarting } =
     useStartOnboarding();
@@ -133,6 +135,8 @@ function PayoutsPage() {
     useRefreshOnboarding();
   const { mutate: getDashboardLink, isPending: isOpeningDashboard } =
     useGetDashboardLink();
+
+  const isSuperadmin = user.role === "superadmin";
 
   const handleStartOnboarding = () => {
     startOnboarding(undefined, {
@@ -192,7 +196,9 @@ function PayoutsPage() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="relative">
+      {!isSuperadmin && <ComingSoonOverlay />}
+      <div className="space-y-8">
       <div className="relative overflow-hidden rounded-3xl border border-border/50 bg-gradient-to-br from-primary/5 via-background to-background p-8 md:p-10">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/10 via-transparent to-transparent" />
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
@@ -386,6 +392,7 @@ function PayoutsPage() {
             </div>
           </div>
         )}
+      </div>
       </div>
     </div>
   );
