@@ -69,8 +69,9 @@ export const usersRoutes = new Elysia()
           userDateFields
         );
 
-        const tenantNameFilter = ctx.query.tenantId
-          ? ilike(tenantsTable.name, `%${ctx.query.tenantId}%`)
+        const tenantSearchValue = ctx.query.tenantId?.replace(/^contains:/, "");
+        const tenantNameFilter = tenantSearchValue
+          ? ilike(tenantsTable.name, `%${tenantSearchValue}%`)
           : undefined;
 
         const conditions = [baseWhereClause, tenantNameFilter].filter(Boolean);
